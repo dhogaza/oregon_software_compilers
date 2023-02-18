@@ -42,21 +42,24 @@ interface
 { Definition of possible host/target operating systems and machine
   architectures.  These definitions are used to conditionalized
   routines in the front end for each machine.
+
+  Don Baccus: once upon a time all of these were supported, other than
+  ARM AARCH64 and Linux, neither of which existed.
 }
 
 type
-
-  shortint = integer; {DRB fpc defaults to 8 bits}
-  integer = longint; {DRB fpc defaults to 16 bits}
-
-  languages = (pascal, c, modula2, fortran77);
-  architectures = (pdp11, vax, iapx86, mc68000, ns32k, i80386);
+  languages = (pascal, c, modula2);
+  architectures = (pdp11, vax, iapx86, mc68000, ns32k, i80386, aarch64);
   opsystems = (vms, rsx, rsts, rt, unix, msdos, vdos, cpp, apollo);
   unixflavors = (NoHost, UniPlus, UniPlusIII, UniPlusV, Masscomp, Xenix,
                  Tandy, Sun, HP9300, Munix, Regulus, Wicat, CandD, Perpos, Ctix, Nti,
                  Venix, UniFlex, VMEV2, UniPlusV2, Ncr, LMI, gmf, domainix,
                  pcix, inix86, inix286, MSxenix, umax, atxenix, ultrix,
-                 morebsd, NEC, uspare5, uspare6, last_host);
+                 morebsd, NEC, uspare5, uspare6, linux, last_host);
+type
+
+  shortint = integer; {DRB fpc defaults to 8 bits}
+  integer = longint; {DRB fpc defaults to 16 bits}
 
 { get configuration parameters for this particular host and
   target combination.  'config' defines such things as wordlength,
