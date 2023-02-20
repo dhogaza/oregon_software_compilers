@@ -29,7 +29,6 @@ interface
 uses config, hdr, t_c;
 
 const
-  nodesperblock = codemaxnodeinblock; {nodes per physical file block - 1}
 
   {AARCH64 general register assignments}
 
@@ -38,6 +37,7 @@ const
   zero = 31; {sp encodes to this, too, but we'll differentiate}
   link = 30;
   fp = 29;
+  gp = 28;
   ip0 = 16; {ip0 and ip1 reserved for linker}
   ip1 = 17;
   pr = 18; {platform register, can't touch}
@@ -66,25 +66,8 @@ const
 }
   peeping = true; { enable statistical collection of peephole optimizers }
   maxpeephole = 16; { number of discrete peephole optimizations }
-  diag_error = 0; {begin error data}
-  diag_proc_p2 = 1; {begin procedure name for Pascal2}
-  diag_func_p2 = 2; {begin function name for Pascal2}
-  diag_prog_p2 = 3; {begin program name for Pascal2}
-  diag_proc_m2 = 4; {begin procedure name for Modula2}
-  diag_mod_m2  = 5; {begin function name for Modula2}
-  diag_proc_c  = 6; {begin procedure name for C}
 
   maxerrs = 5;
-
-{ Distinguished values of relocation used in Pascal
-}
-  unknown = 0; {unknown global relocation}
-  global_section = - 1; {the global area}
-  own_section = - 2; {the own area}
-  min_section = - 2; {lowest of the above}
-
-  maxstuffnodes = 39; {maximum number of nodes needed to stuff registers}
-  prologuelength = 25; {maximum number of nodes in procedure prologue}
 
 { tab stops for macro file:
 }
@@ -282,22 +265,41 @@ type
 
   { AARCH64 instruction definitions }
 
-  insttype = (none);
+  insts = (noinst, add, sub, ldr, str);
+
+  inst_type = packed record
+    inst: insts;
+    sf: boolean; {true 64 bits, false 32 bits }
+    s: boolean; {true sets flags for conditional branches }
+    operands: 0..4;
+  end;
 
   oprnd_types = (dest_oprnd, oprnd2, ldstr_oprnd);
-  oprnd2_modes = (register, shiftreg, extendreg, immediate, relative);
+  oprnd2_modes = (register, shift_reg, extend_reg, immediate, relative);
   ldstr_oprnd_modes = (ldstr_pre_index, ldstr_post_index, ldstr_immediate, ldstr_register, ldstr_literal);
+
+  reg_extends = (xtb, xth, xtw, xtx); 
+  reg_shifts = (lsl, lsr, asr);
+  imm6 = 0..63;
+  imm12 = 0..4095;
 
   oprnd2_type = packed record
     reg: regindex;
     case oprnd2_mode: oprnd2_modes of
-      shiftreg: (reg2: regindex);
+      shift_reg: (reg_shift: reg_shifts;
+                  shift_amount: imm6);
+      extend_reg: (reg_extend: reg_extends;
+                   extend_amount: 0..7;
+                   extend_signed: boolean); 
+      immediate: (value: imm12;
+                  shift: boolean);
     end;
 
   ldstr_oprnd_type = packed record
     basereg: regindex;
     case ldstr_oprnd_mode: ldstr_oprnd_modes of
-      ldstr_pre_index, ldstr_post_index: (index: -128..127);
+      ldstr_pre_index, ldstr_post_index, ldstr_immediate: (index: integer);
+      ldstr_literal: (literal: integer);
     end;
 
   oprnd_type =
@@ -317,7 +319,6 @@ type
   See the Program Logic Manual for an explanation of the uses of these fields
 }
 
-  nodeindex = 0..cnodetablesize; {used to reference a node by number}
   nodeptr = ^node; {used to reference the node contents}
   nodekinds = (instnode, oprndnode, labelnode, labeldeltanode, errornode, stmtref, datanode);
 
@@ -326,45 +327,25 @@ type
 
   node =
     packed record
+      next_node: nodeptr;
       tempcount: keyindex; {number of temps below this item. only valid if
                             branch node or stack dependant operand node}
       case kind: nodekinds of
         instnode:
-          (inst: insttype;
-           oprndcount: operandrange;
+          (inst: inst_type;
            labelled: boolean; {true if a label attached here}
-           oprndlength: datarange; {number of bytes we operate on} );
-        oprndnode:
-          (oprnd: oprnd_type; {the actual operand, described above} );
+           oprnd_cnt: 0..4;
+           oprnds: packed array [1..4] of oprnd_type);
         labelnode:
-          (labelno: integer;
+          (labelno: unsigned;
            stackdepth: integer; {used for aligning sp at branch}
-           brnodelink: nodeindex; {used by mergebranchtails} );
+           brnodelink: nodeptr; {used by mergebranchtails} );
         labeldeltanode:
           (tablebase: integer; {label number of base of casetable}
            targetlabel: integer; {label number of case branch target}
           );
         errornode: (errorno: integer; {error number} );
         datanode: (data: unsigned {long word constant data} );
-    end;
-
-  { The following are used to map nodes onto virtual memory blocks}
-
-  nodeblockptr = ^nodeblock; {a block of nodes}
-
-  nodeblock =
-    record {holds the actual node data}
-      case boolean of
-        false: (physical: doublediskblock);
-        true: (logical: array [0..nodesperblock] of node);
-    end;
-
-  blockmap =
-    record {used to keep track of virtual blocks in memory}
-      blkno: 0..128; {block index of data in buffer^}
-      written: boolean; {block has been changed and must be written}
-      lowblock: boolean; {this block allocated in global area}
-      buffer: nodeblockptr; {buffer for a data block}
     end;
 
 
@@ -392,35 +373,28 @@ type
   keyx =
     packed record
       refcount, copycount: 0..maxrefcount; {reference info from pseudocode}
-      len: integer; {length of this operand, from pseudocode}
+      len: unsigned; {length of this operand, from pseudocode}
       copylink: keyindex; {node we copied, if created by copyaccess op}
       access: accesstype; {type of entry}
       properreg: keyindex; {reference to non-volatile storage of oprnd.r}
-      properindxr: keyindex; {ditto for oprnd.indxr}
       tempflag: boolean; {if a stack temp, set true when referenced}
       validtemp: boolean; {if a stack temp, set true when allocated}
       regsaved: boolean; {true if oprnd.r has been saved (in
                           keytable[properreg])}
-      indxrsaved: boolean; {ditto for oprnd.indxr}
       regvalid: boolean; {true if oprnd.r field is valid, set false when
                           register is stepped on}
-      indxrvalid: boolean; {ditto oprnd.indxr, not indxrvalid ->
-                            indxrsaved}
       packedaccess: boolean; {true if length is bits, not bytes, and a
                               packed field is being accessed}
       joinreg: boolean; {true if regvalid should be set false upon next
                          joinlabel pseudoop}
-      joinindxr: boolean; {ditto indxrvalid}
       signed: boolean; {true if operand contains signed data}
       signlimit: addressrange; {size for which this key is still signed}
       knowneven: boolean; {true if word or long instruction will work
                            here}
-      high_word_dirty: boolean; {true if register contains the result of
-                                 a 16-bit divide inst.}
-      instmark: nodeindex; {set to first instruction of stream which
+      instmark: nodeptr; {set to first instruction of stream which
                             created value described in this record}
       oprnd: oprnd_type; {the machine description of the operand}
-      brinst: insttype; {use this instruction for 'true' branch}
+      brinst: inst_type; {use this instruction for 'true' branch}
     end;
 
   keytabletype = array [lowesttemp..keysize] of keyx;
@@ -435,7 +409,7 @@ type
     record {holds data on branch-label linkage}
       nextbr: brlinkptr; {next branch entry}
       l: integer; {label referenced}
-      n: nodeindex {node for that label}
+      n: nodeptr {node for that label}
     end;
 
 
@@ -445,7 +419,7 @@ type
     packed array [regindex] of
       packed record
         stackcopy: keyindex; {descriptor of saved copy of register}
-        reload: nodeindex; { index of instruction that restored copy }
+        reload: nodeptr; { index of instruction that restored copy }
         active: boolean; {set true if active at loop entry}
         used: boolean; {set true if used within loop}
         killed: boolean; {set true if killed within loop}
@@ -475,87 +449,11 @@ type
   bytesize = 0..255;
   section = (codesect, diagsect, datasect); { code sections }
   supportrange = integer;
-  linknametype = packed array [1..maxprocnamelen] of char;
-
-  fixupptr = ^fixupnode;
-  fixuptype = (fixuplabel, fixupproc, fixupabs, fixupesdid);
-  fixupnode =
-    record
-      fixuplink: fixupptr;
-      fixupfileloc: addressrange; { location in relfile }
-      fixupobjpc: addressrange;
-      fixupaddr: addressrange; { relative address when found }
-      fixuplen: 2..4; { word or long fixup -- for 68020 }
-      case fixupkind: fixuptype of
-        fixuplabel: (fixuplabno: integer);
-        fixupproc: (fixupprocno: integer);
-        fixupabs: ();
-        fixupesdid: (vartabindex: integer); { index into vartable }
-    end;
-
-  esdrange = firstesd..lastesd;
-
-  esdtype = (esdsupport, esdexternal, esdentry, esdload, esdglobal,
-	     esddiag, esdcodestart, esdcodesize,
-             esdcommon, esdbegin, esduse, esddefine, esdshrvar);
-
-  esdtabentry =
-    packed record
-      case esdkind: esdtype of
-        esdsupport: (suppno: libroutines); { support number }
-        esdexternal, esdentry:
-          (exproc: proctableindex); { index to proctable }
-        esduse, esddefine: (vartabindex: integer); { index into vartable }
-        esdload: (sect: section);
-        esdglobal, esdcommon, esdbegin: (glbsize: addressrange);
-        esddiag, esdcodestart, esdcodesize: ();
-    end;
 
 { types to support formatted macro output:
 }
   longname = packed array [1..max_string_len] of char;
   columnrange = 0..120;
-
-  bits = 0..16; {counts bits in a word}
-
-  objfileblock = 0..255;
-  objfiletype = file of objfileblock;
-
-  tempreltype = (externrel, forwardrel, backwardrel, textrel,
-                 nonlocalrel, supportrel, commonrel, stackrel);
-
-  tempreloffset = 0..5000; {max of proctablesize, maxsupport, maxnonlocal}
-
-  tempnegoffset = 0..15; {offset in words for cross-level procedure calls}
-
-  tempreloc = packed record
-                treltype: tempreltype;
-                treloffset: tempreloffset;
-                tnegoffset: tempnegoffset;
-                trellocn: addressrange;
-              end;
-
-  relfileblock = 0..maxusword;
-  relfiletype = file of relfileblock;
-
-  worddiskblock = packed array [0..worddiskbufsize] of 0..maxusword;
-  wordstream = file of worddiskblock;
-
-  { Putcode object types.
-  }
-  objtypes =
-    (objnorm, { normal code word }
-     objext, { external symbol reference }
-     objforw, { forward ref--to be fixed up }
-     objsup, { support call }
-     objcom, { common reference }
-     objoff, { offset -- can not be start of relocation group }
-     objpic, { start of long pic relocation }
-     objign, { word containing linker commands which usually follows
-               objpic -- ignore for /test listing }
-     objlong { reserve a longword -- must not be split across records }
-    );
-  objtypesx = array [objtypes] of 0..4;
 
 var
 
@@ -568,7 +466,8 @@ var
 
   labelnextnode: boolean; {Mark the next node as labeled}
 
-  lastnode: nodeindex; {last valid node (locally). New nodes go here}
+  firstnode: nodeptr; {first node allocated by new}
+  lastnode: nodeptr; {last node allocated by new}
 
   level: levelindex; {current block nesting levels}
 
@@ -578,28 +477,22 @@ var
 
   labeltable: array [labelindex] of
       record {links label numbers to nodes, plus useful data}
-        nodelink: nodeindex; {node being labeled}
+        nodelink: nodeptr; {node being labeled}
         labno: integer; {label number}
         stackdepth: integer; {stack depth at this label}
         address: addressrange; {actual address of this label}
       end;
 
-  lastsaved, savereginst, fpsavereginst, stuffreginst: nodeindex;
-  blocklabelnode, linkentryinst, setupinst: nodeindex;
+  lastsaved, savereginst, fpsavereginst, stuffreginst: nodeptr;
+  blocklabelnode, linkentryinst, setupinst: nodeptr;
   lastptr: nodeptr;
 
   blockusesframe: boolean; {set to true in blockentryx if frame is used}
 
   paramsize, blksize: addressrange;
 
-  aregisters: array [regindex] of integer; {usage count of address registers}
-  dregisters: array [regindex] of integer; {usage count of data registers}
-  fpregisters: array [regindex] of integer; {usage count of floating-point
-                                             registers}
   stackcounter: keyindex; {key describing top of runtime stack}
   stackoffset: integer; {depth of runtime stack in bytes}
-  aregused, dregused, fpregused: array [regindex] of boolean; {set if currently
-                                                               used}
 
   lastkey: keyindex; {last key used by travrs at the moment}
 
@@ -614,23 +507,11 @@ var
   loopupflag: boolean; {set true if current loop is looping up}
   loopdownflag: boolean; {set true if current loop is looping down}
   loopdatalength: addressrange; {number of bytes being moved}
-  piecesize: addressrange; {length of each data reference within structured
-                            move}
-
-  lastdreg, lastareg, lastfpreg: regindex; {last registers available for
-                                            scratch use in this block}
-
-  qualifiedinsts, {have ".length" attribute}
-   shiftinsts, {lsl, etc}
-   shortinsts, {instructions which make immediate operands cheap}
-   immedinsts, monadicinsts, {subset of 1 operand instructions}
-   dyadicinsts: set of insttype; {subset of 2 operand instructions}
-  branches, fpbranches: set of insttype; {initialized to contain all branches}
-  bitfieldinsts: set of insttype; {initialized to contain all bit field insts}
 
   len: integer; {length from current pseudo-instruction}
   left, right: keyindex; {oprnds[1] and oprnds[2] (left and right) from
                           pseudoinst}
+
   key: keyindex; {result key from pseudoinst}
   target: keyindex; {target value, often a key, from pseudoinst}
   tempkey: keyindex; {current temp key <0}
@@ -647,14 +528,8 @@ var
                                 of the index. Bottom of loop must restore if
                                 intervening code has eaten the original
                                 contents of this register}
-        nonvolatile: boolean; {must save index in "real" var}
-        globaldreg: boolean; {non-volatile and was not a global dreg}
         savedlen: datarange; { original length of index variable }
         litinitial: boolean; {set true if initial value is constant}
-        computedaddress: boolean; {we needed to address beyond 32K, so we used
-                                   an A register to hold the address of the
-                                   index variable}
-        savedaddress: keyindex; {where we saved the A register}
         savedoprnd: oprnd_type;
         initval: integer; {initial value, if constant}
       end;
@@ -671,8 +546,8 @@ var
         { dbump[r] is set true if dregisters[r] > 0 at context entry}
         abump: bumparray;
         fpbump: bumparray; { floating-point regs }
-        lastbranch: nodeindex; {set at each out-of-line branch}
-        firstnode: nodeindex; {first instruction for this context block}
+        lastbranch: nodeptr; {set at each out-of-line branch}
+        firstnode: nodeptr; {first instruction for this context block}
       end;
 
   contextsp: contextindex; {top of mark stack (context pointer)}
@@ -687,8 +562,8 @@ var
   loopstack: array [loopindex] of
       record
         thecontext: contextindex;
-        savelastbranch: nodeindex; { value of lastbranch upon entry }
-        savefirstnode: nodeindex; { value of firstnode upon entry }
+        savelastbranch: nodeptr; { value of lastbranch upon entry }
+        savefirstnode: nodeptr; { value of firstnode upon entry }
         abump: bumparray;
         dbump: bumparray;
         fpbump: bumparray;
@@ -731,84 +606,21 @@ var
                             prevent redundant set moves. }
 
 
-  {virtual memory system variables}
-
-  bignodetable: array [0..bigcnodetablesize] of node;
-  lastblocksin: integer; {highest block actually used (auto sizing)}
-  thrashing: boolean; {true if not all nodes fit in core}
-
-  blocksin: array [1..cmaxblocksin] of blockmap; {map of blocks in core}
-
-  blockslow: array [1..maxblockslow] of nodeblock; {blocks in global storage}
-
   { Modula2 specific variables }
 
   openarray_base: openarraynodeptr; { pointer to linked list of open array
                                       parameters. }
   main_import_offset: integer; {offset to add to main's import table entry}
 
-  savedebinst: nodeindex; {debug instruction for fixup}
-  profstmtcount: integer; {number of statements being profiled}
-
-  highcode, currentpc: addressrange;
-  sectionpc: array [section] of addressrange; { currentpc for this section}
-  sectionno: array [section] of integer; {current section number}
-  currentsect: section; { section for current code}
-
   totalputerr: integer; { total putmac errors in program }
   testing: boolean; { true if /test AND /macro }
   column: columnrange;
-  sectiontail: string2; {contains .S or blanks}
 
-  labelpc: addressrange; { object address of last-found label }
   found: boolean; { general boolean used to control search loops }
 
-  lastobjpc: addressrange; { buffered objpc for intermediate file dump }
-
-  fixuphead: fixupptr; { points to head of fixup list }
-  fixuptail: fixupptr; { points to the last entry in the list }
-  fixp: fixupptr; { temporary pointer into fixup list }
-
-  esdtable: array [esdrange] of esdtabentry; { filled first-come, first-served
-                                              }
-  nextesd: esdrange; { next available entry in ESDtable }
-  newesd: esdtabentry; { next argument for ESDtable insertions }
-  esd: esdrange; { induction var for scanning ESD table }
-  esdid: esdrange; { returns ESD index from ESD table searches }
-
-  { buffers and counters to manage object file production }
-
-  tempfilesize: addressrange; { total length in words of relfile }
-
-  nextobjfile: - 1..255; { index into objfile buffer }
-  nextrelfile: - 1..255; { index into relfile buffer }
-  nextobjblk: integer; { Block number for seek }
-  objbytecount: integer;
-
-  nexttempbuffer: 0..32; { index into tempbuffer }
-  nexttemprelocn: 0..32; { index into temprelocn }
-  tempbuffer: array [0..31] of unsigned; {buffers constants and instructions}
-  temprelocn: array [0..31] of boolean; {gets packed going into relfile}
-
-  { Diagnostic code generation variables }
-
-  nowdiagnosing: boolean; {generate diagnostic code for this block}
-  everdiagnosing: boolean; {ever generated diagnostic code}
-  lastdiagline: integer; {last line number reference generated}
-  lastdiagpc: addressrange; {last pc reference generated}
-  diaglenfix: fixupptr; {fixup for length of diag tables}
-  codelenfix: fixupptr; {fixup for length of code}
-  diagbitbuffer: unsigned; {holds diagnostic bits}
-  nextdiagbit: bits; {next diagnostic bit to be filled in}
-  commonesdid: esdrange; {kluge for common section (own)}
-
   macfile: text; {receives macro assembler image}
-  objfile: objfiletype; {receives object image} {??}
-  relfile: relfiletype; { array [0..255] of unsigned }
-  diagfile: wordstream; {temporary diagnostics file}
 
-  newobjectfmt: boolean; {if true generate new object types for long names}
-
+  lastnodeptr: nodeptr;
 
 implementation
 

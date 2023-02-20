@@ -317,7 +317,7 @@ const
 
 {DRB  fastread = true;}
   fastread = false;   {use the fast library routine p_rdsfst}
-  stringroundoff = 2; {string length alignment constant}
+  stringroundoff = 8; {string length alignment constant}
 
 { Analys parameters }
 
@@ -348,8 +348,8 @@ const
   stackalign = 2; {alignment requirement for the stack}
   bitsperunit = 8; {bits per address unit}
   bitsperfileunit = 8; {bits per file allocation unit}
-  packingunit = 2; {maximum size used for packing}
-  maxbit = 15; {One less than "bits-per-word"}
+  packingunit = 8; {maximum size used for packing}
+  maxbit = 31; {One less than "bits-per-word"}
   maxalign = 16; {largest alignment value possible}
   pdpalign = 2; {pdp-11 compatible alignment value}
   stringeltsize = 8; {bits per string element}
@@ -449,18 +449,6 @@ const
   wrbo = 110; {write a boolean variable to a text file}
 { constant definitions to support the PutObj module:
 }
-
-  firstESD = 17; { first available External Symbol Definition index }
-  lastESD = 256; { this value is 1 greater than the maximum assignable index
-                  so that nextESD will never be out of ESDrange }
-  {note: a load module can have at most 238 external definitions/references! }
-
-  oursection = 13; { section in which Pascal code resides }
-  diagsection = 14; { section for diagnostic code }
-  linknamesize = 10; { max length of an external name }
-  linknameused = 10; { length of external names actually used }
-  maxtempbuffer = 32; { number of words in tempbuffer }
-  maxrelfile = 255; { number of words in relfilebuffer }
 
   checkmsg = ' consistency checks detected'; { output only if internal errors
                                               }
