@@ -181,6 +181,7 @@ const
   maxvarptrs = 32; {number of pointers in vartable}
 
   defdatasection = 15; { default data section (used by csi) }
+  oursection = 0;
 
   maxdebugrecord = 14; {max number-1 of debug records in a diskblock}
   debugfileptrmax = 999; {max number-1 of debug file pointers}

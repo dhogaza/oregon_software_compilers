@@ -38,6 +38,7 @@ const
   link = 30;
   fp = 29;
   gp = 28;
+  sl = 27; {if needed for uplevel refs}
   ip0 = 16; {ip0 and ip1 reserved for linker}
   ip1 = 17;
   pr = 18; {platform register, can't touch}
@@ -269,11 +270,16 @@ type
   first_a, add, sub, last_a,
 
   {load/store instruction}
-  first_ls, ldr, ldrb, ldrh, ldrw, ldrsb, ldrsh, ldrsw, str, strb, strh, last_ls,
+  first_ls, ldr, ldrb, ldrh, ldrw, ldrsb, ldrsh, ldrsw, ldp,
+  str, strb, strh, stp, last_ls,
 
   {branch instructions}
 
-  first_b, b, last_b);
+  first_b, b, last_b,
+
+  {miscellaneous instructions}
+
+  ret);
 
   inst_type = packed record
     inst: insts;

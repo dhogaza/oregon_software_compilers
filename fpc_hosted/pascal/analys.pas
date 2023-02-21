@@ -1459,6 +1459,36 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                     align := p^.align;
                     end;
                   end {i80386} ;
+                aarch64:
+                  begin
+                  size := defaulttargetintsize;
+                  if not extended then
+                    if lowerord < 0 then
+                      if simplesize(max(abs(lowerord + 1),
+                         abs(upperord))) = defaulttargetintsize then
+                        size := defaulttargetintsize
+                      else
+                        size := simplesize(max(abs(lowerord + 1),
+                                               abs(upperord)) * 2)
+                    else size := simplesize(upperord);
+                  align := size;
+                  parenttype := lowervalue.typeindex;
+                  { the strategy here is to allocate 2 bytes if
+                    it is subrange of a parenttype which is going
+                    to be 4 bytes but to align 2 bytes on 2 byte bounds and
+                    others on the parent alignment.
+                  }
+                  if size = shortintsize then
+                    begin
+                    align := shortintalign;
+                    end
+                  else
+                    begin
+                    if bigcompilerversion then p := @(bigtable[parenttype]);
+                    size := min(p^.size, forcealign(size, intalign, false));
+                    align := p^.align;
+                    end;
+                  end {aarch64} ;
                 otherwise
                   begin
                   write('Missing targetmachine selection');

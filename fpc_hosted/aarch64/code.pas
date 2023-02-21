@@ -94,7 +94,6 @@ procedure codeone;
 begin
 end;
 
-
 procedure initcode;
 
 { Initialize the code generation pass.
@@ -154,7 +153,576 @@ procedure exitcode;
   var
     p, p1: nodeptr;
 
+o1, o2, o3, o4: oprnd_type;
+i: inst_type;
+
   begin
+
+
+i.inst := ldr;
+i.sf := true;
+i.s := false;
+
+gen_inst_node(i, 2);
+
+o1.typ := value_oprnd;
+o1.value_oprnd.mode := register;
+o1.value_oprnd.reg := 3;
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.basereg := noreg;
+o2.addr_oprnd.mode := literal;
+o2.addr_oprnd.literal := 16000;
+
+gen_oprnd(lastnode, 2, o2);
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.basereg := sp;
+o2.addr_oprnd.mode := pre_index;
+o2.addr_oprnd.index := -16;
+
+gen_oprnd(lastnode, 2, o2);
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.mode := post_index;
+o2.addr_oprnd.index := 16;
+
+gen_oprnd(lastnode, 2, o2);
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.mode := imm_offset;
+o2.addr_oprnd.index := 256;
+
+gen_oprnd(lastnode, 2, o2);
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.mode := reg_offset;
+o2.addr_oprnd.reg := 1;
+o2.addr_oprnd.shift := false;
+o2.addr_oprnd.signed := false;
+o2.addr_oprnd.extend := xtx;
+
+gen_oprnd(lastnode, 2, o2);
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.mode := reg_offset;
+o2.addr_oprnd.reg := 2;
+o2.addr_oprnd.shift := true;
+o2.addr_oprnd.signed := false;
+o2.addr_oprnd.extend := xtx;
+
+gen_oprnd(lastnode, 2, o2);
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.mode := reg_offset;
+o2.addr_oprnd.reg := 3;
+o2.addr_oprnd.shift := true;
+o2.addr_oprnd.signed := true;
+o2.addr_oprnd.extend := xtx;
+
+gen_oprnd(lastnode, 2, o2);
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.mode := reg_offset;
+o2.addr_oprnd.reg := 3;
+o2.addr_oprnd.shift := false;
+o2.addr_oprnd.signed := true;
+o2.addr_oprnd.extend := xtx;
+
+gen_oprnd(lastnode, 2, o2);
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.mode := reg_offset;
+o2.addr_oprnd.reg := 3;
+o2.addr_oprnd.shift := true;
+o2.addr_oprnd.signed := true;
+o2.addr_oprnd.extend := xtw;
+
+gen_oprnd(lastnode, 2, o2);
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.mode := reg_offset;
+o2.addr_oprnd.reg := 3;
+o2.addr_oprnd.shift := false;
+o2.addr_oprnd.signed := true;
+o2.addr_oprnd.extend := xtw;
+
+gen_oprnd(lastnode, 2, o2);
+
+i.sf := false;
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.mode := reg_offset;
+o2.addr_oprnd.reg := 3;
+o2.addr_oprnd.shift := true;
+o2.addr_oprnd.signed := true;
+o2.addr_oprnd.extend := xtw;
+
+gen_oprnd(lastnode, 2, o2);
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.mode := reg_offset;
+o2.addr_oprnd.reg := 3;
+o2.addr_oprnd.shift := false;
+o2.addr_oprnd.signed := true;
+o2.addr_oprnd.extend := xtw;
+
+gen_oprnd(lastnode, 2, o2);
+
+i.inst := ldrb;
+gen_inst_node(i, 2);
+
+o1.value_oprnd.reg := 3;
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.mode := reg_offset;
+o2.addr_oprnd.reg := 3;
+o2.addr_oprnd.shift := false;
+o2.addr_oprnd.signed := true;
+o2.addr_oprnd.extend := xtw;
+
+gen_oprnd(lastnode, 2, o2);
+
+i.inst := ldrsw;
+i.sf := true; { ldrsw requries an Xreg target }
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.basereg := 5;
+o2.addr_oprnd.mode := reg_offset;
+o2.addr_oprnd.reg := 3;
+o2.addr_oprnd.shift := false;
+o2.addr_oprnd.signed := true;
+o2.addr_oprnd.extend := xtw;
+
+gen_oprnd(lastnode, 2, o2);
+
+i.inst := str;
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.basereg := 5;
+o2.addr_oprnd.mode := reg_offset;
+o2.addr_oprnd.reg := 3;
+o2.addr_oprnd.shift := false;
+o2.addr_oprnd.signed := true;
+o2.addr_oprnd.extend := xtw;
+
+gen_oprnd(lastnode, 2, o2);
+
+i.sf := false;
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.basereg := 5;
+o2.addr_oprnd.mode := reg_offset;
+o2.addr_oprnd.reg := 3;
+o2.addr_oprnd.shift := false;
+o2.addr_oprnd.signed := true;
+o2.addr_oprnd.extend := xtw;
+
+gen_oprnd(lastnode, 2, o2);
+
+i.inst := strh;
+i.sf := false;
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.basereg := 5;
+o2.addr_oprnd.mode := reg_offset;
+o2.addr_oprnd.reg := 3;
+o2.addr_oprnd.shift := false;
+o2.addr_oprnd.signed := true;
+o2.addr_oprnd.extend := xtw;
+
+gen_oprnd(lastnode, 2, o2);
+
+i.inst := strb;
+
+gen_inst_node(i, 2);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.typ := addr_oprnd;
+o2.addr_oprnd.basereg := 5;
+o2.addr_oprnd.mode := reg_offset;
+o2.addr_oprnd.reg := 3;
+o2.addr_oprnd.shift := false;
+o2.addr_oprnd.signed := true;
+o2.addr_oprnd.extend := xtw;
+gen_oprnd(lastnode, 2, o2);
+
+i.inst := stp;
+i.sf := true;
+gen_inst_node(i, 3);
+
+o3 := o2;
+o2 := o1;
+o1.value_oprnd.reg := 29;
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.mode := register;
+o2.value_oprnd.reg := 30;
+gen_oprnd(lastnode, 2, o2);
+
+o3.typ := addr_oprnd;
+o3.addr_oprnd.basereg := sp;
+o3.addr_oprnd.mode := pre_index;
+o3.addr_oprnd.index := -16;
+gen_oprnd(lastnode, 3, o3);
+
+i.inst := ldp;
+i.sf := true;
+gen_inst_node(i, 3);
+
+o3 := o2;
+o2 := o1;
+o1.value_oprnd.reg := 29;
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.mode := register;
+o2.value_oprnd.reg := 30;
+gen_oprnd(lastnode, 2, o2);
+
+o3.typ := addr_oprnd;
+o3.addr_oprnd.basereg := sp;
+o3.addr_oprnd.mode := post_index;
+o3.addr_oprnd.index := 16;
+gen_oprnd(lastnode, 3, o3);
+
+i.inst := add;
+i.sf := false;
+i.s := true;
+
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2 := o1;
+o2.value_oprnd.reg := 4;
+gen_oprnd(lastnode, 2, o2);
+
+o3 := o1;
+o3.value_oprnd.reg := 20;
+gen_oprnd(lastnode, 3, o3);
+
+i.sf := true;
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2 := o1;
+o2.value_oprnd.reg := 4;
+gen_oprnd(lastnode, 2, o2);
+
+o3 := o1;
+o3.value_oprnd.reg := 20;
+gen_oprnd(lastnode, 3, o3);
+
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 21;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.reg := 4;
+o3.value_oprnd.mode := shift_reg;
+o3.value_oprnd.reg_shift := lsl;
+o3.value_oprnd.shift_amount := 20;
+gen_oprnd(lastnode, 3, o3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 21;
+gen_oprnd(lastnode, 2, o2);
+
+gen_inst_node(i, 3);
+
+o3.value_oprnd.reg := 4;
+o3.value_oprnd.mode := shift_reg;
+o3.value_oprnd.reg_shift := lsr;
+o3.value_oprnd.shift_amount := 41;
+gen_oprnd(lastnode, 3, o3);
+
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 21;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.reg := 4;
+o3.value_oprnd.mode := shift_reg;
+o3.value_oprnd.reg_shift := asr;
+o3.value_oprnd.shift_amount := 63;
+gen_oprnd(lastnode, 3, o3);
+
+i.sf := false;
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 21;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.reg := 4;
+o3.value_oprnd.mode := shift_reg;
+o3.value_oprnd.reg_shift := lsl;
+o3.value_oprnd.shift_amount := 20;
+gen_oprnd(lastnode, 3, o3);
+
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 21;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.reg := 4;
+o3.value_oprnd.mode := shift_reg;
+o3.value_oprnd.reg_shift := lsr;
+o3.value_oprnd.shift_amount := 21;
+gen_oprnd(lastnode, 3, o3);
+
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 21;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.reg := 4;
+o3.value_oprnd.mode := shift_reg;
+o3.value_oprnd.reg_shift := asr;
+o3.value_oprnd.shift_amount := 23;
+gen_oprnd(lastnode, 3, o3);
+
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 21;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.reg := noreg;
+o3.value_oprnd.mode := immediate;
+o3.value_oprnd.value := 2332;
+o3.value_oprnd.shift := false;
+gen_oprnd(lastnode, 3, o3);
+
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 22;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.reg := noreg;
+o3.value_oprnd.mode := immediate;
+o3.value_oprnd.value := 2332;
+o3.value_oprnd.shift := true;
+gen_oprnd(lastnode, 3, o3);
+
+i.inst := sub;
+i.sf := true;
+i.s := false;
+
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 22;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.reg := 5;
+o3.value_oprnd.mode := extend_reg;
+o3.value_oprnd.reg_extend := xtx;
+o3.value_oprnd.extend_amount := 3;
+gen_oprnd(lastnode, 3, o3);
+
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 22;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.reg := 5;
+o3.value_oprnd.mode := extend_reg;
+o3.value_oprnd.reg_extend := xtb;
+o3.value_oprnd.extend_signed := true;
+o3.value_oprnd.extend_amount := 3;
+gen_oprnd(lastnode, 3, o3);
+
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 22;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.reg := 5;
+o3.value_oprnd.mode := extend_reg;
+o3.value_oprnd.reg_extend := xth;
+o3.value_oprnd.extend_signed := false;
+o3.value_oprnd.extend_amount := 3;
+gen_oprnd(lastnode, 3, o3);
+
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 22;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.reg := 5;
+o3.value_oprnd.mode := extend_reg;
+o3.value_oprnd.reg_extend := xtw;
+o3.value_oprnd.extend_signed := true;
+o3.value_oprnd.extend_amount := 3;
+gen_oprnd(lastnode, 3, o3);
+
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 22;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.reg := 5;
+o3.value_oprnd.mode := extend_reg;
+o3.value_oprnd.reg_extend := xtx;
+o3.value_oprnd.extend_signed := true;
+o3.value_oprnd.extend_amount := 3;
+gen_oprnd(lastnode, 3, o3);
+
+i.sf := false;
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 22;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.reg := 5;
+o3.value_oprnd.mode := extend_reg;
+o3.value_oprnd.reg_extend := xtx;
+o3.value_oprnd.extend_signed := true;
+o3.value_oprnd.extend_amount := 3;
+gen_oprnd(lastnode, 3, o3);
+
+i.sf := false;
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 22;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.reg := 5;
+o3.value_oprnd.mode := shift_reg;
+o3.value_oprnd.shift_amount := 31;
+o3.value_oprnd.reg_shift := lsr;
+gen_oprnd(lastnode, 3, o3);
+
+i.sf := true;
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 22;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.shift_amount := 61;
+gen_oprnd(lastnode, 3, o3);
+
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 22;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.shift_amount := 62;
+o3.value_oprnd.reg_shift := lsl;
+gen_oprnd(lastnode, 3, o3);
+
+gen_inst_node(i, 3);
+
+gen_oprnd(lastnode, 1, o1);
+
+o2.value_oprnd.reg := 22;
+gen_oprnd(lastnode, 2, o2);
+
+o3.value_oprnd.shift_amount := 63;
+o3.value_oprnd.reg_shift := asr;
+gen_oprnd(lastnode, 3, o3);
+
+i.inst := ret;
+gen_inst_node(i, 0);
+
+putcode.putcode;
+
     p := firstnode;
     while p <> nil do
     begin

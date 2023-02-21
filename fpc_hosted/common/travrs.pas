@@ -4385,7 +4385,7 @@ procedure build;
                 end;
               levop:
                 case targetmachine of
-                  vax, i80386, mc68000:
+                  vax, i80386, mc68000, aarch64:
                     begin
                     buildintoprnds(2);
                     if (n.oprndlist[1].i <> 0) and
