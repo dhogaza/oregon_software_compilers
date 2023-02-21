@@ -69,12 +69,7 @@ const
 
   maxerrs = 5;
 
-{ tab stops for macro file:
-}
-  opcolumn = 10;
-  opndcolumn = 19;
-  procnamecolumn = 27;
-  nodecolumn = 45;
+  max_oprnds = 4;
 
 type
 
@@ -263,29 +258,42 @@ type
     last_call  { must be last -- this one means nothing }
   );
 
-  { AARCH64 instruction definitions }
+  { AARCH64 instruction definitions, including some dummies to make creating
+    sets easier. }
 
-  insts = (noinst, add, sub, ldr, str);
+  oprnd_range = 0.. max_oprnds;
+
+  insts = (noinst,
+
+  {basic arithmetic instructions}
+  first_a, add, sub, last_a,
+
+  {load/store instruction}
+  first_ls, ldr, ldrb, ldrh, ldrw, ldrsb, ldrsh, ldrsw, str, strb, strh, last_ls,
+
+  {branch instructions}
+
+  first_b, b, last_b);
 
   inst_type = packed record
     inst: insts;
     sf: boolean; {true 64 bits, false 32 bits }
     s: boolean; {true sets flags for conditional branches }
-    operands: 0..4;
   end;
 
-  oprnd_types = (dest_oprnd, oprnd2, ldstr_oprnd);
-  oprnd2_modes = (register, shift_reg, extend_reg, immediate, relative);
-  ldstr_oprnd_modes = (ldstr_pre_index, ldstr_post_index, ldstr_immediate, ldstr_register, ldstr_literal);
+  oprnd_types = (value_oprnd, addr_oprnd);
+  value_oprnd_modes = (register, shift_reg, extend_reg, immediate, relative);
+  addr_oprnd_modes = (pre_index, post_index, imm_offset, reg_offset, literal);
 
-  reg_extends = (xtb, xth, xtw, xtx); 
+  reg_extends = (xtb, xth, xtw, xtx);
   reg_shifts = (lsl, lsr, asr);
+
   imm6 = 0..63;
   imm12 = 0..4095;
 
-  oprnd2_type = packed record
+  value_oprnd_type = packed record
     reg: regindex;
-    case oprnd2_mode: oprnd2_modes of
+    case mode: value_oprnd_modes of
       shift_reg: (reg_shift: reg_shifts;
                   shift_amount: imm6);
       extend_reg: (reg_extend: reg_extends;
@@ -295,18 +303,19 @@ type
                   shift: boolean);
     end;
 
-  ldstr_oprnd_type = packed record
+  addr_oprnd_type = packed record
     basereg: regindex;
-    case ldstr_oprnd_mode: ldstr_oprnd_modes of
-      ldstr_pre_index, ldstr_post_index, ldstr_immediate: (index: integer);
-      ldstr_literal: (literal: integer);
+    case mode: addr_oprnd_modes of
+      pre_index, post_index, imm_offset: (index: integer);
+      reg_offset: (reg: regindex; shift: boolean; extend: reg_extends; signed: boolean);
+      literal: (literal: integer);
     end;
 
   oprnd_type =
     packed record
       case typ: oprnd_types of
-        dest_oprnd, oprnd2: (oprn2: oprnd2_type);
-	ldstr_oprnd: (ldstr_oprnd: ldstr_oprnd_type);
+        value_oprnd: (value_oprnd: value_oprnd_type);
+	addr_oprnd: (addr_oprnd: addr_oprnd_type);
       end;
 
   pseudoset = set of pseudoop;
@@ -333,7 +342,7 @@ type
       case kind: nodekinds of
         instnode:
           (inst: inst_type;
-           labelled: boolean; {true if a label attached here}
+           labeled: boolean; {true if a label attached here}
            oprnd_cnt: 0..4;
            oprnds: packed array [1..4] of oprnd_type);
         labelnode:
@@ -485,7 +494,6 @@ var
 
   lastsaved, savereginst, fpsavereginst, stuffreginst: nodeptr;
   blocklabelnode, linkentryinst, setupinst: nodeptr;
-  lastptr: nodeptr;
 
   blockusesframe: boolean; {set to true in blockentryx if frame is used}
 
@@ -619,8 +627,6 @@ var
   found: boolean; { general boolean used to control search loops }
 
   macfile: text; {receives macro assembler image}
-
-  lastnodeptr: nodeptr;
 
 implementation
 

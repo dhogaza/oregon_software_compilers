@@ -18,10 +18,12 @@ procedure newnode(kind: nodekinds);
 
   begin {newnode}
     new(p);
-    if firstnode = nil then
-      firstnode := p;
-    lastnode^.next_node := p;
-    lastnode^.kind := kind;
+    if lastnode = nil then
+      firstnode := p
+    else
+      lastnode^.next_node := p;
+    p^.kind := kind;
+    p^.next_node := nil;
     lastnode := p;
   end {newnode};
 
