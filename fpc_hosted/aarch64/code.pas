@@ -35,27 +35,21 @@ procedure newnode(kind: nodekinds);
 
 
 procedure gen_inst(p: nodeptr;
-                   i: insts;
-                   sf: boolean;
-                   s: boolean;
+                   i: inst_type;
                    l: oprnd_range {number of operands});
 
 begin
   with p^ do
   begin
     tempcount := 0;
-    inst.inst := i;
-    inst.sf := sf;
-    inst.s := s;
+    inst := i;
     labeled := labelnextnode;
     oprnd_cnt := l;
   end;
   labelnextnode := false;
 end;
 
-procedure gen_inst_node(i: insts;
-                        sf: boolean;
-                        s: boolean;
+procedure gen_inst_node(i: inst_type;
                         l: oprnd_range {number of operands});
 
 { Generate a new instruction node 
@@ -68,7 +62,7 @@ procedure gen_inst_node(i: insts;
 
   begin {gen_inst_node}
     newnode(instnode);
-    gen_inst(lastnode, i, sf, s, l);
+    gen_inst(lastnode, i, l);
   end {gen_inst_node} ;
 
 procedure gen_oprnd(p: nodeptr; 
@@ -95,6 +89,18 @@ dependent on the stack, tempcount is set appropriately.
       p^.oprnds[i] := o;
     end;
   end {genoprnd} ;
+
+function build_inst(inst: insts; sf: boolean; s: boolean): inst_type;
+
+var
+  i: inst_type;
+
+begin
+  i.inst := inst;
+  i.sf := sf;
+  i.s := s;
+  build_inst := i;
+end;
 
 function reg_oprnd(reg: regindex): oprnd_type;
 
@@ -253,184 +259,189 @@ procedure exitcode;
   begin {exitcode}
 
 
-gen_inst_node(ldr, true, false, 2);
+gen_inst_node(build_inst(ldr, true, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, literal_oprnd(16000));
 
-gen_inst_node(ldr, true, false, 2);
+gen_inst_node(build_inst(ldr, true, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, index_oprnd(pre_index, sp, -16));
 
-gen_inst_node(ldr, true, false, 2);
+gen_inst_node(build_inst(ldr, true, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, index_oprnd(post_index, sp, 16));
 
-gen_inst_node(ldr, true, false, 2);
+gen_inst_node(build_inst(ldr, true, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, index_oprnd(imm_offset, 8, 256));
 
-gen_inst_node(ldr, true, false, 2);
+gen_inst_node(build_inst(ldr, true, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, reg_offset_oprnd(18, 1, false, xtx, false));
 
-gen_inst_node(ldr, true, false, 2);
+gen_inst_node(build_inst(ldr, true, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, reg_offset_oprnd(18, 2, true, xtx, false));
 
-gen_inst_node(ldr, true, false, 2);
+gen_inst_node(build_inst(ldr, true, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, reg_offset_oprnd(3, 4, true, xtx, true));
 
-gen_inst_node(ldr, true, false, 2);
+gen_inst_node(build_inst(ldr, true, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, reg_offset_oprnd(3, 4, false, xtx, true));
 
-gen_inst_node(ldr, true, false, 2);
+gen_inst_node(build_inst(ldr, true, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, reg_offset_oprnd(3, 4, true, xtx, true));
 
-gen_inst_node(ldr, true, false, 2);
+gen_inst_node(build_inst(ldr, true, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, reg_offset_oprnd(18, 3, false, xtw, true));
 
-gen_inst_node(ldr, false, false, 2);
+gen_inst_node(build_inst(ldr, false, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, reg_offset_oprnd(18, 3, true, xtw, true));
 
-gen_inst_node(ldr, false, false, 2);
+gen_inst_node(build_inst(ldr, false, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, reg_offset_oprnd(18, 3, false, xtw, true));
 
-gen_inst_node(ldrb, false, false, 2);
+gen_inst_node(build_inst(ldrb, false, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, reg_offset_oprnd(18, 3, false, xtw, true));
 
-gen_inst_node(ldrsw, true, false, 2);
+gen_inst_node(build_inst(ldrsw, true, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, reg_offset_oprnd(5, 3, false, xtw, true));
 
-gen_inst_node(str, true, false, 2);
+gen_inst_node(build_inst(str, true, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, reg_offset_oprnd(5, 3, false, xtw, true));
 
-gen_inst_node(str, false, false, 2);
+gen_inst_node(build_inst(str, false, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, reg_offset_oprnd(5, 3, false, xtw, true));
 
-gen_inst_node(strh, false, false, 2);
+gen_inst_node(build_inst(strh, false, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, reg_offset_oprnd(5, 3, false, xtw, true));
 
-gen_inst_node(strb, false, false, 2);
+gen_inst_node(build_inst(strb, false, false), 2);
 gen_oprnd(lastnode, 1, reg_oprnd(3));
 gen_oprnd(lastnode, 2, reg_offset_oprnd(5, 3, false, xtw, true));
 
-gen_inst_node(stp, true, false, 3);
+gen_inst_node(build_inst(stp, true, false), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(29));
 gen_oprnd(lastnode, 2, reg_oprnd(30));
 gen_oprnd(lastnode, 3, index_oprnd(pre_index, sp, -16));
 
-gen_inst_node(ldp, true, false, 3);
+gen_inst_node(build_inst(ldp, true, false), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(29));
 gen_oprnd(lastnode, 2, reg_oprnd(30));
 gen_oprnd(lastnode, 3, index_oprnd(post_index, sp, 16));
 
-gen_inst_node(add, false, true, 3);
+gen_inst_node(build_inst(add, false, true), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(6));
 gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 3, reg_oprnd(3));
 
-gen_inst_node(add, true, true, 3);
+gen_inst_node(build_inst(add, true, true), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 3, reg_oprnd(20));
 
-gen_inst_node(add, true, true, 3);
+gen_inst_node(build_inst(add, true, true), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 3, shift_reg_oprnd(4, lsl, 20));
 
-gen_inst_node(add, true, true, 3);
+gen_inst_node(build_inst(add, true, true), 3);
+gen_oprnd(lastnode, 1, reg_oprnd(5));
+gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 3, shift_reg_oprnd(4, lsr, 41));
-gen_inst_node(add, true, true, 3);
+
+gen_inst_node(build_inst(add, true, true), 3);
+gen_oprnd(lastnode, 1, reg_oprnd(5));
+gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 
-gen_inst_node(add, false, true, 3);
+gen_inst_node(build_inst(add, false, true), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 3, shift_reg_oprnd(4, lsl, 20));
 
-gen_inst_node(add, false, true, 3);
+gen_inst_node(build_inst(add, false, true), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 3, shift_reg_oprnd(4, lsr, 21));
 
-gen_inst_node(add, false, true, 3);
+gen_inst_node(build_inst(add, false, true), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 3, shift_reg_oprnd(4, asr, 23));
 
-gen_inst_node(add, false,true, 3);
+gen_inst_node(build_inst(add, false,true), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 3, immediate_oprnd(2332, false));
 
-gen_inst_node(add, false, true, 3);
+gen_inst_node(build_inst(add, false, true), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 3, immediate_oprnd(2332, true));
 
-gen_inst_node(sub, true, false, 3);
+gen_inst_node(build_inst(sub, true, false), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 3, extend_reg_oprnd(5, xtx, 3, true));
 
-gen_inst_node(sub, true,false, 3);
+gen_inst_node(build_inst(sub, true,false), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 3, extend_reg_oprnd(5, xtb, 3, true));
 
-gen_inst_node(sub, true, false, 3);
+gen_inst_node(build_inst(sub, true, false), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 3, extend_reg_oprnd(5, xth, 3, false));
 
-gen_inst_node(sub, true, false, 3);
+gen_inst_node(build_inst(sub, true, false), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 3, extend_reg_oprnd(5, xtw, 3, true));
 
-gen_inst_node(sub, true, false, 3);
+gen_inst_node(build_inst(sub, true, false), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(22));
 gen_oprnd(lastnode, 3, extend_reg_oprnd(5, xtx, 3, true));
 
-gen_inst_node(sub, false, false, 3);
+gen_inst_node(build_inst(sub, false, false), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(22));
 gen_oprnd(lastnode, 3, extend_reg_oprnd(5, xtx, 3, true));
 
-gen_inst_node(sub, false, false, 3);
+gen_inst_node(build_inst(sub, false, false), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(22));
 gen_oprnd(lastnode, 3, shift_reg_oprnd(17, lsr, 31));
 
-gen_inst_node(sub, true, false, 3);
+gen_inst_node(build_inst(sub, true, false), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(22));
 gen_oprnd(lastnode, 3, shift_reg_oprnd(21, lsr, 61));
 
-gen_inst_node(sub, true, false, 3);
+gen_inst_node(build_inst(sub, true, false), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 3, shift_reg_oprnd(3, lsl, 62));
 
-gen_inst_node(sub, true, false, 3);
+gen_inst_node(build_inst(sub, true, false), 3);
 gen_oprnd(lastnode, 1, reg_oprnd(5));
 gen_oprnd(lastnode, 2, reg_oprnd(8));
 gen_oprnd(lastnode, 3, shift_reg_oprnd(6, asr, 63));
 
-gen_inst_node(ret, false, false, 0);
+gen_inst_node(build_inst(ret, false, false), 0);
 
 putcode.putcode;
 
