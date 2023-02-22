@@ -56,63 +56,62 @@ end;
 
 procedure write_oprnd(o: oprnd_type; sf: boolean);
 begin
-  case o.typ of
-  value_oprnd:
+  case o.mode of
+    shift_reg:
     begin
-      if o.value_oprnd.reg <> noreg then
-        write_reg(o.value_oprnd.reg, sf);
-      case o.value_oprnd.mode of
-        shift_reg:
-        begin
-          if o.value_oprnd.shift_amount <> 0 then
-            write(macfile, ', ', reg_shifts_text[o.value_oprnd.reg_shift], ' ', o.value_oprnd.shift_amount);
-        end;
-        extend_reg:
-        begin
-          write(macfile, ', ', signed_prefix[o.value_oprnd.extend_signed], reg_extends_text[o.value_oprnd.reg_extend],
-                ' ', o.value_oprnd.extend_amount);
-        end;
-        immediate:
-        begin
-          write(macfile, o.value_oprnd.value);
-          if o.value_oprnd.shift then
-            write(macfile, ', lsl 12');
-        end;
-        register:;
-        otherwise write(macfile, 'unknown value_oprnd');
-      end;
+      write_reg(o.reg, sf);
+      if o.shift_amount <> 0 then
+        write(macfile, ', ', reg_shifts_text[o.reg_shift], ' ', o.shift_amount);
     end;
-  addr_oprnd:
+    extend_reg:
     begin
-      if o.addr_oprnd.basereg <> noreg then
-        begin
-        write(macfile, '[');
-        write_reg(o.addr_oprnd.basereg, true);
-        end;
-      case o.addr_oprnd.mode of
-      pre_index: write(macfile, ', ', o.addr_oprnd.index, ']!');
-      post_index: write(macfile, '], ', o.addr_oprnd.index);
-      imm_offset: write(macfile, ', ', o.addr_oprnd.index, ']');
-      reg_offset:
-        begin
-        write(macfile, ', ');
-        write_reg(o.addr_oprnd.reg2, o.addr_oprnd.extend = xtx);
-        if (o.addr_oprnd.extend = xtx) and not o.addr_oprnd.signed and
-            o.addr_oprnd.shift then
-          write(macfile, ', ', reg_shifts_text[lsl], ' ', reg_offset_shifts[sf])
-        else if o.addr_oprnd.signed or (o.addr_oprnd.extend <> xtx) then
-          begin
-          write(macfile, ', ', signed_prefix[o.addr_oprnd.signed],
-                reg_extends_text[o.addr_oprnd.extend]);
-          if o.addr_oprnd.shift then
-            write(macfile, ' ', reg_offset_shifts[sf]);
-          end;
-        write(macfile, ']');
-        end;
-      literal: write(macfile, o.addr_oprnd.literal);
-      end;
+      write_reg(o.reg, sf);
+      write(macfile, ', ', signed_prefix[o.extend_signed], reg_extends_text[o.reg_extend],
+            ' ', o.extend_amount);
     end;
-  otherwise ;
+    immediate:
+    begin
+      write(macfile, o.value);
+      if o.shift then
+        write(macfile, ', lsl 12');
+    end;
+    register: write_reg(o.reg, sf);
+    pre_index:
+      begin
+      write(macfile, '[');
+      write_reg(o.reg, true);
+      write(macfile, ', ', o.index, ']!');
+      end;
+    post_index:
+      begin
+      write(macfile, '[');
+      write_reg(o.reg, true);
+      write(macfile, '], ', o.index);
+      end;
+    imm_offset:
+      begin
+      write(macfile, '[');
+      write_reg(o.reg, true);
+      write(macfile, ', ', o.index, ']');
+      end;
+    reg_offset:
+      begin
+      write(macfile, '[');
+      write_reg(o.reg, true);
+      write(macfile, ', ');
+      write_reg(o.reg2, o.extend = xtx);
+      if (o.extend = xtx) and not o.signed and o.shift then
+        write(macfile, ', ', reg_shifts_text[lsl], ' ', reg_offset_shifts[sf])
+      else if o.signed or (o.extend <> xtx) then
+        begin
+        write(macfile, ', ', signed_prefix[o.signed],
+              reg_extends_text[o.extend]);
+        if o.shift then
+          write(macfile, ' ', reg_offset_shifts[sf]);
+        end;
+      write(macfile, ']');
+      end;
+    literal: write(macfile, o.literal);
   end;
 end {write_oprnd};
 

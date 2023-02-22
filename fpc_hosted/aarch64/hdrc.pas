@@ -287,9 +287,8 @@ type
     s: boolean; {true sets flags for conditional branches }
   end;
 
-  oprnd_types = (value_oprnd, addr_oprnd);
-  value_oprnd_modes = (register, shift_reg, extend_reg, immediate, relative);
-  addr_oprnd_modes = (pre_index, post_index, imm_offset, reg_offset, literal);
+  oprnd_modes = (register, shift_reg, extend_reg, immediate, relative,
+                 pre_index, post_index, imm_offset, reg_offset, literal);
 
   reg_extends = (xtb, xth, xtw, xtx);
   reg_shifts = (lsl, lsr, asr);
@@ -298,32 +297,20 @@ type
   imm6 = 0..63;
   imm12 = 0..4095;
 
-  value_oprnd_type = packed record
+  oprnd_type = packed record
     reg: regindex;
-    case mode: value_oprnd_modes of
+    case mode: oprnd_modes of
       shift_reg: (reg_shift: reg_shifts;
                   shift_amount: imm6);
       extend_reg: (reg_extend: reg_extends;
                    extend_amount: imm3;
                    extend_signed: boolean); 
       immediate: (value: imm12;
-                  shift: boolean);
-    end;
-
-  addr_oprnd_type = packed record
-    basereg: regindex;
-    case mode: addr_oprnd_modes of
+                  imm_shift: boolean);
       pre_index, post_index, imm_offset: (index: integer);
       reg_offset: (reg2: regindex; shift: boolean; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
     end;
-
-  oprnd_type =
-    packed record
-      case typ: oprnd_types of
-        value_oprnd: (value_oprnd: value_oprnd_type);
-	addr_oprnd: (addr_oprnd: addr_oprnd_type);
-      end;
 
   pseudoset = set of pseudoop;
 

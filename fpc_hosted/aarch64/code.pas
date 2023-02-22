@@ -83,12 +83,12 @@ dependent on the stack, tempcount is set appropriately.
 
     with p^ do
       begin
-      if o.typ = addr_oprnd then
-        if o.value_oprnd.reg = fp then
+      if false then {check on what this is all about}
+        if o.reg = fp then
           begin
             { code to switch fp to sp if noframe goes here in m68K? }
           end 
-        else if o.value_oprnd.reg = sp then
+        else if o.reg = sp then
           begin
             { code to adjust stack offset goes here in m68K? }
           end;
@@ -101,22 +101,20 @@ function reg_oprnd(reg: regindex): oprnd_type;
   var
     o:oprnd_type;
   begin
-    o.typ := value_oprnd;
-    o.value_oprnd.mode := register;
-    o.value_oprnd.reg := reg;
+    o.mode := register;
+    o.reg := reg;
     reg_oprnd := o;
   end;
 
-function immediate_oprnd(value: imm12; shift: boolean): oprnd_type;
+function immediate_oprnd(value: imm12; imm_shift: boolean): oprnd_type;
 
   var
     o:oprnd_type;
   begin
-    o.typ := value_oprnd;
-    o.value_oprnd.reg := noreg;
-    o.value_oprnd.mode := immediate;
-    o.value_oprnd.value := value;
-    o.value_oprnd.shift := shift;
+    o.reg := noreg;
+    o.mode := immediate;
+    o.value := value;
+    o.imm_shift := imm_shift;
     immediate_oprnd := o;
   end;
 
@@ -126,11 +124,10 @@ function shift_reg_oprnd(reg: regindex; reg_shift: reg_shifts;
   var
     o:oprnd_type;
   begin
-    o.typ := value_oprnd;
-    o.value_oprnd.mode := shift_reg;
-    o.value_oprnd.reg := reg;
-    o.value_oprnd.reg_shift := reg_shift;
-    o.value_oprnd.shift_amount := shift_amount;
+    o.mode := shift_reg;
+    o.reg := reg;
+    o.reg_shift := reg_shift;
+    o.shift_amount := shift_amount;
     shift_reg_oprnd := o;
   end;
 
@@ -140,40 +137,37 @@ function extend_reg_oprnd(reg: regindex; reg_extend: reg_extends; extend_amount:
   var
     o:oprnd_type;
   begin
-    o.typ := value_oprnd;
-    o.value_oprnd.mode := extend_reg;
-    o.value_oprnd.reg := reg;
-    o.value_oprnd.reg_extend := reg_extend;
-    o.value_oprnd.extend_amount := extend_amount;
-    o.value_oprnd.extend_signed := extend_signed;
+    o.mode := extend_reg;
+    o.reg := reg;
+    o.reg_extend := reg_extend;
+    o.extend_amount := extend_amount;
+    o.extend_signed := extend_signed;
     extend_reg_oprnd := o;
   end;
 
-function index_oprnd(mode: addr_oprnd_modes; basereg: regindex; index: integer): oprnd_type;
+function index_oprnd(mode: oprnd_modes; reg: regindex; index: integer): oprnd_type;
 
   var
     o:oprnd_type;
   begin
-    o.typ := addr_oprnd;
-    o.addr_oprnd.basereg := basereg;
-    o.addr_oprnd.mode := mode;
-    o.addr_oprnd.index := index;
+    o.reg := reg;
+    o.mode := mode;
+    o.index := index;
     index_oprnd := o;
   end;
 
-function reg_offset_oprnd(basereg, reg2: regindex; shift: boolean;
+function reg_offset_oprnd(reg, reg2: regindex; shift: boolean;
                           extend: reg_extends; signed: boolean): oprnd_type;
 
   var
     o:oprnd_type;
   begin
-    o.typ := addr_oprnd;
-    o.addr_oprnd.mode := reg_offset;
-    o.addr_oprnd.basereg := basereg;
-    o.addr_oprnd.reg2 := reg2;
-    o.addr_oprnd.shift := shift;
-    o.addr_oprnd.extend := extend;
-    o.addr_oprnd.signed := signed;
+    o.mode := reg_offset;
+    o.reg := reg;
+    o.reg2 := reg2;
+    o.shift := shift;
+    o.extend := extend;
+    o.signed := signed;
     reg_offset_oprnd := o;
   end;
 
@@ -183,10 +177,9 @@ function literal_oprnd(lit: integer): oprnd_type;
   var
     o:oprnd_type;
   begin
-    o.typ := addr_oprnd;
-    o.addr_oprnd.basereg := noreg;
-    o.addr_oprnd.mode := literal;
-    o.addr_oprnd.literal := lit;
+    o.reg := noreg;
+    o.mode := literal;
+    o.literal := lit;
     literal_oprnd := o;
   end;
 
