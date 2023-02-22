@@ -14,18 +14,27 @@ procedure initcode;
 
 procedure exitcode;
 
-procedure gen_inst_node(i: inst_type; {instruction to generate}
-                        l: oprnd_range {number of operands});
-
-procedure gen_inst(p: nodeptr;
-                   i: inst_type; {instruction to generate}
-                   l: oprnd_range {number of operands});
-
-procedure gen_oprnd(p: nodeptr; 
-                   i: oprnd_range; {which operand to generate}
-                   o: oprnd_type {operand to generate} );
-
 implementation
+
+procedure newnode(kind: nodekinds);
+
+{ Allocate a new node and link it to list of nodes
+}
+
+  var
+    p: nodeptr;
+
+  begin {newnode}
+    new(p);
+    if lastnode = nil then
+      firstnode := p
+    else
+      lastnode^.next_node := p;
+    p^.kind := kind;
+    p^.next_node := nil;
+    lastnode := p;
+  end {newnode};
+
 
 procedure gen_inst(p: nodeptr;
                    i: inst_type; {instruction to generate}

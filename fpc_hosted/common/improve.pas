@@ -256,7 +256,7 @@ procedure assignregs;
       end;
     { assign general registers }
     case targetmachine of
-      ns32k:
+      ns32k, aarch64:
         begin
         { static link comes out of general regs }
         if newtravrsinterface then

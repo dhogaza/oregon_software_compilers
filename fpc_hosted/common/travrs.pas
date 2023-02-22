@@ -1963,7 +1963,7 @@ procedure build;
                 otherwise regkind := genreg;
                 end {typ} ;
               end;
-            ns32k:
+            aarch64, ns32k:
               begin
               registercandidate := true;
               case localvar.typ of

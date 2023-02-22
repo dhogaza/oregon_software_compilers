@@ -365,7 +365,7 @@ procedure shortvisit(root: nodeindex; {tree to visit}
                 if bigcompilerversion then ptr := @(bignodetable[newroot]);
                 end;
               end;
-        if (ptr^.op = rd) and (targetmachine in [iAPX86, i80386, ns32k]) then
+        if (ptr^.op = rd) and (targetmachine in [iAPX86, i80386, ns32k, aarch64]) then
           begin
 {
             Walk this early since work registers may die
