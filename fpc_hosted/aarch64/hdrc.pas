@@ -294,6 +294,7 @@ type
   reg_extends = (xtb, xth, xtw, xtx);
   reg_shifts = (lsl, lsr, asr);
 
+  imm3 = 0..7;
   imm6 = 0..63;
   imm12 = 0..4095;
 
@@ -303,7 +304,7 @@ type
       shift_reg: (reg_shift: reg_shifts;
                   shift_amount: imm6);
       extend_reg: (reg_extend: reg_extends;
-                   extend_amount: 0..7;
+                   extend_amount: imm3;
                    extend_signed: boolean); 
       immediate: (value: imm12;
                   shift: boolean);
@@ -313,7 +314,7 @@ type
     basereg: regindex;
     case mode: addr_oprnd_modes of
       pre_index, post_index, imm_offset: (index: integer);
-      reg_offset: (reg: regindex; shift: boolean; extend: reg_extends; signed: boolean);
+      reg_offset: (reg2: regindex; shift: boolean; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
     end;
 

@@ -96,7 +96,7 @@ begin
       reg_offset:
         begin
         write(macfile, ', ');
-        write_reg(o.addr_oprnd.reg, o.addr_oprnd.extend = xtx);
+        write_reg(o.addr_oprnd.reg2, o.addr_oprnd.extend = xtx);
         if (o.addr_oprnd.extend = xtx) and not o.addr_oprnd.signed and
             o.addr_oprnd.shift then
           write(macfile, ', ', reg_shifts_text[lsl], ' ', reg_offset_shifts[sf])
