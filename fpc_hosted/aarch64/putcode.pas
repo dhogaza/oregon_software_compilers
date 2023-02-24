@@ -30,7 +30,7 @@ begin
   else write(macfile, reg_prefix[sf], r);
 end {write_reg};
 
-procedure write_inst(i: inst_type);
+procedure write_inst(i: insttype);
 begin
   case i.inst of
     ldr: write(macfile, 'ldr');
@@ -54,7 +54,7 @@ begin
     write(macfile, 's');
 end;
 
-procedure write_oprnd(o: oprnd_type; sf: boolean);
+procedure write_oprnd(o: oprndtype; sf: boolean);
 begin
   case o.mode of
     shift_reg:

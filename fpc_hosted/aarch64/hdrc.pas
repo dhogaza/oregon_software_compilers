@@ -74,6 +74,8 @@ const
 
 type
 
+  oprnd_range = 0 .. max_oprnds;
+
   regindex = -1..32; {possible register values}
 
   regmask = packed array [regindex] of boolean;
@@ -262,8 +264,6 @@ type
   { AARCH64 instruction definitions, including some dummies to make creating
     sets easier. }
 
-  oprnd_range = 0.. max_oprnds;
-
   insts = (noinst,
 
   {basic arithmetic instructions}
@@ -281,13 +281,13 @@ type
 
   ret);
 
-  inst_type = packed record
+  insttype = packed record
     inst: insts;
     sf: boolean; {true 64 bits, false 32 bits }
     s: boolean; {true sets flags for conditional branches }
   end;
 
-  oprnd_modes = (register, shift_reg, extend_reg, immediate, relative,
+  oprnd_modes = (nomode, register, shift_reg, extend_reg, immediate, relative,
                  pre_index, post_index, imm_offset, reg_offset, literal);
 
   reg_extends = (xtb, xth, xtw, xtx);
@@ -297,8 +297,9 @@ type
   imm6 = 0..63;
   imm12 = 0..4095;
 
-  oprnd_type = packed record
+  oprndtype = packed record
     reg: regindex;
+    reg2: regindex; {extra register if indexed & bitindexed}
     case mode: oprnd_modes of
       shift_reg: (reg_shift: reg_shifts;
                   shift_amount: imm6);
@@ -308,7 +309,7 @@ type
       immediate: (value: imm12;
                   imm_shift: boolean);
       pre_index, post_index, imm_offset: (index: integer);
-      reg_offset: (reg2: regindex; shift: boolean; extend: reg_extends; signed: boolean);
+      reg_offset: (shift: boolean; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
     end;
 
@@ -335,10 +336,10 @@ type
                             branch node or stack dependant operand node}
       case kind: nodekinds of
         instnode:
-          (inst: inst_type;
+          (inst: insttype;
            labeled: boolean; {true if a label attached here}
            oprnd_cnt: 0..4;
-           oprnds: packed array [1..4] of oprnd_type);
+           oprnds: packed array [1..max_oprnds] of oprndtype);
         labelnode:
           (labelno: unsigned;
            stackdepth: integer; {used for aligning sp at branch}
@@ -379,25 +380,32 @@ type
       len: unsigned; {length of this operand, from pseudocode}
       copylink: keyindex; {node we copied, if created by copyaccess op}
       access: accesstype; {type of entry}
-      properreg: keyindex; {reference to non-volatile storage of oprnd.r}
+      properreg: keyindex; {reference to non-volatile storage of oprnd reg}
+      properreg2: keyindex; {reference to non-volatile storage of oprnd reg2}
       tempflag: boolean; {if a stack temp, set true when referenced}
       validtemp: boolean; {if a stack temp, set true when allocated}
-      regsaved: boolean; {true if oprnd.r has been saved (in
+      regsaved: boolean; {true if oprnd reg has been saved (in
                           keytable[properreg])}
-      regvalid: boolean; {true if oprnd.r field is valid, set false when
+      reg2saved: boolean; {true if oprnd reg2 has been saved (in
+                          keytable[properreg2])}
+      regvalid: boolean; {true if oprnd reg field is valid, set false when
+                          register is stepped on}
+      reg2valid: boolean; {true if oprnd reg2 field is valid, set false when
                           register is stepped on}
       packedaccess: boolean; {true if length is bits, not bytes, and a
                               packed field is being accessed}
       joinreg: boolean; {true if regvalid should be set false upon next
                          joinlabel pseudoop}
+      joinreg2: boolean; {true if reg2valid should be set false upon next
+                         joinlabel pseudoop}
       signed: boolean; {true if operand contains signed data}
       signlimit: addressrange; {size for which this key is still signed}
-      knowneven: boolean; {true if word or long instruction will work
+      knownword: boolean; {true if word or long instruction will work
                            here}
       instmark: nodeptr; {set to first instruction of stream which
                             created value described in this record}
-      oprnd: oprnd_type; {the machine description of the operand}
-      brinst: inst_type; {use this instruction for 'true' branch}
+      oprnd: oprndtype; {the machine description of the operand}
+      brinst: insttype; {use this instruction for 'true' branch}
     end;
 
   keytabletype = array [lowesttemp..keysize] of keyx;
@@ -458,6 +466,10 @@ type
   longname = packed array [1..max_string_len] of char;
   columnrange = 0..120;
 
+  { DRB future use for more global optimization }
+  codeproctableentry =
+    record
+    end;
 var
 
   nextpseudofile: integer; {next byte in the current block of pseudofile}
@@ -532,7 +544,7 @@ var
                                 contents of this register}
         savedlen: datarange; { original length of index variable }
         litinitial: boolean; {set true if initial value is constant}
-        savedoprnd: oprnd_type;
+        savedoprnd: oprndtype;
         initval: integer; {initial value, if constant}
       end;
 
@@ -621,6 +633,8 @@ var
   found: boolean; { general boolean used to control search loops }
 
   macfile: text; {receives macro assembler image}
+
+  codeproctable: array [0..proctablesize] of codeproctableentry;
 
 implementation
 
