@@ -32,6 +32,8 @@ const
 
   {AARCH64 general register assignments}
 
+  maxreg = 32;
+
   noreg = -1;
   sp = 32; {hardware stack pointer fake register}
   zero = 31; {sp encodes to this, too, but we'll differentiate}
@@ -57,6 +59,13 @@ const
   undefinedaddr = 1; {impossible address flag}
   loopdepth = 10; { maximum number of nested loops optimized }
 
+  {special keys for building internal loops}
+
+  loopsrc = - 3; {source descriptor}
+  loopsrc1 = - 4; {second source descriptor (for three operand loops)}
+  loopdst = - 5; {destination descriptor}
+  loopcount = - 6; {loop counter descriptor}
+
 { File variable status bits
 }
   lazybit = 0; {buffer not lazy}
@@ -76,7 +85,7 @@ type
 
   oprnd_range = 0 .. max_oprnds;
 
-  regindex = -1..32; {possible register values}
+  regindex = -1..maxreg; {possible register values}
 
   regmask = packed array [regindex] of boolean;
 
@@ -324,14 +333,15 @@ type
 }
 
   nodeptr = ^node; {used to reference the node contents}
-  nodekinds = (instnode, oprndnode, labelnode, labeldeltanode, errornode, stmtref, datanode);
+  nodekinds = (instnode, oprndnode, labelnode, labeldeltanode, errornode, stmtref,
+               datanode, proclabelnode);
 
   operandrange = 0..4; {number of possible operands per inst}
   datarange = 0..63; {number of bytes or bits in possible operands}
 
   node =
     packed record
-      next_node: nodeptr;
+      nextnode: nodeptr;
       tempcount: keyindex; {number of temps below this item. only valid if
                             branch node or stack dependant operand node}
       case kind: nodekinds of
@@ -349,6 +359,7 @@ type
            targetlabel: integer; {label number of case branch target}
           );
         errornode: (errorno: integer; {error number} );
+        proclabelnode: (proclabel: unsigned);
         datanode: (data: unsigned {long word constant data} );
     end;
 
@@ -466,9 +477,9 @@ type
   longname = packed array [1..max_string_len] of char;
   columnrange = 0..120;
 
-  { DRB future use for more global optimization }
   codeproctableentry =
     record
+      proclabelnode: nodeptr;
     end;
 var
 
@@ -507,6 +518,15 @@ var
 
   stackcounter: keyindex; {key describing top of runtime stack}
   stackoffset: integer; {depth of runtime stack in bytes}
+
+
+  registers: array [regindex] of integer; {usage count of address registers}
+  fpregisters: array [regindex] of integer; {usage count of floating-point
+                                             registers}
+  regused, fpregused: array [regindex] of boolean; {set if currently used}
+
+  lastreg, lastfpreg: regindex; {last registers available for
+                                 scratch use in this block}
 
   lastkey: keyindex; {last key used by travrs at the moment}
 
@@ -556,9 +576,8 @@ var
       packed record
         clearflag: boolean; {set at first clearlabel pseudoop}
         keymark: keyindex; {first key entry for this context block}
-        dbump: bumparray;
-        { dbump[r] is set true if dregisters[r] > 0 at context entry}
-        abump: bumparray;
+        bump: bumparray;
+        { bump[r] is set true if dregisters[r] > 0 at context entry}
         fpbump: bumparray; { floating-point regs }
         lastbranch: nodeptr; {set at each out-of-line branch}
         firstnode: nodeptr; {first instruction for this context block}
@@ -578,11 +597,9 @@ var
         thecontext: contextindex;
         savelastbranch: nodeptr; { value of lastbranch upon entry }
         savefirstnode: nodeptr; { value of firstnode upon entry }
-        abump: bumparray;
-        dbump: bumparray;
+        regbump: bumparray;
         fpbump: bumparray;
-        aregstate: regstate;
-        dregstate: regstate;
+        regstate: regstate;
         fpregstate: regstate;
       end;
 
@@ -593,6 +610,10 @@ var
   keytable: keytabletype; {contains operand data}
 
   dontchangevalue: integer; { > 0, don't allow changevalue to work!}
+
+  mainsymbolindex: integer; {index of main prog data in the symbol file}
+  firststmt: integer; {first statement in this procedure}
+  lineoffset: integer; {difference between linenumber and file line number}
 
   pcerrortable: array [1..maxerrs] of puterrortype; { table of error codes }
   lineerrors: 0..maxerrs; {counter of errors in current line}

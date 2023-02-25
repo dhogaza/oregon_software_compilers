@@ -1,4 +1,3 @@
-
 unit putcode;
 
 interface
@@ -72,7 +71,7 @@ begin
     immediate:
     begin
       write(macfile, o.value);
-      if o.shift then
+      if o.imm_shift then
         write(macfile, ', lsl 12');
     end;
     register: write_reg(o.reg, sf);
@@ -122,14 +121,21 @@ var
   sep: char;
 
 begin {write_node}
-  write(macfile, chr(9));
-  write_inst(p^.inst);
-  sep := chr(9);
-  for i := 1 to p^.oprnd_cnt do
-  begin
-    write(macfile, sep);
-    sep := ',';
-    write_oprnd(p^.oprnds[i], p^.inst.sf);
+  case p^.kind of
+  proclabelnode: write(macfile, 'p',p^.proclabel,':');
+  instnode:
+    begin
+    write(macfile, chr(9));
+    write_inst(p^.inst);
+    sep := chr(9);
+    for i := 1 to p^.oprnd_cnt do
+      begin
+      write(macfile, sep);
+      sep := ',';
+      write_oprnd(p^.oprnds[i], p^.inst.sf);
+      end;
+    end;
+  otherwise write('bad node');
   end;
   writeln(macfile);
 end {write_node};
@@ -158,7 +164,7 @@ begin
   while p <> nil do
   begin
     write_node(p);
-    p := p^.next_node;
+    p := p^.nextnode;
   end;
 end;
 
