@@ -194,9 +194,9 @@ const
   { Define the maximum numbers of scalars and reals to assign to registers }
 
   { DRB: numbers for AARCH64 are a WAG }
-  assignreg = 8;
+  assignreg = 4;
   assignptrreg = 0;
-  assignrealreg = 8;
+  assignrealreg = 4;
 
   maxtrackvar = 64; {maximum number of register candidates for a block}
   regtablelimit = 4095; {last entry in register candidate hash table. MUST be
@@ -344,9 +344,9 @@ const
                          (includes dynamic link on 68k)}
   defextreturnlinksize = 8; {size of a procedure return link in addressing
                             units (includes dynamic link on 68k) for externals}
-  procparamsize = 8; {size of a procedure parameter in addressing units}
+  procparamsize = 16; {size of a procedure parameter in addressing units}
   staticlinkoffset = 4; {position of static link in saved registers area}
-  stackalign = 2; {alignment requirement for the stack}
+  stackalign = 8; {alignment requirement for the stack}
   bitsperunit = 8; {bits per address unit}
   bitsperfileunit = 8; {bits per file allocation unit}
   packingunit = 8; {maximum size used for packing}
@@ -356,7 +356,7 @@ const
   stringeltsize = 8; {bits per string element}
   stringalign = 2; {alignment for a string}
 
-  max_bitfield = 32; {max size of a bitfield (C)}
+  max_bitfield = 64; {max size of a bitfield (C)}
   unsignedprefered = false; {prefer to unpack unsigned fields}
   freemodwithdiv = true; {true if some flavor of div returns a remainder}
 

@@ -22,6 +22,120 @@ reg_extends_text: array[reg_extends] of packed array [1..3] of char;
 reg_shifts_text: array[reg_shifts] of packed array [1..3] of char;
 reg_offset_shifts: array [boolean] of 2..3;
 
+
+{ Since this doesn't have to run on a tiny 'ole computer like the
+  PDP-11 this is an artifact of the old disk-caching implementation
+  with the caching stripped out.
+}
+
+procedure seekstringfile(n: integer {byte to access});
+
+{ Do the equivalent of a "seek" on the string file.  This sets the
+  file and "nextstringfile" to access byte "n" of the stringfile.
+}
+
+  var
+    newblock: 1..maxstringblks; { block to which seeking }
+
+
+  begin {seekstringfile}
+    newblock := n div (diskbufsize + 1) + 1;
+    if newblock <> curstringblock then
+      begin
+      curstringblock := newblock;
+      stringblkptr := stringblkptrtbl[newblock];
+      if stringblkptr = nil then
+        begin
+        write('unexpected end of stringtable ');
+        compilerabort(inconsistent);
+        end;
+      end;
+    nextstringfile := n mod (diskbufsize + 1);
+  end {seekstringfile} ;
+
+
+function getstringfile: hostfilebyte;
+
+{ move stringfile buffer pointer to next entry.  'get' is called
+  to fill buffer if pointer is at the end.
+}
+
+  begin
+    if nextstringfile > diskbufsize then
+      begin
+      nextstringfile := 0;
+      curstringblock := curstringblock + 1;
+      stringblkptr := stringblkptrtbl[curstringblock];
+      if stringblkptr = nil then
+        begin
+        write('unexpected end of stringtable ');
+        compilerabort(inconsistent);
+        end;
+      end;
+
+    getstringfile := stringblkptr^[nextstringfile];
+
+    nextstringfile := nextstringfile + 1;
+  end {getstringfile} ;
+
+
+procedure writeprocname(procn: proctableindex {number of procedure to copy});
+
+{ Copy the procedure name for procedure "procn" from the string file
+  to the macro file.
+}
+
+  var
+    i: integer; {induction var for copy}
+
+  begin
+
+    curstringblock := (stringfilecount + proctable[procn].charindex - 1) div
+       (diskbufsize + 1) + 1;
+    stringblkptr := stringblkptrtbl[curstringblock];
+    nextstringfile := (stringfilecount + proctable[procn].charindex - 1) mod
+                        (diskbufsize + 1);
+
+    for i := 1 to proctable[procn].charlen do
+      if language = pascal then write(macfile, uppercase(chr(getstringfile)))
+      else write(macfile, chr(getstringfile));
+  end {writeprocname} ;
+
+procedure writeproclabel(procn: proctableindex);
+  begin {writeproclabel}
+
+    { banner }
+    writeln(macfile, '#');
+    write(macfile, '#', chr(9));
+    writeprocname(procn);
+    if blockref = 0 then writeln(macfile, ' (main)')
+    else writeln(macfile);
+    writeln(macfile, '#');
+
+    if proctable[blockref].externallinkage
+       or ((proctable[blockref].calllinkage = implementationbody)
+	   and (level = 1)) then
+      { a linux kludge that the front end doesn't manage.  ld could be told that
+        the program starts at the program name global but it is easier to just
+        declare "main".
+      }
+      if blockref = 0 then
+        begin
+        writeln(macfile, chr(9), '.global main');
+        writeln(macfile, 'main:');
+        end
+      else
+        begin write(macfile, chr(9), '.global ');
+        writeprocname(blockref);
+        writeln(macfile);
+        writeprocname(blockref);
+        writeln(macfile, ':');
+        end
+    else
+      writeln(macfile, 'p',procn, ':');
+
+  end {writeproclabel};
+
 procedure write_reg(r: regindex; sf: boolean);
 begin
   if r = sp then write(macfile, 'sp')
@@ -32,6 +146,7 @@ end {write_reg};
 procedure write_inst(i: insttype);
 begin
   case i.inst of
+    add: write(macfile, 'add');
     ldr: write(macfile, 'ldr');
     ldrb: write(macfile, 'ldrb');
     ldrh: write(macfile, 'ldrh');
@@ -40,13 +155,13 @@ begin
     ldrsh: write(macfile, 'ldrsh');
     ldrsw: write(macfile, 'ldrsw');
     ldp: write(macfile, 'ldp');
+    movz: write(macfile, 'movz');
+    ret: write(macfile, 'ret');
     stp: write(macfile, 'stp');
     str: write(macfile, 'str');
     strb: write(macfile, 'strb');
     strh: write(macfile, 'strh');
-    add: write(macfile, 'add');
     sub: write(macfile, 'sub');
-    ret: write(macfile, 'ret');
     otherwise write(macfile, 'bad inst');
   end;
   if (i.inst in [first_a .. last_a]) and i.s then
@@ -71,8 +186,8 @@ begin
     immediate:
     begin
       write(macfile, o.value);
-      if o.imm_shift then
-        write(macfile, ', lsl 12');
+      if o.imm_shift <> 0 then
+        write(macfile, ', lsl ', o.imm_shift);
     end;
     register: write_reg(o.reg, sf);
     pre_index:
@@ -91,7 +206,9 @@ begin
       begin
       write(macfile, '[');
       write_reg(o.reg, true);
-      write(macfile, ', ', o.index, ']');
+      if o.index <> 0 then
+        write(macfile, ', ', o.index);
+      write(macfile, ']');
       end;
     reg_offset:
       begin
@@ -122,7 +239,7 @@ var
 
 begin {write_node}
   case p^.kind of
-  proclabelnode: write(macfile, 'p',p^.proclabel,':');
+  proclabelnode: writeproclabel(p^.proclabel);
   instnode:
     begin
     write(macfile, chr(9));
@@ -134,10 +251,17 @@ begin {write_node}
       sep := ',';
       write_oprnd(p^.oprnds[i], p^.inst.sf);
       end;
+    writeln(macfile);
+    end;
+  stmtnode:
+    begin
+    i := p^.stmtno;
+    if i <> 0 then i := i - firststmt + 1;
+    writeln(macfile, '* Line: ', p^.sourceline - lineoffset: 1,
+                        ', Stmt: ', i: 1);
     end;
   otherwise write('bad node');
   end;
-  writeln(macfile);
 end {write_node};
 
 procedure initmac;

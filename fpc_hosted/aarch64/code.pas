@@ -47,7 +47,7 @@ function reg_oprnd(reg: regindex): oprndtype;
     reg_oprnd := o;
   end;
 
-function immediate_oprnd(value: imm12; imm_shift: boolean): oprndtype;
+function immediate_oprnd(value: imm16; imm_shift: unsigned): oprndtype;
 
   var
     o:oprndtype;
@@ -240,7 +240,7 @@ dependent on the stack, tempcount is set appropriately.
 
 Procedure gen1p(p: nodeptr;
                 i: insttype;
-               o1: keyindex);
+                o1: keyindex);
 
 { Generate a single operand instruction, using keytable[dst] as
   the destination.
@@ -265,7 +265,7 @@ Procedure gen1(i: insttype;
 
 procedure gen2p(p: nodeptr;
                 i: insttype;
-               o1, o2: keyindex);
+                o1, o2: keyindex);
 
 { Generate a double operand instruction, using keytable[src/dst] as
   the two operands.
@@ -302,8 +302,8 @@ procedure gen3p(p: nodeptr;
 
   begin {gen3p}
     geninst(p, i, 3);
-    genoprnd(p, 2, keytable[o1].oprnd);
-    genoprnd(p, 1, keytable[o2].oprnd);
+    genoprnd(p, 1, keytable[o1].oprnd);
+    genoprnd(p, 2, keytable[o2].oprnd);
     genoprnd(p, 3, keytable[o3].oprnd);
   end {gen3p} ;
 
@@ -347,6 +347,69 @@ procedure gen4(i: insttype;
   begin {gen4}
     gen4p(newnode(instnode), i, o1, o2, o3, o4);
   end {gen4} ;
+
+procedure adjustregcount(k: keyindex; {operand to adjust}
+                         delta: integer {amount to adjust count by});
+
+{ Adjusts the register reference count for any registers used in the
+  specified operand.  If a register pair is used, both registers will
+  be adjusted by the same amount.
+}
+
+
+  begin
+    with keytable[k], oprnd do
+      if access = valueaccess then
+        case mode of
+          register, shift_reg, extend_reg, pre_index, post_index,
+          imm_offset:
+            if regvalid then
+              registers[reg] := registers[reg] + delta;
+          reg_offset:
+            begin
+            if regvalid then
+              registers[reg] := registers[reg] + delta;
+            if reg2valid then
+              registers[reg2] := registers[reg2] + delta;
+            end;
+          otherwise
+          end;
+  end {adjustregcount} ;
+
+procedure bumptempcount(k: keyindex; {key of temp desired}
+                        delta: integer {amount to adjust ref count} );
+
+{ Increment the reference of any temp containing the value for key "k".
+  If there is no temp assigned, this is a no-op
+}
+
+
+  begin
+    with keytable[k] do
+      begin
+      if regsaved and (properreg >= stackcounter) then
+        with keytable[properreg] do
+          begin
+          if (delta < - refcount) then { overflow is rarely a problem }
+            begin
+            write('BUMPTEMPCOUNT, refcount underflow');
+            compilerabort(inconsistent);
+            end;
+          refcount := refcount + delta;
+          end;
+      if reg2saved and (properreg2 >= stackcounter) then
+        with keytable[properreg2] do
+          begin
+          if (delta < - refcount) then { overflow is rarely a problem }
+            begin
+            write('BUMPTEMPCOUNT, refcount underflow');
+            compilerabort(inconsistent);
+            end;
+          refcount := refcount + delta;
+          end;
+      end;
+  end {bumptempcount} ;
+
 
 procedure setcommonkey;
 
@@ -395,9 +458,58 @@ procedure setcommonkey;
       end;
   end {setcommonkey} ;
 
+procedure setvalue(o: oprndtype);
 
-procedure settemp(lth: datarange; {length of data referenced}
-                  o: oprndtype);
+begin {setvalue}
+  with keytable[key] do
+    begin
+    keytable[key].access := valueaccess;
+    keytable[key].oprnd := o;
+    adjustregcount(key, refcount);
+    bumptempcount(key, refcount);
+    end;
+end {setvalue} ;
+
+procedure setkeyvalue(k: keyindex);
+
+{call setvalue with fields from keytable[k]
+}
+
+
+  begin
+    with keytable[k] do
+      begin
+      keytable[key].packedaccess := packedaccess;
+      setvalue(oprnd);
+      keytable[key].signed := signed;
+      keytable[key].signlimit := signlimit;
+      end;
+  end {setkeyvalue} ;
+
+
+procedure setallfields(k: keyindex);
+
+{similar to setkeyvalue but also copies properaddress, packedrecord,
+ etc.  Can only be used if we are copying a keyvalue and not changing
+ regset, mode, or offset, as in dovarx.
+}
+
+
+  begin
+    with keytable[k] do
+      begin
+      keytable[key].regsaved := regsaved;
+      keytable[key].reg2saved := reg2saved;
+      keytable[key].regvalid := regvalid;
+      keytable[key].reg2valid := reg2valid;
+      keytable[key].properreg := properreg;
+      keytable[key].properreg2 := properreg2;
+      keytable[key].tempflag := tempflag;
+      setkeyvalue(k);
+      end;
+  end {setallfields} ;
+
+procedure settemp(l: unsigned; o: oprndtype);
 
 { Set up a temporary key entry with the characteristics specified.  This has
   nothing to do with runtime temp administration.  It strictly sets up a key
@@ -411,7 +523,7 @@ procedure settemp(lth: datarange; {length of data referenced}
     tempkey := tempkey - 1;
     with keytable[tempkey] do
       begin
-      len := lth;
+      len := l;
       refcount := 0;
       copycount := 0;
       copylink := 0;
@@ -429,6 +541,42 @@ procedure settemp(lth: datarange; {length of data referenced}
       oprnd := o;
       end;
   end {settemp} ;
+
+procedure dereference(k: keyindex {operand} );
+
+{ Reduce all appropriate reference counts for this key.  This is called
+  when a particular reference is completed.
+}
+
+
+  begin
+    if k > 0 then
+      begin
+      with keytable[k] do
+        begin
+        if refcount = 0 then
+          begin
+          write('DEREFERENCE, refcount < 0');
+          compilerabort(inconsistent);
+          end;
+        refcount := refcount - 1;
+        end;
+      bumptempcount(k, - 1);
+      adjustregcount(k, - 1);
+      end;
+  end {dereference} ;
+
+procedure derefboth;
+
+{ Reduce the reference counts on the global left and right operands.
+  This is called after generating a binary operation.
+}
+
+
+  begin
+    dereference(left);
+    dereference(right);
+  end {derefboth} ;
 
 procedure initblock;
 
@@ -460,6 +608,7 @@ procedure initblock;
     oktostuff := true; {until proven otherwise}
     dontchangevalue := 0;
     settargetused := false;
+    firststmt := 0;
 
     contextsp := 1;
     context[1].keymark := 1;
@@ -527,10 +676,31 @@ procedure initblock;
 
   end {initblock} ;
 
+procedure stmtbrkx;
+
+{ Generate statement information for the macro file and later for gdb.
+}
+
+  var
+    p: nodeptr;
+
+  begin
+    if firststmt = 0 then firststmt := pseudoinst.oprnds[1];
+    p := newnode(stmtnode);
+    with p^ do
+      begin
+      stmtno := pseudoinst.oprnds[1];
+      current_stmt := pseudoinst.oprnds[1];
+      sourceline := pseudoinst.oprnds[2];
+      current_line := pseudoinst.oprnds[2] - lineoffset;
+      filename := len;
+      end;
+  end; {stmtbrkx}
+
 procedure dointx;
 
 { Access a constant integer operand.  The value is in oprnds[1].
-  This simply sets up the key for the value, with literal mode.
+  This simply sets up the key for the value, with immediate mode.
 }
 
 
@@ -538,7 +708,7 @@ procedure dointx;
     keytable[key].access := valueaccess;
     keytable[key].len := pseudoinst.len;
     keytable[key].signed := true;
-    keytable[key].oprnd := immediate_oprnd(pseudoinst.oprnds[1], false);
+    keytable[key].oprnd := immediate_oprnd(pseudoinst.oprnds[1], 0);
   end {dointx} ;
 
 
@@ -633,7 +803,7 @@ procedure dorealx;
   end {dorealx} ;
 }
 
-procedure dostaticlevels(ownflag: boolean {true says own sect def} );
+procedure dolevelx(ownflag: boolean {true says own sect def} );
 
 { Generate a reference to the data area for the level specified in
   opernds[1].  This is a direct reference to the global area for level 1,
@@ -654,17 +824,6 @@ procedure dostaticlevels(ownflag: boolean {true says own sect def} );
       begin
       if ownflag then
         begin
-{        if pic_enabled then
-          begin
-          m := relative;
-          reg := pic_own_base;
-          end
-        else
-          begin
-          m := commonlong;
-          commonlong_reloc := own_section;
-          end;
-        offset := 0;}
         end
       else if left = 0 then
         begin
@@ -673,12 +832,23 @@ procedure dostaticlevels(ownflag: boolean {true says own sect def} );
         offset := 0;}
         end
       else if left = 1 then
-        oprnd := index_oprnd(imm_offset, gp, 0)
+        setvalue(index_oprnd(imm_offset, gp, 0))
       else if left = level then
-        oprnd := index_oprnd(imm_offset, fp, 0);
+        setvalue(index_oprnd(imm_offset, fp, 0))
+      { we don't do origin else if left = 0 then setvalue(abslong, 0, 0, false, 0, 0)}
+      else if left = level - 1 then setvalue(index_oprnd(imm_offset, sl, 0))
+      else
+        begin
+{ intermediate level 
+    address(target);
+        settempareg(getareg);
+        gensimplemove(target, tempkey);
+        setvalue(relative, keytable[tempkey].oprnd.reg, 0, false, 0, 0);
+}
+        end;
       len := long;
       end;
-  end {dostaticlevels} ;
+  end {dolevelx} ;
 
 procedure blockcodex;
 
@@ -688,63 +858,8 @@ procedure blockcodex;
 }
 
   var
-    I: regindex; {induction var for initializing context stack}
-
-  procedure prochdr;
-
-{ Generate code for a procedure entry, and log data about it in the proctable.
-
-  This generates the indirect moves prior to the actual entry for static
-  link tracing, and also generates nop's to be filled with register save
-  instructions after we know which registers are used.
-
-  The stack check code is designed to be "safe", i.e. to guarantee that the
-  code itself won't trash memory outside the assigned stack space.  To do
-  this we check for the space used by all parameters passed to interior
-  procedures as well as a worst-case check for all the registers that
-  might be saved by this procedure.  This check is slightly on the conservative
-  side (by up to about 50 bytes) but if the user's program is that close to
-  grief, who cares!?!?  Cost is two words (one instruction) over the older,
-  minimum check.
-}
-
-    var
-      i: integer; {general use induction variable}
-      p: nodeptr;
-
-    begin
-      with proctable[blockref] do
-        begin
-        if intlevelrefs then
-        {generate indirect moves before entry}
-          begin
-      {    settempreg(long, indr, sl);
-          settempareg(sl);
-          for i := 1 to levelspread - 1 do
-            begin
-            procmap[blockref].addr := procmap[blockref].addr + word;
-            gen2(move, long, tempkey + 1, tempkey);
-            end;
-}
-          end;
-        end;
-      p := newnode(proclabelnode);
-      p^.proclabel := blockref;
-      codeproctable[blockref].proclabelnode := p;
-      stackoffset := 0;
-    end {prochdr} ;
-
-
-  procedure mainhdr;
-
-  var
     i: integer; {general use induction variable}
-    initcall: libroutines; {support routine to call for initialization}
-
-
-    begin {mainhdr}
-    end {mainhdr} ;
-
+    p: nodeptr;
 
   begin {blockcodex}
 
@@ -753,23 +868,36 @@ procedure blockcodex;
     context[1].lastbranch := nil;
     context[1].firstnode := nil;
     context[1].keymark := lastkey + 1;
-    for i := 0 to maxreg do context[1].bump[i] := false;
-    for i := 0 to maxreg  do context[1].fpbump[i] := false;
     context[0] := context[1];
     lastfpreg := maxreg - target;
     lastreg := sl - left;
     lineoffset := pseudoinst.len;
 
-    if level = 1 then mainhdr else prochdr;
+    with proctable[blockref] do
+      begin
+      if intlevelrefs then
+      {generate indirect moves before entry}
+        begin
+        settemp(quad, reg_oprnd(sl));
+        settemp(quad, index_oprnd(imm_offset, sl, 0));
+        for i := 1 to levelspread - 1 do
+          begin
+          gen2(buildinst(ldr, true, false), tempkey + 1, tempkey);
+          end;
+        end;
+      end;
+    p := newnode(proclabelnode);
+    p^.proclabel := blockref;
+    codeproctable[blockref].proclabelnode := p;
+    stackoffset := 0;
 
   end {blockcodex} ;
 
-procedure proctrailer;
+procedure putblock;
 
-{ Generate code for a block exit.
-
-  At this point we know what registers we used, so we can set up the
-  register save and restore.
+{ After all code has been generated for a block, this procedure generates
+  cleanup code, calls the various peep-hole optimization
+  routines, and finally outputs the macro code.
 }
 
   var
@@ -779,124 +907,9 @@ procedure proctrailer;
     fptemp, sptemp: keyindex;
     regcost, fpregcost: integer; {bytes allocated to save registers on stack}
     regoffset, fpregoffset: array [regindex] of integer; {offset for each reg}
-    reg: integer; { temp for dummy register }
-    
-
-  begin {proctrailer}
-
-    regcost := 0;
-    { we only save registers x19 ... }
-    for i := pr + 1 to sl - 1 do
-      if regused[i] then
-        begin
-        regcost := regcost - quad;
-        regoffset[i] := regcost;
-        end;
-         
-
-    { See if there is enough space on the stack for the frame linkage,
-      all the registers to be saved and (if stackcheck is true) everything
-      else that will be pushed on the stack.
-    }
-{
-    insert(linkentryinst, prologuelength);
-    settempareg(fp);
-    fptemp := tempkey;
-}
-
-    { 1. convert all negative sp offsets to positive.
-      2. gen sub sp, sp, stacksize/strp in prologue
-      3. gen ldp/add sp, sp, stacksize in postlogue
-    }
-
-{    if proctable[blockref].opensfile then
-      begin
-      settemp(long, relative, sp, 0, false, (fpregcost - 96) * ord(mc68881) +
-              regcost - 13 * long, 0, 1, unknown);
-      gen1(pea, long, tempkey);
-      tempkey := tempkey + 1;
-      settempimmediate(long, blksize);
-      settempreg(long, autod, sp);
-      gen2(move, long, tempkey + 1, tempkey);
-      tempkey := tempkey + 2;
-      callsupport(libcloseinrange);
-      settempimmediate(word, 8);  { Clean up stack }
-      settempareg(sp);
-      gen2(adda, word, tempkey + 1, tempkey);
-      end;
-}
-{
-      settempareg(fp);
-      gen1(unlk, long, tempkey);
-      tempkey := tempkey + 1;
-      end;
-}
-
-    { procedure entry code. Grow stack,save link and frame pointer registers,
-     save used callee-saved registers.
-    }
-
-    p := newinsertafter(codeproctable[blockref].proclabelnode, instnode);
-    settemp(quad, reg_oprnd(sp));
-    settemp(quad, immediate_oprnd(0, false));
-    gen3p(p, buildinst(sub, true, false), tempkey + 1, tempkey + 1, tempkey);
-
-    p := newinsertafter(p, instnode);
-    settemp(quad, reg_oprnd(fp));
-    settemp(quad, reg_oprnd(link));
-    settemp(quad, index_oprnd(imm_offset, sp, 0));
-    gen3p(p, buildinst(stp, true, false), tempkey + 1, tempkey + 2, tempkey);
-
-    { procedure exit code. Restore callee-saved registers, link and frame pointer
-      registers, and shrink stack.
-    } 
-
-    p := newnode(instnode);
-    gen3p(p, buildinst(ldp, true, false), tempkey + 1, tempkey + 2, tempkey);
-
-    p := newinsertafter(p, instnode);
-    gen3p(p, buildinst(add, true, false), tempkey + 4, tempkey + 4, tempkey + 3);
-
-    tempkey := tempkey + 5;
-
-    geninst(nil, buildinst(ret, false, false), 0);
-
-  end {proctrailer} ;
-
-
-procedure maintrailer;
-
-{ Generate code for a main program trailer.  This generates debugging 
-  initialization code if needed.
-}
-
-
-  begin
-{
-    mainsymbolindex := left;
-    case language of
-      pascal: callsupport(libexit);
-      modula2: callsupport(libmexit);
-      end;
-}
-  end; {maintrailer}
-
-
-procedure putblock;
-
-{ After all code has been generated for a block, this procedure generates
-  cleanup code (with "proctrailer"), calls the various peep-hole optimization
-  routines, and finally calls the appropriate routines to output the code.
-  The order in which these routines are called is not random, and is designed
-  to produce the greatest possible effect.  The other alternative is to call
-  each routine multiple times until no change is noted, an expensive approach.
-}
-
-  var
-    r: regindex;
-    p, p1: nodeptr;
+    fpregssaved : array [0..23] of boolean;
     regssaved : array [0..23] of boolean;
-    pc_addr   : integer;
+    reg: integer; { temp for dummy register }
 
   begin {PutBlock}
     { save procedure symbol table index }
@@ -925,10 +938,72 @@ procedure putblock;
 }
       end;
 
-    { peephole optimizations }
+    { eventually peephole optimizations happen now }
 
-    if level = 1 then maintrailer
-    else proctrailer;
+    regcost := 0;
+    { we only save registers x19 ... }
+    for i := pr + 1 to sl - 1 do
+      if regused[i] then
+        begin
+        regcost := regcost + quad;
+        regoffset[i] := regcost;
+        end;
+
+    { 1. convert all negative sp offsets to positive.
+      2. gen sub sp, sp, stacksize/strp in prologue
+      3. gen ldp/add sp, sp, stacksize in postlogue
+    }
+
+{    if proctable[blockref].opensfile then
+      begin
+      settemp(long, relative, sp, 0, false, (fpregcost - 96) * ord(mc68881) +
+              regcost - 13 * long, 0, 1, unknown);
+      gen1(pea, long, tempkey);
+      tempkey := tempkey + 1;
+      settempimmediate(long, blksize);
+      settempreg(long, autod, sp);
+      gen2(move, long, tempkey + 1, tempkey);
+      tempkey := tempkey + 2;
+      callsupport(libcloseinrange);
+      settempimmediate(word, 8);  { Clean up stack }
+      settempareg(sp);
+      gen2(adda, word, tempkey + 1, tempkey);
+      tempkey := tempkey + 1;
+      end;
+}
+
+    { procedure entry code. Grow stack,save link and frame pointer registers,
+     save used callee-saved registers.
+    }
+
+    p := newinsertafter(codeproctable[blockref].proclabelnode, instnode);
+    settemp(quad, reg_oprnd(sp));
+    settemp(quad, immediate_oprnd(blksize, 0));
+    gen3p(p, buildinst(sub, true, false), tempkey + 1, tempkey + 1, tempkey);
+
+    p := newinsertafter(p, instnode);
+    settemp(quad, reg_oprnd(fp));
+    settemp(quad, reg_oprnd(link));
+    settemp(quad, index_oprnd(imm_offset, sp, 0));
+    gen3p(p, buildinst(stp, true, false), tempkey + 1, tempkey + 2, tempkey);
+
+    p := newinsertafter(p, instnode);
+    settemp(quad, immediate_oprnd(0, 0));
+    gen3p(p, buildinst(add, true, false), tempkey + 3, tempkey + 5, tempkey);
+
+    { procedure exit code. Restore callee-saved registers, link and frame pointer
+      registers, and shrink stack.
+    } 
+
+    p := newnode(instnode);
+    gen3p(p, buildinst(ldp, true, false), tempkey + 2, tempkey + 3, tempkey + 1);
+
+    p := newinsertafter(p, instnode);
+    gen3p(p, buildinst(add, true, false), tempkey + 5, tempkey + 5, tempkey + 4);
+
+    tempkey := tempkey + 5;
+
+    geninst(nil, buildinst(ret, false, false), 0);
 
     { write output code }
     if switcheverplus[outputmacro] then putcode.putcode;
@@ -989,6 +1064,8 @@ procedure blockentryx;
   This just sets up to generate code and saves data about the block.
 }
 
+  var
+    i: regindex;
 
   begin {blockentryx}
     initblock;
@@ -996,28 +1073,97 @@ procedure blockentryx;
       begin
       blockref := oprnds[1];
       paramsize := oprnds[2];
-      blksize := oprnds[3];
+      { global parameters aren't stored on the stack, kludging here
+        rather fixing in the frontend.
+      }
+      if blockref = 0 then blksize := 0
+      else blksize := oprnds[3];
       end;
     level := proctable[blockref].level;
     blockusesframe := switcheverplus[framepointer]
 	or ((language = modula2) and proctable[blockref].needsframeptr);
+    for i := 0 to maxreg do
+      begin
+      context[1].bump[i] := false;
+      context[1].fpbump[i] := false;
+      registers[i] := 0;
+      fpregisters[i] := 0;
+      end;
   end {blockentryx} ;
 
 
-procedure genone;
+procedure regtempx;
 
-{ Generate code for one pseudoop.  Called by genblk for small compilers,
-  called by travrs directly for large compilers.
+{ Generate a reference to a local variable permanently assigned to a
+  general register.  "pseudoinst.oprnds[3]" contains the number of the
+  temp register assigned, and oprnds[1] is the variable access being
+  so assigned.
 }
 
-  begin {genone}
+
+  begin
+    { address(left) in mc68000 codgen, simplified here because regtemp is
+      not based on volatile registers and I've not implemented address()
+      yet.
+    }
+    dereference(left);
+    setvalue(reg_oprnd(pr + pseudoinst.oprnds[3]));
+    regused[pr + pseudoinst.oprnds[3]] := true;
+  end {regtempx} ;
+
+procedure dovarx(s: boolean {signed variable reference} );
+
+{ Defines the left operand as a variable reference and sets the
+  result "key" to show this.
+
+  This is used by the "dovar" and "dounsvar" pseudo-ops.
+}
+
+
+  begin
+    setallfields(left);
+    dereference(left);
+    with keytable[key] do
+      begin
+      signed := s;
+      if packedaccess then signlimit := (len - 1) div bitsperunit + 1
+      else signlimit := len;
+      end;
+  end {dovarx} ;
+
+{ Just a temporary hack }
+procedure movlitintx;
+  begin
+    setallfields(left);
+    dereference(left);
+    settemp(len, immediate_oprnd(right, 0));
+    gen2(buildinst(movz, len = quad, false), left, tempkey); 
+  end;
+
+procedure codeselect;
+
+{ Generate code for one of the pseudoops handled by this part of the
+  code generator.
+}
+
+  begin {codeselect}
+    tempkey := loopcount - 1;
+    setcommonkey;
     use_preferred_key := false; {code generator flag}
-{
     case pseudoinst.op of
+      doint, doptr: dointx;
+      dolevel:  dolevelx(false);
+      doown: dolevelx(true);
+      blockentry: blockentryx;
+      blockcode: blockcodex;
+      blockexit: blockexitx;
+{
+      doreal: dorealx;
+      dofptr: dofptrx;
+}
       stmtbrk: stmtbrkx;
+{
       copyaccess: copyaccessx;
-      blockentry, blockexit, doint, doreal, doptr, dofptr, blockcode:
-        { handled by overlay } ;
       clearlabel: clearlabelx;
       savelabel: savelabelx;
       restorelabel: restorelabelx;
@@ -1044,13 +1190,17 @@ procedure genone;
       dostruct: dostructx;
       doset: dosetx;
       dolevel: dolevelx;
+}
       dovar: dovarx(true);
       dounsvar, doptrvar, dofptrvar: dovarx(false);
+{
       doext: doextx;
       indxchk: checkx(false, index_error);
       rangechk: checkx(true, range_error);
       congruchk: checkx(true, index_error);
+}
       regtemp: regtempx;
+{
       ptrtemp: ptrtempx;
       realtemp: realtempx;
       indxindr: indxindrx;
@@ -1067,7 +1217,9 @@ procedure genone;
       inset: insetx;
       movint, returnint: movintx;
       movptr, returnptr, returnfptr: movx(false, areg, @getareg);
+}
       movlitint: movlitintx;
+{
       movlitptr: movlitptrx;
       movreal, returnreal: movrealx;
       movlitreal: movlitrealx;
@@ -1221,13 +1373,15 @@ procedure genone;
       dummyarg2: dummyarg2x;
       openarray: openarrayx;
       saveactkeys: saveactivekeys;
+}
       otherwise
         begin
-        write('Not yet implemented: ', ord(pseudoinst.op): 1);
-        compilerabort(inconsistent);
+        {write('Not yet implemented: ', ord(pseudoinst.op): 1);
+        compilerabort(inconsistent);}
         end;
       end;
     if key > lastkey then lastkey := key;
+{
     with keytable[key] do
       if refcount + copycount > 1 then savekey(key);
 
@@ -1250,36 +1404,6 @@ procedure genone;
       if keytable[key].refcount = 0 then keytable[key].access := noaccess;
       key := key - 1;
       end;}
-  end; {genone}
-
-
-procedure codeselect;
-
-{ Generate code for one of the pseudoops handled by this part of the
-  code generator.
-}
-
-  begin {codeselect}
-    tempkey := loopcount - 1;
-    setcommonkey;
-    case pseudoinst.op of
-      doint, doptr: dointx;
-      dolevel:
-        {if (left > 1) and (left < level) then genone
-        else} dostaticlevels(false);
-      doown: dostaticlevels(true);
-      blockentry: blockentryx;
-      blockcode: blockcodex;
-      blockexit: blockexitx;
-{
-      doreal: dorealx;
-      dofptr: dofptrx;}
-     otherwise
-        genone;
-      end;
-    if (key > lastkey) and
-      (pseudoinst.op in [doint, doptr, dofptr, doreal, dolevel, doown])
-    then lastkey := key;
   end; {codeselect}
 
 
@@ -1595,6 +1719,10 @@ procedure initcode;
 
   begin {initcode}
 
+    { Front end doesn't do this for deeply historical reasons but in Linux
+      the main program's just an external procedure.
+    }
+    proctable[0].externallinkage := true;
 
     labelnextnode := false;
     labeltable[0].nodelink := nil;
@@ -1771,12 +1899,12 @@ genoprnd(lastnode, 3, shift_reg_oprnd(4, asr, 23));
 geninst(nil, buildinst(add, false,true), 3);
 genoprnd(lastnode, 1, reg_oprnd(5));
 genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, immediate_oprnd(2332, false));
+genoprnd(lastnode, 3, immediate_oprnd(2332, 0));
 
 geninst(nil, buildinst(add, false, true), 3);
 genoprnd(lastnode, 1, reg_oprnd(5));
 genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, immediate_oprnd(2332, true));
+genoprnd(lastnode, 3, immediate_oprnd(2332, 12));
 
 geninst(nil, buildinst(sub, true, false), 3);
 genoprnd(lastnode, 1, reg_oprnd(5));
@@ -1831,7 +1959,7 @@ genoprnd(lastnode, 3, shift_reg_oprnd(6, asr, 63));
 geninst(nil, buildinst(ret, false, false), 0);
 
 settemp(quad, reg_oprnd(sp));
-settemp(word, immediate_oprnd(0, false));
+settemp(quad, immediate_oprnd(0, false));
 gen3(buildinst(sub, true, false), tempkey + 1, tempkey + 1, tempkey);
 
 settemp(quad, reg_oprnd(fp));

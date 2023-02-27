@@ -278,6 +278,10 @@ type
   {basic arithmetic instructions}
   first_a, add, sub, last_a,
 
+  {move instructions}
+
+  first_mv, movz,
+
   {load/store instruction}
   first_ls, ldr, ldrb, ldrh, ldrw, ldrsb, ldrsh, ldrsw, ldp,
   str, strb, strh, stp, last_ls,
@@ -305,6 +309,7 @@ type
   imm3 = 0..7;
   imm6 = 0..63;
   imm12 = 0..4095;
+  imm16 = 0..65535;
 
   oprndtype = packed record
     reg: regindex;
@@ -315,8 +320,8 @@ type
       extend_reg: (reg_extend: reg_extends;
                    extend_amount: imm3;
                    extend_signed: boolean); 
-      immediate: (value: imm12;
-                  imm_shift: boolean);
+      immediate: (value: imm16;
+                  imm_shift: 0..48);
       pre_index, post_index, imm_offset: (index: integer);
       reg_offset: (shift: boolean; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
@@ -333,7 +338,7 @@ type
 }
 
   nodeptr = ^node; {used to reference the node contents}
-  nodekinds = (instnode, oprndnode, labelnode, labeldeltanode, errornode, stmtref,
+  nodekinds = (instnode, oprndnode, labelnode, labeldeltanode, errornode, stmtnode,
                datanode, proclabelnode);
 
   operandrange = 0..4; {number of possible operands per inst}
@@ -361,6 +366,10 @@ type
         errornode: (errorno: integer; {error number} );
         proclabelnode: (proclabel: unsigned);
         datanode: (data: unsigned {long word constant data} );
+        stmtnode:
+          (stmtno: unsigned; {statement number (for debugger)}
+           sourceline: unsigned; {line number (for walkback)}
+           filename: stringtableindex; {stringfile index of file name} );
     end;
 
 
