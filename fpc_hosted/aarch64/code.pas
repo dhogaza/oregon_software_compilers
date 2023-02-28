@@ -145,6 +145,17 @@ function newnode(kind: nodekinds): nodeptr;
     newnode := p;
   end {newnode};
 
+function newinstmark(k: keyindex): nodeptr;
+
+  var
+    p: nodeptr;
+
+  begin {newinstmark}
+    p := newnode(instnode);
+    keytable[k].instmark := p;
+    newinstmark := p;
+  end {newinstmark};
+
 function newinsertbefore(before: nodeptr; kind: nodekinds): nodeptr;
 
 { Allocate a new node before the given node.  If before is nil, we assume
@@ -362,7 +373,7 @@ procedure adjustregcount(k: keyindex; {operand to adjust}
       if access = valueaccess then
         case mode of
           register, shift_reg, extend_reg, pre_index, post_index,
-          imm_offset:
+          signed_offset, unsigned_offset:
             if regvalid then
               registers[reg] := registers[reg] + delta;
           reg_offset:
@@ -372,7 +383,6 @@ procedure adjustregcount(k: keyindex; {operand to adjust}
             if reg2valid then
               registers[reg2] := registers[reg2] + delta;
             end;
-          otherwise
           end;
   end {adjustregcount} ;
 
@@ -578,6 +588,228 @@ procedure derefboth;
     dereference(right);
   end {derefboth} ;
 
+{ Stack temp allocation procedures }
+
+function uselesstemp: boolean;
+
+{ True if the top temp on the tempstack is no longer needed.
+}
+
+  var
+    p, p1: nodeptr;
+
+  begin {uselesstemp}
+    uselesstemp := false;
+    if (keytable[stackcounter].refcount = 0) and
+       (context[contextsp].lastbranch <> nil) then
+      begin
+      p := context[contextsp].lastbranch;
+      repeat
+        p := p^.nextnode;
+      until (p = nil) or
+            (p = keytable[stackcounter].instmark);
+      uselesstemp := p <> nil;
+      end
+  end {uselesstemp} ;
+
+procedure newtemp(size: addressrange {size of temp to allocate} );
+
+{ Create a new temp. Temps are allocated from the top of the keys,
+  while expressions are allocated from the bottom.
+
+  We neither push or pop temps as adequate stack space is allocated
+  at block entry.  Instead, we try to find an empty slot on the 
+  stack and reuse it.
+}
+
+  var
+    length: addressrange; {actual length of stack temp}
+    besttemp: keyindex;
+    besttempsize: addressrange;
+
+  begin {newtemp}
+    length := (size + (quad - 1)) mod (quad - 1);
+
+    if stackoffset + length > maxstackdepth
+      then maxstackdepth := stackoffset + length;
+
+    stackcounter := stackcounter - 1;
+    if stackcounter <= lastkey then compilerabort(manykeys)
+    else
+      begin
+      with keytable[stackcounter] do
+        begin
+        len := size;
+        access := valueaccess;
+        tempflag := false;
+        validtemp := true;
+        regvalid := true;
+        reg2valid := true;
+        regsaved := false;
+        reg2saved := false;
+        packedaccess := false;
+        refcount := 0;
+        instmark := nil;
+        oprnd := index_oprnd(unsigned_offset, sp, 0);
+        end;
+      end;
+{ now have to adjust offsets }
+  end {newtemp} ;
+
+
+
+{ Register allocation procedures }
+
+procedure markreg(r: regindex {register to clobber} );
+
+{ Mark a register used.  Since such a register is just about to be
+  modified,  any operand which depends on its current value must be
+  saved.  This is done by scanning the keytable for operands which
+  use this register.  If the operand is within the current context,
+  the value is saved in a temp.  In any case, the "join" flag is
+  set so it will be invalidated at the join context at the end
+  of a conditional construct.
+
+  For each operand saved, a scan of unsaved keys is made to set
+  any keys with equivalent access to the same temp location.
+}
+
+  var
+    i, saver: keyindex; {induction vars for keytable scan}
+    saved: boolean; {true if the register has already been saved}
+    j: loopindex;
+
+
+  begin {markreg}
+    regused[r] := true;
+    if r <= lastreg then
+      begin
+      saved := false;
+      registers[r] := 0;
+      context[contextsp].bump[r] := false;
+
+      for j := loopsp downto 1 do
+        loopstack[j].regstate[r].killed := true;
+{
+      with context[contextsp] do
+        for i := lastkey downto 1 do
+          with keytable[i], oprnd do
+            if (access = valueaccess) and (m in [dreg, twodregs]) and
+               (r = reg) and regvalid then
+              begin
+              if i >= keymark then 
+                begin
+                if not regsaved and (refcount > 0) then
+                  begin
+                  regsaved := true;
+                  if not saved then
+                    begin
+                    savedr := savedreg(r);
+                    saved := true;
+                    end;
+                  properreg := savedr;
+                  keytable[savedr].refcount := keytable[savedr].refcount +
+                                               refcount
+                  end;
+                regvalid := false;
+                end;
+              joinreg := true;
+              end
+            else if (access = valueaccess) and
+                    (m in [pcindexed, indexed, bitindexed, twodregs]) and
+                    (r = indxr) and indxrvalid then
+              begin
+              if i >= keymark then
+                begin
+                if not indxrsaved and (refcount > 0) then
+                  begin
+                  indxrsaved := true;
+                  if not saved then
+                    begin
+                    savedr := savedreg(r);
+                    saved := true;
+                    end;
+                  properindxr := savedr;
+                  keytable[savedr].refcount := keytable[savedr].refcount +
+                                               refcount
+                  end;
+                indxrvalid := false;
+                end;
+              joinindxr := true;
+              end;
+}
+      end;
+  end {markreg} ;
+
+
+function regvalue(r: regindex): unsigned;
+  begin {regvalue}
+    regvalue := registers[r] + ord(context[contextsp].bump[r]) * 4 +
+                ord((r > pr) and not regused[r]) * 2 +
+                ord(r < ip0);
+  end {regvalue} ;
+
+function countreg: regindex;
+
+{ Returns lowest register usage count of any general register.
+  Register count is increased if register is seen to be useful
+  beyond the next join point. This situation is recorded in the
+  bump field of the context stack when the context is first entered
+  via a savelabel.  This code prefers a scratch register, however
+  once a calle-saved register has been used, the cost of reusing
+  it is actually cheaper as we know it will be saved and restored
+  for this block.
+}
+
+  var
+    cnt: integer;
+    r: regindex;
+
+  begin {countreg}
+    cnt := maxint;
+    for r := 0 to lastreg do
+      if regvalue(r) < cnt then
+        cnt := regvalue(r);
+    countreg := cnt;
+  end {countreg} ;
+
+
+function bestreg(reg: regindex {register to check} ): boolean;
+
+{ Returns true if reg is the "best" register to step on.
+}
+
+  var
+    cnt: integer;
+
+  begin {bestreg}
+    cnt := countreg;
+    bestreg := (reg <= lastreg) and
+               (regvalue(reg) <= cnt);
+  end {bestreg} ;
+
+
+function getreg: regindex;
+
+{ Return the least worthwhile data register.  If necessary, the current
+  contents of the selected register is flushed via markreg.
+}
+
+  var
+    cnt: integer;
+    r: regindex;
+
+
+  begin {getreg}
+    cnt := countreg;
+    r := lastreg;
+    while regvalue(r) <> cnt do
+      r := r - 1;
+    markreg(r);
+    getreg := r;
+  end {getreg} ;
+
+
 procedure initblock;
 
 { Initialize global variables for a new block.
@@ -657,9 +889,9 @@ procedure initblock;
     keytable[keysize].refcount := 1;
     keytable[keysize - 1].refcount := 1;
 
-    keytable[loopsrc].refcount := 255;
-    keytable[loopsrc1].refcount := 255;
-    keytable[loopdst].refcount := 255;
+    keytable[loopsrc].refcount := maxrefcount;
+    keytable[loopsrc1].refcount := maxrefcount;
+    keytable[loopdst].refcount := maxrefcount;
 
     {zero out all register data}
     for i := 0 to maxreg do
@@ -668,11 +900,19 @@ procedure initblock;
       fpregused[i]:=false;
       registers[i] := 0;
       fpregisters[i] := 0;
+      context[1].bump[i] := false;
+      context[1].fpbump[i] := false;
       end;
+
+    registers[pr] := maxrefcount;
+    registers[ip0] := maxrefcount;
+    registers[ip1] := maxrefcount;
 
     {initialize temp allocation vars}
     stackcounter := keysize - 1;
     stackoffset := 0;
+    keytable[stackcounter].oprnd := index_oprnd(unsigned_offset, sp, 0);
+    keytable[keysize].oprnd := index_oprnd(unsigned_offset, sp, 0);
 
   end {initblock} ;
 
@@ -806,12 +1046,10 @@ procedure dorealx;
 procedure dolevelx(ownflag: boolean {true says own sect def} );
 
 { Generate a reference to the data area for the level specified in
-  opernds[1].  This is a direct reference to the global area for level 1,
-  and a reference relative to sp for the local frame.  There is another
-  procedure, dolevelx, in genblk which handles intermediate level references.
-  These two cases (global+current vs. intermediate levels) are split up
-  purely to save space and to facilitate inclusion of blockcodex in this
-  overlay.
+  opernds[1].  This is relative to gp for level 1, relative to fp
+  for the current level, and relative to sl for level-1.  For other
+  levels, generate an indirect from the pointer contained in the 
+  target operand and offet relative to that.
 }
 
   var
@@ -832,11 +1070,11 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
         offset := 0;}
         end
       else if left = 1 then
-        setvalue(index_oprnd(imm_offset, gp, 0))
+        setvalue(index_oprnd(unsigned_offset, gp, 0))
       else if left = level then
-        setvalue(index_oprnd(imm_offset, fp, 0))
+        setvalue(index_oprnd(unsigned_offset, fp, 0))
       { we don't do origin else if left = 0 then setvalue(abslong, 0, 0, false, 0, 0)}
-      else if left = level - 1 then setvalue(index_oprnd(imm_offset, sl, 0))
+      else if left = level - 1 then setvalue(index_oprnd(unsigned_offset, sl, 0))
       else
         begin
 { intermediate level 
@@ -870,16 +1108,15 @@ procedure blockcodex;
     context[1].keymark := lastkey + 1;
     context[0] := context[1];
     lastfpreg := maxreg - target;
-    lastreg := sl - left;
+    lastreg := sl - left - 1;
     lineoffset := pseudoinst.len;
 
     with proctable[blockref] do
       begin
       if intlevelrefs then
-      {generate indirect moves before entry}
         begin
         settemp(quad, reg_oprnd(sl));
-        settemp(quad, index_oprnd(imm_offset, sl, 0));
+        settemp(quad, index_oprnd(unsigned_offset, sl, 0));
         for i := 1 to levelspread - 1 do
           begin
           gen2(buildinst(ldr, true, false), tempkey + 1, tempkey);
@@ -904,14 +1141,15 @@ procedure putblock;
     i: regindex; {induction var for scanning registers}
     blockcost: integer; {max bytes allocated on the stack}
     p, p1: nodeptr;
-    fptemp, sptemp: keyindex;
+    savetempkey, fptemp, sptemp, linktemp, spoffsettemp,
+    saveregtemp, saveregoffsettemp, spadjusttemp: keyindex;
     regcost, fpregcost: integer; {bytes allocated to save registers on stack}
     regoffset, fpregoffset: array [regindex] of integer; {offset for each reg}
-    fpregssaved : array [0..23] of boolean;
-    regssaved : array [0..23] of boolean;
-    reg: integer; { temp for dummy register }
+    fpregssaved : array [regindex] of boolean;
+    regssaved : array [regindex] of boolean;
+    reg: regindex; { temp for dummy register }
 
-  begin {PutBlock}
+  begin {putblock}
     { save procedure symbol table index }
 
 
@@ -940,13 +1178,15 @@ procedure putblock;
 
     { eventually peephole optimizations happen now }
 
+    { we only save registers x19 ... and we do this indexing
+      negatively off the fp to make sure the index is in range.
+     }
     regcost := 0;
-    { we only save registers x19 ... }
     for i := pr + 1 to sl - 1 do
       if regused[i] then
         begin
         regcost := regcost + quad;
-        regoffset[i] := regcost;
+        regoffset[i] := -regcost;
         end;
 
     { 1. convert all negative sp offsets to positive.
@@ -976,39 +1216,60 @@ procedure putblock;
      save used callee-saved registers.
     }
 
-    p := newinsertafter(codeproctable[blockref].proclabelnode, instnode);
-    settemp(quad, reg_oprnd(sp));
-    settemp(quad, immediate_oprnd(blksize, 0));
-    gen3p(p, buildinst(sub, true, false), tempkey + 1, tempkey + 1, tempkey);
-
-    p := newinsertafter(p, instnode);
-    settemp(quad, reg_oprnd(fp));
+    savetempkey := tempkey;
     settemp(quad, reg_oprnd(link));
-    settemp(quad, index_oprnd(imm_offset, sp, 0));
-    gen3p(p, buildinst(stp, true, false), tempkey + 1, tempkey + 2, tempkey);
+    linktemp := tempkey;
+    settemp(quad, reg_oprnd(sp));
+    sptemp := tempkey;
+    settemp(quad, reg_oprnd(fp));
+    fptemp := tempkey;
+    settemp(quad, immediate_oprnd(blksize + regcost, 0));
+    spadjusttemp := tempkey;
+    settemp(quad, index_oprnd(unsigned_offset, sp, regcost));
+    spoffsettemp := tempkey;
+    settemp(quad, index_oprnd(signed_offset, fp, 0));
+    saveregoffsettemp := tempkey; 
+    settemp(quad, reg_oprnd(0));
+    saveregtemp := tempkey;
 
-    p := newinsertafter(p, instnode);
-    settemp(quad, immediate_oprnd(0, 0));
-    gen3p(p, buildinst(add, true, false), tempkey + 3, tempkey + 5, tempkey);
+    { set up the frame for this block }
+    p1 := newinsertafter(codeproctable[blockref].proclabelnode, instnode);
+    gen3p(p1, buildinst(sub, true, false), sptemp, sptemp, spadjusttemp);
+
+    p1 := newinsertafter(p1, instnode);
+    gen3p(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
+
+    p1 := newinsertafter(p1, instnode);
+    settemp(quad, immediate_oprnd(regcost, 0));
+    gen3p(p1, buildinst(add, true, false), fptemp, sptemp, tempkey);
 
     { procedure exit code. Restore callee-saved registers, link and frame pointer
       registers, and shrink stack.
     } 
 
-    p := newnode(instnode);
-    gen3p(p, buildinst(ldp, true, false), tempkey + 2, tempkey + 3, tempkey + 1);
+    for i := pr + 1 to sl - 1 do
+      if regused[i] then
+        begin
+        keytable[saveregtemp].oprnd.reg := i;
+        keytable[saveregoffsettemp].oprnd.index := regoffset[i];
+        p1 := newinsertafter(p1, instnode);
+        gen2p(p1, buildinst(str, true, false), saveregtemp, saveregoffsettemp);
+        gen2(buildinst(ldr, true, false), saveregtemp, saveregoffsettemp);
+        regoffset[i] := -regcost;
+        end;
 
-    p := newinsertafter(p, instnode);
-    gen3p(p, buildinst(add, true, false), tempkey + 5, tempkey + 5, tempkey + 4);
+    gen3(buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
 
-    tempkey := tempkey + 5;
+    gen3(buildinst(add, true, false), sptemp, sptemp, spadjusttemp);
 
     geninst(nil, buildinst(ret, false, false), 0);
+
+    tempkey := savetempkey;
 
     { write output code }
     if switcheverplus[outputmacro] then putcode.putcode;
 
-  end { PutBlock } ;
+  end { putblock } ;
 
 procedure blockexitx;
 
@@ -1019,6 +1280,7 @@ procedure blockexitx;
     anyfound: boolean;
 
   begin {blockexitx}
+
     if (level <> 1) or (switchcounters[mainbody] > 0) then putblock;
     if (blockref = 0) or (level = 1) then
       mainsymbolindex := pseudoinst.oprnds[1];
@@ -1031,9 +1293,10 @@ procedure blockexitx;
     if switcheverplus[test] then
       begin
       anyfound := false;
-      for i := 0 to maxreg do
+      for i := 0 to lastreg do
         begin
-        if registers[i] <> 0 then anyfound := true;
+        if (registers[i] <> 0) and not (i in [ip0 .. pr]) then
+          anyfound := true;
         if fpregisters[i] <> 0 then anyfound := true;
         end;
 
@@ -1042,8 +1305,8 @@ procedure blockexitx;
         write('Found registers with non-zero use counts');
         compilerabort(inconsistent); { Display procedure name }
 
-        for i := 0 to maxreg do
-          if registers[i] <> 0 then
+        for i := 0 to lastreg do
+          if (registers[i] <> 0) and not (i in [ip0 .. pr]) then
             write('  x', i:1, ' = ', registers[i]:1);
 
         for i := 0 to maxreg do
@@ -1082,13 +1345,6 @@ procedure blockentryx;
     level := proctable[blockref].level;
     blockusesframe := switcheverplus[framepointer]
 	or ((language = modula2) and proctable[blockref].needsframeptr);
-    for i := 0 to maxreg do
-      begin
-      context[1].bump[i] := false;
-      context[1].fpbump[i] := false;
-      registers[i] := 0;
-      fpregisters[i] := 0;
-      end;
   end {blockentryx} ;
 
 
@@ -1107,8 +1363,8 @@ procedure regtempx;
       yet.
     }
     dereference(left);
-    setvalue(reg_oprnd(pr + pseudoinst.oprnds[3]));
-    regused[pr + pseudoinst.oprnds[3]] := true;
+    setvalue(reg_oprnd(sl - pseudoinst.oprnds[3]));
+    regused[sl - pseudoinst.oprnds[3]] := true;
   end {regtempx} ;
 
 procedure dovarx(s: boolean {signed variable reference} );
@@ -1133,11 +1389,16 @@ procedure dovarx(s: boolean {signed variable reference} );
 
 { Just a temporary hack }
 procedure movlitintx;
+
+  var
+    p: nodeptr;
+
   begin
     setallfields(left);
     dereference(left);
     settemp(len, immediate_oprnd(right, 0));
-    gen2(buildinst(movz, len = quad, false), left, tempkey); 
+    p := newinstmark(key);
+    gen2p(p, buildinst(movz, len = quad, false), left, tempkey); 
   end;
 
 procedure codeselect;
@@ -1788,7 +2049,7 @@ genoprnd(lastnode, 2, index_oprnd(post_index, sp, 16));
 
 geninst(nil, buildinst(ldr, true, false), 2);
 genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, index_oprnd(imm_offset, 8, 256));
+genoprnd(lastnode, 2, index_oprnd(signed_offset, 8, 256));
 
 geninst(nil, buildinst(ldr, true, false), 2);
 genoprnd(lastnode, 1, reg_oprnd(3));
@@ -1964,7 +2225,7 @@ gen3(buildinst(sub, true, false), tempkey + 1, tempkey + 1, tempkey);
 
 settemp(quad, reg_oprnd(fp));
 settemp(quad, reg_oprnd(link));
-settemp(quad, index_oprnd(imm_offset, sp, 0));
+settemp(quad, index_oprnd(signed_offset, sp, 0));
 gen3(buildinst(stp, true, false), tempkey + 1, tempkey + 2, tempkey);
 
 gen3(buildinst(ldp, true, false), tempkey + 1, tempkey + 2, tempkey);

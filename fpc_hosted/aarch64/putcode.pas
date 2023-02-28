@@ -202,7 +202,7 @@ begin
       write_reg(o.reg, true);
       write(macfile, '], ', o.index);
       end;
-    imm_offset:
+    signed_offset, unsigned_offset:
       begin
       write(macfile, '[');
       write_reg(o.reg, true);
@@ -257,7 +257,7 @@ begin {write_node}
     begin
     i := p^.stmtno;
     if i <> 0 then i := i - firststmt + 1;
-    writeln(macfile, '* Line: ', p^.sourceline - lineoffset: 1,
+    writeln(macfile, '# Line: ', p^.sourceline - lineoffset: 1,
                         ', Stmt: ', i: 1);
     end;
   otherwise write('bad node');

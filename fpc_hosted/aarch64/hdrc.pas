@@ -301,7 +301,8 @@ type
   end;
 
   oprnd_modes = (nomode, register, shift_reg, extend_reg, immediate, relative,
-                 pre_index, post_index, imm_offset, reg_offset, literal);
+                 pre_index, post_index, signed_offset, unsigned_offset,
+                 reg_offset, literal);
 
   reg_extends = (xtb, xth, xtw, xtx);
   reg_shifts = (lsl, lsr, asr);
@@ -322,7 +323,7 @@ type
                    extend_signed: boolean); 
       immediate: (value: imm16;
                   imm_shift: 0..48);
-      pre_index, post_index, imm_offset: (index: integer);
+      pre_index, post_index, signed_offset, unsigned_offset: (index: integer);
       reg_offset: (shift: boolean; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
     end;
@@ -529,9 +530,9 @@ var
   stackoffset: integer; {depth of runtime stack in bytes}
 
 
-  registers: array [regindex] of integer; {usage count of address registers}
-  fpregisters: array [regindex] of integer; {usage count of floating-point
-                                             registers}
+  registers: array [regindex] of integer;
+  fpregisters: array [regindex] of integer;
+
   regused, fpregused: array [regindex] of boolean; {set if currently used}
 
   lastreg, lastfpreg: regindex; {last registers available for

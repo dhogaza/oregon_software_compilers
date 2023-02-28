@@ -403,7 +403,7 @@ const
 
   nodehashsize = 67; {number of buckets in node hash table}
 
-  maxrefcount = 1023; {max number of refs to a node}
+  maxrefcount = 10000; {max number of refs to a node}
   maxcost = 127; {max cost value considered}
 
   divtarget = - 2; {result is a future dividend}
