@@ -590,27 +590,90 @@ procedure derefboth;
 
 { Stack temp allocation procedures }
 
-function uselesstemp: boolean;
+function uselesstemp(k: keyindex): boolean;
 
-{ True if the top temp on the tempstack is no longer needed.
+{ True if the top temp on the tempstack is no longer needed.  It must
+  have a refcount of zero and have been created after the last branch
+  in this context.  With our non-popping stack model we might be able
+  to relax this.
 }
 
   var
     p, p1: nodeptr;
 
   begin {uselesstemp}
-    uselesstemp := false;
-    if (keytable[stackcounter].refcount = 0) and
-       (context[contextsp].lastbranch <> nil) then
+    uselesstemp := keytable[k].refcount = 0;;
+    if uselesstemp and (context[contextsp].lastbranch <> nil) then
       begin
       p := context[contextsp].lastbranch;
       repeat
         p := p^.nextnode;
       until (p = nil) or
-            (p = keytable[stackcounter].instmark);
+            (p = keytable[k].instmark);
       uselesstemp := p <> nil;
       end
   end {uselesstemp} ;
+
+procedure consolidatestack;
+
+{ Consolidates consecutive useless stack slots into a single slot.  This
+  will aid the reuse of stack slots since we don't pop them off after
+  they are no longer needed.
+}
+
+var
+  k, k1, k2: keyindex;
+  movecnt: integer;
+  len: addressrange;
+  i: integer;
+
+begin
+  K := stackcounter;
+  while k < keysize do
+    begin
+    while (k < keysize) and not uselesstemp(k) do
+      k := k + 1;
+    len := 0;
+    k1 := k;
+    while uselesstemp(k) do
+      begin
+      len := len + keytable[k].len;
+      k := k + 1;
+      end;
+    movecnt := k - k1 - 1;
+    if movecnt > 0 then
+      begin
+      keytable[k1].len := len;
+      for k2 := k1 downto stackcounter do
+        keytable[k2 + movecnt] := keytable[k2];
+      stackcounter := stackcounter + movecnt;
+      end;
+    end;
+end;
+
+function besttemp(size: addressrange): keyindex;
+
+  var
+    bestsize: addressrange;
+    k: keyindex;
+
+  begin
+    size := (size + (stackalign - 1)) mod (stackalign - 1);
+    bestsize := maxaddr;
+    k := keysize;
+    besttemp := 0;
+
+    while (k >= stackcounter) and (bestsize > size) do
+    begin
+      if uselesstemp(k) and (keytable[k].len >= size) and
+        (keytable[k].len < bestsize) then
+        begin
+        bestsize := keytable[k].len;
+        besttemp := k;
+        end;
+      k := k - 1;
+    end;
+  end;
 
 procedure newtemp(size: addressrange {size of temp to allocate} );
 
@@ -623,16 +686,15 @@ procedure newtemp(size: addressrange {size of temp to allocate} );
 }
 
   var
-    length: addressrange; {actual length of stack temp}
     besttemp: keyindex;
     besttempsize: addressrange;
 
   begin {newtemp}
-    length := (size + (quad - 1)) mod (quad - 1);
+    size := (size + (stackalign - 1)) and - stackalign;
 
-    if stackoffset + length > maxstackdepth
-      then maxstackdepth := stackoffset + length;
+{ now have to adjust offsets }
 
+    stackoffset := stackoffset + size;
     stackcounter := stackcounter - 1;
     if stackcounter <= lastkey then compilerabort(manykeys)
     else
@@ -653,7 +715,6 @@ procedure newtemp(size: addressrange {size of temp to allocate} );
         oprnd := index_oprnd(unsigned_offset, sp, 0);
         end;
       end;
-{ now have to adjust offsets }
   end {newtemp} ;
 
 
@@ -886,8 +947,7 @@ procedure initblock;
         tempflag := false;
         end;
 
-    keytable[keysize].refcount := 1;
-    keytable[keysize - 1].refcount := 1;
+    keytable[keysize].refcount := maxrefcount;
 
     keytable[loopsrc].refcount := maxrefcount;
     keytable[loopsrc1].refcount := maxrefcount;
@@ -909,10 +969,11 @@ procedure initblock;
     registers[ip1] := maxrefcount;
 
     {initialize temp allocation vars}
-    stackcounter := keysize - 1;
+    stackcounter := keysize;
     stackoffset := 0;
     keytable[stackcounter].oprnd := index_oprnd(unsigned_offset, sp, 0);
-    keytable[keysize].oprnd := index_oprnd(unsigned_offset, sp, 0);
+
+newtemp(100);
 
   end {initblock} ;
 
@@ -1126,7 +1187,6 @@ procedure blockcodex;
     p := newnode(proclabelnode);
     p^.proclabel := blockref;
     codeproctable[blockref].proclabelnode := p;
-    stackoffset := 0;
 
   end {blockcodex} ;
 
@@ -1223,9 +1283,9 @@ procedure putblock;
     sptemp := tempkey;
     settemp(quad, reg_oprnd(fp));
     fptemp := tempkey;
-    settemp(quad, immediate_oprnd(blksize + regcost, 0));
+    settemp(quad, immediate_oprnd(blksize + regcost + stackoffset, 0));
     spadjusttemp := tempkey;
-    settemp(quad, index_oprnd(unsigned_offset, sp, regcost));
+    settemp(quad, index_oprnd(unsigned_offset, sp, regcost + stackoffset));
     spoffsettemp := tempkey;
     settemp(quad, index_oprnd(signed_offset, fp, 0));
     saveregoffsettemp := tempkey; 
@@ -1240,7 +1300,7 @@ procedure putblock;
     gen3p(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
 
     p1 := newinsertafter(p1, instnode);
-    settemp(quad, immediate_oprnd(regcost, 0));
+    settemp(quad, immediate_oprnd(regcost + stackoffset, 0));
     gen3p(p1, buildinst(add, true, false), fptemp, sptemp, tempkey);
 
     { procedure exit code. Restore callee-saved registers, link and frame pointer
@@ -1346,7 +1406,6 @@ procedure blockentryx;
     blockusesframe := switcheverplus[framepointer]
 	or ((language = modula2) and proctable[blockref].needsframeptr);
   end {blockentryx} ;
-
 
 procedure regtempx;
 
@@ -2033,209 +2092,6 @@ procedure exitcode;
     p, p1: nodeptr;
 
   begin {exitcode}
-
-{
-geninst(nil, buildinst(ldr, true, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, literal_oprnd(16000));
-
-geninst(nil, buildinst(ldr, true, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, index_oprnd(pre_index, sp, -16));
-
-geninst(nil, buildinst(ldr, true, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, index_oprnd(post_index, sp, 16));
-
-geninst(nil, buildinst(ldr, true, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, index_oprnd(signed_offset, 8, 256));
-
-geninst(nil, buildinst(ldr, true, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, reg_offset_oprnd(18, 1, false, xtx, false));
-
-geninst(nil, buildinst(ldr, true, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, reg_offset_oprnd(18, 2, true, xtx, false));
-
-geninst(nil, buildinst(ldr, true, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, reg_offset_oprnd(3, 4, true, xtx, true));
-
-geninst(nil, buildinst(ldr, true, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, reg_offset_oprnd(3, 4, false, xtx, true));
-
-geninst(nil, buildinst(ldr, true, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, reg_offset_oprnd(3, 4, true, xtx, true));
-
-geninst(nil, buildinst(ldr, true, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, reg_offset_oprnd(18, 3, false, xtw, true));
-
-geninst(nil, buildinst(ldr, false, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, reg_offset_oprnd(18, 3, true, xtw, true));
-
-geninst(nil, buildinst(ldr, false, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, reg_offset_oprnd(18, 3, false, xtw, true));
-
-geninst(nil, buildinst(ldrb, false, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, reg_offset_oprnd(18, 3, false, xtw, true));
-
-geninst(nil, buildinst(ldrsw, true, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, reg_offset_oprnd(5, 3, false, xtw, true));
-
-geninst(nil, buildinst(str, true, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, reg_offset_oprnd(5, 3, false, xtw, true));
-
-geninst(nil, buildinst(str, false, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, reg_offset_oprnd(5, 3, false, xtw, true));
-
-geninst(nil, buildinst(strh, false, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, reg_offset_oprnd(5, 3, false, xtw, true));
-
-geninst(nil, buildinst(strb, false, false), 2);
-genoprnd(lastnode, 1, reg_oprnd(3));
-genoprnd(lastnode, 2, reg_offset_oprnd(5, 3, false, xtw, true));
-
-geninst(nil, buildinst(stp, true, false), 3);
-genoprnd(lastnode, 1, reg_oprnd(29));
-genoprnd(lastnode, 2, reg_oprnd(30));
-genoprnd(lastnode, 3, index_oprnd(pre_index, sp, -16));
-
-geninst(nil, buildinst(ldp, true, false), 3);
-genoprnd(lastnode, 1, reg_oprnd(29));
-genoprnd(lastnode, 2, reg_oprnd(30));
-genoprnd(lastnode, 3, index_oprnd(post_index, sp, 16));
-
-geninst(nil, buildinst(add, false, true), 3);
-genoprnd(lastnode, 1, reg_oprnd(6));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, reg_oprnd(3));
-
-geninst(nil, buildinst(add, true, true), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, reg_oprnd(20));
-
-geninst(nil, buildinst(add, true, true), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, shift_reg_oprnd(4, lsl, 20));
-
-geninst(nil, buildinst(add, true, true), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, shift_reg_oprnd(4, lsr, 41));
-
-geninst(nil, buildinst(add, true, true), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 1, reg_oprnd(5));
-
-geninst(nil, buildinst(add, false, true), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, shift_reg_oprnd(4, lsl, 20));
-
-geninst(nil, buildinst(add, false, true), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, shift_reg_oprnd(4, lsr, 21));
-
-geninst(nil, buildinst(add, false, true), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, shift_reg_oprnd(4, asr, 23));
-
-geninst(nil, buildinst(add, false,true), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, immediate_oprnd(2332, 0));
-
-geninst(nil, buildinst(add, false, true), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, immediate_oprnd(2332, 12));
-
-geninst(nil, buildinst(sub, true, false), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, extend_reg_oprnd(5, xtx, 3, true));
-
-geninst(nil, buildinst(sub, true,false), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, extend_reg_oprnd(5, xtb, 3, true));
-
-geninst(nil, buildinst(sub, true, false), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, extend_reg_oprnd(5, xth, 3, false));
-
-geninst(nil, buildinst(sub, true, false), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, extend_reg_oprnd(5, xtw, 3, true));
-
-geninst(nil, buildinst(sub, true, false), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(22));
-genoprnd(lastnode, 3, extend_reg_oprnd(5, xtx, 3, true));
-
-geninst(nil, buildinst(sub, false, false), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(22));
-genoprnd(lastnode, 3, extend_reg_oprnd(5, xtx, 3, true));
-
-geninst(nil, buildinst(sub, false, false), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(22));
-genoprnd(lastnode, 3, shift_reg_oprnd(17, lsr, 31));
-
-geninst(nil, buildinst(sub, true, false), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(22));
-genoprnd(lastnode, 3, shift_reg_oprnd(21, lsr, 61));
-
-geninst(nil, buildinst(sub, true, false), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, shift_reg_oprnd(3, lsl, 62));
-
-geninst(nil, buildinst(sub, true, false), 3);
-genoprnd(lastnode, 1, reg_oprnd(5));
-genoprnd(lastnode, 2, reg_oprnd(8));
-genoprnd(lastnode, 3, shift_reg_oprnd(6, asr, 63));
-
-geninst(nil, buildinst(ret, false, false), 0);
-
-settemp(quad, reg_oprnd(sp));
-settemp(quad, immediate_oprnd(0, false));
-gen3(buildinst(sub, true, false), tempkey + 1, tempkey + 1, tempkey);
-
-settemp(quad, reg_oprnd(fp));
-settemp(quad, reg_oprnd(link));
-settemp(quad, index_oprnd(signed_offset, sp, 0));
-gen3(buildinst(stp, true, false), tempkey + 1, tempkey + 2, tempkey);
-
-gen3(buildinst(ldp, true, false), tempkey + 1, tempkey + 2, tempkey);
-
-gen3(buildinst(add, true, false), tempkey + 4, tempkey + 4, tempkey + 3);
-
-tempkey := tempkey + 5;
-putcode.putcode;
-}
-
     p := firstnode;
     while p <> nil do
     begin
