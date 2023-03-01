@@ -676,12 +676,12 @@ procedure splittemp(stackkey: keyindex; size: addressrange);
       for k := stackcounter to stackkey - 1 do
         keytable[k] := keytable[k + 1];
       with keytable[stackkey] do
-        len := size;
-      with keytable[stackkey - 1] do
         begin
-        len := len - size;
-        oprnd.index := oprnd.index + size;
+        oprnd.index := oprnd.index + len - size;
+        len := size;
         end;
+      with keytable[stackkey - 1] do
+        len := len - size;
       end;
   end {splittemp} ;
 
@@ -1443,9 +1443,6 @@ procedure blockexitx;
     anyfound: boolean;
 
   begin {blockexitx}
-
-newtemp(quad);
-i := savereg(15);
 
     if (level <> 1) or (switchcounters[mainbody] > 0) then putblock;
     if (blockref = 0) or (level = 1) then
