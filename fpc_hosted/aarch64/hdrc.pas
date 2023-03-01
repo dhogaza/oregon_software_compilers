@@ -280,7 +280,7 @@ type
 
   {move instructions}
 
-  first_mv, movz,
+  first_mov, movz, mov, last_mov,
 
   {load/store instruction}
   first_ls, ldr, ldrb, ldrh, ldrw, ldrsb, ldrsh, ldrsw, ldp,
@@ -397,7 +397,7 @@ type
 
   keyx =
     packed record
-      refcount, copycount: 0..maxrefcount; {reference info from pseudocode}
+      refcount, copycount: unsigned; {reference info from pseudocode}
       len: unsigned; {length of this operand, from pseudocode}
       copylink: keyindex; {node we copied, if created by copyaccess op}
       access: accesstype; {type of entry}

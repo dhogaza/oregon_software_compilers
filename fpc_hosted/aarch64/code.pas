@@ -596,6 +596,24 @@ procedure derefboth;
 
 { Stack temp allocation procedures }
 
+function preceedslastbranch(k: keyindex): boolean;
+  var
+    p: nodeptr;
+
+  begin {preceedslastbranch}
+    preceedslastbranch := false;
+    if context[contextsp].lastbranch <> nil then
+      begin
+      p := context[contextsp].lastbranch;
+      repeat
+        p := p^.nextnode;
+      until (p = nil) or
+            (p = keytable[k].instmark);
+      preceedslastbranch := p <> nil;
+      end
+  end {preceedslastbranch} ;
+
+
 function uselesstemp(k: keyindex): boolean;
 
 { True if the top temp on the tempstack is no longer needed.  It must
@@ -608,16 +626,7 @@ function uselesstemp(k: keyindex): boolean;
     p, p1: nodeptr;
 
   begin {uselesstemp}
-    uselesstemp := keytable[k].refcount = 0;
-    if (keytable[k].refcount = 0) and (context[contextsp].lastbranch <> nil) then
-      begin
-      p := context[contextsp].lastbranch;
-      repeat
-        p := p^.nextnode;
-      until (p = nil) or
-            (p = keytable[k].instmark);
-      uselesstemp := p <> nil;
-      end
+    uselesstemp := (keytable[k].refcount = 0) and not preceedslastbranch(k);
   end {uselesstemp} ;
 
 procedure consolidatestack;
@@ -814,18 +823,11 @@ function savereg(r: regindex {register to save}) : keyindex;
         end;
     if not found then
       begin
-
       stackkey := stacktemp(quad);
       settemp(quad, reg_oprnd(r));
       gen2(buildinst(str, true, false), tempkey, stackkey);
-{                                                
-      aligntemps;
-      newtemp(dreglen);
-      settempdreg(dreglen, r);
-      gensimplemove(tempkey, stackcounter);
       tempkey := tempkey + 1;
-      savedreg := stackcounter;
-}
+      savereg := stackkey;
       end;
   end {savereg} ;
 
@@ -975,7 +977,218 @@ function getreg: regindex;
     getreg := r;
   end {getreg} ;
 
+{various keytable manipulation routes}
 
+procedure savekey(k: keyindex {operand to save} );
+
+{ Save all volatile registers required by given key.
+}
+
+
+  begin
+    if k > 0 then
+      with keytable[k] do
+        if access = valueaccess then
+          begin
+          bumptempcount(k, - refcount);
+          with oprnd do
+            begin
+              if regvalid and not regsaved and (reg <= lastreg) and
+                 (reg <> noreg) then
+                begin
+                properreg := savereg(reg);
+                regsaved := true;
+                end;
+              if reg2valid and not reg2saved and
+                 (reg2 <> noreg) and (reg2 <= lastreg) then
+                begin
+                properreg2 := savereg(reg2);
+                reg2saved := true;
+                end;
+            end;
+          bumptempcount(k, refcount);
+          end;
+  end {savekey} ;
+
+  procedure saveactivekeys;
+
+    var
+      i: keyindex; {for stepping through active portion of keytable}
+
+
+    begin {saveactivekeys}
+     if dontchangevalue <= 0 then
+      begin
+      for i := context[contextsp].keymark to lastkey do
+      with keytable[i] do
+        if (refcount > 0) and not (regsaved and reg2saved)
+        then savekey(i);
+      end;
+    end {saveactivekeys} ;
+
+procedure allowmodify(var k: keyindex; {operand to be modified}
+                      forcecopy: boolean {caller can force temp} );
+
+{ Makes sure that the operand "k" can be modified.  If the operand was
+  generated before the last conditional jump, it must not be modified, so
+  a copy of the key is made in the temporary
+  key area and the value of "k" modified accordingly.  This temporary
+  key can be used in generating the current operand.  The boolean "forcecopy"
+  forces this routine to create a copy of the key.
+}
+
+
+  begin
+    if forcecopy or (k >= 0) and preceedslastbranch(k) then
+      begin
+      if tempkey = lowesttemp then compilerabort(interntemp);
+      tempkey := tempkey - 1;
+      keytable[tempkey] := keytable[k];
+      keytable[tempkey].refcount := 0;
+      keytable[tempkey].copycount := 0;
+      keytable[tempkey].regsaved := false;
+      keytable[tempkey].reg2saved := false;
+      k := tempkey
+      end;
+  end {allowmodify} ;
+
+
+procedure lock(k: keyindex {operand to lock} );
+
+{ Make sure that operand "k" will not be deallocated by setting
+  reference counts to an impossibly high value.
+}
+
+
+  begin
+    adjustregcount(k, maxrefcount);
+    bumptempcount(k, maxrefcount);
+  end {lock} ;
+
+
+procedure unlock(k: keyindex {operand to unlock} );
+
+{ Undoes the effects of "lock" so normal deallocation can be done.
+}
+
+
+  begin
+    bumptempcount(k, - maxrefcount);
+    adjustregcount(k, - maxrefcount);
+  end {unlock} ;
+
+
+procedure changevalue(var key1: keyindex; {key to be changed}
+                      key2: keyindex {source of key data} );
+
+{ Effectively assigns the contents of key2 to key1.  This is complicated
+  by the same things as allowmodify, and by the need to adjust reference
+  counts.  If the key will be referenced later, it is saved.
+}
+
+
+  begin
+    allowmodify(key1, dontchangevalue > 0);
+    with keytable[key1] do
+      begin
+      adjustregcount(key1, - refcount);
+      bumptempcount(key1, - refcount);
+      regsaved := keytable[key2].regsaved or (refcount <= 0);
+      reg2saved := keytable[key2].reg2saved or (refcount <= 0);
+      regvalid := keytable[key2].regvalid;
+      reg2valid := keytable[key2].reg2valid;
+      properreg := keytable[key2].properreg;
+      properreg2 := keytable[key2].properreg2;
+      packedaccess := keytable[key2].packedaccess;
+      oprnd := keytable[key2].oprnd;
+      bumptempcount(key1, refcount);
+      adjustregcount(key1, refcount);
+      end;
+    savekey(key1);
+  end {changevalue} ;
+
+procedure makeaddressable(var k: keyindex);
+
+{ Force addressability of specified key. Also permanently makes the new
+  address mode available subject to restrictions of allowmodify. A key
+  becomes unaddressed when one of the mark routines clears regvalid or
+  reg2valid. Makeaddressable reloads the missing register(s) and clears
+  the marked reg/reg2 status.
+}
+
+  var
+    restorereg, restorereg2: boolean;
+    t: keyindex;
+
+  procedure recall_reg(regx: regindex; properregx: keyindex);
+
+    { Unkill a dreg if possible.
+    }
+    begin
+      with loopstack[loopsp] do
+        if (thecontext = contextsp) and (loopoverflow = 0) and
+           (thecontext <> contextdepth - 1) and
+           (regstate[regx].stackcopy = properregx) then
+          regstate[regx].killed := false;
+    end;
+
+  begin {makeaddressable}
+    with keytable[k], oprnd do
+      begin
+      restorereg := not regvalid;
+      restorereg2 := not reg2valid;
+      if restorereg then keytable[properreg].tempflag := true;
+      if restorereg2 then keytable[properreg2].tempflag := true;
+      if restorereg or restorereg2 then allowmodify(k, false);
+      if restorereg then
+        begin
+        oprnd.reg := getreg;
+        recall_reg(oprnd.reg, properreg);
+        settemp(quad, reg_oprnd(reg));
+        gen2(buildinst(ldr, true, false), tempkey, properreg);
+        tempkey := tempkey + 1;
+        end;
+      if restorereg2 then
+        begin
+        oprnd.reg2 := getreg;
+        recall_reg(oprnd.reg2, properreg2);
+        settemp(quad, reg_oprnd(reg2));
+        gen2(buildinst(ldr, true, false), tempkey, properreg);
+        tempkey := tempkey + 1;
+      end;
+      regvalid := true;
+      reg2valid := true;
+      joinreg := false;
+      joinreg2 := false;
+      regsaved := regsaved and keytable[properreg].validtemp;
+      reg2saved := reg2saved and keytable[properreg2].validtemp;
+      adjustregcount(k, refcount);
+      end;
+  end {makeaddressable} ;
+
+
+procedure address(var k: keyindex);
+
+{ Shorthand concatenation of a dereference and makeaddressable call }
+
+
+  begin
+    dereference(k);
+    makeaddressable(k);
+  end {address} ;
+
+
+procedure addressboth;
+
+ { address both operands of a binary pseudoop }
+
+
+  begin
+    address(right);
+    lock(right);
+    address(left);
+    unlock(right);
+  end {addressboth} ;
 procedure initblock;
 
 { Initialize global variables for a new block.
@@ -1080,6 +1293,8 @@ procedure initblock;
 
   end {initblock} ;
 
+{start of individual pseudoop codegen procedures}
+
 procedure stmtbrkx;
 
 { Generate statement information for the macro file and later for gdb.
@@ -1165,7 +1380,7 @@ procedure dorealx;
         begin
         m := immediatelong;
         reg := 0;
-        indxr := 0;
+        reg2 := 0;
         flavor := float;
 
         if len = quad then {double precision}
@@ -1549,7 +1764,27 @@ procedure dovarx(s: boolean {signed variable reference} );
       end;
   end {dovarx} ;
 
-{ Just a temporary hack }
+{ Just temporary hacks }
+procedure movintx;
+
+{doesn't handle bytes among other evils!}
+
+  begin {movintx}
+  addressboth;
+  if (keytable[left].oprnd.mode = register) and
+     (keytable[right].oprnd.mode = register) then
+    gen2(buildinst(mov, true, false), left, right)
+  else if keytable[right].oprnd.mode <> register then
+    begin
+    settemp(len, reg_oprnd(getreg));
+    gen2(buildinst(ldr, len = quad, false), tempkey, right);
+    gen2(buildinst(str, len = quad, false), tempkey, left);
+    tempkey := tempkey + 1;
+    end
+  else
+    gen2(buildinst(ldr, len = quad, false), left, right);
+  end {movintx};
+
 procedure movlitintx;
 
   var
@@ -1562,6 +1797,25 @@ procedure movlitintx;
     p := newinstmark(key);
     gen2p(p, buildinst(movz, len = quad, false), left, tempkey); 
   end;
+
+procedure indxx;
+
+{ Index the pointer reference in oprnds[1] (left) by the constant offset
+  in oprnds[2].  The result ends up in "key".
+}
+
+
+  begin {indxx}
+    address(left);
+
+    { ONLY works for gp, fp, sl at the moment!}
+    setkeyvalue(left);
+    keytable[key].len := quad; {unnecessary?}
+    with keytable[key].oprnd do
+      index := index + right;
+  end {indxx} ;
+
+
 
 procedure codeselect;
 
@@ -1627,7 +1881,9 @@ procedure codeselect;
       ptrtemp: ptrtempx;
       realtemp: realtempx;
       indxindr: indxindrx;
+}
       indx: indxx;
+{
       aindx: aindxx;
       pindx: pindxx;
       paindx: paindxx;
@@ -1638,12 +1894,10 @@ procedure codeselect;
       addr: addrx;
       setinsert: setinsertx;
       inset: insetx;
-      movint, returnint: movintx;
-      movptr, returnptr, returnfptr: movx(false, areg, @getareg);
 }
-      movlitint: movlitintx;
+      movint, returnint, movptr, returnptr, returnfptr: movintx;
+      movlitint, movlitptr: movlitintx;
 {
-      movlitptr: movlitptrx;
       movreal, returnreal: movrealx;
       movlitreal: movlitrealx;
       movstruct, returnstruct: movstructx(false, true);

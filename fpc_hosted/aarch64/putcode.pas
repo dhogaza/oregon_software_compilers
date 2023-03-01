@@ -155,6 +155,7 @@ begin
     ldrsh: write(macfile, 'ldrsh');
     ldrsw: write(macfile, 'ldrsw');
     ldp: write(macfile, 'ldp');
+    mov: write(macfile, 'mov');
     movz: write(macfile, 'movz');
     ret: write(macfile, 'ret');
     stp: write(macfile, 'stp');
