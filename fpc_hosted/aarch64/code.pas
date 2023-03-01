@@ -1352,11 +1352,11 @@ procedure gensimplemove(left, right: keyindex);
       begin
       settemp(long, reg_oprnd(getreg));
       gen2(ldrinst(keytable[right].len, keytable[right].signed), tempkey, right);
-      gen2(strinst(len), tempkey, left);
+      gen2(strinst(keytable[left].len), tempkey, left);
       tempkey := tempkey + 1;
       end
     else
-      gen2(strinst(long), right, left);
+      gen2(strinst(keytable[left].len), right, left);
   end {gensimplemove} ;
 
 {start of individual pseudoop codegen procedures}
