@@ -26,6 +26,36 @@ begin
   buildinst := i;
 end;
 
+function ldrinst(l: addressrange; s: boolean):insttype;
+
+  var
+    inst: insts;
+
+  begin {ldrinst}
+    case l  of
+      1: if s then inst := ldrsb else inst := ldrb;
+      2: if s then inst := ldrsh else inst := ldrh;
+      4, 8: inst := ldr;
+      otherwise compilerabort(inconsistent)
+    end;
+    ldrinst := buildinst(inst, len = quad, false);
+  end {ldrinst};
+
+function strinst(l: addressrange):insttype;
+
+  var
+    inst: insts;
+
+  begin {strinst}
+    case l  of
+      1: inst := strb;
+      2: inst := strh;
+      4, 8: inst := str;
+      otherwise compilerabort(inconsistent)
+    end;
+    strinst := buildinst(inst, len = quad, false);
+  end {loadinst};
+
 function nomode_oprnd: oprndtype;
 
   var
@@ -1765,11 +1795,11 @@ procedure dovarx(s: boolean {signed variable reference} );
   end {dovarx} ;
 
 { Just temporary hacks }
-procedure movintx;
+procedure movintptrx;
 
 {doesn't handle bytes among other evils!}
 
-  begin {movintx}
+  begin {movintptrx}
   addressboth;
   if (keytable[left].oprnd.mode = register) and
      (keytable[right].oprnd.mode = register) then
@@ -1777,13 +1807,13 @@ procedure movintx;
   else if keytable[right].oprnd.mode <> register then
     begin
     settemp(len, reg_oprnd(getreg));
-    gen2(buildinst(ldr, len = quad, false), tempkey, right);
-    gen2(buildinst(str, len = quad, false), tempkey, left);
+    gen2(ldrinst(len, keytable[right].signed), tempkey, right);
+    gen2(strinst(len), tempkey, left);
     tempkey := tempkey + 1;
     end
   else
-    gen2(buildinst(ldr, len = quad, false), left, right);
-  end {movintx};
+    gen2(ldrinst(len, keytable[right].signed), left, right);
+  end {movintptrx};
 
 procedure movlitintx;
 
@@ -1895,7 +1925,7 @@ procedure codeselect;
       setinsert: setinsertx;
       inset: insetx;
 }
-      movint, returnint, movptr, returnptr, returnfptr: movintx;
+      movint, returnint, movptr, returnptr, returnfptr: movintptrx;
       movlitint, movlitptr: movlitintx;
 {
       movreal, returnreal: movrealx;
