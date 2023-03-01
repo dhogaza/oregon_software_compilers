@@ -39,7 +39,7 @@ function ldrinst(l: addressrange; s: boolean):insttype;
       long: inst := ldr;
       otherwise compilerabort(inconsistent)
     end;
-    ldrinst := buildinst(inst, len >= word, false);
+    ldrinst := buildinst(inst, s or (l >= word), false);
   end {ldrinst};
 
 function strinst(l: addressrange):insttype;
@@ -54,7 +54,7 @@ function strinst(l: addressrange):insttype;
       4, 8: inst := str;
       otherwise compilerabort(inconsistent)
     end;
-    strinst := buildinst(inst, len = long, false);
+    strinst := buildinst(inst, l = long, false);
   end {loadinst};
 
 function nomode_oprnd: oprndtype;
@@ -1339,6 +1339,26 @@ procedure initblock;
 
   end {initblock} ;
 
+{ code gen utilities }
+
+procedure gensimplemove(left, right: keyindex);
+  begin {gensimplemove}
+    if (keytable[left].oprnd.mode = register) and
+       (keytable[right].oprnd.mode = register) then
+      gen2(buildinst(mov, true, false), left, right)
+    else if keytable[left].oprnd.mode = register then
+      gen2(ldrinst(keytable[right].len, keytable[right].signed), left, right)
+    else if keytable[right].oprnd.mode <> register then
+      begin
+      settemp(long, reg_oprnd(getreg));
+      gen2(ldrinst(keytable[right].len, keytable[right].signed), tempkey, right);
+      gen2(strinst(len), tempkey, left);
+      tempkey := tempkey + 1;
+      end
+    else
+      gen2(strinst(long), right, left);
+  end {gensimplemove} ;
+
 {start of individual pseudoop codegen procedures}
 
 procedure stmtbrkx;
@@ -1831,22 +1851,9 @@ procedure dovarx(s: boolean {signed variable reference} );
 { Just temporary hacks }
 procedure movintptrx;
 
-{doesn't handle bytes among other evils!}
-
   begin {movintptrx}
-  addressboth;
-  if (keytable[left].oprnd.mode = register) and
-     (keytable[right].oprnd.mode = register) then
-    gen2(buildinst(mov, true, false), left, right)
-  else if keytable[right].oprnd.mode <> register then
-    begin
-    settemp(long, reg_oprnd(getreg));
-    gen2(ldrinst(len, keytable[right].signed), tempkey, right);
-    gen2(strinst(len), tempkey, left);
-    tempkey := tempkey + 1;
-    end
-  else
-    gen2(ldrinst(long, keytable[right].signed), left, right);
+    addressboth;
+    gensimplemove(left, right);
   end {movintptrx};
 
 procedure movlitintx;
@@ -1879,6 +1886,29 @@ procedure indxx;
       index := index + right;
   end {indxx} ;
 
+procedure loopholefnx;
+
+{ Generate code for a loophole function.  This actually generates code
+  only in the cases where the argument is in a register, or
+  immediate modes, or the operand must be aligned on a word boundary.
+}
+
+
+  begin
+{
+    unpackshrink(left, len);
+}
+
+    if (len > keytable[left].len) and
+       (keytable[left].oprnd.mode <> register) then
+      begin
+      setvalue(reg_oprnd(getreg));
+      gensimplemove(key, left);
+      end
+    else
+      setallfields(left);
+    keytable[key].signed := (pseudoinst.oprnds[2] = 0);
+  end; {loopholefnx}
 
 
 procedure codeselect;
@@ -2006,8 +2036,10 @@ procedure codeselect;
       castreal: castrealx;
       castrealint: castrealintx;
       castint, castptr: castintx;
+}
       loopholefn, castptrint, castintptr, castfptrint, castintfptr:
 	loopholefnx;
+{
       sysroutine: sysroutinex;
       chrstr: chrstrx;
       arraystr: arraystrx;
