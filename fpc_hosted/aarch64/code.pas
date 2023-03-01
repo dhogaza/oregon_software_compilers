@@ -33,12 +33,13 @@ function ldrinst(l: addressrange; s: boolean):insttype;
 
   begin {ldrinst}
     case l  of
-      1: if s then inst := ldrsb else inst := ldrb;
-      2: if s then inst := ldrsh else inst := ldrh;
-      4, 8: inst := ldr;
+      byte: if s then inst := ldrsb else inst := ldrb;
+      short: if s then inst := ldrsh else inst := ldrh;
+      word: if s then inst := ldrsw else inst := ldr;
+      long: inst := ldr;
       otherwise compilerabort(inconsistent)
     end;
-    ldrinst := buildinst(inst, len = quad, false);
+    ldrinst := buildinst(inst, len >= word, false);
   end {ldrinst};
 
 function strinst(l: addressrange):insttype;
@@ -53,7 +54,7 @@ function strinst(l: addressrange):insttype;
       4, 8: inst := str;
       otherwise compilerabort(inconsistent)
     end;
-    strinst := buildinst(inst, len = quad, false);
+    strinst := buildinst(inst, len = long, false);
   end {loadinst};
 
 function nomode_oprnd: oprndtype;
@@ -371,7 +372,7 @@ procedure gen4p(p: nodeptr;
                 i: insttype;
                 o1, o2, o3, o4: keyindex);
 
-{ Generate a quadruple operand instruction.
+{ Generate a longruple operand instruction.
 }
 
 
@@ -387,7 +388,7 @@ procedure gen4p(p: nodeptr;
 procedure gen4(i: insttype;
                o1, o2, o3, o4: keyindex);
 
-{ Generate a quadruple operand instruction.
+{ Generate a longruple operand instruction.
 }
 
 
@@ -853,8 +854,8 @@ function savereg(r: regindex {register to save}) : keyindex;
         end;
     if not found then
       begin
-      stackkey := stacktemp(quad);
-      settemp(quad, reg_oprnd(r));
+      stackkey := stacktemp(long);
+      settemp(long, reg_oprnd(r));
       gen2(buildinst(str, true, false), tempkey, stackkey);
       tempkey := tempkey + 1;
       savereg := stackkey;
@@ -1174,7 +1175,7 @@ procedure makeaddressable(var k: keyindex);
         begin
         oprnd.reg := getreg;
         recall_reg(oprnd.reg, properreg);
-        settemp(quad, reg_oprnd(reg));
+        settemp(long, reg_oprnd(reg));
         gen2(buildinst(ldr, true, false), tempkey, properreg);
         tempkey := tempkey + 1;
         end;
@@ -1182,7 +1183,7 @@ procedure makeaddressable(var k: keyindex);
         begin
         oprnd.reg2 := getreg;
         recall_reg(oprnd.reg2, properreg2);
-        settemp(quad, reg_oprnd(reg2));
+        settemp(long, reg_oprnd(reg2));
         gen2(buildinst(ldr, true, false), tempkey, properreg);
         tempkey := tempkey + 1;
       end;
@@ -1413,10 +1414,10 @@ procedure dorealx;
         reg2 := 0;
         flavor := float;
 
-        if len = quad then {double precision}
+        if len = long then {double precision}
           if mc68881 then
             begin
-            m := immediatequad;
+            m := immediatelong;
             kluge.i := oprnds[1];
             offset1 := (kluge.damn[word_zero] * 256) * 256
               + (kluge.damn[word_one] and 65535);
@@ -1524,8 +1525,8 @@ procedure blockcodex;
       begin
       if intlevelrefs then
         begin
-        settemp(quad, reg_oprnd(sl));
-        settemp(quad, index_oprnd(unsigned_offset, sl, 0));
+        settemp(long, reg_oprnd(sl));
+        settemp(long, index_oprnd(unsigned_offset, sl, 0));
         for i := 1 to levelspread - 1 do
           begin
           gen2(buildinst(ldr, true, false), tempkey + 1, tempkey);
@@ -1593,7 +1594,7 @@ procedure putblock;
     for i := pr + 1 to sl - 1 do
       if regused[i] then
         begin
-        regcost := regcost + quad;
+        regcost := regcost + long;
         regoffset[i] := -regcost;
         end;
 
@@ -1625,19 +1626,19 @@ procedure putblock;
     }
 
     savetempkey := tempkey;
-    settemp(quad, reg_oprnd(link));
+    settemp(long, reg_oprnd(link));
     linktemp := tempkey;
-    settemp(quad, reg_oprnd(sp));
+    settemp(long, reg_oprnd(sp));
     sptemp := tempkey;
-    settemp(quad, reg_oprnd(fp));
+    settemp(long, reg_oprnd(fp));
     fptemp := tempkey;
-    settemp(quad, immediate_oprnd(quad * 2 + blksize + regcost + stackoffset, 0));
+    settemp(long, immediate_oprnd(long * 2 + blksize + regcost + stackoffset, 0));
     spadjusttemp := tempkey;
-    settemp(quad, index_oprnd(unsigned_offset, sp, regcost + stackoffset));
+    settemp(long, index_oprnd(unsigned_offset, sp, regcost + stackoffset));
     spoffsettemp := tempkey;
-    settemp(quad, index_oprnd(signed_offset, fp, 0));
+    settemp(long, index_oprnd(signed_offset, fp, 0));
     saveregoffsettemp := tempkey; 
-    settemp(quad, reg_oprnd(0));
+    settemp(long, reg_oprnd(0));
     saveregtemp := tempkey;
 
     { set up the frame for this block }
@@ -1648,7 +1649,7 @@ procedure putblock;
     gen3p(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
 
     p1 := newinsertafter(p1, instnode);
-    settemp(quad, immediate_oprnd(regcost + stackoffset, 0));
+    settemp(long, immediate_oprnd(regcost + stackoffset, 0));
     gen3p(p1, buildinst(add, true, false), fptemp, sptemp, tempkey);
 
     { procedure exit code. Restore callee-saved registers, link and frame pointer
@@ -1806,13 +1807,13 @@ procedure movintptrx;
     gen2(buildinst(mov, true, false), left, right)
   else if keytable[right].oprnd.mode <> register then
     begin
-    settemp(len, reg_oprnd(getreg));
+    settemp(long, reg_oprnd(getreg));
     gen2(ldrinst(len, keytable[right].signed), tempkey, right);
     gen2(strinst(len), tempkey, left);
     tempkey := tempkey + 1;
     end
   else
-    gen2(ldrinst(len, keytable[right].signed), left, right);
+    gen2(ldrinst(long, keytable[right].signed), left, right);
   end {movintptrx};
 
 procedure movlitintx;
@@ -1825,7 +1826,7 @@ procedure movlitintx;
     dereference(left);
     settemp(len, immediate_oprnd(right, 0));
     p := newinstmark(key);
-    gen2p(p, buildinst(movz, len = quad, false), left, tempkey); 
+    gen2p(p, buildinst(movz, len = long, false), left, tempkey); 
   end;
 
 procedure indxx;
@@ -1840,7 +1841,7 @@ procedure indxx;
 
     { ONLY works for gp, fp, sl at the moment!}
     setkeyvalue(left);
-    keytable[key].len := quad; {unnecessary?}
+    keytable[key].len := long; {unnecessary?}
     with keytable[key].oprnd do
       index := index + right;
   end {indxx} ;

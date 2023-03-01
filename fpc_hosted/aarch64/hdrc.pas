@@ -49,10 +49,10 @@ const
   {possible data length values}
 
   bitsperbyte = 8; {packing factor}
-  byte = 1; {generates inst.b}
-  word = 2; {generates inst.w}
-  long = 4; {generates inst.l}
-  quad = 8; {for double reals}
+  byte = 1; 
+  short = 2;
+  word = 4;
+  long = 8;
 
   maxblockslow = lowcodeblocks; {number of blocks allocated in global area}
 
