@@ -54,6 +54,9 @@ const
   word = 4;
   long = 8;
 
+  { front end puts out labels greater than zero }
+  bsslabel = 0;
+
   maxblockslow = lowcodeblocks; {number of blocks allocated in global area}
 
   undefinedaddr = 1; {impossible address flag}
@@ -284,7 +287,7 @@ type
 
   {load/store instruction}
   first_ls, ldr, ldrb, ldrh, ldrw, ldrsb, ldrsh, ldrsw, ldp,
-  str, strb, strh, stp, last_ls,
+  str, strb, strh, stp, last_ls, adrp,
 
   {branch instructions}
 
@@ -302,7 +305,7 @@ type
 
   oprnd_modes = (nomode, register, shift_reg, extend_reg, immediate, relative,
                  pre_index, post_index, signed_offset, unsigned_offset,
-                 reg_offset, literal);
+                 reg_offset, literal, labeltarget, usercall, syscall);
 
   reg_extends = (xtb, xth, xtw, xtx);
   reg_shifts = (lsl, lsr, asr);
@@ -326,6 +329,7 @@ type
       pre_index, post_index, signed_offset, unsigned_offset: (index: integer);
       reg_offset: (shift: boolean; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
+      labeltarget, usercall, syscall: (labelno: unsigned; lowbits: boolean);
     end;
 
   pseudoset = set of pseudoop;
@@ -340,7 +344,7 @@ type
 
   nodeptr = ^node; {used to reference the node contents}
   nodekinds = (instnode, oprndnode, labelnode, labeldeltanode, errornode, stmtnode,
-               datanode, proclabelnode);
+               datanode, labelrefnode, proclabelnode, bssnode);
 
   operandrange = 0..4; {number of possible operands per inst}
   datarange = 0..63; {number of bytes or bits in possible operands}
@@ -360,6 +364,9 @@ type
           (labelno: unsigned;
            stackdepth: integer; {used for aligning sp at branch}
            brnodelink: nodeptr; {used by mergebranchtails} );
+        labelrefnode:
+          (labelefno: unsigned;
+           lowbits: boolean; );
         labeldeltanode:
           (tablebase: integer; {label number of base of casetable}
            targetlabel: integer; {label number of case branch target}
@@ -371,6 +378,7 @@ type
           (stmtno: unsigned; {statement number (for debugger)}
            sourceline: unsigned; {line number (for walkback)}
            filename: stringtableindex; {stringfile index of file name} );
+        bssnode: (bsssize: addressrange; {for globals} );
     end;
 
 

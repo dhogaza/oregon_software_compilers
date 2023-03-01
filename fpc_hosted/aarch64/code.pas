@@ -162,6 +162,21 @@ function literal_oprnd(lit: integer): oprndtype;
   end;
 
 
+function labeltarget_oprnd(mode: oprnd_modes; labelno: integer; lowbits: boolean): oprndtype;
+
+  var
+    o:oprndtype;
+  begin
+    o.reg := noreg;
+    o.reg2 := noreg;
+    o.mode := mode;
+    o.labelno := labelno;
+    o.lowbits := lowbits;
+    labeltarget_oprnd := o;
+  end;
+
+
+
 function newnode(kind: nodekinds): nodeptr;
 
 { Allocate a new node and link it to list of nodes
@@ -1431,7 +1446,7 @@ procedure dorealx;
             offset := highcode;
             offset1 := 0;
             highcode := highcode + 8;
-            m := pcrelative;
+            m := labeltarget;
 }            end
           else
             begin
@@ -1521,6 +1536,12 @@ procedure blockcodex;
     lastreg := sl - left - 1;
     lineoffset := pseudoinst.len;
 
+    if (blockref = 0) and (switchcounters[mainbody] > 0) then
+      begin
+      p := newnode(bssnode);
+      p^.bsssize := globalsize;
+      end;
+
     with proctable[blockref] do
       begin
       if intlevelrefs then
@@ -1537,6 +1558,16 @@ procedure blockcodex;
     p^.proclabel := blockref;
     codeproctable[blockref].proclabelnode := p;
 
+    if (blockref = 0) and (switchcounters[mainbody] > 0) then
+      begin
+      settemp(long, reg_oprnd(gp));
+      settemp(long, labeltarget_oprnd(labeltarget, bsslabel, false));
+      gen2(buildinst(adrp, true, false), tempkey + 1, tempkey);
+      keytable[tempkey].oprnd.lowbits := true;
+      gen3(buildinst(add, true, false), tempkey + 1, tempkey + 1, tempkey);
+      tempkey := tempkey + 2;
+      regused[gp] := true;
+      end;
   end {blockcodex} ;
 
 procedure putblock;
@@ -1591,7 +1622,8 @@ procedure putblock;
       negatively off the fp to make sure the index is in range.
      }
     regcost := 0;
-    for i := pr + 1 to sl - 1 do
+    {for i := pr + 1 to sl - 1 do}
+    for i := pr + 1 to sp do
       if regused[i] then
         begin
         regcost := regcost + long;
@@ -1656,7 +1688,8 @@ procedure putblock;
       registers, and shrink stack.
     } 
 
-    for i := pr + 1 to sl - 1 do
+    {for i := pr + 1 to sl - 1 do}
+    for i := pr + 1 to sp do
       if regused[i] then
         begin
         keytable[saveregtemp].oprnd.reg := i;

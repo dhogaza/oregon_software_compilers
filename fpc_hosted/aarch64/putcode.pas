@@ -111,6 +111,8 @@ procedure writeproclabel(procn: proctableindex);
     if blockref = 0 then writeln(macfile, ' (main)')
     else writeln(macfile);
     writeln(macfile, '#');
+    writeln(macfile, chr(9), '.text');
+    writeln(macfile, chr(9), '.align 2');
 
     if proctable[blockref].externallinkage
        or ((proctable[blockref].calllinkage = implementationbody)
@@ -132,7 +134,7 @@ procedure writeproclabel(procn: proctableindex);
         writeln(macfile, ':');
         end
     else
-      writeln(macfile, 'p',procn, ':');
+      writeln(macfile, '.P', procn, ':');
 
   end {writeproclabel};
 
@@ -147,6 +149,7 @@ procedure write_inst(i: insttype);
 begin
   case i.inst of
     add: write(macfile, 'add');
+    adrp: write(macfile, 'adrp');
     ldr: write(macfile, 'ldr');
     ldrb: write(macfile, 'ldrb');
     ldrh: write(macfile, 'ldrh');
@@ -229,6 +232,15 @@ begin
       write(macfile, ']');
       end;
     literal: write(macfile, o.literal);
+    labeltarget:
+      begin
+        if o.lowbits then write(macfile, ':lo12:');
+          case o.mode of
+          labeltarget: write(macfile, '.L', o.labelno);
+          usercall: write(macfile, '.P', o.labelno);
+          syscall: write(macfile, '_P_', o.labelno);
+          end;
+      end;
   end;
 end {write_oprnd};
 
@@ -260,6 +272,13 @@ begin {write_node}
     if i <> 0 then i := i - firststmt + 1;
     writeln(macfile, '# Line: ', p^.sourceline - lineoffset: 1,
                         ', Stmt: ', i: 1);
+    end;
+  bssnode:
+    begin
+    writeln(macfile, chr(9), '.bss');
+    writeln(macfile, chr(9), '.align 3');
+    writeln(macfile, '.L', bsslabel, ':');
+    writeln(macfile, chr(9), '.space ', p^.bsssize);
     end;
   otherwise write('bad node');
   end;
