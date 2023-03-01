@@ -44,6 +44,7 @@ function reg_oprnd(reg: regindex): oprndtype;
   begin
     o.mode := register;
     o.reg := reg;
+    o.reg2 := noreg;
     reg_oprnd := o;
   end;
 
@@ -53,6 +54,7 @@ function immediate_oprnd(value: imm16; imm_shift: unsigned): oprndtype;
     o:oprndtype;
   begin
     o.reg := noreg;
+    o.reg2 := noreg;
     o.mode := immediate;
     o.value := value;
     o.imm_shift := imm_shift;
@@ -67,6 +69,7 @@ function shift_reg_oprnd(reg: regindex; reg_shift: reg_shifts;
   begin
     o.mode := shift_reg;
     o.reg := reg;
+    o.reg2 := noreg;
     o.reg_shift := reg_shift;
     o.shift_amount := shift_amount;
     shift_reg_oprnd := o;
@@ -80,6 +83,7 @@ function extend_reg_oprnd(reg: regindex; reg_extend: reg_extends; extend_amount:
   begin
     o.mode := extend_reg;
     o.reg := reg;
+    o.reg2 := noreg;
     o.reg_extend := reg_extend;
     o.extend_amount := extend_amount;
     o.extend_signed := extend_signed;
@@ -92,6 +96,7 @@ function index_oprnd(mode: oprnd_modes; reg: regindex; index: integer): oprndtyp
     o:oprndtype;
   begin
     o.reg := reg;
+    o.reg2 := noreg;
     o.mode := mode;
     o.index := index;
     index_oprnd := o;
@@ -119,6 +124,7 @@ function literal_oprnd(lit: integer): oprndtype;
     o:oprndtype;
   begin
     o.reg := noreg;
+    o.reg2 := noreg;
     o.mode := literal;
     o.literal := lit;
     literal_oprnd := o;
@@ -602,8 +608,8 @@ function uselesstemp(k: keyindex): boolean;
     p, p1: nodeptr;
 
   begin {uselesstemp}
-    uselesstemp := keytable[k].refcount = 0;;
-    if uselesstemp and (context[contextsp].lastbranch <> nil) then
+    uselesstemp := keytable[k].refcount = 0;
+    if (keytable[k].refcount = 0) and (context[contextsp].lastbranch <> nil) then
       begin
       p := context[contextsp].lastbranch;
       repeat
@@ -651,14 +657,42 @@ begin
     end;
 end;
 
+procedure splittemp(stackkey: keyindex; size: addressrange);
+
+  var
+    k: keyindex;
+
+  begin {splittemp}
+    size := (size + (stackalign - 1)) and - stackalign;
+
+    if not uselesstemp(stackkey) or
+       (keytable[stackkey].len < size) then
+      compilerabort(inconsistent);
+
+    if keytable[stackkey].len > size then
+      begin
+      stackcounter := stackcounter - 1;
+      if stackcounter <= lastkey then compilerabort(manykeys);
+      for k := stackcounter to stackkey - 1 do
+        keytable[k] := keytable[k + 1];
+      with keytable[stackkey] do
+        len := size;
+      with keytable[stackkey - 1] do
+        begin
+        len := len - size;
+        oprnd.index := oprnd.index + size;
+        end;
+      end;
+  end {splittemp} ;
+
 function besttemp(size: addressrange): keyindex;
 
   var
     bestsize: addressrange;
     k: keyindex;
 
-  begin
-    size := (size + (stackalign - 1)) mod (stackalign - 1);
+  begin {besttemp}
+    size := (size + (stackalign - 1)) and - stackalign;
     bestsize := maxaddr;
     k := keysize;
     besttemp := 0;
@@ -673,7 +707,7 @@ function besttemp(size: addressrange): keyindex;
         end;
       k := k - 1;
     end;
-  end;
+  end {besttemp} ;
 
 procedure newtemp(size: addressrange {size of temp to allocate} );
 
@@ -717,9 +751,83 @@ procedure newtemp(size: addressrange {size of temp to allocate} );
       end;
   end {newtemp} ;
 
+function stacktemp(size: addressrange): keyindex;
+  var
+    k: keyindex;
 
+  begin {stacktemp}
+    size := (size + (stackalign - 1)) and - stackalign;
+    k := besttemp(size);
+    if k <> 0 then
+      begin
+      stacktemp := k;
+      splittemp(k, size)
+      end
+    else
+      begin
+      newtemp(size);
+      stacktemp := stackcounter;
+      end;
+  end {stacktemp} ;
 
 { Register allocation procedures }
+
+function savereg(r: regindex {register to save}) : keyindex;
+
+{ Save the given register on the runtime stack.  This routine is quite clever
+  about the process since it attempts to reuse an existing copy of the register
+  if possible.  If not, the contents of the register are spilled to the stack.
+  This is coded as a function to simplify the coding of "savekey".  Normally,
+  one would write this as a procedure with a var param, but one cannot pass a
+  packed field as a var param.
+}
+
+  var
+    i: keyindex; {induction var used to search keytable}
+    found: boolean; {set true when we find an existing saved copy}
+    stackkey: keyindex; {where we will save it if we must}
+
+  begin {savereg}
+    i := lastkey;
+    found := false;
+
+    with context[contextsp] do
+      while not found and (i >= keymark) do
+        begin
+        with keytable[i], oprnd do
+          if (access = valueaccess) and (refcount > 0) then
+            if (r = reg) and regvalid and regsaved and
+               keytable[properreg].validtemp and
+               ((properreg >= stackcounter) or (properreg <= lastkey)) then
+              begin
+              found := true;
+              savereg := properreg;
+              end
+            else if (r = reg2) and reg2valid and reg2saved and
+               keytable[properreg2].validtemp and
+               ((properreg2 >= stackcounter) or (properreg2 <= lastkey)) then
+              begin
+              found := true;
+              savereg := properreg2;
+              end;
+        i := i - 1;
+        end;
+    if not found then
+      begin
+
+      stackkey := stacktemp(quad);
+      settemp(quad, reg_oprnd(r));
+      gen2(buildinst(str, true, false), tempkey, stackkey);
+{                                                
+      aligntemps;
+      newtemp(dreglen);
+      settempdreg(dreglen, r);
+      gensimplemove(tempkey, stackcounter);
+      tempkey := tempkey + 1;
+      savedreg := stackcounter;
+}
+      end;
+  end {savereg} ;
 
 procedure markreg(r: regindex {register to clobber} );
 
@@ -736,7 +844,7 @@ procedure markreg(r: regindex {register to clobber} );
 }
 
   var
-    i, saver: keyindex; {induction vars for keytable scan}
+    i, savedreg: keyindex; {induction vars for keytable scan}
     saved: boolean; {true if the register has already been saved}
     j: loopindex;
 
@@ -751,12 +859,12 @@ procedure markreg(r: regindex {register to clobber} );
 
       for j := loopsp downto 1 do
         loopstack[j].regstate[r].killed := true;
-{
+
       with context[contextsp] do
         for i := lastkey downto 1 do
           with keytable[i], oprnd do
-            if (access = valueaccess) and (m in [dreg, twodregs]) and
-               (r = reg) and regvalid then
+            if (access = valueaccess) then
+              if (r = reg) and regvalid then
               begin
               if i >= keymark then 
                 begin
@@ -765,40 +873,37 @@ procedure markreg(r: regindex {register to clobber} );
                   regsaved := true;
                   if not saved then
                     begin
-                    savedr := savedreg(r);
+                    savedreg := savereg(r);
                     saved := true;
                     end;
-                  properreg := savedr;
-                  keytable[savedr].refcount := keytable[savedr].refcount +
-                                               refcount
+                  properreg := savedreg;
+                  keytable[savedreg].refcount := keytable[savedreg].refcount +
+                                                 refcount
                   end;
                 regvalid := false;
                 end;
               joinreg := true;
               end
-            else if (access = valueaccess) and
-                    (m in [pcindexed, indexed, bitindexed, twodregs]) and
-                    (r = indxr) and indxrvalid then
+            else if (r = reg2) and reg2valid then
               begin
               if i >= keymark then
                 begin
-                if not indxrsaved and (refcount > 0) then
+                if not reg2saved and (refcount > 0) then
                   begin
-                  indxrsaved := true;
+                  reg2saved := true;
                   if not saved then
                     begin
-                    savedr := savedreg(r);
+                    savedreg := savereg(r);
                     saved := true;
                     end;
-                  properindxr := savedr;
-                  keytable[savedr].refcount := keytable[savedr].refcount +
-                                               refcount
+                  properreg2 := savedreg;
+                  keytable[savedreg].refcount := keytable[savedreg].refcount +
+                                                 refcount
                   end;
-                indxrvalid := false;
+                reg2valid := false;
                 end;
-              joinindxr := true;
+              joinreg2 := true;
               end;
-}
       end;
   end {markreg} ;
 
@@ -972,8 +1077,6 @@ procedure initblock;
     stackcounter := keysize;
     stackoffset := 0;
     keytable[stackcounter].oprnd := index_oprnd(unsigned_offset, sp, 0);
-
-newtemp(100);
 
   end {initblock} ;
 
@@ -1238,7 +1341,7 @@ procedure putblock;
 
     { eventually peephole optimizations happen now }
 
-    { we only save registers x19 ... and we do this indexing
+    { We only save registers x19 ... and we do this indexing
       negatively off the fp to make sure the index is in range.
      }
     regcost := 0;
@@ -1283,7 +1386,7 @@ procedure putblock;
     sptemp := tempkey;
     settemp(quad, reg_oprnd(fp));
     fptemp := tempkey;
-    settemp(quad, immediate_oprnd(blksize + regcost + stackoffset, 0));
+    settemp(quad, immediate_oprnd(quad * 2 + blksize + regcost + stackoffset, 0));
     spadjusttemp := tempkey;
     settemp(quad, index_oprnd(unsigned_offset, sp, regcost + stackoffset));
     spoffsettemp := tempkey;
@@ -1340,6 +1443,9 @@ procedure blockexitx;
     anyfound: boolean;
 
   begin {blockexitx}
+
+newtemp(quad);
+i := savereg(15);
 
     if (level <> 1) or (switchcounters[mainbody] > 0) then putblock;
     if (blockref = 0) or (level = 1) then
