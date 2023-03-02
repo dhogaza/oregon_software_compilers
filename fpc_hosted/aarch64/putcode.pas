@@ -246,7 +246,7 @@ begin
           syscall: write(macfile, '_P_', o.labelno);
           end;
       end;
-    two_registers: compilerabort(inconsistent);
+    tworeg: compilerabort(inconsistent);
   end;
 end {write_oprnd};
 

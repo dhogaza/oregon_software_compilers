@@ -303,7 +303,7 @@ type
     s: boolean; {true sets flags for conditional branches }
   end;
 
-  oprnd_modes = (nomode, register, two_registers, shift_reg, extend_reg,
+  oprnd_modes = (nomode, register, tworeg, shift_reg, extend_reg,
                  immediate, relative, pre_index, post_index, signed_offset,
                  unsigned_offset, reg_offset, literal, labeltarget, usercall,
                  syscall);
