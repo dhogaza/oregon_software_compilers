@@ -158,8 +158,10 @@ begin
     ldrsh: write(macfile, 'ldrsh');
     ldrsw: write(macfile, 'ldrsw');
     ldp: write(macfile, 'ldp');
+    madd: write(macfile, 'madd');
     mov: write(macfile, 'mov');
     movz: write(macfile, 'movz');
+    mul: write(macfile, 'mul');
     ret: write(macfile, 'ret');
     stp: write(macfile, 'stp');
     str: write(macfile, 'str');

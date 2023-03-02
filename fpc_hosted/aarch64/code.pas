@@ -472,7 +472,6 @@ procedure bumptempcount(k: keyindex; {key of temp desired}
       end;
   end {bumptempcount} ;
 
-
 procedure setcommonkey;
 
 { Check the key specified in the pseudoinstruction just read, and if
@@ -1186,6 +1185,7 @@ procedure makeaddressable(var k: keyindex);
       if restorereg then keytable[properreg].tempflag := true;
       if restorereg2 then keytable[properreg2].tempflag := true;
       if restorereg or restorereg2 then allowmodify(k, false);
+      adjustregcount(k, - refcount);
       if restorereg then
         begin
         oprnd.reg := getreg;
@@ -1201,7 +1201,7 @@ procedure makeaddressable(var k: keyindex);
         settemp(long, reg_oprnd(reg2));
         gen2(buildinst(ldr, true, false), tempkey, properreg);
         tempkey := tempkey + 1;
-      end;
+        end;
       regvalid := true;
       reg2valid := true;
       joinreg := false;
@@ -1341,25 +1341,118 @@ procedure initblock;
 
 { code gen utilities }
 
+function equivaddr(l, r: keyindex): boolean;
+
+{ True if the addresses accessed for key l and key r are the same.
+}
+
+  var same: boolean;
+
+  begin {equivaddr}
+    same := true;
+    with keytable[l].oprnd, keytable[r] do
+      begin
+      if (access <> valueaccess) or (keytable[l].access <> valueaccess) or
+         (packedaccess <> keytable[l].packedaccess) or
+         (oprnd.mode <> mode) or
+         (oprnd.reg <> reg) or (oprnd.reg2 <> reg2) then
+        same := false;
+      if same then
+        case oprnd.mode of
+        shift_reg: same := (reg_shift = oprnd.reg_shift) and
+                          (shift_amount = oprnd.shift_amount);
+        extend_reg: same := (reg_extend = oprnd.reg_extend) and
+                            (extend_amount = oprnd.extend_amount) and
+                            (extend_signed = oprnd.extend_signed);
+         pre_index, post_index, signed_offset, unsigned_offset:
+           same := (index = oprnd.index);
+         reg_offset: same := (shift = oprnd.shift) and
+                             (extend = oprnd.extend) and
+                             (signed = oprnd.signed);
+         otherwise same := true;
+         end;
+      end;
+    equivaddr := same;
+  end {equivaddr} ;
+
+
 procedure gensimplemove(left, right: keyindex);
   begin {gensimplemove}
-    if (keytable[left].oprnd.mode = register) and
-       (keytable[right].oprnd.mode = register) then
-      gen2(buildinst(mov, true, false), left, right)
-    else if keytable[left].oprnd.mode = register then
-      gen2(ldrinst(keytable[right].len, keytable[right].signed), left, right)
-    else if keytable[right].oprnd.mode <> register then
-      begin
-      settemp(long, reg_oprnd(getreg));
-      gen2(ldrinst(keytable[right].len, keytable[right].signed), tempkey, right);
-      gen2(strinst(keytable[left].len), tempkey, left);
-      tempkey := tempkey + 1;
-      end
-    else
-      gen2(strinst(keytable[left].len), right, left);
+    if not equivaddr(left, right) then
+      if (keytable[left].oprnd.mode = register) and
+         (keytable[right].oprnd.mode = register) then
+        gen2(buildinst(mov, true, false), left, right)
+      else if keytable[left].oprnd.mode = register then
+        gen2(ldrinst(keytable[right].len, keytable[right].signed), left, right)
+      else if keytable[right].oprnd.mode <> register then
+        begin
+        settemp(long, reg_oprnd(getreg));
+        gen2(ldrinst(keytable[right].len, keytable[right].signed), tempkey, right);
+        gen2(strinst(keytable[left].len), tempkey, left);
+        tempkey := tempkey + 1;
+        end
+      else
+        gen2(strinst(keytable[left].len), right, left);
   end {gensimplemove} ;
 
+function signedoprnds : boolean;
+
+{ True if both left and right operands of the current operation are
+  signed.  Picks up the operands from the globals "left" and "right".
+}
+
+
+  begin
+    signedoprnds := keytable[left].signed and keytable[right].signed;
+  end {signedoprnds} ;
+
+procedure loadreg(var k: keyindex);
+
+{load key into a register for read access.
+
+ won't work for longs extended from shorter sized most likely at the moment
+}
+
+begin {loadreg}
+  if keytable[k].oprnd.mode <> register then
+    begin
+    settemp(keytable[k].len, keytable[k].oprnd);
+    settemp(keytable[k].len, reg_oprnd(getreg));
+    gensimplemove(tempkey, tempkey + 1);
+    changevalue(k, tempkey);
+    tempkey := tempkey + 2;
+    end;
+end {loadreg} ;
+
+
 {start of individual pseudoop codegen procedures}
+
+
+{shared by add, sub, mul (so far)}
+
+procedure integerarithmetic(inst: insts {simple integer inst} );
+
+{ Generate code for a simple binary, integer operation (add, sub, etc.)
+}
+
+  begin {integerarithmetic}
+    {unpkshkboth(len);}
+    addressboth;
+    if keytable[target].oprnd.mode = register then
+      setallfields(target)
+    else
+      setvalue(reg_oprnd(getreg));
+    lock(target);
+    loadreg(left);
+    lock(left);
+    if (inst = mul) or (keytable[right].oprnd.mode <> immediate) then
+      loadreg(right);
+    gen3(buildinst(inst, len = long, false), key, left, right);
+    unlock(left);
+    unlock(target);
+    keytable[key].signed := signedoprnds;
+  end {integerarithmetic} ;
+
 
 procedure stmtbrkx;
 
@@ -1999,9 +2092,11 @@ procedure codeselect;
       movcstruct: movcstructx;
       movset: movstructx(true, true);
       addstr: addstrx;
+}
       addint: integerarithmetic(add);
       subint, subptr: integerarithmetic(sub);
-      mulint: mulintx;
+      mulint: integerarithmetic(mul);
+{
       stddivint: divintx(true);
       divint: divintx(false);
       getquo: getremquox(false);
@@ -2525,6 +2620,7 @@ procedure initcode;
     filenamed := false;
 
     keytable[0].validtemp := false;
+    keytable[0].oprnd := nomode_oprnd;
 
     lastnode := nil;
     firstnode := nil;
