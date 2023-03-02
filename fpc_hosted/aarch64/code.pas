@@ -37,7 +37,11 @@ function ldrinst(l: addressrange; s: boolean):insttype;
       short: if s then inst := ldrsh else inst := ldrh;
       word: if s then inst := ldrsw else inst := ldr;
       long: inst := ldr;
-      otherwise compilerabort(inconsistent)
+      otherwise
+        begin
+        write('operand length ', l, ' given to ldrinst');
+        compilerabort(inconsistent)
+        end
     end;
     ldrinst := buildinst(inst, s or (l >= word), false);
   end {ldrinst};
@@ -52,7 +56,11 @@ function strinst(l: addressrange):insttype;
       1: inst := strb;
       2: inst := strh;
       4, 8: inst := str;
-      otherwise compilerabort(inconsistent)
+      otherwise
+        begin
+        write('operand length ', l, ' given to strinst');
+        compilerabort(inconsistent)
+        end
     end;
     strinst := buildinst(inst, l = long, false);
   end {loadinst};
@@ -1400,7 +1408,9 @@ procedure gensimplemove(left, right: keyindex);
         gen2(ldrinst(keytable[right].len, keytable[right].signed), left, right)
       else if keytable[right].oprnd.mode <> register then
         begin
+        lock(left);
         settemp(long, reg_oprnd(getreg));
+        unlock(left);
         if keytable[right].oprnd.mode = immediate then
           gen2(buildinst(mov, true, false), tempkey, right)
         else
@@ -1690,27 +1700,26 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
       begin
       if ownflag then
         begin
+        write('own data not yet implemented');
+        compilerabort(inconsistent);
         end
       else if left = 0 then
         begin
-{
-        m := abslong;
-        offset := 0;}
+        write('origin data not yet implemented');
+        compilerabort(inconsistent);
         end
       else if left = 1 then
         setvalue(index_oprnd(unsigned_offset, gp, 0))
       else if left = level then
         setvalue(index_oprnd(unsigned_offset, fp, 0))
-      { we don't do origin else if left = 0 then setvalue(abslong, 0, 0, false, 0, 0)}
       else if left = level - 1 then setvalue(index_oprnd(unsigned_offset, sl, 0))
       else
         begin
-{ intermediate level 
-    address(target);
-        settempareg(getareg);
-        gensimplemove(target, tempkey);
-        setvalue(relative, keytable[tempkey].oprnd.reg, 0, false, 0, 0);
-}
+        address(target);
+        settemp(long, reg_oprnd(getreg));
+        gensimplemove(tempkey, target);
+        setvalue(index_oprnd(unsigned_offset, keytable[tempkey].oprnd.reg, 0));
+        tempkey := tempkey + 1;
         end;
       len := long;
       end;
@@ -2333,7 +2342,7 @@ procedure codeselect;
 }
       otherwise
         begin
-        {write('Not yet implemented: ', ord(pseudoinst.op): 1);
+        {writeln('Not yet implemented: ', ord(pseudoinst.op): 1);
         compilerabort(inconsistent);}
         end;
       end;

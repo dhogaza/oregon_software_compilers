@@ -246,7 +246,11 @@ begin
           syscall: write(macfile, '_P_', o.labelno);
           end;
       end;
-    tworeg: compilerabort(inconsistent);
+    tworeg:
+      begin
+      write('operand mode tworeg found in instruction node');
+      compilerabort(inconsistent);
+      end;
   end;
 end {write_oprnd};
 

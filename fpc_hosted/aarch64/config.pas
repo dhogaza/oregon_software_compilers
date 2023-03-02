@@ -227,8 +227,8 @@ const
 
   realfolding = false; {turns on real folding}
   rangetracking = true; {turns on range tracking}
-  maxparambytes = maxaddr {defaultptrsize}; {value params longer than this are
-                                   passed by reference rather than copied}
+  maxparambytes = 16; {value params longer than this are
+                       passed by reference rather than copied}
   optimizeinvariants = true; {turns on removal of invariants from loops}
 
 
