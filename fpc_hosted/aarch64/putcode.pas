@@ -161,13 +161,16 @@ begin
     madd: write(macfile, 'madd');
     mov: write(macfile, 'mov');
     movz: write(macfile, 'movz');
+    msub: write(macfile, 'msub');
     mul: write(macfile, 'mul');
     ret: write(macfile, 'ret');
+    sdiv: write(macfile, 'sdiv');
     stp: write(macfile, 'stp');
     str: write(macfile, 'str');
     strb: write(macfile, 'strb');
     strh: write(macfile, 'strh');
     sub: write(macfile, 'sub');
+    udiv: write(macfile, 'udiv');
     otherwise write(macfile, 'bad inst');
   end;
   if (i.inst in [first_a .. last_a]) and i.s then
@@ -243,6 +246,7 @@ begin
           syscall: write(macfile, '_P_', o.labelno);
           end;
       end;
+    two_registers: compilerabort(inconsistent);
   end;
 end {write_oprnd};
 

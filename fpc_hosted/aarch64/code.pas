@@ -1453,6 +1453,42 @@ procedure integerarithmetic(inst: insts {simple integer inst} );
     keytable[key].signed := signedoprnds;
   end {integerarithmetic} ;
 
+procedure divintx;
+
+{ Generate signed or unsigned divisiion.  This will be followed by
+  a getquo or getmod operator or both.
+}
+
+  begin {divintx}
+    if (pseudobuff.op = getrem) or (pseudoinst.refcount = 2) then
+      begin
+      lock(right);
+      lock(left);
+      end;
+    if signedoprnds then integerarithmetic(sdiv)
+    else integerarithmetic(udiv);
+    if (pseudobuff.op = getrem) or (pseudoinst.refcount = 2) then
+      begin
+      gen4(buildinst(msub, len = long, false), key, key, right, left); 
+      unlock(left);
+      unlock(right);
+      end;
+  end {divintx} ;
+
+
+procedure getquox;
+  begin {getquox}
+    address(left);
+    setkeyvalue(left);
+  end {getquox} ;
+
+{ this will end up in reg2 }
+procedure getremx;
+  begin {getremx}
+    address(left);
+    setkeyvalue(left);
+  end {getremx} ;
+
 
 procedure stmtbrkx;
 
@@ -2096,11 +2132,11 @@ procedure codeselect;
       addint: integerarithmetic(add);
       subint, subptr: integerarithmetic(sub);
       mulint: integerarithmetic(mul);
+      stddivint: divintx;
+      divint: divintx;
+      getquo: getquox;
+      getrem: getremx;
 {
-      stddivint: divintx(true);
-      divint: divintx(false);
-      getquo: getremquox(false);
-      getrem: getremquox(true);
       shiftlint: shiftlintx(false);
       shiftrint: shiftlintx(true);
       negint: unaryintx(neg);

@@ -279,7 +279,7 @@ type
   insts = (noinst,
 
   {basic arithmetic instructions}
-  first_a, add, sub, mul, madd, last_a,
+  first_a, add, sub, mul, madd, msub, sdiv, udiv, last_a,
 
   {move instructions}
 
@@ -303,9 +303,10 @@ type
     s: boolean; {true sets flags for conditional branches }
   end;
 
-  oprnd_modes = (nomode, register, shift_reg, extend_reg, immediate, relative,
-                 pre_index, post_index, signed_offset, unsigned_offset,
-                 reg_offset, literal, labeltarget, usercall, syscall);
+  oprnd_modes = (nomode, register, two_registers, shift_reg, extend_reg,
+                 immediate, relative, pre_index, post_index, signed_offset,
+                 unsigned_offset, reg_offset, literal, labeltarget, usercall,
+                 syscall);
 
   reg_extends = (xtb, xth, xtw, xtx);
   reg_shifts = (lsl, lsr, asr);
