@@ -291,7 +291,7 @@ type
 
   {branch instructions}
 
-  first_b, b, last_b,
+  first_b, b, bl, last_b,
 
   {miscellaneous instructions}
 
@@ -305,7 +305,7 @@ type
 
   oprnd_modes = (nomode, register, tworeg, shift_reg, extend_reg,
                  immediate, relative, pre_index, post_index, signed_offset,
-                 unsigned_offset, reg_offset, literal, labeltarget, usercall,
+                 unsigned_offset, reg_offset, literal, labeltarget, proccall,
                  syscall);
 
   reg_extends = (xtb, xth, xtw, xtx);
@@ -330,7 +330,9 @@ type
       pre_index, post_index, signed_offset, unsigned_offset: (index: integer);
       reg_offset: (shift: boolean; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
-      labeltarget, usercall, syscall: (labelno: unsigned; lowbits: boolean);
+      labeltarget: (labelno: unsigned; lowbits: boolean);
+      proccall: (proclabelno: unsigned; entry_offset: integer);
+      syscall: (syslabelno: unsigned);
     end;
 
   pseudoset = set of pseudoop;

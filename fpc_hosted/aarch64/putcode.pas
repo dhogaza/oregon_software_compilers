@@ -150,6 +150,8 @@ begin
   case i.inst of
     add: write(macfile, 'add');
     adrp: write(macfile, 'adrp');
+    b: write(macfile, 'b');
+    bl: write(macfile, 'bl');
     ldr: write(macfile, 'ldr');
     ldrb: write(macfile, 'ldrb');
     ldrh: write(macfile, 'ldrh');
@@ -237,14 +239,17 @@ begin
       write(macfile, ']');
       end;
     literal: write(macfile, o.literal);
+    proccall:
+      begin
+      write(macfile, '.P', o.proclabelno);
+      if o.entry_offset <> 0 then
+        write(macfile, -o.entry_offset * long);
+      end;
+    syscall: write(macfile, '_P_', o.labelno);
     labeltarget:
       begin
         if o.lowbits then write(macfile, ':lo12:');
-          case o.mode of
-          labeltarget: write(macfile, '.L', o.labelno);
-          usercall: write(macfile, '.P', o.labelno);
-          syscall: write(macfile, '_P_', o.labelno);
-          end;
+        write(macfile, '.L', o.labelno);
       end;
     tworeg:
       begin

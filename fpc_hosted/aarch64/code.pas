@@ -182,20 +182,45 @@ function literal_oprnd(lit: integer): oprndtype;
   end;
 
 
-function labeltarget_oprnd(mode: oprnd_modes; labelno: integer; lowbits: boolean): oprndtype;
+function labeltarget_oprnd(labelno: integer; lowbits: boolean): oprndtype;
 
   var
     o:oprndtype;
   begin
     o.reg := noreg;
     o.reg2 := noreg;
-    o.mode := mode;
+    o.mode := labeltarget;
     o.labelno := labelno;
     o.lowbits := lowbits;
     labeltarget_oprnd := o;
   end;
 
 
+function proccall_oprnd(proclabelno: unsigned; entry_offset: integer): oprndtype;
+
+  var
+    o:oprndtype;
+  begin
+    o.reg := noreg;
+    o.reg2 := noreg;
+    o.mode := proccall;
+    o.proclabelno := proclabelno;
+    o.entry_offset := entry_offset;
+    proccall_oprnd := o;
+  end;
+
+
+function syscall_oprnd(syslabelno: integer): oprndtype;
+
+  var
+    o:oprndtype;
+  begin
+    o.reg := noreg;
+    o.reg2 := noreg;
+    o.mode := syscall;
+    o.syslabelno := syslabelno;
+    syscall_oprnd := o;
+  end;
 
 function newnode(kind: nodekinds): nodeptr;
 
@@ -1601,7 +1626,7 @@ procedure dofptrx;
     keytable[key].access := valueaccess;
     keytable[key].len := pseudoinst.len;
     keytable[key].signed := false;
-    keytable[key].oprnd.m := usercall;
+    keytable[key].oprnd.m := proccall;
     keytable[key].oprnd.offset := pseudoinst.oprnds[1];
     keytable[key].knowneven := true;
   end {dofptrx} ;
@@ -1773,7 +1798,7 @@ procedure blockcodex;
     if (blockref = 0) and (switchcounters[mainbody] > 0) then
       begin
       settemp(long, reg_oprnd(gp));
-      settemp(long, labeltarget_oprnd(labeltarget, bsslabel, false));
+      settemp(long, labeltarget_oprnd(bsslabel, false));
       gen2(buildinst(adrp, true, false), tempkey + 1, tempkey);
       keytable[tempkey].oprnd.lowbits := true;
       gen3(buildinst(add, true, false), tempkey + 1, tempkey + 1, tempkey);
@@ -1834,7 +1859,6 @@ procedure putblock;
       negatively off the fp to make sure the index is in range.
      }
     regcost := 0;
-    {for i := pr + 1 to sl - 1 do}
     for i := pr + 1 to sp do
       if regused[i] then
         begin
@@ -2080,8 +2104,8 @@ procedure indxx;
 procedure loopholefnx;
 
 { Generate code for a loophole function.  This actually generates code
-  only in the cases where the argument is in a register, or
-  immediate modes, or the operand must be aligned on a word boundary.
+  only in the cases where the argument is not in a register and must
+  be widened.
 }
 
 
@@ -2101,6 +2125,99 @@ procedure loopholefnx;
     keytable[key].signed := (pseudoinst.oprnds[2] = 0);
   end; {loopholefnx}
 
+
+procedure callroutinex(s: boolean {signed function value} );
+
+{ Generate a call to a user procedure. There are two possibilies:  if
+  target is non-zero, then keytable[left] is a procedure parameter,
+  and we call the routine by loading the static link register with the
+  passed environment pointer and call the routine.  If target is 0, we
+  are calling an explicit routine, the left'th procedure (named Pleft).
+  Proctable contains interesting information as to whether or not the
+  procedure is external.
+
+  We use the offset1 field of the proccall node to indicate how
+  many "movl (A4),A4" instructions to use on entry to the called
+  routine.  This causes the generated routine's address to be offset by
+  - (offset1 * word).
+
+  We might have to reverse parameters on the stack ...
+}
+
+  var
+    linkreg: boolean; {true if we build a static link}
+    levelhack: integer; {if linkreg then we are going up levelhack levels}
+    savetempkey: keyindex; {to restore tempkey when we are done}
+    slkey: keyindex; {tempkey holding static link descriptor}
+    framekey: keyindex; {tempkey holding address of base of current frame}
+    param: integer; {parameter count for creating unix standard list}
+    notcopied: 0..1; {1 if last parameter was already the right size}
+    i: keyindex; {"from" key for copying parameters}
+
+  const
+    reverse_params = false; { true if nonpascal parameters are to be reversed
+                              here, false if front-end does it. }
+
+  begin {callroutinex}
+    paramlist_started := false; {reset the switch}
+
+    savetempkey := tempkey;
+    {frame pointers in the aarch64 standard calling sequence form a linked
+     list.
+    }
+    settemp(long, index_oprnd(unsigned_offset, fp, 0));
+    framekey := tempkey;
+
+    settemp(long, reg_oprnd(sl));
+    slkey := tempkey;
+
+    levelhack := 0;
+    notcopied := 0;
+
+    if pseudoinst.oprnds[3] <= 0 then
+      begin
+
+      { direct call }
+      linkreg := proctable[pseudoinst.oprnds[1]].intlevelrefs and
+                 (proctable[pseudoinst.oprnds[1]].level > 2);
+
+      if linkreg then
+        begin
+        regused[sl] := true;
+        levelhack := level - proctable[pseudoinst.oprnds[1]].level;
+        if levelhack < 0 then
+          gensimplemove(slkey, framekey);
+        end;
+      settemp(long, proccall_oprnd(pseudoinst.oprnds[1], max(0, levelhack)));
+      gen1(buildinst(bl, false, false), tempkey);
+      end
+    else
+      begin
+      { proc/func parameter }
+      end;
+
+    { now restore sl if necessary, which we know is the first register saved because
+      gp is never saved outside main.
+    }
+    if linkreg and ((pseudoinst.oprnds[3] > 0) or (level > 2) and
+       (levelhack <> 0)) then
+      begin
+      keytable[framekey].oprnd.index := - long;
+      gensimplemove(slkey, framekey);
+      end;
+
+    tempkey := savetempkey;
+
+    { for stack parameters }
+    dontchangevalue := dontchangevalue - 1;
+
+    { later need to deal with x0/x1 pairs and floating point return
+      values which might actually be in X0..
+    }
+    if (len = word) then
+      setvalue(reg_oprnd(0));
+
+  end {callroutinex} ;
 
 procedure codeselect;
 
@@ -2221,8 +2338,10 @@ procedure codeselect;
       divset: setarithmetic(eor, false);
       stacktarget: stacktargetx;
       makeroom: makeroomx;
+}
       callroutine: callroutinex(true);
       unscallroutine: callroutinex(false);
+{
       sysfnstring: sysfnstringx;
       sysfnint: sysfnintx;
       sysfnreal: sysfnrealx;
