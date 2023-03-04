@@ -435,7 +435,11 @@ type
       knownword: boolean; {true if word or long instruction will work
                            here}
       instmark: nodeptr; {set to first instruction of stream which
-                            created value described in this record}
+                          created value described in this record}
+      instend: nodeptr; {set to the last instruction of the stream which
+                         created this value}
+      prevnode: nodeptr; {if not nil points the the node immediately before
+                          this one}
       oprnd: oprndtype; {the machine description of the operand}
       brinst: insttype; {use this instruction for 'true' branch}
     end;

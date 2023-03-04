@@ -72,12 +72,132 @@ function getstringfile: hostfilebyte;
         compilerabort(inconsistent);
         end;
       end;
-
     getstringfile := stringblkptr^[nextstringfile];
-
     nextstringfile := nextstringfile + 1;
   end {getstringfile} ;
 
+
+procedure writeint(v: integer);
+
+  var
+    bufptr: 0..9;
+    buffer: array [1..20] of char;
+    u: unsigned;
+
+  begin
+    bufptr := 0;
+    if v < 0 then
+      write(macfile,'-');
+    u := abs(v);
+
+    repeat
+      bufptr := bufptr + 1;
+      buffer[bufptr] := chr (u mod 10 + ord('0'));
+      u := u div 10;
+    until u = 0;
+
+    repeat
+      write(macfile, buffer[bufptr]);
+      bufptr := bufptr - 1;
+    until bufptr = 0;
+  end; {writeint}
+
+
+procedure writehex(v: unsigned {value to write} );
+
+{ Write an unsigned value to the macro file as a hexadecimal number.
+  16 bit values only.
+}
+  const
+    maxhex = 8;
+
+  var
+    hexbuf: packed array [1..maxhex] of char;
+    i: 1..maxhex;    { induction var for filling hexbuf }
+    j: 0..15;        { numeric value of one hex digit }
+
+  begin
+    write(macfile, '0x');
+    for i := maxhex downto 1 do begin
+      j  := v mod 16;
+      v := v div 16;
+      if j <= 9 then
+        hexbuf[i] := chr(ord('0') + j)
+      else hexbuf[i] := chr(ord('A') + j - 10);
+      end; { for i }
+    write(MacFile, hexbuf);
+    column := column + 4;
+  end {writehex} ;
+
+procedure copysfile;
+
+{ Copy the string table and constant table from the string file to
+  the macro file.  This is written as straight binary data, with no
+  attempt to interpret it as strings or real numbers.
+
+  The string file is actually divided into three parts.  The first is
+  the string table, which contains string constants parsed by the
+  scanner.  The second part is a table of identifiers, and the third
+  part is constants built by analys.  Only the first and third
+  parts are written here.
+}
+
+  var
+    i: integer; { outer loop counter }
+
+
+  procedure write_constants(i: integer);
+
+    const
+      wordsperline = 4;  { number of constant structure values (hex) per line }
+
+    var
+      k, l, m: integer;
+      v: uns_word;
+
+    begin {write_constants}
+    while i > 0 do
+      begin
+      write(macfile, chr(9),'.word', chr(9));
+
+      for k := 1 to min(wordsperline, (i + 1) div word) do
+        begin
+        if k > 1 then { separate words with commas }
+          write(macfile, ',');
+        v := 0;
+        m := 1;
+        for l := 0 to  min(i mod word, word - 1) do
+        begin
+          v := v + getstringfile * m;
+          m := m * 256;
+          i := i - 1;
+        end;
+        writehex(v);
+        end;
+      writeln(macfile);;
+      end;
+    end; {write_constants}
+
+
+  begin {copysfile}
+    curstringblock := 1;
+    stringblkptr := stringblkptrtbl[curstringblock];
+    nextstringfile := 0;
+
+    { first write the string table as fixed length character strings }
+
+    i := stringfilecount;
+    if i > 0 then begin
+      writeln(macfile, '#');
+      writeln(macfile, '#  Constants');
+      writeln(macfile, '#');
+      writeln(macfile, chr(9), '.data');
+      writeln(macfile, chr(9), '.align 3');
+      writeln(macfile, 'L:'); { the label associated with constants }
+      end;
+    write_constants(i);
+  end {copysfile} ;
+
 
 procedure writeprocname(procn: proctableindex {number of procedure to copy});
 
@@ -243,7 +363,7 @@ begin
       begin
       write(macfile, '.P', o.proclabelno);
       if o.entry_offset <> 0 then
-        write(macfile, -o.entry_offset * long);
+        write(macfile, -o.entry_offset * word);
       end;
     syscall: write(macfile, '_P_', o.labelno);
     labeltarget:
@@ -314,6 +434,9 @@ begin
   reg_extends_text[xth] := 'xth';
   reg_extends_text[xtw] := 'xtw';
   reg_extends_text[xtx] := 'xtx';
+
+  copysfile;
+
 end;
 
 procedure putcode;

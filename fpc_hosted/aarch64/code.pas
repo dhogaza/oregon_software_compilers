@@ -238,21 +238,28 @@ function newnode(kind: nodekinds): nodeptr;
       lastnode^.nextnode := p;
     p^.kind := kind;
     p^.nextnode := nil;
+
+    { strategy here is that the nodes from instmark to instend are
+      those that created the current key value once we move to the next key,
+      while the prevnode field allows us to more easily delete nodes
+      attached to a key.
+    }
+
+    if key > 0 then
+      with keytable[key] do
+        begin
+        instend := lastnode;
+        if instmark = nil then
+          begin
+          instmark := p;
+          prevnode := lastnode;
+          end;
+        end;
+
     lastnode := p;
     newnode := p;
+      
   end {newnode};
-
-function newinstmark(k: keyindex): nodeptr;
-
-  var
-    p: nodeptr;
-
-  begin {newinstmark}
-    p := newnode(instnode);
-    if keytable[key].instmark = nil then
-      keytable[k].instmark := p;
-    newinstmark := p;
-  end {newinstmark};
 
 function newinsertbefore(before: nodeptr; kind: nodekinds): nodeptr;
 
@@ -330,20 +337,27 @@ procedure genoprnd(p: nodeptr;
 dependent on the stack, tempcount is set appropriately.
 }
 
+  var tc: keyindex;
+
   begin {genoprnd}
 
     with p^ do
       begin
-      if false then {check on what this is all about}
-        if o.reg = fp then
+{
+      if o.reg = fp then
+        begin
+        end 
+      else if (o.mode = unsigned_offset) and (o.reg = sp) then
           begin
-            { code to switch fp to sp if noframe goes here in m68K? }
-          end 
-        else if o.reg = sp then
-          begin
-            { code to adjust stack offset goes here in m68K? }
+          tc := keysize;
+          while (o.index < keytable[tc].oprnd.index) and
+                (tc > stackcounter) do
+            tc := tc - 1;
+          tempcount := tc - stackcounter;
+          o.index := o.index + keytable[tc].oprnd.index;
           end;
-      p^.oprnds[i] := o;
+}
+      oprnds[i] := o;
     end;
   end {genoprnd} ;
 
@@ -562,6 +576,8 @@ procedure setcommonkey;
       copylink := 0;
       tempflag := false;
       instmark := nil;
+      instend := nil;
+      prevnode := nil;
       end;
   end {setcommonkey} ;
 
@@ -846,6 +862,8 @@ procedure newtemp(size: addressrange {size of temp to allocate} );
         packedaccess := false;
         refcount := 0;
         instmark := nil;
+        instend := nil;
+        prevnode := nil;
         oprnd := index_oprnd(unsigned_offset, sp, 0);
         end;
       end;
@@ -916,7 +934,9 @@ function savereg(r: regindex {register to save}) : keyindex;
       begin
       stackkey := stacktemp(long);
       settemp(long, reg_oprnd(r));
+      keytable[stackkey].instmark := lastnode;
       gen2(buildinst(str, true, false), tempkey, stackkey);
+      keytable[stackkey].instend := lastnode;
       tempkey := tempkey + 1;
       savereg := stackkey;
       end;
@@ -1422,29 +1442,34 @@ function equivaddr(l, r: keyindex): boolean;
   end {equivaddr} ;
 
 
-procedure gensimplemove(left, right: keyindex);
+procedure gensimplemove(src, dst: keyindex);
+
+  { move a simple item from the src to dst, currently just values that
+    aren't in a floating-point register.
+  }
+
   begin {gensimplemove}
-    if not equivaddr(left, right) then
-      if (keytable[left].oprnd.mode = register) and
-         ((keytable[right].oprnd.mode = register) or
-          (keytable[right].oprnd.mode = immediate))  then
-        gen2(buildinst(mov, true, false), left, right)
-      else if keytable[left].oprnd.mode = register then
-        gen2(ldrinst(keytable[right].len, keytable[right].signed), left, right)
-      else if keytable[right].oprnd.mode <> register then
+    if not equivaddr(dst, src) then
+      if (keytable[dst].oprnd.mode = register) and
+         ((keytable[src].oprnd.mode = register) or
+          (keytable[src].oprnd.mode = immediate))  then
+        gen2(buildinst(mov, true, false), dst, src)
+      else if keytable[dst].oprnd.mode = register then
+        gen2(ldrinst(keytable[src].len, keytable[src].signed), dst, src)
+      else if keytable[src].oprnd.mode <> register then
         begin
-        lock(left);
+        lock(dst);
         settemp(long, reg_oprnd(getreg));
-        unlock(left);
-        if keytable[right].oprnd.mode = immediate then
-          gen2(buildinst(mov, true, false), tempkey, right)
+        unlock(dst);
+        if keytable[src].oprnd.mode = immediate then
+          gen2(buildinst(mov, true, false), tempkey, src)
         else
-          gen2(ldrinst(keytable[right].len, keytable[right].signed), tempkey, right);
-        gen2(strinst(keytable[left].len), tempkey, left);
+          gen2(ldrinst(keytable[src].len, keytable[src].signed), tempkey, src);
+        gen2(strinst(keytable[dst].len), tempkey, dst);
         tempkey := tempkey + 1;
         end
       else
-        gen2(strinst(keytable[left].len), right, left);
+        gen2(strinst(keytable[dst].len), src, dst);
   end {gensimplemove} ;
 
 function signedoprnds : boolean;
@@ -1470,7 +1495,7 @@ begin {loadreg}
     begin
     settemp(keytable[k].len, keytable[k].oprnd);
     settemp(keytable[k].len, reg_oprnd(getreg));
-    gensimplemove(tempkey, tempkey + 1);
+    gensimplemove(tempkey + 1, tempkey);
     changevalue(k, tempkey);
     tempkey := tempkey + 2;
     end;
@@ -1742,7 +1767,7 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
         begin
         address(target);
         settemp(long, reg_oprnd(getreg));
-        gensimplemove(tempkey, target);
+        gensimplemove(target, tempkey);
         setvalue(index_oprnd(unsigned_offset, keytable[tempkey].oprnd.reg, 0));
         tempkey := tempkey + 1;
         end;
@@ -2030,16 +2055,12 @@ procedure regtempx;
 { Generate a reference to a local variable permanently assigned to a
   general register.  "pseudoinst.oprnds[3]" contains the number of the
   temp register assigned, and oprnds[1] is the variable access being
-  so assigned.
+  so assigned.  Always allocated in callee-saved registers.
 }
 
 
   begin
-    { address(left) in mc68000 codgen, simplified here because regtemp is
-      not based on volatile registers and I've not implemented address()
-      yet.
-    }
-    dereference(left);
+    address(left);
     setvalue(reg_oprnd(sl - pseudoinst.oprnds[3]));
     regused[sl - pseudoinst.oprnds[3]] := true;
   end {regtempx} ;
@@ -2065,11 +2086,12 @@ procedure dovarx(s: boolean {signed variable reference} );
   end {dovarx} ;
 
 { Just temporary hacks }
+
 procedure movintptrx;
 
   begin {movintptrx}
     addressboth;
-    gensimplemove(left, right);
+    gensimplemove(right, left);
   end {movintptrx};
 
 procedure movlitintx;
@@ -2081,7 +2103,7 @@ procedure movlitintx;
     setallfields(left);
     dereference(left);
     settemp(len, immediate_oprnd(right, 0));
-    gensimplemove(left, tempkey); 
+    gensimplemove(tempkey, left); 
   end;
 
 procedure indxx;
@@ -2118,7 +2140,7 @@ procedure loopholefnx;
        (keytable[left].oprnd.mode <> register) then
       begin
       setvalue(reg_oprnd(getreg));
-      gensimplemove(key, left);
+      gensimplemove(left, key);
       end
     else
       setallfields(left);
@@ -2165,7 +2187,7 @@ procedure callroutinex(s: boolean {signed function value} );
     {frame pointers in the aarch64 standard calling sequence form a linked
      list.
     }
-    settemp(long, index_oprnd(unsigned_offset, fp, 0));
+    settemp(long, reg_oprnd(fp));
     framekey := tempkey;
 
     settemp(long, reg_oprnd(sl));
@@ -2186,7 +2208,7 @@ procedure callroutinex(s: boolean {signed function value} );
         regused[sl] := true;
         levelhack := level - proctable[pseudoinst.oprnds[1]].level;
         if levelhack < 0 then
-          gensimplemove(slkey, framekey);
+          gensimplemove(framekey, slkey);
         end;
       settemp(long, proccall_oprnd(pseudoinst.oprnds[1], max(0, levelhack)));
       gen1(buildinst(bl, false, false), tempkey);
@@ -2196,14 +2218,11 @@ procedure callroutinex(s: boolean {signed function value} );
       { proc/func parameter }
       end;
 
-    { now restore sl if necessary, which we know is the first register saved because
-      gp is never saved outside main.
-    }
     if linkreg and ((pseudoinst.oprnds[3] > 0) or (level > 2) and
        (levelhack <> 0)) then
       begin
-      keytable[framekey].oprnd.index := - long;
-      gensimplemove(slkey, framekey);
+      settemp(long, index_oprnd(signed_offset, fp, staticlinkoffset));
+      gensimplemove(tempkey, slkey);
       end;
 
     tempkey := savetempkey;
