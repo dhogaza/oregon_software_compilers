@@ -12,6 +12,8 @@ procedure openc;
 
 procedure closec;
 
+procedure write_nodes(firstnode, lastnode: nodeptr);
+
 implementation
 
 var
@@ -439,15 +441,20 @@ begin
 
 end;
 
+procedure write_nodes(firstnode, lastnode: nodeptr);
+  var stopnode: nodeptr;
+
+begin {write_nodes}
+  stopnode := lastnode^.nextnode;
+  repeat
+    write_node(firstnode);
+    firstnode := firstnode^.nextnode;
+  until firstnode = stopnode;
+end {write_nodes};
+
 procedure putcode;
-  var p: nodeptr;
 begin
-  p := firstnode;
-  while p <> nil do
-  begin
-    write_node(p);
-    p := p^.nextnode;
-  end;
+  write_nodes(firstnode, lastnode);
 end;
 
 procedure openc;

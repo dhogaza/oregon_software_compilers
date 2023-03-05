@@ -354,7 +354,7 @@ type
 
   node =
     packed record
-      nextnode: nodeptr;
+      nextnode, prevnode: nodeptr;
       tempcount: keyindex; {number of temps below this item. only valid if
                             branch node or stack dependant operand node}
       case kind: nodekinds of
@@ -362,7 +362,7 @@ type
           (inst: insttype;
            labeled: boolean; {true if a label attached here}
            oprnd_cnt: 0..4;
-           oprnds: packed array [1..max_oprnds] of oprndtype);
+           oprnds: array [1..max_oprnds] of oprndtype);
         labelnode:
           (labelno: unsigned;
            stackdepth: integer; {used for aligning sp at branch}
@@ -438,8 +438,6 @@ type
                           created value described in this record}
       instend: nodeptr; {set to the last instruction of the stream which
                          created this value}
-      prevnode: nodeptr; {if not nil points the the node immediately before
-                          this one}
       oprnd: oprndtype; {the machine description of the operand}
       brinst: insttype; {use this instruction for 'true' branch}
     end;
@@ -542,8 +540,7 @@ var
   paramsize, blksize: addressrange;
 
   stackcounter: keyindex; {key describing top of runtime stack}
-  stackoffset: integer; {depth of runtime stack in bytes}
-
+  stackoffset, maxstackoffset: addressrange;
 
   registers: array [regindex] of integer;
   fpregisters: array [regindex] of integer;
@@ -597,15 +594,16 @@ var
 
   {context stack, tracks the context data from travrs}
 
-  context: packed array [contextindex] of
-      packed record
-        clearflag: boolean; {set at first clearlabel pseudoop}
+  context: array [contextindex] of
+      record
         keymark: keyindex; {first key entry for this context block}
+        stackoffset: addressrange;
+        lastbranch: nodeptr; {set at each out-of-line branch}
+        firstnode: nodeptr; {first instruction for this context block}
         bump: bumparray;
         { bump[r] is set true if dregisters[r] > 0 at context entry}
         fpbump: bumparray; { floating-point regs }
-        lastbranch: nodeptr; {set at each out-of-line branch}
-        firstnode: nodeptr; {first instruction for this context block}
+        clearflag: boolean; {set at first clearlabel pseudoop}
       end;
 
   contextsp: contextindex; {top of mark stack (context pointer)}
