@@ -240,7 +240,7 @@ function newnode(kind: nodekinds): nodeptr;
     p^.nextnode := nil;
     p^.prevnode := lastnode;
 
-    { strategy here is that the nodes from instmark to instend are
+    { strategy here is that the nodes from first to last are
       those that created the current key value once we move to the next key,
       while the prevnode field allows us to more easily delete nodes
       attached to a key.
@@ -249,9 +249,9 @@ function newnode(kind: nodekinds): nodeptr;
     if key > 0 then
       with keytable[key] do
         begin
-        instend := p;
-        if instmark = nil then
-          instmark := p;
+        last := p;
+        if first = nil then
+          first := p;
         end;
 
     lastnode := p;
@@ -508,9 +508,14 @@ procedure definelabel(l: integer {label number to define} );
   var
     t: labelindex; {induction var used in search for slot}
     t1: labelindex; {induction var used in moving labels}
-
+    p: nodeptr;
 
   begin {definelabel}
+    p := newnode(labelnode);
+    p^.labelno := l;
+    p^.stackdepth := 0;
+    p^.brnodelink := nil;
+
 {
     if l <> 0 then
       begin
@@ -638,8 +643,8 @@ procedure setcommonkey;
       copycount := pseudoinst.copycount;
       copylink := 0;
       tempflag := false;
-      instmark := nil;
-      instend := nil;
+      first := nil;
+      last := nil;
       end;
   end {setcommonkey} ;
 
@@ -765,10 +770,37 @@ procedure derefboth;
 
 { stack offset adjustment procedures }
 
+procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
+                               amount: integer);
+
+{ Flip the dummy negative offsets to the stack to positive offsets. }
+
+  var
+    stopnode: nodeptr;
+    i: integer;
+
+  begin {finalizestackoffsets}
+    stopnode := lastnode^.nextnode;
+    while firstnode <> stopnode do
+      begin
+      with firstnode^ do
+        if (kind = instnode) then
+        for i := 1 to oprnd_cnt do
+          if (oprnds[i].mode = signed_offset) and
+             (oprnds[i].reg = sp) then
+            begin
+            oprnds[i].mode := unsigned_offset;
+            oprnds[i].index := oprnds[i].index + amount;
+            end;
+      firstnode := firstnode^.nextnode;
+      end;
+  end {finalizestackoffsets};
+
 procedure adjuststackoffsets(firstnode: nodeptr; lastnode: nodeptr;
                              amount: integer);
 
-{ adjust stack offsets for instructions in the given range  }
+{ Adjust references to stack temps (but not procedure parameters passed
+  on the stack) for instructions in the given range  }
 
   var
     stopnode: nodeptr;
@@ -777,11 +809,11 @@ procedure adjuststackoffsets(firstnode: nodeptr; lastnode: nodeptr;
   begin {adjuststackoffsets}
     stopnode := lastnode^.nextnode;
     while firstnode <> stopnode do
+      begin
       with firstnode^ do
-        begin
         if (kind = instnode) then
         for i := 1 to oprnd_cnt do
-          if (oprnds[i].mode = unsigned_offset) and
+          if (oprnds[i].mode = signed_offset) and
              (oprnds[i].reg = sp) then
               oprnds[i].index := oprnds[i].index + amount;
       firstnode := firstnode^.nextnode;
@@ -802,7 +834,7 @@ function preceedslastbranch(k: keyindex): boolean;
       repeat
         p := p^.nextnode;
       until (p = nil) or
-            (p = keytable[k].instmark);
+            (p = keytable[k].first);
       preceedslastbranch := p <> nil;
       end
   end {preceedslastbranch} ;
@@ -920,6 +952,13 @@ procedure newtemp(size: addressrange {size of temp to allocate} );
   We neither push or pop temps as adequate stack space is allocated
   at block entry.  Instead, we try to find an empty slot on the 
   stack and reuse it.
+
+  Offsets to the stack are negative offsets from the base of the stack
+  rather than positive offsets to the top of the stack.  This makes
+  removing temps easier.  We flip the indexes at the end of the
+  block.  They are given the mode signed_offset and will later become
+  unsigned_offset, while parameters are given unsigned_offset when
+  first allocated.
 }
 
   var
@@ -928,9 +967,6 @@ procedure newtemp(size: addressrange {size of temp to allocate} );
 
   begin {newtemp}
     size := (size + (stackalign - 1)) and - stackalign;
-
-{ now have to adjust offsets }
-
     stackoffset := stackoffset + size;
     if stackoffset > maxstackoffset then
       maxstackoffset := stackoffset;
@@ -950,9 +986,9 @@ procedure newtemp(size: addressrange {size of temp to allocate} );
         reg2saved := false;
         packedaccess := false;
         refcount := 0;
-        instmark := nil;
-        instend := nil;
-        oprnd := index_oprnd(unsigned_offset, sp, 0);
+        first := nil;
+        last := nil;
+        oprnd := index_oprnd(signed_offset, sp, -stackoffset);
         end;
       end;
   end {newtemp} ;
@@ -972,7 +1008,6 @@ function stacktemp(size: addressrange): keyindex;
     else
       begin
       { DRB temp }
-      adjuststackoffsets(firstnode, lastnode, size);
       newtemp(size);
       stacktemp := stackcounter;
       end;
@@ -1027,12 +1062,12 @@ function savereg(r: regindex {register to save}) : keyindex;
       settemp(long, reg_oprnd(r));
       p := newnode(instnode);
       gen2p(p, buildinst(str, true, false), tempkey, stackkey);
-      keytable[stackkey].instmark := p;
-      keytable[stackkey].instend := lastnode;
-if switcheverplus[test] and (keytable[key].instmark <> nil) then
+      keytable[stackkey].first := p;
+      keytable[stackkey].last := lastnode;
+if switcheverplus[test] and (keytable[key].first <> nil) then
 begin
 writeln(macfile, 'stackkey:', stackkey);
-write_nodes(keytable[stackkey].instmark, keytable[stackkey].instend);
+write_nodes(keytable[stackkey].first, keytable[stackkey].last);
 end;
       tempkey := tempkey + 1;
       savereg := stackkey;
@@ -1116,6 +1151,18 @@ procedure markreg(r: regindex {register to clobber} );
               end;
       end;
   end {markreg} ;
+
+procedure markscratchregs;
+
+{procedure calls walk on all of the general registers}
+
+  var
+    r: regindex;
+
+  begin {markscratchregs}
+    for r := 0 to ip0 - 1 do
+      markreg(r);
+  end {markscratchregs};
 
 
 function regvalue(r: regindex): unsigned;
@@ -1398,6 +1445,7 @@ procedure addressboth;
     address(left);
     unlock(right);
   end {addressboth} ;
+
 procedure initblock;
 
 { Initialize global variables for a new block.
@@ -1407,7 +1455,6 @@ procedure initblock;
     i: integer; {general purpose induction variable}
 
   begin
-    maxstackdepth := 0;
     paramlist_started := false; {reset switch}
 
     while (currentswitch <= lastswitch) and
@@ -1437,10 +1484,6 @@ procedure initblock;
     firststmt := 0;
 
     contextsp := 1;
-    context[1].keymark := 1;
-    context[1].clearflag := false;
-    context[1].lastbranch := nil;
-    context[1].stackoffset := stackoffset;
     loopsp := 0;
 
     for i := 0 to maxreg do
@@ -1891,7 +1934,10 @@ procedure blockcodex;
     firstnode := nil;
     lastnode := nil;
     context[1].lastbranch := nil;
-    context[1].firstnode := nil;
+    context[1].first := nil;
+    context[1].last := nil;
+    context[1].savedstackoffset := stackoffset;
+    context[1].savedstackcounter := stackcounter;
     context[1].keymark := lastkey + 1;
     context[0] := context[1];
     lastfpreg := maxreg - target;
@@ -1957,13 +2003,8 @@ procedure putblock;
 
     { Clean up stack, and make sure we did so
     }
-{
 
-    if mc68881 then context[contextsp].lastbranch := fpsavereginst + 3
-    else context[contextsp].lastbranch := savereginst + 3;
-
-    adjusttemps;
-}
+    finalizestackoffsets(firstnode, lastnode, maxstackoffset);
 
     { One more temp is needed for 68881 code.  Proctrailer kills it.
       Another temp is used by Modula2 for openarrays.  Proctrailer kills
@@ -2283,6 +2324,8 @@ procedure callroutinex(s: boolean {signed function value} );
   begin {callroutinex}
     paramlist_started := false; {reset the switch}
 
+    markscratchregs;
+
     savetempkey := tempkey;
     {frame pointers in the aarch64 standard calling sequence form a linked
      list.
@@ -2338,6 +2381,30 @@ procedure callroutinex(s: boolean {signed function value} );
 
   end {callroutinex} ;
 
+{ context processing }
+
+procedure clearlabelx;
+
+{ Define a label at the head of a loop.  All CSE's except 'with'
+  expressions and for loop indices were purged by travrs.  The
+  routine 'enterloop' enters bookkeeping information which allows
+  registers to be used within the loop.  This scheme depends upon
+  'restoreloopx' properly restoring registers to their state as of
+  loop entry.
+}
+
+
+  begin
+    saveactivekeys;
+{ DRB   enterloop;}
+{    clearcontext;}
+    definelabel(pseudoinst.oprnds[1]);
+{DRB ...
+    reloadloop;
+}
+  end {clearlabelx} ;
+
+
 procedure savelabelx;
 
 { Define a label and save the current context for later restoration.
@@ -2355,14 +2422,17 @@ procedure savelabelx;
 
     adjustdelay := false; {DRB probably not needed for arm64 after we pull calls from paramlists}
     definelabel(pseudoinst.oprnds[1]);
-    {saveactivekeys;}
+    saveactivekeys;
     contextsp := contextsp + 1;
 
     with context[contextsp] do
       begin
+      savedstackoffset := stackoffset;
+      savedstackcounter := stackcounter;
       clearflag := false;
       keymark := lastkey + 1;
-      firstnode := lastnode;
+      first := lastnode;
+      last := lastnode;
       lastbranch := lastnode;
       bump := context[contextsp - 1].bump;
       fpbump := context[contextsp - 1].fpbump;
@@ -2374,6 +2444,111 @@ procedure savelabelx;
       adjustregcount(i, - keytable[i].refcount);
 
   end {savelabelx} ;
+
+procedure restorelabelx;
+
+{ Define a label and restore the previous environment.  This is used at the
+  end of one branch of a branching construct.  It gets rid of any temps
+  generated along this branch and resets to the previous context.
+}
+
+  var
+    i: keyindex; {used to scan keys to restore register counts}
+
+
+  begin
+    definelabel(pseudoinst.oprnds[1]);
+
+    while lastkey >= context[contextsp].keymark do
+      with keytable[lastkey] do
+        begin
+        bumptempcount(lastkey, - refcount);
+        adjustregcount(lastkey, - refcount);
+        refcount := 0;
+        lastkey := lastkey - 1;
+        end;
+
+    contextsp := contextsp - 1;
+    stackcounter := context[contextsp].savedstackcounter;
+    stackoffset := context[contextsp].savedstackoffset;
+    for i := context[contextsp].keymark to lastkey do
+      adjustregcount(i, keytable[i].refcount);
+  end {restorelabelx} ;
+
+procedure joinlabelx;
+
+{ Define a label and adjust temps at the end of a forking construction.
+  Temps which are used along any branch of the fork have the "join" flag
+  set, and at this point such temps are flagged as used.  This corresponds
+  to the "join" construction in travrs.
+}
+
+  var
+    i: keyindex; {induction var for scanning keys}
+
+  begin
+    definelabel(pseudoinst.oprnds[1]);
+    for i := context[contextsp].keymark to lastkey do
+      with keytable[i] do
+        begin
+        adjustregcount(i, - refcount);
+        if joinreg then regvalid := false;
+        if joinreg2 then reg2valid := false;
+        adjustregcount(i, refcount);
+        end;
+  end {joinlabelx} ;
+
+procedure pseudolabelx;
+
+{ Define a pseudo-code label.  This is the basic label definition routine.
+}
+
+
+  begin
+    definelabel(pseudoinst.oprnds[1]);
+  end {pseudolabelx} ;
+
+procedure jumpx(lab: integer {label to jump to});
+
+{ Generate an unconditional branch to "lab".  The only non-obvious thing here
+  is linking the jump into the list of branch links
+
+  Note that all branches to a particular label are linked through the
+  brnodelink field of the label node.
+}
+
+  var
+    p: brlinkptr; {for searching list of branch links}
+    found: boolean; {for stopping search}
+
+
+  begin
+    settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1], false));
+    gen1(buildinst(b, false, false), tempkey);
+
+    { DRB:stuff for later tail merging which we might not even
+      want to do for arm64 
+      p := firstbr;
+      found := false;
+      while not found and (p <> nil) do
+        if p^.l = lab then found := true
+        else p := p^.nextbr;
+      if not found and
+          not switcheverplus[debugging] and (tailmerging in genset) then
+        begin
+        new(p);
+        p^.l := lab;
+        p^.nextbr := firstbr;
+        p^.n := 0;
+        firstbr := p;
+        end;
+      if p <> nil then
+        begin
+        lastptr^.brnodelink := p^.n;
+        p^.n := lastnode - 1;
+        end;
+      end};
+  end {jumpx} ;
 
 
 procedure codeselect;
@@ -2400,13 +2575,13 @@ procedure codeselect;
       stmtbrk: stmtbrkx;
 {
       copyaccess: copyaccessx;
-      clearlabel: clearlabelx;
 }
+      clearlabel: clearlabelx;
       savelabel: savelabelx;
-{
       restorelabel: restorelabelx;
       joinlabel: joinlabelx;
       pseudolabel: pseudolabelx;
+{
       pascallabel: pascallabelx;
       pascalgoto: pascalgotox;
       defforlitindex: defforindexx(true, true);
@@ -2546,7 +2721,9 @@ procedure codeselect;
       wrxstr: wrstx(false);
       wrbool: wrcommon(libwritebool, 5);
       wrreal: wrrealx;
-      jump: jumpx(pseudoinst.oprnds[1], false);
+}
+      jump: jumpx(pseudoinst.oprnds[1]);
+{
       jumpf: jumpcond(true);
       jumpt: jumpcond(false);
 
@@ -2942,10 +3119,10 @@ procedure codeone;
       right := pseudoinst.oprnds[2];
       target := pseudoinst.oprnds[3];
       codeselect;
-if switcheverplus[test] and (keytable[key].instmark <> nil) then
+if switcheverplus[test] and (keytable[key].first <> nil) then
 begin
 writeln(macfile, 'key:', key);
-write_nodes(keytable[key].instmark, keytable[key].instend);
+write_nodes(keytable[key].first, keytable[key].last);
 end;
       end;
   end {codeone};

@@ -195,7 +195,7 @@ procedure copysfile;
       writeln(macfile, '#');
       writeln(macfile, chr(9), '.data');
       writeln(macfile, chr(9), '.align 3');
-      writeln(macfile, 'L:'); { the label associated with constants }
+      writeln(macfile, '.L:'); { the label associated with constants }
       end;
     write_constants(i);
   end {copysfile} ;
@@ -417,7 +417,8 @@ begin {write_node}
     writeln(macfile, '.L', bsslabel, ':');
     writeln(macfile, chr(9), '.space ', p^.bsssize);
     end;
-  otherwise write('bad node');
+  labelnode: writeln(macfile, '.L', p^.labelno, ':');
+  otherwise writeln('bad node');
   end;
 end {write_node};
 

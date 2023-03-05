@@ -434,10 +434,10 @@ type
       signlimit: addressrange; {size for which this key is still signed}
       knownword: boolean; {true if word or long instruction will work
                            here}
-      instmark: nodeptr; {set to first instruction of stream which
-                          created value described in this record}
-      instend: nodeptr; {set to the last instruction of the stream which
-                         created this value}
+      first: nodeptr; {set to first node of stream which
+                       created value described in this record}
+      last: nodeptr; {set to the last node of the stream which
+                      created this value}
       oprnd: oprndtype; {the machine description of the operand}
       brinst: insttype; {use this instruction for 'true' branch}
     end;
@@ -540,7 +540,7 @@ var
   paramsize, blksize: addressrange;
 
   stackcounter: keyindex; {key describing top of runtime stack}
-  stackoffset, maxstackoffset: addressrange;
+  stackoffset, maxstackoffset: integer;
 
   registers: array [regindex] of integer;
   fpregisters: array [regindex] of integer;
@@ -597,9 +597,10 @@ var
   context: array [contextindex] of
       record
         keymark: keyindex; {first key entry for this context block}
-        stackoffset: addressrange;
+        savedstackoffset: addressrange;
+        savedstackcounter: keyindex;
         lastbranch: nodeptr; {set at each out-of-line branch}
-        firstnode: nodeptr; {first instruction for this context block}
+        first, last: nodeptr; {first and last nodes for this context block}
         bump: bumparray;
         { bump[r] is set true if dregisters[r] > 0 at context entry}
         fpbump: bumparray; { floating-point regs }
@@ -625,8 +626,6 @@ var
         regstate: regstate;
         fpregstate: regstate;
       end;
-
-  maxstackdepth: addressrange; {maximum stack depth within program}
 
   oktostuff: boolean; {set false if register stuffing not allowed}
 
