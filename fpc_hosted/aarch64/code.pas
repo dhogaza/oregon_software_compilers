@@ -14,6 +14,40 @@ procedure exitcode;
 
 implementation
 
+procedure settemp(l: unsigned; o: oprndtype);
+
+{ Set up a temporary key entry with the characteristics specified.  This has
+  nothing to do with runtime temp administration.  It strictly sets up a key
+  entry.  Negative key values are used for these temp entries, and they are
+  basically administered as a stack using "tempkey" as the stack pointer.
+}
+
+
+  begin {settemp}
+    if tempkey = lowesttemp then compilerabort(interntemp);
+    tempkey := tempkey - 1;
+    with keytable[tempkey] do
+      begin
+      len := l;
+      refcount := 0;
+      copycount := 0;
+      copylink := 0;
+      properreg := 0;
+      properreg2 := 0;
+      access := valueaccess;
+      tempflag := true;
+      regsaved := false;
+      reg2saved := false;
+      regvalid := true;
+      reg2valid := true;
+      packedaccess := false;
+      signed := true;
+      signlimit := 0;
+      oprnd := o;
+      end;
+  end {settemp} ;
+
+
 function buildinst(inst: insts; sf: boolean; s: boolean): insttype;
 
 var
@@ -468,6 +502,14 @@ procedure gen4(i: insttype;
     gen4p(newnode(instnode), i, o1, o2, o3, o4);
   end {gen4} ;
 
+procedure genbr(inst: insts; labelno: integer);
+
+  begin {genbr}
+    settemp(long, labeltarget_oprnd(labelno, false));
+    gen1(buildinst(inst, false, false), tempkey);
+    tempkey := tempkey + 1;
+  end {genbr};
+
 procedure deletenodes(first, last: nodeptr);
 
   var
@@ -511,31 +553,34 @@ procedure definelabel(l: integer {label number to define} );
     p: nodeptr;
 
   begin {definelabel}
-    p := newnode(labelnode);
-    p^.labelno := l;
-    p^.stackdepth := 0;
-    p^.brnodelink := nil;
-
-{
     if l <> 0 then
       begin
-      if nextlabel = labeltablesize then compilerabort(manylabels)
-      else nextlabel := nextlabel + 1;
-      t := nextlabel;
-      labelnextnode := true;
-      labeltable[0].nodelink := 0;
-      while labeltable[t - 1].nodelink > lastnode do t := t - 1;
-      for t1 := nextlabel downto t + 1 do
-        labeltable[t1] := labeltable[t1 - 1];
-      with labeltable[t] do
+      p := newnode(labelnode);
+      p^.labelno := l;
+      p^.stackdepth := 0;
+      p^.brnodelink := nil;
+
+  {
+      if l <> 0 then
         begin
-        labno := l;
-        nodelink := lastnode + 1;
-        stackdepth := stackoffset;
-        address := undefinedaddr;
+        if nextlabel = labeltablesize then compilerabort(manylabels)
+        else nextlabel := nextlabel + 1;
+        t := nextlabel;
+        labelnextnode := true;
+        labeltable[0].nodelink := 0;
+        while labeltable[t - 1].nodelink > lastnode do t := t - 1;
+        for t1 := nextlabel downto t + 1 do
+          labeltable[t1] := labeltable[t1 - 1];
+        with labeltable[t] do
+          begin
+          labno := l;
+          nodelink := lastnode + 1;
+          stackdepth := stackoffset;
+          address := undefinedaddr;
+          end;
         end;
-      end;
-}
+  }
+    end;
   end {definelabel} ;
 
 
@@ -648,6 +693,26 @@ procedure setcommonkey;
       end;
   end {setcommonkey} ;
 
+procedure setbr(inst: insts {branch instruction used} );
+
+{ Sets the operand data for an operand which is accessed by a branch.
+  That is, only the condition code is used.  The type of conditions tested
+  for are implicit in the branch instruction.
+
+  This uses the global "key", which is the operand for the latest
+  pseudoinstruction.
+}
+
+
+  begin
+    adjustdelay := true;
+    with keytable[key] do
+      begin
+      access := branchaccess;
+      brinst := inst
+      end;
+  end {setbr} ;
+
 procedure setvalue(o: oprndtype);
 
 begin {setvalue}
@@ -698,39 +763,6 @@ procedure setallfields(k: keyindex);
       setkeyvalue(k);
       end;
   end {setallfields} ;
-
-procedure settemp(l: unsigned; o: oprndtype);
-
-{ Set up a temporary key entry with the characteristics specified.  This has
-  nothing to do with runtime temp administration.  It strictly sets up a key
-  entry.  Negative key values are used for these temp entries, and they are
-  basically administered as a stack using "tempkey" as the stack pointer.
-}
-
-
-  begin {settemp}
-    if tempkey = lowesttemp then compilerabort(interntemp);
-    tempkey := tempkey - 1;
-    with keytable[tempkey] do
-      begin
-      len := l;
-      refcount := 0;
-      copycount := 0;
-      copylink := 0;
-      properreg := 0;
-      properreg2 := 0;
-      access := valueaccess;
-      tempflag := true;
-      regsaved := false;
-      reg2saved := false;
-      regvalid := true;
-      reg2valid := true;
-      packedaccess := false;
-      signed := true;
-      signlimit := 0;
-      oprnd := o;
-      end;
-  end {settemp} ;
 
 procedure dereference(k: keyindex {operand} );
 
@@ -1644,6 +1676,39 @@ begin {loadreg}
 end {loadreg} ;
 
 
+procedure forcebranch(k: keyindex {operand to test});
+
+{ Force key "k" to a branch reference and dereference.  This is called
+  when "k" is a boolean.
+
+  (DRB: general compare with zero might want to go here as it does with
+   the m68k)
+
+  It leaves the key set to a "branchaccess" operand.
+}
+
+  var
+    mask: unsigned; {mask values built here}
+    piecesize: integer; {size of unpacked "chunk"}
+    i: integer; {"for" index}
+    newkey: keyindex;
+
+  begin
+    with keytable[k], oprnd do
+      begin
+        case access of
+        valueaccess:
+          begin
+          write('valueaccess in forcebranch'); compilerabort(inconsistent);;
+          end;
+        branchaccess:
+          setbr(brinst);
+        otherwise compilerabort(inconsistent);
+        end;
+      end;
+    dereference(k);
+  end {forcebranch} ;
+
 {start of individual pseudoop codegen procedures}
 
 
@@ -1671,6 +1736,39 @@ procedure integerarithmetic(inst: insts {simple integer inst} );
     unlock(target);
     keytable[key].signed := signedoprnds;
   end {integerarithmetic} ;
+
+procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
+
+{ Generate comparison with a literal integer.  If this is zero and left is in
+  a general register, we can look backwards for the instruction that set it and
+  change it to its "s" form if it has one (DRB: later)
+
+  (DRB: also packingmod from the 68K is interesting because we should be able
+   to do similar if a packed field is on a byte, word, or long boundary)
+}
+
+  var
+    packingmod: shortint;
+    i: insts;
+
+  begin
+    address(left);
+    if keytable[left].signed and (right >= 0) then
+      i := cmp
+    else
+      begin
+      i := cmn;
+      right := -right;
+      end;
+    settemp(len, immediate_oprnd(right, 0));
+    loadreg(left);
+    gen2(buildinst(i, len = long, false), left, tempkey);
+    tempkey := tempkey + 1;
+    if keytable[left].signed then
+      setbr(signedbr)
+  end {cmplitintx} ;
+
+
 
 procedure divintx;
 
@@ -2523,8 +2621,7 @@ procedure jumpx(lab: integer {label to jump to});
 
 
   begin
-    settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1], false));
-    gen1(buildinst(b, false, false), tempkey);
+    genbr(b, pseudoinst.oprnds[1]);
 
     { DRB:stuff for later tail merging which we might not even
       want to do for arm64 
@@ -2550,7 +2647,23 @@ procedure jumpx(lab: integer {label to jump to});
       end};
   end {jumpx} ;
 
+procedure jumpcond(inv: boolean {invert the sense of the branch} );
 
+{ Used to generate a jump true or jump false on a condition.  If the key is
+  not already a condition, it is forced to a "bne", as it is a boolean
+  variable.
+}
+
+
+  begin
+    forcebranch(right);
+    if inv then genbr(invert[keytable[key].brinst], pseudoinst.oprnds[1])
+    else genbr(keytable[key].brinst, pseudoinst.oprnds[1]);
+{
+    if findlabel(pseudoinst.oprnds[1]) = 0 then
+      context[contextsp].lastbranch := lastnode;}
+  end {jumpcond} ;
+
 procedure codeselect;
 
 { Generate code for one of the pseudoops handled by this part of the
@@ -2723,9 +2836,9 @@ procedure codeselect;
       wrreal: wrrealx;
 }
       jump: jumpx(pseudoinst.oprnds[1]);
-{
       jumpf: jumpcond(true);
       jumpt: jumpcond(false);
+{
 
       eqreal: cmprealx(beq, libdeql, fbngl);
       neqreal: cmprealx(bne, libdeql, fbgl);
@@ -2763,16 +2876,14 @@ procedure codeselect;
       leqlitreal: cmplitrealx(ble, libdlss, fble);
       gtrlitreal: cmplitrealx(bgt, libdgtr, fbgt);
       geqlitreal: cmplitrealx(bge, libdgtr, fbge);
-
-      eqlitptr, eqlitfptr: cmplitptrx(beq);
-      neqlitptr, neqlitfptr: cmplitptrx(bne);
-
-      eqlitint: cmplitintx(beq, beq, beq);
-      neqlitint: cmplitintx(bne, bne, bne);
-      leqlitint: cmplitintx(ble, bls, beq);
-      geqlitint: cmplitintx(bge, bhs, bra);
-      lsslitint: cmplitintx(blt, blo, nop);
-      gtrlitint: cmplitintx(bgt, bhi, bne);
+}
+      eqlitint, eqlitptr: cmplitintx(beq, beq);
+      neqlitint, neqlitptr: cmplitintx(bne, bne);
+      leqlitint: cmplitintx(ble, bls);
+      geqlitint: cmplitintx(bge, bhs);
+      lsslitint: cmplitintx(blt, blo);
+      gtrlitint: cmplitintx(bgt, bhi);
+{
 
       eqset: cmpstructx(beq);
       neqset: cmpstructx(bne);
@@ -3145,16 +3256,6 @@ procedure initcode;
 
   begin {initcode}
 
-    { Front end doesn't do this for deeply historical reasons but in Linux
-      the main program's just an external procedure.
-    }
-    proctable[0].externallinkage := true;
-
-    labelnextnode := false;
-    labeltable[0].nodelink := nil;
-
-    {Now initialize file variables}
-
     nokeydata := [endpseudocode, bad, blockentry, blockexit, jumpf, jumpt, jump,
 		 pascallabel, savelabel, clearlabel, joinlabel, restorelabel,
 		 sysroutine, caseelt, setfile, closerange, restoreloop,
@@ -3169,6 +3270,21 @@ procedure initcode;
 		 chrstr, arraystr, definelazy, setbinfile, setfile, closerange,
 		 restoreloop];
 
+    invert[beq] := bne;     invert[bne] := beq;     invert[blt] := bge;
+    invert[bgt] := ble;     invert[bge] := blt;     invert[ble] := bgt;
+    invert[blo] := bhs;     invert[bhi] := bls;     invert[bls] := bhi;
+    invert[bhs] := blo;     invert[bvs] := bvc;     invert[bvc] := bvs;
+    invert[nop] := b;       invert[b] := nop;
+
+    { Front end doesn't do this for deeply historical reasons but in Linux
+      the main program's just an external procedure.
+    }
+    proctable[0].externallinkage := true;
+
+    labelnextnode := false;
+    labeltable[0].nodelink := nil;
+
+    {Now initialize file variables}
 
     curstringblock := 0;
     nextstringfile := 0;

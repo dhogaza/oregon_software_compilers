@@ -276,10 +276,10 @@ type
   { AARCH64 instruction definitions, including some dummies to make creating
     sets easier. }
 
-  insts = (noinst,
+  insts = (noinst, nop,
 
   {basic arithmetic instructions}
-  first_a, add, sub, mul, madd, msub, sdiv, udiv, last_a,
+  first_a, add, sub, mul, madd, msub, sdiv, udiv, cmp, cmn, last_a,
 
   {move instructions}
 
@@ -291,7 +291,8 @@ type
 
   {branch instructions}
 
-  first_b, b, bl, last_b,
+  first_b, b, bl, beq, bne, blt, bgt, ble, bge, bhi, bhs, blo, bls,
+  bvc, bvs, last_b,
 
   {miscellaneous instructions}
 
@@ -439,7 +440,7 @@ type
       last: nodeptr; {set to the last node of the stream which
                       created this value}
       oprnd: oprndtype; {the machine description of the operand}
-      brinst: insttype; {use this instruction for 'true' branch}
+      brinst: insts; {use this instruction for 'true' branch}
     end;
 
   keytabletype = array [lowesttemp..keysize] of keyx;
@@ -628,6 +629,9 @@ var
       end;
 
   oktostuff: boolean; {set false if register stuffing not allowed}
+
+  invert, fpinvert: array [insts] of insts; {for inverting sense of
+                                                   branches}
 
   keytable: keytabletype; {contains operand data}
 
