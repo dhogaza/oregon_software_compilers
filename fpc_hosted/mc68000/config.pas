@@ -85,6 +85,10 @@ const
   newscaninterface = false; {we are using old-style string table and tokens}
   newtravrsinterface = false; {we are using old-style proctable and
                                case table interface}
+
+  useglobalcontext = true; {let travrs use the global context for things
+                            like "doint"}
+
 { Machine dependent parameters
   The machine dependent parameters here apply to more than one pass.
   There are also parameters in analys and scan which will have to be

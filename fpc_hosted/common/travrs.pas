@@ -3405,10 +3405,16 @@ procedure build;
   least one unique operand, so there is no need to search for it.
   This eliminates a lot of unnecessary searching.
 
-  Some special nodes, such as constants, are inserted in context[1].
-  Nodes in this context level are emitted at the beginning of the block,
-  and no copies of them are ever made, since the code generator will
-  never modify them.
+  Some special nodes, such as constants, are optionally inserted in context[1].
+  Nodes in this context level are emitted at the beginning of the block, and no
+  copies of them are ever made, since the code generator can never modify them.
+
+  This generates smaller intermediate code but reduces flexibility in the code
+  generator for dealing with such operations that might need to generate
+  instructions to generate certain literals or references to certain addresses.
+
+  This behavior is controlled by the config parameter "useglobalcontext".
+
 }
 
           var
@@ -3421,14 +3427,20 @@ procedure build;
             cnvts: standardids; {converted standard id}
 
 
-          procedure insertnode(contextlevel: contextindex);
+          procedure insertnode(globalcontext: boolean);
 
-{ Insert a node in the specified context, if necessary, and push a
+{ Insert a node in the local or global context, if necessary, and push a
   stack element with a reference to that node.
 }
 
+            var
+              contextlevel: contextindex;
 
             begin {Insertnode}
+              if globalcontext then
+                contextlevel := 1
+              else
+                contextlevel := contextsp;
               if sp = maxexprstack then compilerabort(manytemps);
               sp := sp + 1;
               with stack[sp] do
@@ -3450,7 +3462,7 @@ procedure build;
 
 
             begin
-              insertnode(contextsp);
+              insertnode(false);
             end {insertnormal} ;
 
 
@@ -3883,7 +3895,7 @@ procedure build;
                   n.oprndlist[i].relation := false;
                   end;
                 sp := sp - 1;
-                insertnode(1);
+                insertnode(useglobalcontext);
                 end
               else
                 begin
@@ -4066,7 +4078,7 @@ procedure build;
                 collectoprnds(2);
                 end
               else collectoprnds(1);
-              insertnode(1);
+              insertnode(useglobalcontext);
             end {buildptrnode} ;
 
 
@@ -4100,7 +4112,7 @@ procedure build;
                   read(tempfiletwo, tempfilebuf);
                   n.len := getintfileint;
                   getintreal(n.rval);
-                  insertnode(1);
+                  insertnode(useglobalcontext);
                   end;
                 pascal, modula2:
                   begin
@@ -4119,13 +4131,13 @@ procedure build;
                   else j := 2;
 
                   collectoprnds(j);
-                  insertnode(1);
+                  insertnode(useglobalcontext);
                   intpieces := intpieces - j;
 
                   while intpieces > 0 do
                     begin
                     collectoprnds(3);
-                    insertnode(1);
+                    insertnode(useglobalcontext);
                     intpieces := intpieces - 2;
                     end;
                   end;
@@ -4223,7 +4235,7 @@ procedure build;
               openarrayop:
                 begin
                 collectwork(2);
-                insertnode(1);
+                insertnode(useglobalcontext);
                 sp := 0; {throw it away}
                 end;
               commaop:
@@ -4396,7 +4408,7 @@ procedure build;
                       end;
                     if (n.oprndlist[1].i = level) then
                       begin
-                      insertnode(1);
+                      insertnode(useglobalcontext);
                       localparamnode := stack[sp].p;
                       end
                     else insertnormal;
@@ -4433,12 +4445,12 @@ procedure build;
               intop:
                 begin {this and other literals are entered in context 1}
                 buildintoprnds(1);
-                insertnode(1);
+                insertnode(useglobalcontext);
                 end;
               fptrop:
                 begin
                 buildintoprnds(1);
-                insertnode(1);
+                insertnode(useglobalcontext);
                 end;
               ptrop: buildptrnode;
               realop: buildrealnode(targetrealsize, reals);
@@ -4451,7 +4463,7 @@ procedure build;
                 end;
               varop, unsvarop: buildvarnode;
               newvarop, newunsvarop: buildnewvarnode;
-              ownop: insertnode(1);
+              ownop: insertnode(useglobalcontext);
               extop:
                 begin
                 buildintoprnds(1);
@@ -4472,7 +4484,7 @@ procedure build;
                   litflag := true;
                   i := 1
                   end;
-                insertnode(1);
+                insertnode(useglobalcontext);
                 end;
               originop, segop:
                 begin
@@ -4488,7 +4500,7 @@ procedure build;
                   relation := false;
                   i := level
                   end;
-                insertnode(1);
+                insertnode(useglobalcontext);
                 end;
               lit: pushlitint;
               withop:

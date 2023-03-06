@@ -328,11 +328,17 @@ begin
       write(macfile, ', ', signed_prefix[o.extend_signed], reg_extends_text[o.reg_extend],
             ' ', o.extend_amount);
     end;
+    immediate16:
+    begin
+      write(macfile, o.imm16_value);
+      if o.imm16_shift <> 0 then
+        write(macfile, ', lsl ', o.imm16_shift);
+    end;
     immediate:
     begin
-      write(macfile, o.value);
-      if o.imm_shift <> 0 then
-        write(macfile, ', lsl ', o.imm_shift);
+      write(macfile, o.imm_value);
+      if o.imm_shift then
+        write(macfile, ', lsl 12');
     end;
     register: write_reg(o.reg, sf);
     pre_index:

@@ -305,7 +305,7 @@ type
   end;
 
   oprnd_modes = (nomode, register, tworeg, shift_reg, extend_reg,
-                 immediate, relative, pre_index, post_index, signed_offset,
+                 immediate, immediate16, relative, pre_index, post_index, signed_offset,
                  unsigned_offset, reg_offset, literal, labeltarget, proccall,
                  syscall);
 
@@ -326,8 +326,10 @@ type
       extend_reg: (reg_extend: reg_extends;
                    extend_amount: imm3;
                    extend_signed: boolean); 
-      immediate: (value: imm16;
-                  imm_shift: 0..48);
+      immediate: (imm_value: imm12;
+                  imm_shift: boolean);
+      immediate16: (imm16_value: imm16;
+                  imm16_shift: 0..48);
       pre_index, post_index, signed_offset, unsigned_offset: (index: integer);
       reg_offset: (shift: boolean; extend: reg_extends; signed: boolean);
       literal: (literal: integer);

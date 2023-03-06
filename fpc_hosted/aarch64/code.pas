@@ -121,7 +121,20 @@ function reg_oprnd(reg: regindex): oprndtype;
     reg_oprnd := o;
   end;
 
-function immediate_oprnd(value: imm16; imm_shift: unsigned): oprndtype;
+function immediate16_oprnd(imm16_value: imm16; imm16_shift: unsigned): oprndtype;
+
+  var
+    o:oprndtype;
+  begin
+    o.reg := noreg;
+    o.reg2 := noreg;
+    o.mode := immediate16;
+    o.imm16_value := imm16_value;
+    o.imm16_shift := imm16_shift;
+    immediate16_oprnd := o;
+  end;
+
+function immediate_oprnd(imm_value: imm12; imm_shift: boolean): oprndtype;
 
   var
     o:oprndtype;
@@ -129,7 +142,7 @@ function immediate_oprnd(value: imm16; imm_shift: unsigned): oprndtype;
     o.reg := noreg;
     o.reg2 := noreg;
     o.mode := immediate;
-    o.value := value;
+    o.imm_value := imm_value;
     o.imm_shift := imm_shift;
     immediate_oprnd := o;
   end;
@@ -1760,7 +1773,7 @@ procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
       i := cmn;
       right := -right;
       end;
-    settemp(len, immediate_oprnd(right, 0));
+    settemp(len, immediate_oprnd(right, false));
     loadreg(left);
     gen2(buildinst(i, len = long, false), left, tempkey);
     tempkey := tempkey + 1;
@@ -1876,7 +1889,7 @@ procedure dointx;
     keytable[key].access := valueaccess;
     keytable[key].len := pseudoinst.len;
     keytable[key].signed := true;
-    keytable[key].oprnd := immediate_oprnd(pseudoinst.oprnds[1], 0);
+    keytable[key].oprnd := immediate_oprnd(pseudoinst.oprnds[1], false);
   end {dointx} ;
 
 
@@ -2164,7 +2177,7 @@ procedure putblock;
     sptemp := tempkey;
     settemp(long, reg_oprnd(fp));
     fptemp := tempkey;
-    settemp(long, immediate_oprnd(long * 2 + blksize + regcost + maxstackoffset, 0));
+    settemp(long, immediate_oprnd(long * 2 + blksize + regcost + maxstackoffset, false));
     spadjusttemp := tempkey;
     settemp(long, index_oprnd(unsigned_offset, sp, regcost + maxstackoffset));
     spoffsettemp := tempkey;
@@ -2181,7 +2194,7 @@ procedure putblock;
     gen3p(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
 
     p1 := newinsertafter(p1, instnode);
-    settemp(long, immediate_oprnd(regcost + maxstackoffset, 0));
+    settemp(long, immediate_oprnd(regcost + maxstackoffset, false));
     gen3p(p1, buildinst(add, true, false), fptemp, sptemp, tempkey);
 
     { procedure exit code. Restore callee-saved registers, link and frame pointer
@@ -2341,7 +2354,7 @@ procedure movlitintx;
   begin
     setallfields(left);
     dereference(left);
-    settemp(len, immediate_oprnd(right, 0));
+    settemp(len, immediate16_oprnd(right, 0));
     gensimplemove(tempkey, left); 
   end;
 
