@@ -4408,7 +4408,7 @@ procedure build;
                       end;
                     if (n.oprndlist[1].i = level) then
                       begin
-                      insertnode(useglobalcontext);
+                      insertnode(true);
                       localparamnode := stack[sp].p;
                       end
                     else insertnormal;
@@ -4484,7 +4484,7 @@ procedure build;
                   litflag := true;
                   i := 1
                   end;
-                insertnode(useglobalcontext);
+                insertnode(true);
                 end;
               originop, segop:
                 begin
@@ -4500,7 +4500,7 @@ procedure build;
                   relation := false;
                   i := level
                   end;
-                insertnode(useglobalcontext);
+                insertnode(true);
                 end;
               lit: pushlitint;
               withop:

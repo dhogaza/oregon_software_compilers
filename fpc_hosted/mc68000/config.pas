@@ -95,6 +95,10 @@ const
   modified when the compiler is moved
 }
 
+  reg_params = 0;
+  ptrreg_params = 0;
+  fpreg_params = 0;
+
   reversebytes = true; {if target/host byte-order is backwards}
   hostintlowbytefirst = true; {host integers have low order byte
                                at lowest address}

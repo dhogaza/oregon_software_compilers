@@ -81,7 +81,7 @@ const
   oldproctable = true; {we are using old-style procedure table}
   language = pascal;
   newdebugger = false;
-  register_return = false;
+  register_return = true;
   newscaninterface = false; {we are using old-style string table and tokens}
   newtravrsinterface = false; {we are using old-style proctable and
                                case table interface}
@@ -96,6 +96,11 @@ const
   modified when the compiler is moved
 }
 
+
+  reg_params = 8;
+  ptrreg_params = 0;
+  fpreg_params = 8;
+  
   reversebytes = false; {if target/host byte-order is backwards}
   hostintlowbytefirst = true; {host integers have low order byte
                                at lowest address}
@@ -345,9 +350,9 @@ const
   realalign = 2; {alignment of real values}
   doublealign = 2; {alignment of double real values}
   ptralign = 2; {alignment requirements for a pointer}
-  defreturnlinksize = 8; {size of a procedure return link in addressing units
+  defreturnlinksize = 16; {size of a procedure return link in addressing units
                          (includes dynamic link on 68k)}
-  defextreturnlinksize = 8; {size of a procedure return link in addressing
+  defextreturnlinksize = 16; {size of a procedure return link in addressing
                             units (includes dynamic link on 68k) for externals}
   procparamsize = 16; {size of a procedure parameter in addressing units}
   staticlinkoffset = -8; {position of static link in saved registers area}
