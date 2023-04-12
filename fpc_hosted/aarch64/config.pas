@@ -97,9 +97,9 @@ const
 }
 
 
-  reg_params = 8;
-  ptrreg_params = 0;
-  fpreg_params = 8;
+  max_reg_params = 8;
+  max_ptrreg_params = 0;
+  max_fpreg_params = 8;
   
   reversebytes = false; {if target/host byte-order is backwards}
   hostintlowbytefirst = true; {host integers have low order byte
