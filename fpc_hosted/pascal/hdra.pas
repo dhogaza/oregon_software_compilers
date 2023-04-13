@@ -200,6 +200,7 @@ type
                 univparam: boolean; {true if universal parameter}
                 lastinsection: boolean; {last in a parameter section}
                 varalloc: allockind; {kind of allocation made}
+                refparam: boolean; {if pass by reference}
                 nextparamlink: index; {if parameter, points to next param in
                                        list}
                 offset: unsignedint; {address of item within block}
@@ -272,6 +273,7 @@ type
         codeblock:
           (blocksize: addressrange; {size of local variables for block}
            paramsize: addressrange; {size of parameters for block}
+           regparams: regparamstype; {machine dependent reg params info}
            firststmt, {for debugger support}
            laststmt : integer; {values returned by stf_stmt}
            blockref: proctableindex; {global procedure table index}

@@ -107,7 +107,8 @@ type
 
   { Kinds of variable allocation}
 
-  allockind = (normalalloc, genregister, ptrregister, realregister, absolute,
+  allockind = (noalloc, normalalloc, genregister, ptrregister, realregister,
+               genregparam, ptrregparam, fpregparam,  absolute,
                ownalloc, pointeralloc, sharedalloc, usealloc, definealloc,
                staticalloc);
 
@@ -162,7 +163,8 @@ type
                (offset: targetint; {runtime addr}
                 length: targetint; {data length in units}
                 varalloc: allockind; {how this variable is allocated}
-                vartype: p_symbolindex {data type of item}
+                vartype: p_symbolindex; {data type of item}
+                refparam: boolean {always true for varparam}
                  );
              procname, funcname:
                (functype: p_symbolindex; {return type of function}

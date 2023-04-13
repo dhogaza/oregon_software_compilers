@@ -36,6 +36,26 @@ interface
 
 uses config, hdr, utils, hdra, a_t;
 
+procedure initregparams(var regparams: regparamstype);
+
+{ Initialize the bookkeeping structure used to track allocation of
+  register params.
+
+  ***M68000***
+  Params are passed on the stack so nothing is done.
+
+}
+
+procedure allocparam(p: entryptr; {the param we are allocating}
+                     align: alignmentrange; {param alignment}
+                     length: addressrange; {length of param}
+                     var spacesize: addressrange; {if on the stack}
+                     var regparams: regparamstype; {track regparams}
+                     var overflowed: boolean {parameter list is too big});
+
+{ Allocate space for a single parameter
+}
+
 procedure alloc(align: alignmentrange; {variable alignment}
                 length: addressrange; {length of variable}
                 var spacesize: addressrange; {size of data space}
@@ -206,6 +226,19 @@ function alignmentof(f: entryptr; {form to check}
 
 implementation
 
+procedure initregparams(var regparams: regparamstype);
+
+{ Initialize the bookkeeping structure used to track allocation of
+  register params.
+
+  ***M68000***
+  Params are passed on the stack so nothing is done.
+
+}
+
+begin {initregparams}
+end {initregparams};
+
 function alignmentof(f: entryptr; {form to check}
                      packedresult: boolean {result is packed} ):
  alignmentrange;
@@ -222,6 +255,29 @@ function alignmentof(f: entryptr; {form to check}
     else if packedresult then alignmentof := f^.align * bitsperunit
     else alignmentof := (f^.align + bitsperunit - 1) div bitsperunit;
   end {alignmentof} ;
+
+procedure allocparam(p: entryptr; {the param we are allocating}
+                     align: alignmentrange; {param alignment}
+                     length: addressrange; {length of param}
+                     var spacesize: addressrange; {if on the stack}
+                     var regparams: regparamstype; {track regparams}
+                     var overflowed: boolean {parameter list is too big});
+
+{ Allocate space for a single parameter
+}
+
+  begin {allocparam}
+    p^.refparam := p^.namekind <> param;
+    p^.varalloc := normalalloc;
+    spacesize := forcealign(spacesize, align, false);
+    p^.offset := spacesize;
+    if maxaddr - spacesize > length then
+      begin
+      spacesize := spacesize + length;
+      overflowed := false;
+      end
+    else overflowed := true;
+  end {allocparam} ;
 
 
 procedure alloc(align: alignmentrange; {variable alignment}

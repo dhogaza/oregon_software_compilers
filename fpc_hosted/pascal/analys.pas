@@ -85,6 +85,7 @@ procedure enterblock(level: levelindex; {lex level of block}
       highestkey := 0;
       namesdeclared := 0;
       proctable[blockref].opensfile := false;
+      initregparams(regparams);
       end
   end {enterblock} ;
 
@@ -932,14 +933,14 @@ procedure onevar(id: integer; {Scope in which to enter ident}
            (varalloc in [definealloc, usealloc]) then warn(badmultidef);
         varalloc := ownalloc;
         end
-      else { It's none of the above -- must be normalalloc }
+      else { It's none of the above -- we don't know yet }
         begin
         if switcheverplus[multidef] and
            (varalloc in [definealloc, usealloc]) then warn(badmultidef);
-        varalloc := normalalloc;
+        varalloc := noalloc;
+        registercandidate := true; { until proven otherwise }
         end;
 
-      registercandidate := varalloc = normalalloc; { until proven otherwise }
       nextparamlink := where;
       nestedmod := false;
       varianttag := false;
@@ -950,6 +951,45 @@ procedure onevar(id: integer; {Scope in which to enter ident}
       end;
   end {onevar} ;
 
+procedure alloconeparam(t: index; { name entry for variable }
+                        f: index; { variable type }
+                        paramkind: nametype; {type of this param}
+                        var size: addressrange; {size of dataspace}
+                        var regparams: regparamstype; {reg param bookkeeping}
+                        a: alignmentrange; {alignment requirement}
+                        typelen: addressrange {var length});
+
+{ Allocate one variable in a variable or field list.  "Size" is the current
+  size of the dataspace in which the variable is being allocated, and is
+  updated after the allocation.
+
+  "Size" and "typelen" are in bits if this is a packed allocation, otherwise
+  in addressing units.
+
+  This procedure defines the packed allocation strategy, which is to allocate
+  bitwise, but not to allow fields to cross word boundaries.
+}
+
+  var
+    p: entryptr; {used for access to name entry}
+    newoffset: addressrange; {offset of new variable}
+    newvaralloc: allockind; {alloc must set this}
+    unusedspace: boolean; {we skipped over some space in packed field}
+    overflowed: boolean; {true if data space is too large}
+
+
+  begin {alloconeparam}
+    if bigcompilerversion then p := @(bigtable[t]);
+    p^.namekind := paramkind;
+    p^.vartype := f;
+    if p^.varalloc = noalloc then
+      begin
+      allocparam(p, a, typelen, size, regparams, overflowed);
+      if overflowed then warnbefore(bigblockerr);
+      end
+    else warnbefore(compilerwritererr);
+  end {alloconeparam} ;
+
 
 procedure alloconevar(t: index; { name entry for variable }
                       f: index; { variable type }
@@ -957,7 +997,6 @@ procedure alloconevar(t: index; { name entry for variable }
                       var size: addressrange; {size of dataspace}
                       a: alignmentrange; {alignment requirement}
                       typelen: addressrange; {var length}
-                      refparam: boolean; {param passed by reference}
                       packedresult: boolean {do packed allocation} );
 
 { Allocate one variable in a variable or field list.  "Size" is the current
@@ -974,6 +1013,7 @@ procedure alloconevar(t: index; { name entry for variable }
   var
     p: entryptr; {used for access to name entry}
     newoffset: addressrange; {offset of new variable}
+    newvaralloc: allockind; {alloc must set this}
     unusedspace: boolean; {we skipped over some space in packed field}
     overflowed: boolean; {true if data space is too large}
 
@@ -987,13 +1027,6 @@ procedure alloconevar(t: index; { name entry for variable }
        not identical(p^.vartype, f) then warn(badmultidef);
 
     p^.vartype := f;
-
-    if refparam then
-       begin
-       if switcheverplus[multidef] and
-          (p^.varalloc in [definealloc, usealloc]) then warn(badmultidef);
-       p^.varalloc := pointeralloc;
-       end;
 
     if p^.varalloc = absolute then
       begin
@@ -1014,7 +1047,6 @@ procedure alloconevar(t: index; { name entry for variable }
           end;
         size := typelen;
         end;
-
       p^.offset := 0;
       end
     else
@@ -1025,7 +1057,12 @@ procedure alloconevar(t: index; { name entry for variable }
         else alloc(a, typelen, ownsize, newoffset, overflowed)
       else if packedresult then
         allocpacked(a, typelen, size, newoffset, overflowed, unusedspace)
-      else alloc(a, typelen, size, newoffset, overflowed);
+      else if p^.varalloc = noalloc then
+        begin
+        p^.varalloc := normalalloc;
+        alloc(a, typelen, size, newoffset, overflowed);
+        end
+      else warnbefore(compilerwritererr);
       p^.offset := newoffset;
       if overflowed then
         if varkind = fieldname then warnbefore(bigrecorderr)
@@ -1148,7 +1185,7 @@ procedure variablelist(follow: tokenset; { legal following symbols }
       t := first;
       repeat
         getallocdata(fptr, varkind, packedresult, size, typelen, a, align);
-        alloconevar(t, f, varkind, size, a, typelen, false, packedresult);
+        alloconevar(t, f, varkind, size, a, typelen, packedresult);
         if bigcompilerversion then tptr := @(bigtable[t]);
         t := tptr^.nextparamlink + 1;
         if bigcompilerversion then fptr := @(bigtable[f]);
@@ -2019,7 +2056,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
               a := max(a, alignmentof(caseptr, packflag));
               alloconevar(tagfield, casetype, fieldname, startsize,
                           alignmentof(caseptr, packflag), sizeof(caseptr,
-                          packflag), false, packflag);
+                          packflag), packflag);
               end;
 
             if bigcompilerversion then caseptr := @(bigtable[casetype]);
@@ -2471,6 +2508,7 @@ procedure getfunctiontype(functiondefinition: boolean; {in func def}
 
 
 procedure parameterdefinition(var paramsize: addressrange; {size of parms}
+                              var regparams: regparamstype; {if supported}
                               follow: tokenset {legal follow syms} );
 
 { Syntactic routine to parse a parameter list.
@@ -2529,12 +2567,14 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
         returntype: index; {type if function}
         intleveldummy: boolean; {actually has double use}
         sizedummy: addressrange; {dummy param to parameterdefinition}
+        regparamsdummy: regparamstype; {dummy to parameterdefinition}
         t: integer; {temp storage for last id}
 
 
       begin {routineparam}
         gettoken;
         sizedummy := 0;
+        initregparams(regparamsdummy);
         onevar(lastid, routinekind, routineindex, false);
         t := lastid;
         if (paramlistid + 1) >= totalscopes then fatal(manyscopes); {the last
@@ -2542,7 +2582,7 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
         lastid := paramlistid + 1;
         paramlistid := lastid;
         if token = lpar then
-          parameterdefinition(sizedummy,
+          parameterdefinition(sizedummy, regparamsdummy,
                               [colon, rpar, semicolon] + begparamhdr);
         if bigcompilerversion then p := @(bigtable[routineindex]);
         p^.lastinsection := true;
@@ -2701,10 +2741,8 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
           highid := p^.highbound;
           if bigcompilerversion then p := @(bigtable[indextype]);
           getallocdata(p, boundid, false, paramsize, indexlen, a, align);
-          alloconevar(lowid, indextype, boundid, paramsize, a, indexlen,
-                      false, false);
-          alloconevar(highid, indextype, boundid, paramsize, a, indexlen,
-                      false, false);
+          alloconeparam(lowid, indextype, boundid, paramsize, regparams, a, indexlen);
+          alloconeparam(highid, indextype, boundid, paramsize, regparams, a, indexlen);
           paramtype := elttype;
           if bigcompilerversion then p := @(bigtable[paramtype]);
         until p^.typ <> conformantarrays;
@@ -2788,18 +2826,7 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
           if bigcompilerversion then paramptr := @(bigtable[paramtype]);
           getallocdata(paramptr, paramkind, false, paramsize, typelen, a,
                        align);
-          if (paramkind = param) then
-            if (typelen > maxparambytes) and
-               (paramptr^.typ in [sets, arrays, fields{, strings}]) then
-              begin
-              typelen := ptrsize;
-              a := ptralign;
-              rp := true;
-              end
-            else rp := false
-          else rp := true;
-          alloconevar(t, paramtype, paramkind, paramsize, a, typelen, rp,
-                      false);
+          alloconeparam(t, paramtype, paramkind, paramsize, regparams, a, typelen);
           if univflag then
             begin
             if bigcompilerversion then p := @(bigtable[t]);
@@ -2940,7 +2967,8 @@ procedure procdefinition;
       hasparameters := true;
       if forwardbody then warn(dupfwdparam);
       paramlistid := lastid;
-      parameterdefinition(display[level + 1].paramsize, [colon]);
+      with display[level + 1] do
+        parameterdefinition(paramsize, regparams, [colon]);
       end;
     paramindex := tabletop;
     getfunctiontype(functiondefinition, forwardbody, returntype);

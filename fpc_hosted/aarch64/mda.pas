@@ -36,6 +36,12 @@ interface
 
 uses config, hdr, utils, hdra, a_t;
 
+procedure initregparams(var regparams: regparamstype);
+
+{ Initialize the bookkeeping structure used to track allocation of
+  register params.
+}
+
 procedure alloc(align: alignmentrange; {variable alignment}
                 length: addressrange; {length of variable}
                 var spacesize: addressrange; {size of data space}
@@ -50,6 +56,15 @@ procedure alloc(align: alignmentrange; {variable alignment}
   newly allocated field is returned in "varloc", and "spacesize"
   is updated to include the new field.}
 
+procedure allocparam(p: entryptr; {the param we are allocating}
+                     align: alignmentrange; {param alignment}
+                     length: addressrange; {length of param}
+                     var spacesize: addressrange; {if on the stack}
+                     var regparams: regparamstype; {track regparams}
+                     var overflowed: boolean {parameter list is too big});
+
+{ Allocate space or a register for a single parameter.
+}
 
 procedure allocpacked(align: alignmentrange; {variable alignment}
                       length: addressrange; {length of variable}
@@ -206,6 +221,17 @@ function alignmentof(f: entryptr; {form to check}
 
 implementation
 
+procedure initregparams(var regparams: regparamstype);
+
+{ Initialize the bookkeeping structure used to track allocation of
+  register params.
+}
+
+begin {initregparams}
+  regparams.genregparams := 0;
+  regparams.fpregparams := 0;
+end {initregparams} ;
+
 function alignmentof(f: entryptr; {form to check}
                      packedresult: boolean {result is packed} ):
  alignmentrange;
@@ -223,6 +249,49 @@ function alignmentof(f: entryptr; {form to check}
     else alignmentof := (f^.align + bitsperunit - 1) div bitsperunit;
   end {alignmentof} ;
 
+procedure allocparam(p: entryptr; {the param we are allocating}
+                     align: alignmentrange; {param alignment}
+                     length: addressrange; {length of param}
+                     var spacesize: addressrange; {if on the stack}
+                     var regparams: regparamstype; {track regparams}
+                     var overflowed: boolean {parameter list is too big});
+
+{ Allocate space or a register for a single parameter.
+}
+
+  begin {allocparam}
+    p^.refparam := p^.namekind <> param;
+    if (p^.namekind = param) and (length > maxparambytes) and
+       not (p^.typ in [reals, doubles]) then
+      begin
+      p^.length := ptrsize;
+      p^.refparam := true;
+      end
+    else p^.length := length;
+    if (p^.typ in [reals, doubles]) and (regparams.fpregparams < maxfpregparams) then
+      begin
+      p^.varalloc := fpregparam;
+      p^.offset := regparams.fpregparams;
+      regparams.fpregparams := regparams.fpregparams + 1;
+      end
+    else if (p^.length <= ptrsize) and (regparams.genregparams < maxgenregparams) then
+      begin
+      p^.varalloc := genregparam;
+      p^.offset := regparams.genregparams;
+      regparams.genregparams := regparams.genregparams + 1;
+      end
+    else
+      begin
+      spacesize := forcealign(spacesize, stackalign, false);
+      p^.offset := spacesize;
+      if maxaddr - spacesize > length then
+        begin
+        spacesize := spacesize + length;
+        overflowed := false;
+        end
+      else overflowed := true;
+      end;
+  end {allocparam} ;
 
 procedure alloc(align: alignmentrange; {variable alignment}
                 length: addressrange; {length of variable}
@@ -237,11 +306,7 @@ procedure alloc(align: alignmentrange; {variable alignment}
   "spacesize" addressing units allocated.  The address of the
   newly allocated field is returned in "varloc", and "spacesize"
   is updated to include the new field.
-
-  ***M68000***
-  The variable is simply allocated at the proper alignment.
 }
-
 
   begin
     spacesize := forcealign(spacesize, align, false);

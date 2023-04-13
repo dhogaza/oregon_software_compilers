@@ -29,13 +29,14 @@
 
 }
 
-
-
 unit config;
 
-{ Configuration parameters for this particular host and target combination.
-}
 
+{ Configuration parameters for this particular host and
+  target combination.  'config' defines such things as wordlength,
+  unit size (byte or word), whether or not disk cache is needed,
+  etc.
+}
 
 interface
 
@@ -56,16 +57,11 @@ type
                  Venix, UniFlex, VMEV2, UniPlusV2, Ncr, LMI, gmf, domainix,
                  pcix, inix86, inix286, MSxenix, umax, atxenix, ultrix,
                  morebsd, NEC, uspare5, uspare6, linux, last_host);
-type
 
   shortint = integer; {DRB fpc defaults to 8 bits}
   integer = longint; {DRB fpc defaults to 16 bits}
 
-{ get configuration parameters for this particular host and
-  target combination.  'config' defines such things as wordlength,
-  unit size (byte or word), whether or not disk cache is needed,
-  etc.
-}
+  regparamstype = record end;
 
 const
   bigcompilerversion = true; {runs in fewer passes if 'true', but is bigger}

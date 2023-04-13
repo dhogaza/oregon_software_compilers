@@ -3658,7 +3658,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                   end;
 
                 end;
-              if varalloc = pointeralloc then
+              if refparam then
                 begin
                 genlit(constpart);
                 genunary(indxop, ints);
@@ -4350,7 +4350,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                     (resultform = conformantarrays) then
               warnbefore(badconfactual);
             if namekind = param then
-              if p^.varalloc = pointeralloc then
+              if p^.refparam then
                 begin
                 if p^.modified and
                    (oprndstk[sp].operandkind <> exproperand) then

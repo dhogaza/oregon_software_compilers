@@ -202,13 +202,14 @@ procedure dumpname(p: entryptr;
           varconfparam, boundid:
             begin
             if (level > 1) and (namekind <> fieldname) and
-               (varalloc in [pointeralloc, normalalloc]) then
+               (varalloc = normalalloc) then
               debugfile^.offset := offset - display[level].blocksize
             else if varalloc in [sharedalloc, usealloc, definealloc] then
               debugfile^.offset := sparelink { index into vartable }
             else debugfile^.offset := offset;
             debugfile^.length := length;
             debugfile^.varalloc := varalloc;
+            debugfile^.refparam := refparam;
             if bigcompilerversion then f := ref(bigtable[vartype])
             else areadaccess(vartype, f);
             debugfile^.vartype := f^.dbgsymbol;
