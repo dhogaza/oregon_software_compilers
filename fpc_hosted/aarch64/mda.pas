@@ -260,6 +260,7 @@ procedure allocparam(p: entryptr; {the param we are allocating}
 }
 
   begin {allocparam}
+    overflowed := false;
     p^.refparam := p^.namekind <> param;
     if (p^.namekind = param) and (length > maxparambytes) and
        not (p^.typ in [reals, doubles]) then
@@ -283,6 +284,7 @@ procedure allocparam(p: entryptr; {the param we are allocating}
     else
       begin
       spacesize := forcealign(spacesize, stackalign, false);
+      p^.varalloc := normalalloc;
       p^.offset := spacesize;
       if maxaddr - spacesize > length then
         begin
