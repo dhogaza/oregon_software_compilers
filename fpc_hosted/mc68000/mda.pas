@@ -46,7 +46,7 @@ procedure initregparams(var regparams: regparamstype);
 
 }
 
-procedure allocparam(p: entryptr; {the param we are allocating}
+procedure allocparam(paramptr: entryptr; {the param we are allocating}
                      align: alignmentrange; {param alignment}
                      length: addressrange; {length of param}
                      var spacesize: addressrange; {if on the stack}
@@ -256,7 +256,7 @@ function alignmentof(f: entryptr; {form to check}
     else alignmentof := (f^.align + bitsperunit - 1) div bitsperunit;
   end {alignmentof} ;
 
-procedure allocparam(p: entryptr; {the param we are allocating}
+procedure allocparam(paramptr: entryptr; {the param we are allocating}
                      align: alignmentrange; {param alignment}
                      length: addressrange; {length of param}
                      var spacesize: addressrange; {if on the stack}
@@ -267,10 +267,10 @@ procedure allocparam(p: entryptr; {the param we are allocating}
 }
 
   begin {allocparam}
-    p^.refparam := p^.namekind <> param;
-    p^.varalloc := normalalloc;
+    paramptr^.refparam := paramptr^.namekind <> param;
+    paramptr^.varalloc := normalalloc;
     spacesize := forcealign(spacesize, align, false);
-    p^.offset := spacesize;
+    paramptr^.offset := spacesize;
     if maxaddr - spacesize > length then
       begin
       spacesize := spacesize + length;

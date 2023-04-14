@@ -56,7 +56,7 @@ procedure alloc(align: alignmentrange; {variable alignment}
   newly allocated field is returned in "varloc", and "spacesize"
   is updated to include the new field.}
 
-procedure allocparam(p: entryptr; {the param we are allocating}
+procedure allocparam(paramptr: entryptr; {the param we are allocating}
                      align: alignmentrange; {param alignment}
                      length: addressrange; {length of param}
                      var spacesize: addressrange; {if on the stack}
@@ -249,7 +249,7 @@ function alignmentof(f: entryptr; {form to check}
     else alignmentof := (f^.align + bitsperunit - 1) div bitsperunit;
   end {alignmentof} ;
 
-procedure allocparam(p: entryptr; {the param we are allocating}
+procedure allocparam(paramptr: entryptr; {the param we are allocating}
                      align: alignmentrange; {param alignment}
                      length: addressrange; {length of param}
                      var spacesize: addressrange; {if on the stack}
@@ -259,33 +259,37 @@ procedure allocparam(p: entryptr; {the param we are allocating}
 { Allocate space or a register for a single parameter.
 }
 
+  var
+    typeptr: entryptr; 
+
   begin {allocparam}
     overflowed := false;
-    p^.refparam := p^.namekind <> param;
-    if (p^.namekind = param) and (length > maxparambytes) and
-       not (p^.typ in [reals, doubles]) then
+    typeptr := @(bigtable[paramptr^.vartype]);
+    paramptr^.refparam := paramptr^.namekind <> param;
+    if (paramptr^.namekind = param) and (length > maxparambytes) and
+       not (typeptr^.typ in [reals, doubles]) then
       begin
-      p^.length := ptrsize;
-      p^.refparam := true;
+      paramptr^.length := ptrsize;
+      paramptr^.refparam := true;
       end
-    else p^.length := length;
-    if (p^.typ in [reals, doubles]) and (regparams.fpregparams < maxfpregparams) then
+    else paramptr^.length := length;
+    if (typeptr^.typ in [reals, doubles]) and (regparams.fpregparams < maxfpregparams) then
       begin
-      p^.varalloc := fpregparam;
-      p^.offset := regparams.fpregparams;
+      paramptr^.varalloc := fpregparam;
+      paramptr^.offset := regparams.fpregparams;
       regparams.fpregparams := regparams.fpregparams + 1;
       end
-    else if (p^.length <= ptrsize) and (regparams.genregparams < maxgenregparams) then
+    else if (paramptr^.length <= ptrsize) and (regparams.genregparams < maxgenregparams) then
       begin
-      p^.varalloc := genregparam;
-      p^.offset := regparams.genregparams;
+      paramptr^.varalloc := genregparam;
+      paramptr^.offset := regparams.genregparams;
       regparams.genregparams := regparams.genregparams + 1;
       end
     else
       begin
       spacesize := forcealign(spacesize, stackalign, false);
-      p^.varalloc := normalalloc;
-      p^.offset := spacesize;
+      paramptr^.varalloc := normalalloc;
+      paramptr^.offset := spacesize;
       if maxaddr - spacesize > length then
         begin
         spacesize := spacesize + length;
