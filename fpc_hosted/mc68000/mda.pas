@@ -224,7 +224,144 @@ function alignmentof(f: entryptr; {form to check}
   is to be used in a packed structure.
 }
 
+procedure fixupparamoffsets(endofdefs: boolean {last chance} );
+
+{ Parameters are allocated before variables but are addressed
+  relative to the stack pointer.  This means that after a variable-
+  declaration-part is parsed the parameter offsets must be adjusted
+  to reflect any new variables allocated in this block.
+
+  "Fixupparamoffsets" scans the parameters and makes necessary adjustments
+  to the offsets.
+
+  This routine assumes that parameters are allocated name
+  entries immediately following the block name entry.
+
+  For nonpascal routines (routines accessable via C or F77), parameter
+  offsets are reversed since prior to being called from C they will
+  have been pushed on the stack in reverse order.
+
+  Nonpascal/Fortran type routine must reserve extra space in the
+  local data area to store the function return value.
+
+  If we are compiling for MS-windows, then we increment the blocksize
+  with a word to reflect the saved datasegment.  The blocksize
+  must be used (and not the returnlinksize), since all mapping to
+  frame pointer relative offsets, including mapping for the
+  debugger, use blocksize.
+}
+
 implementation
+
+procedure fixupparamoffsets(endofdefs: boolean {last chance} );
+
+{ Parameters are allocated before variables but are addressed
+  relative to the stack pointer.  This means that after a variable-
+  declaration-part is parsed the parameter offsets must be adjusted
+  to reflect any new variables allocated in this block.
+
+  "Fixupparamoffsets" scans the parameters and makes necessary adjustments
+  to the offsets.
+
+  This routine assumes that parameters are allocated name
+  entries immediately following the block name entry.
+
+  For nonpascal routines (routines accessable via C or F77), parameter
+  offsets are reversed since prior to being called from C they will
+  have been pushed on the stack in reverse order.
+
+  Nonpascal/Fortran type routine must reserve extra space in the
+  local data area to store the function return value.
+
+  If we are compiling for MS-windows, then we increment the blocksize
+  with a word to reflect the saved datasegment.  The blocksize
+  must be used (and not the returnlinksize), since all mapping to
+  frame pointer relative offsets, including mapping for the
+  debugger, use blocksize.
+}
+
+  var
+    i: index; {induction var}
+    t: index; {last parameter index}
+    bn: index; {block name index}
+    p: entryptr; {used for accessing procedure and parameters}
+    newoffset: addressrange; {dummy to fix code gen bug on the PDP-11}
+    startoffset: addressrange; {start of param offsets for non pascal; vms only;
+                               it is four when the function returns something
+                               huge; (well greater than quad, anyway)}
+
+  begin {fixupparamoffsets}
+    with display[level] do
+      begin
+      bn := blockname;
+      if endofdefs then
+        begin
+        if targetopsys = msdos then
+         if proctable[blockref].externallinkage and
+            switcheverplus[windows] and (level > 1) then
+           blocksize := blocksize + wordsize;
+        blocksize := forcealign(blocksize + paramsize, stackalign, false)
+                     - paramsize;
+        if level = 1 then
+          ownsize := forcealign(ownsize, targetintsize, false);
+        end;
+
+      if bigcompilerversion then p := @(bigtable[bn]);
+
+      if targetopsys = vms then
+        if (p^.funclen <= ptrsize) or (p^.funclen = 8) then
+          startoffset := 0
+        else
+          startoffset := 4; {extra parameter for return value}
+                              
+      t := p^.paramlist;
+{
+      Fortran declared functions will have an extra parameter
+      pushed that points to the function return value.
+}
+      if (proctable[blockref].calllinkage = fortrancall) and
+         (proctable[blockref].registerfunction = 0) and    
+         (p^.functype <> noneindex) then
+        paramsize := paramsize + wordsize;
+
+      i := bn + 1;
+      while i <= t do
+        begin
+        if bigcompilerversion then p := @(bigtable[i]);
+        if not p^.form then
+          begin
+{
+          Non-Pascal declared routines will have reversed parameters.
+}
+          if (proctable[blockref].calllinkage = nonpascalcall) and 
+            ((targetmachine = iAPX86) or (targetmachine = mc68000) or
+             (targetmachine = i80386) or
+             { (targetopsys = apollo) or }
+             (targetmachine = ns32k) and (unixtarget = umax)) then
+            newoffset := blocksize + p^.offset
+          else if (proctable[blockref].calllinkage = nonpascalcall) and 
+                  (targetopsys = vms) then
+            newoffset := forcealign(p^.offset + startoffset, ptrsize, false)
+          else {pascal2call/fortrancall}
+            newoffset := paramsize + blocksize - forcealign(p^.offset +
+                         p^.length, stackalign, false);
+          
+          if (targetopsys = vms) and 
+             (proctable[blockref].calllinkage = nonpascalcall) then
+            newoffset := ptrsize + newoffset { allow one for parm count}
+          else if proctable[blockref].externallinkage then
+            newoffset := newoffset + extreturnlinksize
+          else newoffset := newoffset + returnlinksize;
+
+          p^.offset := newoffset;
+          if p^.namekind in [procparam, funcparam] then
+            i := p^.nextparamlink;
+          end;
+        i := i + 1;
+        end;
+
+      end {with display};
+  end {fixupparamoffsets} ;
 
 procedure initregparams(var regparams: regparamstype);
 

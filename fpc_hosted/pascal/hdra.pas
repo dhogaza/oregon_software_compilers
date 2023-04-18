@@ -204,6 +204,9 @@ type
                 nextparamlink: index; {if parameter, points to next param in
                                        list}
                 offset: unsignedint; {address of item within block}
+                regid: 0..255; {register assigned for a register param}
+                reginmemory: boolean; {if referenced from inner proc, as var
+                                       param, etc, permanently dump to memory}
                 length: addressrange; {length of item}
                 vartype: index; {name's type}
                 sparelink: index; {for boundid, array for which it's a bound;

@@ -304,7 +304,9 @@ procedure statement;
           forerrchkop: write('forerrchkop');
           forindexop: write('forindexop');
           forupchkop: write('forupchkop');
+          fpregparamop: write('fpregparamop');
           fptrop: write('fptrop');
+          genregparamop: write('genregparamop');
           geqlit: write('geqlit');
           geqop: write('geqop');
           globalop: write('globalop');
@@ -349,6 +351,7 @@ procedure statement;
           plusop: write('plusop');
           ptrchkop: write('ptrchkop');
           ptrop: write('ptrop');
+          ptrregparamop: write('ptrregparamop');
           pushaddr: write('pushaddr');
           pushstraddr: write('pushstraddr');
           pushcvalue: write('pushcvalue');
@@ -523,7 +526,7 @@ procedure statement;
               end;
             end;
 
-          structop, levop:
+          structop, levop, genregparamop, fpregparamop, ptrregparamop:
             begin
             read(tempfiletwo, tempfilebuf);
             write(' ', getintfileint: 1, ',');

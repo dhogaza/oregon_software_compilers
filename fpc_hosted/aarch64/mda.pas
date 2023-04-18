@@ -219,7 +219,119 @@ function alignmentof(f: entryptr; {form to check}
   is to be used in a packed structure.
 }
 
+procedure fixupparamoffsets(endofdefs: boolean {last chance} );
+
+{ Parameters are allocated before variables but are addressed
+  relative to the stack pointer.  This means that after a variable-
+  declaration-part is parsed the parameter offsets must be adjusted
+  to reflect any new variables allocated in this block.
+
+  This is complicated by the fact that parameters are a mixture of
+  register parameters, which are also allocated space on the stack,
+  and stack parameters, which have to be reversed.
+
+  "Fixupparamoffsets" scans the parameters and makes necessary adjustments
+  to the offsets.
+
+  This routine assumes that parameters are allocated name
+  entries immediately following the block name entry.
+
+  On the aarch64 architecture, we don't differentiate between linkage
+  types here, assuming that all language processors follow the aarch64
+  calling standard.
+}
+
 implementation
+
+procedure fixupparamoffsets(endofdefs: boolean {last chance} );
+
+{ Parameters are allocated before variables but are addressed
+  relative to the stack pointer.  This means that after a variable-
+  declaration-part is parsed the parameter offsets must be adjusted
+  to reflect any new variables allocated in this block.
+
+  This is complicated by the fact that parameters are a mixture of
+  register parameters, which are also allocated space on the stack,
+  and stack parameters, which have to be reversed.
+
+  "Fixupparamoffsets" scans the parameters and makes necessary adjustments
+  to the offsets.
+
+  This routine assumes that parameters are allocated name
+  entries immediately following the block name entry.
+
+  On the aarch64 architecture, we don't differentiate between linkage
+  types here, assuming that all language processors follow the aarch64
+  calling standard.
+}
+
+  var
+    i: index; {induction var}
+    t: index; {last parameter index}
+    bn: index; {block name index}
+    p: entryptr; {used for accessing procedure and parameters}
+    newoffset: addressrange; {dummy to fix code gen bug on the PDP-11}
+    regparamsize, runningparamsize: addressrange;
+
+{gotta allocate reg params in the local variable context to avoid having
+ to subtract from the sp, store fp and link registers, then subtrace from
+ sp for local variables
+}
+  begin {fixupparamoffsets}
+    with display[level] do
+      begin
+      bn := blockname;
+      if endofdefs then
+        begin
+        blocksize := forcealign(blocksize, stackalign, false);
+        if level = 1 then
+          ownsize := forcealign(ownsize, targetintsize, false);
+        end;
+
+      if bigcompilerversion then p := @(bigtable[bn]);
+                              
+      t := p^.paramlist;
+
+      regparamsize := 0;
+      i := bn + 1;
+      while i <= t do
+        begin
+        if bigcompilerversion then p := @(bigtable[i]);
+        if not p^.form then
+          if p^.varalloc <> normalalloc then
+{DRB and (modified or referenced by inner proc) and not refparam}
+            begin
+            p^.reginmemory := true;
+            p^.offset := blocksize;
+            blocksize := blocksize + forcealign(p^.length, stackalign, false);
+            regparamsize := regparamsize + forcealign(p^.length, stackalign, false);
+            if p^.namekind in [procparam, funcparam] then
+              i := p^.nextparamlink;
+            end;
+        i := i + 1;
+        end;
+
+{DRB must reverse allocation}
+      runningparamsize := paramsize;
+      i := bn + 1;
+      while i <= t do
+        begin
+        if bigcompilerversion then p := @(bigtable[i]);
+        if not p^.form then
+          if p^.varalloc = normalalloc then
+            begin
+             p^.offset := runningparamsize + regparamsize -
+                          forcealign(p^.length, stackalign, false);
+             runningparamsize := runningparamsize - 
+                                 forcealign(p^.length, stackalign, false);
+            if p^.namekind in [procparam, funcparam] then
+              i := p^.nextparamlink;
+            end;
+        i := i + 1;
+        end;
+
+      end {with display};
+  end {fixupparamoffsets} ;
 
 procedure initregparams(var regparams: regparamstype);
 
@@ -256,7 +368,11 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
                      var regparams: regparamstype; {track regparams}
                      var overflowed: boolean {parameter list is too big});
 
-{ Allocate space or a register for a single parameter.
+{ Allocate space for a single parameter.  If it is a register parameter,
+  assign the appropriate register as the regid.  We need both the memory
+  location and register in this case as a variety of conditions force
+  the register parameter to be assigned to the assigned address, notably
+  use as a var parameter or access from a nested procedure.
 }
 
   var
@@ -276,24 +392,23 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
     if (typeptr^.typ in [reals, doubles]) and (regparams.fpregparams < maxfpregparams) then
       begin
       paramptr^.varalloc := fpregparam;
-      paramptr^.offset := regparams.fpregparams;
+      paramptr^.regid := regparams.fpregparams;
       regparams.fpregparams := regparams.fpregparams + 1;
       end
     else if (paramptr^.length <= ptrsize) and (regparams.genregparams < maxgenregparams) then
       begin
       paramptr^.varalloc := genregparam;
-      paramptr^.offset := regparams.genregparams;
+      paramptr^.regid := regparams.genregparams;
       regparams.genregparams := regparams.genregparams + 1;
       end
     else
       begin
-      spacesize := forcealign(spacesize, stackalign, false);
       paramptr^.varalloc := normalalloc;
+      spacesize := forcealign(spacesize, stackalign, false);
       paramptr^.offset := spacesize;
       if maxaddr - spacesize > length then
         begin
         spacesize := spacesize + length;
-        overflowed := false;
         end
       else overflowed := true;
       end;
