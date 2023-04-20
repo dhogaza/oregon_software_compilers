@@ -3565,6 +3565,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                   registercandidate := false;
                   if newflag then nestedmod := true;
                   end;
+{DRB passed in registers in aarch64, is check for normalalloc necessary?}
                 if (varalloc = normalalloc) and (varlev = 1) and
                    ((varindex = outputindex) or (varindex = inputindex)) then
                   standardfilesreferenced := true;
@@ -3628,6 +3629,22 @@ procedure statement(follow: tokenset {legal following symbols} );
                     end;
                   end
                 else
+                  if (namekind in [param, varparam, funcparam, procparam, confparam,
+                                   varconfparam, boundid]) and
+                     (varalloc in [genregparam, ptrregparam, realregparam]) and
+                     not reginmemory then
+                    begin
+                      case varalloc of
+                        genregparam: genop(genregparamop);
+                        ptrregparam: genop(ptrregparamop);
+                        realregparam: genop(realregparamop);
+                      end; 
+                      genint(0);
+                      genint(0);
+                      genint(regid);
+                      constpart := 0;
+                    end 
+                else     
                   getlevel(varlev,
                            namekind in
                            [param, varparam, funcparam, procparam, confparam,

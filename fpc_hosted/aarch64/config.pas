@@ -93,7 +93,7 @@ const
 }
 
   maxgenregparams = 8;
-  maxfpregparams = 8;
+  maxrealregparams = 8;
   
   reversebytes = false; {if target/host byte-order is backwards}
   hostintlowbytefirst = true; {host integers have low order byte
@@ -484,7 +484,7 @@ type
 
   regparamstype = record
     genregparams: 0 .. maxgenregparams;
-    fpregparams: 0 .. maxfpregparams;
+    realregparams: 0 .. maxrealregparams;
   end;
 
 implementation

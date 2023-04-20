@@ -298,8 +298,9 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
         begin
         if bigcompilerversion then p := @(bigtable[i]);
         if not p^.form then
-          if p^.varalloc <> normalalloc then
-{DRB and (modified or referenced by inner proc) and not refparam}
+          if (p^.varalloc <> normalalloc) and
+             (p^.parammodified and not p^.refparam) then
+{DRB nested reference ...}
             begin
             p^.reginmemory := true;
             p^.offset := blocksize;
@@ -341,7 +342,7 @@ procedure initregparams(var regparams: regparamstype);
 
 begin {initregparams}
   regparams.genregparams := 0;
-  regparams.fpregparams := 0;
+  regparams.realregparams := 0;
 end {initregparams} ;
 
 function alignmentof(f: entryptr; {form to check}
@@ -389,11 +390,12 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.refparam := true;
       end
     else paramptr^.length := length;
-    if (typeptr^.typ in [reals, doubles]) and (regparams.fpregparams < maxfpregparams) then
+    if (typeptr^.typ in [reals, doubles]) and
+       (regparams.realregparams < maxrealregparams) then
       begin
-      paramptr^.varalloc := fpregparam;
-      paramptr^.regid := regparams.fpregparams;
-      regparams.fpregparams := regparams.fpregparams + 1;
+      paramptr^.varalloc := realregparam;
+      paramptr^.regid := regparams.realregparams;
+      regparams.realregparams := regparams.realregparams + 1;
       end
     else if (paramptr^.length <= ptrsize) and (regparams.genregparams < maxgenregparams) then
       begin

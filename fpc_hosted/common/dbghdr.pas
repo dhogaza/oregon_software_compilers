@@ -108,7 +108,7 @@ type
   { Kinds of variable allocation}
 
   allockind = (noalloc, normalalloc, genregister, ptrregister, realregister,
-               genregparam, ptrregparam, fpregparam,  absolute,
+               genregparam, ptrregparam, realregparam,  absolute,
                ownalloc, pointeralloc, sharedalloc, usealloc, definealloc,
                staticalloc);
 

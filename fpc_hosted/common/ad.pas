@@ -304,7 +304,6 @@ procedure statement;
           forerrchkop: write('forerrchkop');
           forindexop: write('forindexop');
           forupchkop: write('forupchkop');
-          fpregparamop: write('fpregparamop');
           fptrop: write('fptrop');
           genregparamop: write('genregparamop');
           geqlit: write('geqlit');
@@ -364,6 +363,7 @@ procedure statement;
           rangechkop: write('rangechkop');
           rd: write('rd');
           realop: write('realop');
+          realregparamop: write('realregparamop');
           real_to_dbl: write('real_to_dbl');
           remop: write('remop');
           reserve: write('reserve');
@@ -526,12 +526,22 @@ procedure statement;
               end;
             end;
 
-          structop, levop, genregparamop, fpregparamop, ptrregparamop:
+          structop, levop:
             begin
             read(tempfiletwo, tempfilebuf);
             write(' ', getintfileint: 1, ',');
             read(tempfiletwo, tempfilebuf);
             write(' ', getintfileint: 1);
+            end;
+
+          genregparamop, realregparamop, ptrregparamop:
+            begin
+            read(tempfiletwo, tempfilebuf);
+            write(' lev:', getintfileint: 1, ',');
+            read(tempfiletwo, tempfilebuf);
+            write(' offset:', getintfileint: 1);
+            read(tempfiletwo, tempfilebuf);
+            write(' regid:', getintfileint: 1);
             end;
 
           realop, doubleop:
