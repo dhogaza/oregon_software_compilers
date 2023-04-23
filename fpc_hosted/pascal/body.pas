@@ -2874,16 +2874,15 @@ procedure lastindex(var unpacking: boolean; {unpacking a field}
         startunpacking(true, constpart, unpacking);
         end;
       end;
+      oprndstk[sp].oprndlen := len;
     if unpacking then
       begin
       genlit(constpart);
-      oprndstk[sp].oprndlen := len;
       genunary(pindxop, ints);
       end
-    else
+    else if constpart <> 0 then
       begin
       genlit(constpart);
-      oprndstk[sp].oprndlen := len;
       genunary(indxop, ints);
       end;
   end {lastindex} ;
@@ -3730,8 +3729,11 @@ procedure statement(follow: tokenset {legal following symbols} );
                 end;
               if refparam then
                 begin
-                genlit(constpart);
-                genunary(indxop, ints);
+                if constpart <> 0 then
+                  begin
+                  genlit(constpart);
+                  genunary(indxop, ints);
+                  end;
                 genunary(indrop, ints);
                 len := sizeof(resultptr, false); { false because varparams can't
                                                   be packed element }
@@ -7863,6 +7865,7 @@ procedure statement(follow: tokenset {legal following symbols} );
           else off := 0;
           l := lev;
           modifyvariable(true, true);
+{DRB ???}
           genlit(0);
           genunary(indxop, ints);
           if resultform = fields then
