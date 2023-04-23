@@ -841,7 +841,8 @@ procedure onevar(id: integer; {Scope in which to enter ident}
 procedure alloconeparam(t: index; { name entry for variable }
                         f: index; { variable type }
                         paramkind: nametype; {type of this param}
-                        var size: addressrange; {size of dataspace}
+                        var paramsize: addressrange; {size of params}
+                        var blocksize: addressrange; {if reg params are supported}
                         var regparams: regparamstype; {reg param bookkeeping}
                         a: alignmentrange; {alignment requirement}
                         typelen: addressrange {var length});
@@ -871,7 +872,7 @@ procedure alloconeparam(t: index; { name entry for variable }
     p^.vartype := f;
     if p^.varalloc = noalloc then
       begin
-      allocparam(p, a, typelen, size, regparams, overflowed);
+      allocparam(p, a, typelen, paramsize, blocksize, regparams, overflowed);
       if overflowed then warnbefore(bigblockerr);
       end
     else warnbefore(compilerwritererr);
@@ -2395,6 +2396,7 @@ procedure getfunctiontype(functiondefinition: boolean; {in func def}
 
 
 procedure parameterdefinition(var paramsize: addressrange; {size of parms}
+                              var blocksize: addressrange; {if parms can be stored as local var}
                               var regparams: regparamstype; {if supported}
                               follow: tokenset {legal follow syms} );
 
@@ -2453,15 +2455,15 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
         p: entryptr; {used for name access}
         returntype: index; {type if function}
         intleveldummy: boolean; {actually has double use}
-        sizedummy: addressrange; {dummy param to parameterdefinition}
+        paramsizedummy, blocksizedummy: addressrange; {dummy param to parameterdefinition}
         regparamsdummy: regparamstype; {dummy to parameterdefinition}
         t: integer; {temp storage for last id}
 
 
       begin {routineparam}
         gettoken;
-        sizedummy := 0;
-        initregparams(regparamsdummy);
+        paramsizedummy := 0;
+        blocksizedummy := 0;
         onevar(lastid, routinekind, routineindex, false);
         t := lastid;
         if (paramlistid + 1) >= totalscopes then fatal(manyscopes); {the last
@@ -2469,8 +2471,11 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
         lastid := paramlistid + 1;
         paramlistid := lastid;
         if token = lpar then
-          parameterdefinition(sizedummy, regparamsdummy,
+          begin
+          initregparams(regparamsdummy);
+          parameterdefinition(paramsizedummy, blocksizedummy, regparamsdummy,
                               [colon, rpar, semicolon] + begparamhdr);
+          end;
         if bigcompilerversion then p := @(bigtable[routineindex]);
         {DRB need to sort this out in allocparam}
         p^.lastinsection := true;
@@ -2629,8 +2634,8 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
           highid := p^.highbound;
           if bigcompilerversion then p := @(bigtable[indextype]);
           getallocdata(p, boundid, false, paramsize, indexlen, a, align);
-          alloconeparam(lowid, indextype, boundid, paramsize, regparams, a, indexlen);
-          alloconeparam(highid, indextype, boundid, paramsize, regparams, a, indexlen);
+          alloconeparam(lowid, indextype, boundid, paramsize, blocksize, regparams, a, indexlen);
+          alloconeparam(highid, indextype, boundid, paramsize, blocksize, regparams, a, indexlen);
           paramtype := elttype;
           if bigcompilerversion then p := @(bigtable[paramtype]);
         until p^.typ <> conformantarrays;
@@ -2714,7 +2719,7 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
           if bigcompilerversion then paramptr := @(bigtable[paramtype]);
           getallocdata(paramptr, paramkind, false, paramsize, typelen, a,
                        align);
-          alloconeparam(t, paramtype, paramkind, paramsize, regparams, a, typelen);
+          alloconeparam(t, paramtype, paramkind, paramsize, blocksize, regparams, a, typelen);
           if univflag then
             begin
             if bigcompilerversion then p := @(bigtable[t]);
@@ -2856,7 +2861,7 @@ procedure procdefinition;
       if forwardbody then warn(dupfwdparam);
       paramlistid := lastid;
       with display[level + 1] do
-        parameterdefinition(paramsize, regparams, [colon]);
+        parameterdefinition(paramsize, blocksize, regparams, [colon]);
       end;
     paramindex := tabletop;
     getfunctiontype(functiondefinition, forwardbody, returntype);
@@ -3022,8 +3027,6 @@ procedure procdefinition;
     displaytop := level;
     verifytoken(semicolon, nosemiprocerr);
   end {procdefinition} ;
-
-
 
 procedure block;
 

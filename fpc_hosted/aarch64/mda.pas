@@ -59,7 +59,8 @@ procedure alloc(align: alignmentrange; {variable alignment}
 procedure allocparam(paramptr: entryptr; {the param we are allocating}
                      align: alignmentrange; {param alignment}
                      length: addressrange; {length of param}
-                     var spacesize: addressrange; {if on the stack}
+                     var paramsize: addressrange; {if passed on stack}
+                     var blocksize: addressrange; {for regparam mapped to local var}
                      var regparams: regparamstype; {track regparams}
                      var overflowed: boolean {parameter list is too big});
 
@@ -241,7 +242,29 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
   calling standard.
 }
 
+procedure makeregparamaddressable(varlev: levelindex; varptr: entryptr);
+
+{Register parameters must be assigned to the stack if it is referenced
+ by a nested procedure.  
+}
+
 implementation
+
+procedure makeregparamaddressable(varlev: levelindex; varptr: entryptr);
+
+{Register parameters must be assigned to the stack if it is referenced
+ by a nested procedure.  
+}
+
+begin
+  if (varptr^.varalloc <> normalalloc) and not varptr^.regparamaddressable then
+    with display[varlev] do
+      begin
+      varptr^.regparamaddressable := true;
+      varptr^.offset := blocksize;
+      blocksize := blocksize + forcealign(varptr^.length, stackalign, false);
+      end;
+end;
 
 procedure fixupparamoffsets(endofdefs: boolean {last chance} );
 
@@ -271,12 +294,8 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
     bn: index; {block name index}
     p: entryptr; {used for accessing procedure and parameters}
     newoffset: addressrange; {dummy to fix code gen bug on the PDP-11}
-    regparamsize, runningparamsize: addressrange;
+    runningparamsize: addressrange;
 
-{gotta allocate reg params in the local variable context to avoid having
- to subtract from the sp, store fp and link registers, then subtrace from
- sp for local variables
-}
   begin {fixupparamoffsets}
     with display[level] do
       begin
@@ -292,28 +311,8 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
                               
       t := p^.paramlist;
 
-      regparamsize := 0;
-      i := bn + 1;
-      while i <= t do
-        begin
-        if bigcompilerversion then p := @(bigtable[i]);
-        if not p^.form then
-          if (p^.varalloc <> normalalloc) and
-             (p^.parammodified and not p^.refparam) then
-{DRB nested reference ...}
-            begin
-            p^.reginmemory := true;
-            p^.offset := blocksize;
-            blocksize := blocksize + forcealign(p^.length, stackalign, false);
-            regparamsize := regparamsize + forcealign(p^.length, stackalign, false);
-            if p^.namekind in [procparam, funcparam] then
-              i := p^.nextparamlink;
-            end;
-        i := i + 1;
-        end;
-
-{DRB must reverse allocation}
-      runningparamsize := paramsize;
+      { aarch64 requires stack parameters be pushed in reverse order }
+      runningparamsize := blocksize + paramsize;
       i := bn + 1;
       while i <= t do
         begin
@@ -321,7 +320,7 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
         if not p^.form then
           if p^.varalloc = normalalloc then
             begin
-             p^.offset := runningparamsize + regparamsize -
+             p^.offset := runningparamsize + blocksize -
                           forcealign(p^.length, stackalign, false);
              runningparamsize := runningparamsize - 
                                  forcealign(p^.length, stackalign, false);
@@ -365,7 +364,8 @@ function alignmentof(f: entryptr; {form to check}
 procedure allocparam(paramptr: entryptr; {the param we are allocating}
                      align: alignmentrange; {param alignment}
                      length: addressrange; {length of param}
-                     var spacesize: addressrange; {if on the stack}
+                     var paramsize: addressrange; {if passed on stack}
+                     var blocksize: addressrange; {for regparam mapped to local var}
                      var regparams: regparamstype; {track regparams}
                      var overflowed: boolean {parameter list is too big});
 
@@ -383,6 +383,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
     overflowed := false;
     typeptr := @(bigtable[paramptr^.vartype]);
     paramptr^.refparam := paramptr^.namekind <> param;
+    paramptr^.regparamaddressable := false;
     if (paramptr^.namekind = param) and (length > maxparambytes) and
        not (typeptr^.typ in [reals, doubles]) then
       begin
@@ -402,15 +403,22 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.varalloc := genregparam;
       paramptr^.regid := regparams.genregparams;
       regparams.genregparams := regparams.genregparams + 1;
+      if (typeptr^.typ in [sets, fields, arrays, strings, conformantarrays]) and
+         not paramptr^.refparam  then
+        begin
+        paramptr^.regparamaddressable := true;
+        paramptr^.offset := blocksize;
+        blocksize := blocksize + forcealign(paramptr^.length, stackalign, false);
+        end;
       end
     else
       begin
       paramptr^.varalloc := normalalloc;
-      spacesize := forcealign(spacesize, stackalign, false);
-      paramptr^.offset := spacesize;
-      if maxaddr - spacesize > length then
+      paramsize := forcealign(paramsize, stackalign, false);
+      paramptr^.offset := paramsize;
+      if maxaddr - paramsize > length then
         begin
-        spacesize := spacesize + length;
+        paramsize := paramsize + length;
         end
       else overflowed := true;
       end;

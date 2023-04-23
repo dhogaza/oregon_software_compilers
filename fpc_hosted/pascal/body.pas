@@ -1805,7 +1805,8 @@ procedure genunary(op: operatortype; {operation to generate}
       if not (op in
          [bldfmt, filebufindrop, float, indrop, indxop, ptrchkop, pushaddr,
          pushvalue, pushfinal, pushproc, paindxop, pindxop, call, callparam,
-         unscall, unscallparam, chrstrop, arraystrop]) and (form = ints) then
+         unscall, unscallparam, chrstrop, arraystrop, genregparamop, ptrregparamop,
+         realregparamop]) and (form = ints) then
         begin
         olen := range_length(result_range.optimistic);
         if (not foldedunary and (oprndstk[sp].oprndlen > olen)) or
@@ -2915,6 +2916,55 @@ procedure updatelabelnest;
         end;
   end {updatelabelnest} ;
 
+procedure regparams;
+
+{ We must assign the parameter registers used to pass parameters at the
+  beginning of the block.  If they are used in such a way that we've
+  moved them to memory, generate a reference to that location so the
+  code generator can move the value there at block entry.  Otherwise,
+  we just specify the register and the code generator can figure out
+  how to spill it and restore it if necessary.
+}
+
+  var
+    i: index; {induction var}
+    t: index; {last parameter index}
+    p: entryptr; {used for accessing procedure and parameters}
+
+begin {regparams}
+  if bigcompilerversion then p := @(bigtable[display[level].blockname]);
+  t := p^.paramlist;
+  i := display[level].blockname  + 1;
+  while i <= t do
+    begin
+    if bigcompilerversion then p := @(bigtable[i]);
+    if not p^.form then
+      if (p^.varalloc <> normalalloc) then
+        begin
+        genstmt(hiddenstmt);
+        intstate := opstate;
+        if p^.regparamaddressable then
+          getlevel(level, true)
+        else
+          begin
+          genlit(0);
+          pushdummy;
+          end;
+        genlit(p^.offset);
+        genlit(p^.regid);
+        case p^.varalloc of
+          genregparam: genunary(genregparamop, ints);
+          ptrregparam: genunary(ptrregparamop, ints);
+          realregparam: genunary(realregparamop, ints);
+          end; 
+        genoprndstmt;
+        end;
+      if p^.namekind in [procparam, funcparam] then
+        i := p^.nextparamlink;
+    i := i + 1;
+    end;
+end {regparams};
+
 
 procedure statement(follow: tokenset {legal following symbols} );
 
@@ -3556,6 +3606,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                   end
                 else
                   begin {not local variable}
+                  makeregparamaddressable(varlev, varptr);
                   if (varlev > 1) then
                     begin
                     proctable[display[level].blockref].intlevelrefs := true;
@@ -3629,26 +3680,28 @@ procedure statement(follow: tokenset {legal following symbols} );
                     end;
                   end
                 else
+{DRB}
                   if (namekind in [param, varparam, funcparam, procparam, confparam,
                                    varconfparam, boundid]) and
                      (varalloc in [genregparam, ptrregparam, realregparam]) and
-                     not reginmemory then
+                     not regparamaddressable then
                     begin
-                      case varalloc of
-                        genregparam: genop(genregparamop);
-                        ptrregparam: genop(ptrregparamop);
-                        realregparam: genop(realregparamop);
+                    pushdummy;
+                    genlit(0);
+                    genlit(0);
+                    genlit(regid);
+                    case varalloc of
+                      genregparam: genunary(genregparamop, ints);
+                      ptrregparam: genunary(ptrregparamop, ints);
+                      realregparam: genunary(realregparamop, ints);
                       end; 
-                      genint(0);
-                      genint(0);
-                      genint(regid);
-                      constpart := 0;
+                    constpart := 0;
                     end 
-                else     
-                  getlevel(varlev,
-                           namekind in
-                           [param, varparam, funcparam, procparam, confparam,
-                           varconfparam, boundid]);
+                  else     
+                    getlevel(varlev,
+                             namekind in
+                             [param, varparam, funcparam, procparam, confparam,
+                              varconfparam, boundid]);
                 len := sizeof(resultptr, unpacking);
                 off := constpart;
 
@@ -7996,6 +8049,7 @@ procedure body;
     nest := 1;
     jumpoutnest := maxint;
     nolabelsofar := true;
+    regparams;
 
     if token in [ifsym..gotosym, ident] then warn(nobeginerr)
     else verifytoken(beginsym, nobeginerr);

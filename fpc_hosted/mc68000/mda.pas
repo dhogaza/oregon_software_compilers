@@ -1,4 +1,4 @@
-{[b+,l+]}
+[b+,l+]}
 
 { NOTICE OF COPYRIGHT AND OWNERSHIP OF SOFTWARE:
 
@@ -49,7 +49,8 @@ procedure initregparams(var regparams: regparamstype);
 procedure allocparam(paramptr: entryptr; {the param we are allocating}
                      align: alignmentrange; {param alignment}
                      length: addressrange; {length of param}
-                     var spacesize: addressrange; {if on the stack}
+                     var paramsize: addressrange; {if passed on stack}
+                     var blocksize: addressrange; {for regparam mapped to local var}
                      var regparams: regparamstype; {track regparams}
                      var overflowed: boolean {parameter list is too big});
 
@@ -251,7 +252,19 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
   debugger, use blocksize.
 }
 
+procedure makeregparamaddressable(varlev: levelindex; varptr: entryptr);
+
+{ mc68000 implemenation doesn't pass pascal parameters in registers }
+
 implementation
+
+procedure makeregparamaddressable(varlev: levelindex; varptr: entryptr);
+
+{ mc68000 implemenation doesn't pass pascal parameters in registers }
+
+begin
+end;
+
 
 procedure fixupparamoffsets(endofdefs: boolean {last chance} );
 
@@ -396,7 +409,8 @@ function alignmentof(f: entryptr; {form to check}
 procedure allocparam(paramptr: entryptr; {the param we are allocating}
                      align: alignmentrange; {param alignment}
                      length: addressrange; {length of param}
-                     var spacesize: addressrange; {if on the stack}
+                     var paramsize: addressrange; {if passed on stack}
+                     var blocksize: addressrange; {for regparam mapped to local var}
                      var regparams: regparamstype; {track regparams}
                      var overflowed: boolean {parameter list is too big});
 
@@ -406,11 +420,11 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
   begin {allocparam}
     paramptr^.refparam := paramptr^.namekind <> param;
     paramptr^.varalloc := normalalloc;
-    spacesize := forcealign(spacesize, align, false);
-    paramptr^.offset := spacesize;
-    if maxaddr - spacesize > length then
+    paramsize := forcealign(paramsize, align, false);
+    paramptr^.offset := paramsize;
+    if maxaddr - paramsize > length then
       begin
-      spacesize := spacesize + length;
+      paramsize := paramsize + length;
       overflowed := false;
       end
     else overflowed := true;

@@ -466,7 +466,8 @@ procedure statement;
           parmop, commaop, groupop, compop, castfptrop, castintop, castptrop,
           castrealop, diveqop, modeqop, muleqop,
           shiftleqop, shiftreqop, xoreqop, preincop, postincop, xorop,
-          shiftrop, questop, pushret, tempop:
+          shiftrop, questop, pushret, tempop, genregparamop, ptrregparamop,
+          realregparamop:
             begin
             read(tempfiletwo, tempfilebuf);
             write(' len:', getintfileint: 1);
@@ -532,16 +533,6 @@ procedure statement;
             write(' ', getintfileint: 1, ',');
             read(tempfiletwo, tempfilebuf);
             write(' ', getintfileint: 1);
-            end;
-
-          genregparamop, realregparamop, ptrregparamop:
-            begin
-            read(tempfiletwo, tempfilebuf);
-            write(' lev:', getintfileint: 1, ',');
-            read(tempfiletwo, tempfilebuf);
-            write(' offset:', getintfileint: 1);
-            read(tempfiletwo, tempfilebuf);
-            write(' regid:', getintfileint: 1);
             end;
 
           realop, doubleop:
@@ -637,7 +628,7 @@ procedure statement;
         expression
         end;
 
-      endrpt:
+      endrpt, hiddenstmt:
         begin
         read(tempfiletwo, tempfilebuf);
         writeln;
