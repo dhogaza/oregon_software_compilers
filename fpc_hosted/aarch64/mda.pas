@@ -223,13 +223,9 @@ function alignmentof(f: entryptr; {form to check}
 procedure fixupparamoffsets(endofdefs: boolean {last chance} );
 
 { Parameters are allocated before variables but are addressed
-  relative to the stack pointer.  This means that after a variable-
+  relative to the frame pointer.  This means that after a variable-
   declaration-part is parsed the parameter offsets must be adjusted
   to reflect any new variables allocated in this block.
-
-  This is complicated by the fact that parameters are a mixture of
-  register parameters, which are also allocated space on the stack,
-  and stack parameters, which have to be reversed.
 
   "Fixupparamoffsets" scans the parameters and makes necessary adjustments
   to the offsets.
@@ -269,13 +265,9 @@ end;
 procedure fixupparamoffsets(endofdefs: boolean {last chance} );
 
 { Parameters are allocated before variables but are addressed
-  relative to the stack pointer.  This means that after a variable-
+  relative to the frame pointer.  This means that after a variable-
   declaration-part is parsed the parameter offsets must be adjusted
   to reflect any new variables allocated in this block.
-
-  This is complicated by the fact that parameters are a mixture of
-  register parameters, which are also allocated space on the stack,
-  and stack parameters, which have to be reversed.
 
   "Fixupparamoffsets" scans the parameters and makes necessary adjustments
   to the offsets.
@@ -312,6 +304,8 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
       t := p^.paramlist;
 
       { aarch64 requires stack parameters be pushed in reverse order }
+      { DRB gcc assigns addresses on the stack in left-right order but
+        does evaluate the parameter list in reverse order }
       runningparamsize := blocksize + paramsize;
       i := bn + 1;
       while i <= t do
@@ -320,10 +314,13 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
         if not p^.form then
           if p^.varalloc = normalalloc then
             begin
+            p^.offset := p^.offset + blocksize;
+{
              p^.offset := runningparamsize + blocksize -
                           forcealign(p^.length, stackalign, false);
              runningparamsize := runningparamsize - 
                                  forcealign(p^.length, stackalign, false);
+}
             if p^.namekind in [procparam, funcparam] then
               i := p^.nextparamlink;
             end;
@@ -403,6 +400,11 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.varalloc := genregparam;
       paramptr^.regid := regparams.genregparams;
       regparams.genregparams := regparams.genregparams + 1;
+
+      { if we allow structured types and sets to be left in registers, then
+        the code generator must be prepared to access register bits when they
+        are operands to indx, aindx, etc.
+      }
       if (typeptr^.typ in [sets, fields, arrays, strings, conformantarrays]) and
          not paramptr^.refparam  then
         begin
@@ -410,6 +412,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
         paramptr^.offset := blocksize;
         blocksize := blocksize + forcealign(paramptr^.length, stackalign, false);
         end;
+
       end
     else
       begin
