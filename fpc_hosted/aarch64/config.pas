@@ -92,7 +92,7 @@ const
   modified when the compiler is moved
 }
 
-  maxgenregparams = 8;
+  maxregparams = 8;
   maxrealregparams = 8;
   
   reversebytes = false; {if target/host byte-order is backwards}
@@ -483,7 +483,7 @@ type
   alignmentrange = 0..maxalign; {possible alignment values}
 
   regparamstype = record
-    genregparams: 0 .. maxgenregparams;
+    regparams: 0 .. maxregparams;
     realregparams: 0 .. maxrealregparams;
   end;
 

@@ -271,7 +271,7 @@ type
       fonmax: fonrange; { flow order maximum value }
     end;
 
-  regalloctype = (genreg, ptrreg, realreg, bytereg); { register allocation type
+  regalloctype = (reg, ptrreg, realreg, bytereg); { register allocation type
                                                       }
 
   simplevars =

@@ -181,20 +181,6 @@ procedure initcode;
 
     {Now initialize file variables}
 
-    nokeydata := [endpseudocode, bad, blockentry, blockexit, jumpf, jumpt, jump,
-		 pascallabel, savelabel, clearlabel, joinlabel, restorelabel,
-		 sysroutine, caseelt, setfile, closerange, restoreloop,
-                 saveactkeys];
-
-    oneoperand := [endpseudocode, bad, blockexit, dovar, dounsvar, doint, doorigin,
-		 pseudolabel, savelabel, clearlabel, joinlabel, restorelabel,
-		 copyaccess, flt, pshaddr, pshstraddr, pshint, pshptr, pshreal,
-		 pshstr, pshstruct, pshset, pshlitint, pshlitptr, pshlitreal,
-		 copystack, fmt, wrint, wrreal, wrchar, wrst, wrbool, wrbin, wrxstr,
-		 rdbin, rdint, rdchar, rdreal, rdst, rdxstr, stacktarget, ptrchk,
-		 chrstr, arraystr, definelazy, setbinfile, setfile, closerange,
-		 restoreloop];
-
     bitfieldinsts := [bfclr, bfexts, bfextu, bfins, bfset, bftst];
 
     mc68020 := switcheverplus[cpu68020]; {shorthand form}
@@ -16787,12 +16773,8 @@ procedure dumppseudo;
           xorint: write('xorint': 15);
           otherwise write('unknown op:', ord(op): 15);
         end;
-        if not (op in nokeydata) then
-          write(':', len: 6, ' (', key: 3, ',', refcount: 3, ',', copycount: 3, ') ')
-        else write(':',' ':21);
-        { Only one operand }
-        if op in oneoperand then writeln(oprnds[1]:5)
-        else writeln(oprnds[1]:5, oprnds[2]:5, oprnds[3]:5);
+        write(':', len: 6, ' (', key: 3, ',', refcount: 3, ',', copycount: 3, ') ');
+        writeln(oprnds[1]:5, oprnds[2]:5, oprnds[3]:5);
     end
   end {dumppseudo} ;
 

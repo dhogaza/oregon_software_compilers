@@ -473,8 +473,6 @@ type
           (name: string8 {symbol name} );
     end;
 
-  pseudoset = set of pseudoop;
-
 { The instruction node ("node") is used to hold instructions generated and
   book-keeping data needed to keep track addressing as the stack is
   modified.  The actual code is emitted from the data in this node by
@@ -808,9 +806,6 @@ type
 var
 
   nextpseudofile: integer; {next byte in the current block of pseudofile}
-
-  nokeydata: pseudoset; {pseudoops without key, length, refcount or copycount}
-  oneoperand: pseudoset; {pseudoops with only one operand}
 
   nextlabel: labelindex; {next available entry in the label table}
 

@@ -674,7 +674,7 @@ procedure walknode(root: nodeindex; {root of tree to walk}
             { assigned to a register }
             third := regvars[j].regid;
             case regvars[j].regkind of
-              genreg, bytereg: p := regtemp;
+              reg, bytereg: p := regtemp;
               realreg: p := realtemp;
               ptrreg: p := ptrtemp;
               end;
@@ -762,7 +762,7 @@ procedure walknode(root: nodeindex; {root of tree to walk}
             { assigned to a register }
             third := regvars[j].regid;
             case regvars[j].regkind of
-              genreg, bytereg: p := regtemp;
+              reg, bytereg: p := regtemp;
               realreg: p := realtemp;
               ptrreg: p := ptrtemp;
               end;

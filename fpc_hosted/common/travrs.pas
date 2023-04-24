@@ -166,6 +166,9 @@ procedure inittravrs;
       map[ptrchkop, ints] := ptrchk;       map[neqop, bytes] := neqint;
       { new for 32k }                      map[kwoop, ints] := kwoint;
       map[modop, ints] := modint;          map[stdmodop, ints] := stdmodint;
+      map[regparamop, ints] := regparam;
+      map[realregparamop, ints] := realregparam;
+      map[ptrregparamop, ints] := ptrregparam;
 
     end; {[s=1] map1}
 
@@ -1944,13 +1947,13 @@ procedure build;
             vax, iapx86:
               begin
               registercandidate := true;
-              regkind := genreg;
+              regkind := reg;
               end;
             i80386:
               begin
               registercandidate := true;
               if localvar.size = 1 then regkind := bytereg
-              else regkind := genreg;
+              else regkind := reg;
               end;
             mc68000:
               begin
@@ -1959,8 +1962,8 @@ procedure build;
                 ptrs, fptrs: regkind := ptrreg;
                 reals, doubles:
                   if switcheverplus[fpc68881] then regkind := realreg
-                  else regkind := genreg;
-                otherwise regkind := genreg;
+                  else regkind := reg;
+                otherwise regkind := reg;
                 end {typ} ;
               end;
             aarch64, ns32k:
@@ -1968,7 +1971,7 @@ procedure build;
               registercandidate := true;
               case localvar.typ of
                 reals: regkind := realreg;
-                otherwise regkind := genreg;
+                otherwise regkind := reg;
                 end {typ} ;
               end;
             otherwise;

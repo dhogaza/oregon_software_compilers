@@ -305,7 +305,7 @@ procedure statement;
           forindexop: write('forindexop');
           forupchkop: write('forupchkop');
           fptrop: write('fptrop');
-          genregparamop: write('genregparamop');
+          regparamop: write('regparamop');
           geqlit: write('geqlit');
           geqop: write('geqop');
           globalop: write('globalop');
@@ -466,7 +466,7 @@ procedure statement;
           parmop, commaop, groupop, compop, castfptrop, castintop, castptrop,
           castrealop, diveqop, modeqop, muleqop,
           shiftleqop, shiftreqop, xoreqop, preincop, postincop, xorop,
-          shiftrop, questop, pushret, tempop, genregparamop, ptrregparamop,
+          shiftrop, questop, pushret, tempop, regparamop, ptrregparamop,
           realregparamop:
             begin
             read(tempfiletwo, tempfilebuf);

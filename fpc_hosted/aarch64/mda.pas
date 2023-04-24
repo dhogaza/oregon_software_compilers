@@ -337,7 +337,7 @@ procedure initregparams(var regparams: regparamstype);
 }
 
 begin {initregparams}
-  regparams.genregparams := 0;
+  regparams.regparams := 0;
   regparams.realregparams := 0;
 end {initregparams} ;
 
@@ -395,11 +395,11 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.regid := regparams.realregparams;
       regparams.realregparams := regparams.realregparams + 1;
       end
-    else if (paramptr^.length <= ptrsize) and (regparams.genregparams < maxgenregparams) then
+    else if (paramptr^.length <= ptrsize) and (regparams.regparams < maxregparams) then
       begin
-      paramptr^.varalloc := genregparam;
-      paramptr^.regid := regparams.genregparams;
-      regparams.genregparams := regparams.genregparams + 1;
+      paramptr^.varalloc := regparam;
+      paramptr^.regid := regparams.regparams;
+      regparams.regparams := regparams.regparams + 1;
 
       { if we allow structured types and sets to be left in registers, then
         the code generator must be prepared to access register bits when they

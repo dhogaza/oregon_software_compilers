@@ -29,32 +29,6 @@ var
   dumping: boolean;
 
 
-procedure initsets;
-
-{ Set up the nokeydata and oneoperand sets.
-
-  The assignments in this procedure were lifted verbatim from initcode.
-}
-
-
-  begin {initsets}
-    nokeydata := [bad, blockentry, blockexit, caseelt, clearlabel, closerange,
-                 endpseudocode, joinlabel, jump, jumpf, jumpt, pascallabel,
-                 restorelabel, restoreloop, saveactkeys, savelabel, setfile,
-                 sysroutine];
-
-    oneoperand := [bad, arraystr, blockexit, chrstr, clearlabel, closerange,
-                  copyaccess, copystack, definelazy, doint, doorigin,
-                  dounsvar, dovar, endpseudocode, flt, fmt, joinlabel,
-                  pseudolabel, pshaddr, pshint, pshlitint, pshlitptr,
-                  pshlitreal, pshptr, pshreal, pshset, pshstr, pshstraddr,
-                  pshstruct, ptrchk, rdbin, rdchar, rdint, rdreal, rdst,
-                  rdxstr, restorelabel, restoreloop, savelabel, setbinfile,
-                  setfile, stacktarget, wrbin, wrbool, wrchar, wrint, wrreal,
-                  wrst, wrxstr];
-  end {initsets} ;
-
-
 procedure getpseudobuff;
 
 { Get and unpack the next element in the pseudofile, leaving the result
@@ -123,25 +97,17 @@ procedure getpseudobuff;
       refcount := 0;
       copycount := 0;
 
-      { No key data}
-      if not (op in nokeydata) then
-        begin
-        len := getint;
-        key := getint;
-        refcount := getint;
-        copycount := getint;
-        end;
+      len := getint;
+      key := getint;
+      refcount := getint;
+      copycount := getint;
 
       oprnds[1] := getint;
       oprnds[2] := 0;
       oprnds[3] := 0;
 
-      { Only one operand }
-      if not (op in oneoperand) then
-        begin
-        oprnds[2] := getint;
-        oprnds[3] := getint;
-        end;
+      oprnds[2] := getint;
+      oprnds[3] := getint;
       end;
   end {getpseudobuff} ;
 

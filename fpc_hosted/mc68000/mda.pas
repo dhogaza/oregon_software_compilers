@@ -1,4 +1,4 @@
-[b+,l+]}
+{[b+,l+]}
 
 { NOTICE OF COPYRIGHT AND OWNERSHIP OF SOFTWARE:
 

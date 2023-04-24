@@ -1805,7 +1805,7 @@ procedure genunary(op: operatortype; {operation to generate}
       if not (op in
          [bldfmt, filebufindrop, float, indrop, indxop, ptrchkop, pushaddr,
          pushvalue, pushfinal, pushproc, paindxop, pindxop, call, callparam,
-         unscall, unscallparam, chrstrop, arraystrop, genregparamop, ptrregparamop,
+         unscall, unscallparam, chrstrop, arraystrop, regparamop, ptrregparamop,
          realregparamop]) and (form = ints) then
         begin
         olen := range_length(result_range.optimistic);
@@ -2952,7 +2952,7 @@ begin {regparams}
         genlit(p^.offset);
         genlit(p^.regid);
         case p^.varalloc of
-          genregparam: genunary(genregparamop, ints);
+          regparam: genunary(regparamop, ints);
           ptrregparam: genunary(ptrregparamop, ints);
           realregparam: genunary(realregparamop, ints);
           end; 
@@ -3682,7 +3682,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 {DRB}
                   if (namekind in [param, varparam, funcparam, procparam, confparam,
                                    varconfparam, boundid]) and
-                     (varalloc in [genregparam, ptrregparam, realregparam]) and
+                     (varalloc in [regparam, ptrregparam, realregparam]) and
                      not regparamaddressable then
                     begin
                     pushdummy;
@@ -3690,7 +3690,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                     genlit(0);
                     genlit(regid);
                     case varalloc of
-                      genregparam: genunary(genregparamop, ints);
+                      regparam: genunary(regparamop, ints);
                       ptrregparam: genunary(ptrregparamop, ints);
                       realregparam: genunary(realregparamop, ints);
                       end; 

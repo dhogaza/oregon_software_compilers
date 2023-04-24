@@ -81,7 +81,7 @@ type
               endscope, groupop, modeqop, muleqop, oreqop, preincop,
               postincop, questop, shiftleqop, shiftreqop, subeqop, varkind,
               xoreqop, xorop, vindxop, parmop, clearnewop, saveop, restop,
-              deleteop, genregparamop, realregparamop, ptrregparamop);
+              deleteop, regparamop, realregparamop, ptrregparamop);
 
   { define the different kinds of records emitted by analys }
 

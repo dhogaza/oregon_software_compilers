@@ -229,7 +229,7 @@ procedure assignregs;
                 begin
                 case regvars[bestvar].regkind of
                   ptrreg: varalloc := ptrregister;
-                  genreg, bytereg: varalloc := genregister;
+                  reg, bytereg: varalloc := register;
                   realreg: varalloc := realregister;
                   end;
 		  {DRB  dbg_alloc(debugrecord, varalloc, regid)}
@@ -267,7 +267,7 @@ procedure assignregs;
         else if proctable[blockref].intlevelrefs then
           regtemps := 1 { static link gets first register}
         else regtemps := 0;
-        allocateregs(assignreg, [genreg, ptrreg], regtemps);
+        allocateregs(assignreg, [reg, ptrreg], regtemps);
         { no specific ptr reg on 32k }
         ptrtemps := 0;
         realtemps := 0;
@@ -292,7 +292,7 @@ procedure assignregs;
             else regtemps := 0;
             end;
 
-        allocateregs(assignreg, [genreg], regtemps);
+        allocateregs(assignreg, [reg], regtemps);
         { no specific ptr or real regs on the VAX }
         ptrtemps := 0;
         realtemps := 0;
@@ -306,11 +306,11 @@ procedure assignregs;
           if not new_proctable[blockref div (pts + 1)]^[blockref mod (pts +
              1)].intlevelrefs then
             begin
-            allocateregs(assignreg, [genreg], regtemps);
+            allocateregs(assignreg, [reg], regtemps);
             end
           else if not proctable[blockref].intlevelrefs then
             begin
-            allocateregs(assignreg, [genreg], regtemps);
+            allocateregs(assignreg, [reg], regtemps);
             end;
         { no specific ptr or real regs on the iAPX-86 }
         ptrtemps := 0;
@@ -336,11 +336,11 @@ procedure assignregs;
             else regtemps := 0;
             frameneeded := needsframeptr;
             end;
-        allocateregs(1 {assignreg} , [genreg, bytereg], regtemps);
+        allocateregs(1 {assignreg} , [reg, bytereg], regtemps);
 
         {allocate register ebp - the frame pointer - if not used}
         if not switcheverplus[framepointer] and not frameneeded then
-          allocateregs(2, [genreg], regtemps);
+          allocateregs(2, [reg], regtemps);
         { no specific ptr or real regs }
         ptrtemps := 0;
         realtemps := 0;
@@ -380,7 +380,7 @@ procedure assignregs;
 
         allocateregs(assignptrreg, [ptrreg], ptrtemps);
         regtemps := 0;
-        allocateregs(assignreg, [genreg], regtemps);
+        allocateregs(assignreg, [reg], regtemps);
         realtemps := 0;
         if switcheverplus[fpc68881] then
           allocateregs(assignrealreg, [realreg], realtemps);
