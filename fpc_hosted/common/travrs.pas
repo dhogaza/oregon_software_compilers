@@ -3426,26 +3426,19 @@ procedure build;
             i: oprndindex; {induction var for operand search}
             cnvts: standardids; {converted standard id}
 
-
-          procedure insertnode(globalcontext: boolean);
-
-{ Insert a node in the local or global context, if necessary, and push a
+          procedure insertnode(contextlevel: contextindex);
+                      
+{ Insert a node in the specified context, if necessary, and push a
   stack element with a reference to that node.
-}
-
-            var
-              contextlevel: contextindex;
-
-            begin {Insertnode}
-              if globalcontext then
-                contextlevel := 1
-              else
-                contextlevel := contextsp;
+} 
+  
+  
+            begin {insertnode}
               if sp = maxexprstack then compilerabort(manytemps);
               sp := sp + 1;
               with stack[sp] do
                 begin
-                context_mark := 0;
+                context_mark := 0; 
                 litflag := false;
                 i := 0; {clear any previous junk}
                 relation := relationbuilt;
@@ -3462,7 +3455,7 @@ procedure build;
 
 
             begin
-              insertnode(false);
+              insertnode(contextsp);
             end {insertnormal} ;
 
 
@@ -3895,7 +3888,7 @@ procedure build;
                   n.oprndlist[i].relation := false;
                   end;
                 sp := sp - 1;
-                insertnode(useglobalcontext);
+                insertnode(1);
                 end
               else
                 begin
@@ -4078,7 +4071,7 @@ procedure build;
                 collectoprnds(2);
                 end
               else collectoprnds(1);
-              insertnode(useglobalcontext);
+              insertnode(1);
             end {buildptrnode} ;
 
 
@@ -4112,7 +4105,7 @@ procedure build;
                   read(tempfiletwo, tempfilebuf);
                   n.len := getintfileint;
                   getintreal(n.rval);
-                  insertnode(useglobalcontext);
+                  insertnode(1);
                   end;
                 pascal, modula2:
                   begin
@@ -4131,13 +4124,13 @@ procedure build;
                   else j := 2;
 
                   collectoprnds(j);
-                  insertnode(useglobalcontext);
+                  insertnode(1);
                   intpieces := intpieces - j;
 
                   while intpieces > 0 do
                     begin
                     collectoprnds(3);
-                    insertnode(useglobalcontext);
+                    insertnode(1);
                     intpieces := intpieces - 2;
                     end;
                   end;
@@ -4235,7 +4228,7 @@ procedure build;
               openarrayop:
                 begin
                 collectwork(2);
-                insertnode(useglobalcontext);
+                insertnode(1);
                 sp := 0; {throw it away}
                 end;
               commaop:
@@ -4408,7 +4401,7 @@ procedure build;
                       end;
                     if (n.oprndlist[1].i = level) then
                       begin
-                      insertnode(true);
+                      insertnode(1);
                       localparamnode := stack[sp].p;
                       end
                     else insertnormal;
@@ -4445,12 +4438,12 @@ procedure build;
               intop:
                 begin {this and other literals are entered in context 1}
                 buildintoprnds(1);
-                insertnode(useglobalcontext);
+                insertnode(1);
                 end;
               fptrop:
                 begin
                 buildintoprnds(1);
-                insertnode(useglobalcontext);
+                insertnode(1);
                 end;
               ptrop: buildptrnode;
               realop: buildrealnode(targetrealsize, reals);
@@ -4463,7 +4456,7 @@ procedure build;
                 end;
               varop, unsvarop: buildvarnode;
               newvarop, newunsvarop: buildnewvarnode;
-              ownop: insertnode(useglobalcontext);
+              ownop: insertnode(1);
               extop:
                 begin
                 buildintoprnds(1);
@@ -4484,7 +4477,7 @@ procedure build;
                   litflag := true;
                   i := 1
                   end;
-                insertnode(true);
+                insertnode(1);
                 end;
               originop, segop:
                 begin
@@ -4500,7 +4493,7 @@ procedure build;
                   relation := false;
                   i := level
                   end;
-                insertnode(true);
+                insertnode(1);
                 end;
               lit: pushlitint;
               withop:
