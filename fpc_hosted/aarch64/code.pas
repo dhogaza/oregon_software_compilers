@@ -2361,8 +2361,13 @@ procedure movlitintx;
 procedure regparamx;
 
 begin {regparamx}
-  if left <> 0 then;
   setvalue(reg_oprnd(target));
+  if left <> 0 then
+    begin
+    address(left);
+    gensimplemove(key, left);
+    setkeyvalue(left);
+    end;
 end {regparamx};
 
 procedure indxx;
@@ -2382,7 +2387,9 @@ procedure indxx;
       keytable[key].len := long; {unnecessary?}
       with keytable[key].oprnd do
         index := index + right;
-      end;
+      end
+    else if keytable[key].oprnd.mode = register
+      then setkeyvalue(left);
 
     { eventually needs to work with the results of aindx and also register
       params the contain short records.
