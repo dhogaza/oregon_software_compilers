@@ -2874,17 +2874,12 @@ procedure lastindex(var unpacking: boolean; {unpacking a field}
         startunpacking(true, constpart, unpacking);
         end;
       end;
-      oprndstk[sp].oprndlen := len;
+    oprndstk[sp].oprndlen := len;
+    genlit(constpart);
     if unpacking then
-      begin
-      genlit(constpart);
-      genunary(pindxop, ints);
-      end
-    else if constpart <> 0 then
-      begin
-      genlit(constpart);
+      genunary(pindxop, ints)
+    else
       genunary(indxop, ints);
-      end;
   end {lastindex} ;
 
 
@@ -2940,7 +2935,7 @@ begin {regparams}
     if not p^.form then
       if (p^.varalloc <> normalalloc) then
         begin
-        genstmt(hiddenstmt);
+        debugstmt(simple, 0, 0, 0);
         intstate := opstate;
         if p^.regparamaddressable then
           getlevel(level, true)
@@ -3729,11 +3724,8 @@ procedure statement(follow: tokenset {legal following symbols} );
                 end;
               if refparam then
                 begin
-                if constpart <> 0 then
-                  begin
-                  genlit(constpart);
-                  genunary(indxop, ints);
-                  end;
+                genlit(constpart);
+                genunary(indxop, ints);
                 genunary(indrop, ints);
                 len := sizeof(resultptr, false); { false because varparams can't
                                                   be packed element }

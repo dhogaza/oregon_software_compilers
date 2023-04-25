@@ -386,6 +386,9 @@ procedure inittravrs;
       map[tempop, fptrs] := ptrtemp;       map[xoreqop, scalars] := xorint;
       map[xoreqop, ints] := xorint;        map[xorop, ints] := xorint;
       map[xorop, scalars] := xorint;
+      map[regparamop, ints] := regparam;
+      map[ptrregparamop, ints] := ptrregparam;
+      map[realregparamop, ints] := realregparam;
     end; {[s=1] map4}
 
 
@@ -1587,6 +1590,7 @@ procedure build;
           srcfileindx := 0;
           nextstmt := 0;
           stmtkind := s;
+          stmtno := 0;
           if s in
              [whilehdr, rpthdr, ifhdr, foruphdr, fordnhdr, withhdr, casehdr,
              loophdr, simplehdr, syscallhdr, gotohdr, cforhdr, loopbrkhdr,
@@ -1609,7 +1613,7 @@ procedure build;
               read(tempfiletwo, tempfilebuf);
               stmtno := getintfileint;
               end
-            else
+            else if srcfileindx <> 0 then
               begin
               stmtno := laststmt;
               laststmt := laststmt + 1;
@@ -4261,6 +4265,11 @@ procedure build;
                 collectargs(3);
                 end;
               vindxop: collectargs(3);
+              regparamop, ptrregparamop, realregparamop:
+                begin
+                collectargs(3);
+                insertnode(2);
+                end;
               parmop: collectargs(2);
               moveop:
                 begin

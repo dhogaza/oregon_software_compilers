@@ -623,6 +623,19 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 }
 
 
+    procedure regparamnode(p: pseudoop {operator for root node} );
+
+{ Walk and generate code for some flavor of register param.
+}
+
+      begin
+        walknode(l, lkey, 0, true);
+        mapkey;
+        genpseudo(p, len, key, refcount, copycount, lkey, rootp^.oprnds[2],
+                  rootp^.oprnds[3]);
+      end {indxnode} ;
+
+
     procedure indxnode(p: pseudoop {operator for root node} );
 
 { Walk and generate code for "indx" or "pindx" operations.
@@ -2130,6 +2143,9 @@ with target = 0.
           copystackop: copystacknode;
           defforindexop, defunsforindexop: defforindexnode(true);
           defforlitindexop, defunsforlitindexop: defforindexnode(false);
+          regparamop: regparamnode(regparam);
+          ptrregparamop: regparamnode(ptrregparam);
+          realregparamop: regparamnode(realregparam);
           indxop: indxnode(indx);
           pindxop: indxnode(pindx);
           vindxop, parmop: vindxnode;
@@ -2392,11 +2408,10 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
            nowdebugging then
           exit_stmtno := currentstmt.stmtno
         else if currentstmt.stmtno <> 0 then
-          if currentstmt.stmtno <> 0 then
-            genpseudo(stmtbrk, currentstmt.srcfileindx, 0, 0, 0,
-                      currentstmt.stmtno, abs(currentstmt.textline),
-                      ord(controlstmt) + ord(branchstmt) * 2 +
-                      ord(targetstmt) * 4);
+          genpseudo(stmtbrk, currentstmt.srcfileindx, 0, 0, 0,
+                    currentstmt.stmtno, abs(currentstmt.textline),
+                    ord(controlstmt) + ord(branchstmt) * 2 +
+                    ord(targetstmt) * 4);
         controlstmt := false;
         branchstmt := false;
         targetstmt := false;

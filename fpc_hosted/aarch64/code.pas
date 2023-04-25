@@ -2358,6 +2358,13 @@ procedure movlitintx;
     gensimplemove(tempkey, left); 
   end;
 
+procedure regparamx;
+
+begin {regparamx}
+  if left <> 0 then;
+  setvalue(reg_oprnd(target));
+end {regparamx};
+
 procedure indxx;
 
 { Index the pointer reference in oprnds[1] (left) by the constant offset
@@ -2369,10 +2376,17 @@ procedure indxx;
     address(left);
 
     { ONLY works for gp, fp, sl at the moment!}
-    setkeyvalue(left);
-    keytable[key].len := long; {unnecessary?}
-    with keytable[key].oprnd do
-      index := index + right;
+    if keytable[key].oprnd.mode in [signed_offset, unsigned_offset] then
+      begin
+      setkeyvalue(left);
+      keytable[key].len := long; {unnecessary?}
+      with keytable[key].oprnd do
+        index := index + right;
+      end;
+
+    { eventually needs to work with the results of aindx and also register
+      params the contain short records.
+    }
   end {indxx} ;
 
 procedure loopholefnx;
@@ -2738,9 +2752,11 @@ procedure codeselect;
       rangechk: checkx(true, range_error);
       congruchk: checkx(true, index_error);
 }
+      regparam: regparamx;
       regtemp: regtempx;
 {
       ptrtemp: ptrtempx;
+      realregparam: realregparamx;
       realtemp: realtempx;
       indxindr: indxindrx;
 }
@@ -3168,6 +3184,7 @@ procedure dumppseudo;
           pshstraddr: write('pshstraddr': 15);
           pshstruct: write('pshstruct': 15);
           ptrchk: write('ptrchk': 15);
+          ptrregparam: write('ptrregparam': 15);
           ptrtemp: write('ptrtemp': 15);
           rangechk: write('rangechk': 15);
           rdbin: write('rdbin': 15);
@@ -3176,7 +3193,9 @@ procedure dumppseudo;
           rdreal: write('rdreal': 15);
           rdst: write('rdst': 15);
           rdxstr: write('rdxstr': 15);
+          realregparam: write('realregparam': 15);
           realtemp: write('realtemp': 15);
+          regparam: write('regparam': 15);
           regtemp: write('regtemp': 15);
           restorelabel: write('restorelabel': 15);
           restoreloop: write('restoreloop': 15);
