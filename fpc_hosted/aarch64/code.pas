@@ -2381,14 +2381,14 @@ procedure indxx;
     address(left);
 
     { ONLY works for gp, fp, sl at the moment!}
-    if keytable[key].oprnd.mode in [signed_offset, unsigned_offset] then
+    if keytable[left].oprnd.mode in [signed_offset, unsigned_offset] then
       begin
       setkeyvalue(left);
       keytable[key].len := long; {unnecessary?}
       with keytable[key].oprnd do
         index := index + right;
       end
-    else if keytable[key].oprnd.mode = register
+    else if keytable[left].oprnd.mode = register
       then setkeyvalue(left);
 
     { eventually needs to work with the results of aindx and also register

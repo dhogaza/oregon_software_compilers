@@ -386,9 +386,6 @@ procedure inittravrs;
       map[tempop, fptrs] := ptrtemp;       map[xoreqop, scalars] := xorint;
       map[xoreqop, ints] := xorint;        map[xorop, ints] := xorint;
       map[xorop, scalars] := xorint;
-      map[regparamop, ints] := regparam;
-      map[ptrregparamop, ints] := ptrregparam;
-      map[realregparamop, ints] := realregparam;
     end; {[s=1] map4}
 
 
@@ -4267,7 +4264,7 @@ procedure build;
               vindxop: collectargs(3);
               regparamop, ptrregparamop, realregparamop:
                 begin
-                collectargs(3);
+                collectwork(3);
                 insertnode(2);
                 end;
               parmop: collectargs(2);

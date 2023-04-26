@@ -4440,6 +4440,7 @@ procedure statement(follow: tokenset {legal following symbols} );
             case namekind of
               varparam:
                 begin
+                makeregparamaddressable(lev, actualptr);
                 modifyvariable(false, false);
                 if bigcompilerversion then p := @(bigtable[paramindex]);
                 if not (p^.univparam or identical(p^.vartype, resulttype)) then
