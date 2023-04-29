@@ -3781,12 +3781,6 @@ procedure initanalys;
       {define 'dispose'}
       enterstandardid(disposeid, standardproc, 0, 0);
 
-      {define 'pack', a singularly silly procedure}
-      enterstandardid(packid, standardproc, 0, 9);
-
-      {define 'unpack', whose parameterlist is incompatible with 'pack'!}
-      enterstandardid(unpackid, standardproc, 0, 0);
-
       {define 'put'}
       enterstandardid(putid, standardproc, 0, 0);
 

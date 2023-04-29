@@ -3486,8 +3486,6 @@ procedure initscanner;
       enterstandardid('break     ', 5, breakid);
       enterstandardid('new       ', 3, newid);
       enterstandardid('dispose   ', 7, disposeid);
-      enterstandardid('pack      ', 4, packid);
-      enterstandardid('unpack    ', 6, unpackid);
       enterstandardid('abs       ', 3, absid);
       enterstandardid('sqr       ', 3, sqrid);
       enterstandardid('sin       ', 3, sinid);
