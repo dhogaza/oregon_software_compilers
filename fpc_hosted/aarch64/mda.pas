@@ -393,17 +393,20 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       begin
       paramptr^.varalloc := realregparam;
       paramptr^.regid := regparams.realregparams;
+      paramptr^.regcount := 1;
       regparams.realregparams := regparams.realregparams + 1;
       end
     else if (paramptr^.length <= ptrsize) and (regparams.regparams < maxregparams) then
       begin
       paramptr^.varalloc := regparam;
       paramptr^.regid := regparams.regparams;
+      paramptr^.regcount := 1;
       regparams.regparams := regparams.regparams + 1;
 
-      { if we allow structured types and sets to be left in registers, then
+      { If we allow structured types and sets to be left in registers, then
         the code generator must be prepared to access register bits when they
-        are operands to indx, aindx, etc.
+        are operands to indx, aindx, etc.  Eventually we'll do so for structs,
+        at least, as that's part of the calling standard.
       }
       if (typeptr^.typ in [sets, fields, arrays, strings, conformantarrays]) and
          not paramptr^.refparam  then
