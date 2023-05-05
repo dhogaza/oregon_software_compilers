@@ -1534,6 +1534,28 @@ with target = 0.
         genpseudo(map[pushret, ptrs], len, key, 0, 0, rkey, 0, 0);
       end; {pushretnode}
 
+    procedure regvaluenode(op: operatortype; {root operator}
+                           form: types {operand form} );
+
+{ Walk and generate code for a node which passes a param in a general
+  register.
+
+  Left operand is the link to other parameters, third operand is the
+  value.
+}
+
+      begin {regvaluenode}
+        walknode(l, lkey, 0, true);
+        mapkey;
+{
+        genpseudo(stacktarget, len, key, refcount, copycount, 0, 0, 0);
+}
+        walkvalue(r, rkey, key);
+          genpseudo(map[op, form], len, key, 0, 0, rkey, 0, 0);
+
+        if language <> c then clearkeys;
+      end {regvaluenode} ;
+
 
     procedure stacknode(op: operatortype; {root operator}
                         form: types {operand form} );
@@ -2081,6 +2103,7 @@ with target = 0.
           pushproc: pushprocnode;
           pushfinal: pushfinalnode;
           pushvalue, pushlitvalue, pushfptr: stacknode(op, form);
+          regvalue: regvaluenode(op, form);
           pushcvalue: pushcvaluenode(form);
           pushret: pushretnode;
           sysfn: sysfnnode(op, form);

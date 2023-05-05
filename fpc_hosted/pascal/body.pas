@@ -1839,6 +1839,25 @@ procedure genunary(op: operatortype; {operation to generate}
     if bigcompilerversion then resultptr := @(bigtable[resulttype]);
   end {genunary} ;
 
+procedure genparamvalue(p: entryptr; form: types);
+
+{ Generate pseudoop to push a parameter or move it to the proper
+  register class.  
+}
+
+  begin {genparamvalue}
+   if p^.varalloc = normalalloc then
+     genunary(pushvalue, form)
+   else
+     begin
+     genlit(p^.regid);
+     case p^.varalloc of
+       regparam: genunary(regvalue, form);
+       ptrregparam: genunary(ptrregvalue, form);
+       realregparam: genunary(realregvalue, form);
+       end; 
+     end;
+  end {genparamvalue};
 
 procedure foldintplusminus(sign: integer {1 if add, -1 if sub} );
 
@@ -4420,12 +4439,13 @@ procedure statement(follow: tokenset {legal following symbols} );
                    (oprndstk[sp].operandkind <> exproperand) then
                   genunary(pushcvalue, resultform);
                 oprndstk[sp].oprndlen := ptrsize;
+{DRB: genparamaddr(p, resultform) }
                 genunary(pushaddr, resultform);
                 end
               else
                 begin
                 oprndstk[sp].oprndlen := formallen;
-                genunary(pushvalue, resultform);
+                genparamvalue(p, resultform);
                 end
             else conformantparam(p^.vartype, p^.lastinsection, true);
             end;
@@ -4445,6 +4465,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                 if not (p^.univparam or identical(p^.vartype, resulttype)) then
                   warnbefore(paramtypeerr);
                 oprndstk[sp].oprndlen := ptrsize;
+{DRB: genparamaddr(p, resultform) }
                 genunary(pushaddr, resultform);
                 if token in begexprset then warn(varparamerr);
                 end;

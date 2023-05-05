@@ -67,7 +67,8 @@ type
       snext: linkptr; { ptr to next in successor chain }
     end;
 
-  oprndindex = 1..3;
+  maxoprnd = 3;
+  oprndindex = 1..maxoprnd;
   operandarray = array [oprndindex] of integer;
   nodeoperandarray = packed array [oprndindex] of boolean;
   levelarray = packed array [levelindex] of boolean;
