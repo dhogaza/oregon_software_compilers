@@ -40,6 +40,7 @@ const
   maxblockslow = lowtravrsblocks;           
                      {min blocks for node file buffers, allocated statically
                       to use some otherwise unused space in the global area}
+  maxoprnd = 3;
 
 type
 
@@ -67,7 +68,6 @@ type
       snext: linkptr; { ptr to next in successor chain }
     end;
 
-  maxoprnd = 3;
   oprndindex = 1..maxoprnd;
   operandarray = array [oprndindex] of integer;
   nodeoperandarray = packed array [oprndindex] of boolean;
