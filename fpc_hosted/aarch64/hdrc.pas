@@ -548,6 +548,8 @@ var
   lastreg, lastfpreg: regindex; {last registers available for
                                  scratch use in this block}
 
+  firstreg, firstfpreg: regindex; {first registers currently available for scratch
+                                   use in this block}
   lastkey: keyindex; {last key used by travrs at the moment}
 
   settarget: keyindex; {target of a set insert operation}

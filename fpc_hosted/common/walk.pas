@@ -1553,7 +1553,7 @@ with target = 0.
         mapkey;
         genpseudo(regtemp, len, key, refcount, copycount, 0, 0, r);
         walkvalue(third, thirdkey, key);
-        genpseudo(map[moveop, form], len, key, 0, 0, key, thirdkey, 0);
+        genpseudo(map[moveop, form], len, 0, 0, 0, key, thirdkey, 0);
         if language <> c then clearkeys;
       end {regvaluenode} ;
 

@@ -1201,6 +1201,8 @@ procedure markscratchregs;
 
 {procedure calls walk on all of the general registers}
 
+{DRB don't mark register parameters!}
+
   var
     r: regindex;
 
@@ -1235,7 +1237,7 @@ function countreg: regindex;
 
   begin {countreg}
     cnt := maxint;
-    for r := 0 to lastreg do
+    for r := firstreg to lastreg do
       if regvalue(r) < cnt then
         cnt := regvalue(r);
     countreg := cnt;
@@ -1252,7 +1254,7 @@ function bestreg(reg: regindex {register to check} ): boolean;
 
   begin {bestreg}
     cnt := countreg;
-    bestreg := (reg <= lastreg) and
+    bestreg := (reg <= lastreg) and (reg >= firstreg) and
                (regvalue(reg) <= cnt);
   end {bestreg} ;
 
@@ -1271,7 +1273,7 @@ function getreg: regindex;
   begin {getreg}
     cnt := countreg;
     r := lastreg;
-    while regvalue(r) <> cnt do
+    while (r >= firstreg) and (regvalue(r) <> cnt) do
       r := r - 1;
     markreg(r);
     getreg := r;
@@ -1294,13 +1296,13 @@ procedure savekey(k: keyindex {operand to save} );
           with oprnd do
             begin
               if regvalid and not regsaved and (reg <= lastreg) and
-                 (reg <> noreg) then
+                 (reg >= firstreg) and (reg <> noreg) then
                 begin
                 properreg := savereg(reg);
                 regsaved := true;
                 end;
-              if reg2valid and not reg2saved and
-                 (reg2 <> noreg) and (reg2 <= lastreg) then
+              if reg2valid and not reg2saved and (reg2 <> noreg) and
+                 (reg2 >= firstreg) and (reg2 <= lastreg) then
                 begin
                 properreg2 := savereg(reg2);
                 reg2saved := true;
@@ -2053,6 +2055,8 @@ procedure blockcodex;
     context[0] := context[1];
     lastfpreg := maxreg - target;
     lastreg := sl - left - 1;
+    firstreg := 0;
+    firstfpreg := 0;
     lineoffset := pseudoinst.len;
 
     if (blockref = 0) and (switchcounters[mainbody] > 0) then
@@ -2320,9 +2324,11 @@ procedure regtempx;
   begin
     if left = 0 then
       begin
+      paramlist_started := true;
       setvalue(reg_oprnd(pseudoinst.oprnds[3]));
       regused[pseudoinst.oprnds[3]] := true;
-      { lock the param register }
+      if (pseudoinst.oprnds[3] > firstreg) then
+        firstreg := pseudoinst.oprnds[3];
       end
     else
       begin
@@ -2472,6 +2478,9 @@ procedure callroutinex(s: boolean {signed function value} );
     paramlist_started := false; {reset the switch}
 
     markscratchregs;
+
+    firstreg := 0;
+    firstfpreg := 0;
 
     savetempkey := tempkey;
     {frame pointers in the aarch64 standard calling sequence form a linked
