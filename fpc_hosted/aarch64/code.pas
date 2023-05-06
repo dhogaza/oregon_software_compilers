@@ -2305,16 +2305,31 @@ procedure blockentryx;
 procedure regtempx;
 
 { Generate a reference to a local variable permanently assigned to a
-  general register.  "pseudoinst.oprnds[3]" contains the number of the
-  temp register assigned, and oprnds[1] is the variable access being
-  so assigned.  Always allocated in callee-saved registers.
+  general register, or to a register parameter target.
+
+  If left is not zero, pseudoinst.oprnds[3] contains the number of the
+  permanent register assigned to the variable at that address, and oprnds[1]
+  is the variable access being so assigned.  These are always allocated in
+  callee-saved registers.
+
+  If left is zero, pseudoinst,oprnds[3] contains the number of the param
+  register that is being targeted.
 }
 
 
   begin
-    address(left);
-    setvalue(reg_oprnd(sl - pseudoinst.oprnds[3]));
-    regused[sl - pseudoinst.oprnds[3]] := true;
+    if left = 0 then
+      begin
+      setvalue(reg_oprnd(pseudoinst.oprnds[3]));
+      regused[pseudoinst.oprnds[3]] := true;
+      { lock the param register }
+      end
+    else
+      begin
+      address(left);
+      setvalue(reg_oprnd(sl - pseudoinst.oprnds[3]));
+      regused[sl - pseudoinst.oprnds[3]] := true;
+      end;
   end {regtempx} ;
 
 procedure dovarx(s: boolean {signed variable reference} );

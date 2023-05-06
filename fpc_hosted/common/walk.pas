@@ -1527,6 +1527,8 @@ with target = 0.
             genpseudo(stacktarget, len, key, refcount, copycount, 0, 0, 0);
           i80386:
             genpseudo(ptrtemp, len, key, refcount, copycount, 0, 0, - 3);
+          aarch64:
+            genpseudo(regtemp, len, key, refcount, copycount, 0, 0, 8);
           otherwise
             genpseudo(ptrtemp, len, key, refcount, copycount, 0, 0, - 2);
           end;
@@ -1534,8 +1536,8 @@ with target = 0.
         genpseudo(map[pushret, ptrs], len, key, 0, 0, rkey, 0, 0);
       end; {pushretnode}
 
-    procedure regvaluenode(op: operatortype; {root operator}
-                           form: types {operand form} );
+    procedure regvaluenode(form: types; {operand form}
+                           third: integer);
 
 { Walk and generate code for a node which passes a param in a general
   register.
@@ -1544,15 +1546,14 @@ with target = 0.
   value.
 }
 
+      var thirdkey: keyindex;
+
       begin {regvaluenode}
         walknode(l, lkey, 0, true);
         mapkey;
-{
-        genpseudo(stacktarget, len, key, refcount, copycount, 0, 0, 0);
-}
-        walkvalue(r, rkey, key);
-          genpseudo(map[op, form], len, key, 0, 0, rkey, 0, 0);
-
+        genpseudo(regtemp, len, key, refcount, copycount, 0, 0, r);
+        walkvalue(third, thirdkey, key);
+        genpseudo(map[moveop, form], len, key, 0, 0, key, thirdkey, 0);
         if language <> c then clearkeys;
       end {regvaluenode} ;
 
@@ -2103,7 +2104,7 @@ with target = 0.
           pushproc: pushprocnode;
           pushfinal: pushfinalnode;
           pushvalue, pushlitvalue, pushfptr: stacknode(op, form);
-          regvalue: regvaluenode(op, form);
+          regvalue: regvaluenode(form, oprnds[3]);
           pushcvalue: pushcvaluenode(form);
           pushret: pushretnode;
           sysfn: sysfnnode(op, form);
