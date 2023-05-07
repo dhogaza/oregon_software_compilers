@@ -219,8 +219,7 @@ procedure writeprocname(procn: proctableindex {number of procedure to copy});
                         (diskbufsize + 1);
 
     for i := 1 to proctable[procn].charlen do
-      if language = pascal then write(macfile, uppercase(chr(getstringfile)))
-      else write(macfile, chr(getstringfile));
+      write(macfile, chr(getstringfile));
   end {writeprocname} ;
 
 procedure writeproclabel(procn: proctableindex);
@@ -380,11 +379,15 @@ begin
       end;
     literal: write(macfile, o.literal);
     proccall:
-      begin
-      write(macfile, '.P', o.proclabelno);
-      if o.entry_offset <> 0 then
-        write(macfile, -o.entry_offset * word);
-      end;
+      if proctable[o.proclabelno].externallinkage and
+         not proctable[o.proclabelno].bodydefined then
+        writeprocname(o.proclabelno)
+      else
+        begin
+        write(macfile, '.P', o.proclabelno);
+        if o.entry_offset <> 0 then
+          write(macfile, -o.entry_offset * word);
+        end;
     syscall: write(macfile, '_P_', o.labelno);
     labeltarget:
       begin
