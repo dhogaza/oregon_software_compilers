@@ -1845,17 +1845,27 @@ procedure genparamvalue(p: entryptr; form: types);
   register class.  
 }
 
+  var
+    olen: addressrange;
+
   begin {genparamvalue}
    if p^.varalloc = normalalloc then
      genunary(pushvalue, form)
    else
      begin
+     olen := oprndstk[sp].oprndlen;
+     genoprnd;
      genlit(p^.regid);
      case p^.varalloc of
-       regparam: genunary(regvalue, form);
-       ptrregparam: genunary(ptrregvalue, form);
-       realregparam: genunary(realregvalue, form);
+       regparam: genop(regvalue);
+       ptrregparam: genop(ptrregvalue);
+       realregparam: genop(realregvalue);
        end; 
+     genint(olen);
+     genint(1);
+     genform(form);
+     sp := sp + 1;
+     oprndstk[sp].operandkind := exproperand;
      end;
   end {genparamvalue};
 

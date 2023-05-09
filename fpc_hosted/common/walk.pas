@@ -1537,7 +1537,7 @@ with target = 0.
       end; {pushretnode}
 
     procedure regvaluenode(form: types; {operand form}
-                           third: integer);
+                           regid: integer);
 
 { Walk and generate code for a node which passes a param in a general
   register.
@@ -1546,14 +1546,12 @@ with target = 0.
   value.
 }
 
-      var thirdkey: keyindex;
-
       begin {regvaluenode}
         walknode(l, lkey, 0, true);
         mapkey;
-        genpseudo(regtemp, len, key, refcount, copycount, 0, 0, r);
-        walkvalue(third, thirdkey, key);
-        genpseudo(map[moveop, form], len, 0, 0, 0, key, thirdkey, 0);
+        genpseudo(regtemp, len, key, refcount, copycount, 0, 0, regid);
+        walkvalue(r, rkey, key);
+        genpseudo(map[moveop, form], len, 0, 0, 0, key, rkey, 0);
         if language <> c then clearkeys;
       end {regvaluenode} ;
 

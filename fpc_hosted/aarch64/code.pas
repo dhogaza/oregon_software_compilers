@@ -1199,9 +1199,7 @@ procedure markreg(r: regindex {register to clobber} );
 
 procedure markscratchregs;
 
-{procedure calls walk on all of the general registers}
-
-{DRB don't mark register parameters!}
+{procedure calls walk on all of the callee-saved general registers}
 
   var
     r: regindex;
@@ -2325,6 +2323,7 @@ procedure regtempx;
     if left = 0 then
       begin
       paramlist_started := true;
+      markreg(pseudoinst.oprnds[3]);
       setvalue(reg_oprnd(pseudoinst.oprnds[3]));
       regused[pseudoinst.oprnds[3]] := true;
       if (pseudoinst.oprnds[3] > firstreg) then
