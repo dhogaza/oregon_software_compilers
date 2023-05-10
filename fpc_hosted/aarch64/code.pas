@@ -1422,7 +1422,7 @@ procedure makeaddressable(var k: keyindex);
 
   procedure recall_reg(regx: regindex; properregx: keyindex);
 
-    { Unkill a dreg if possible.
+    { Unkill a general reg if possible.
     }
     begin
       with loopstack[loopsp] do
@@ -1443,7 +1443,14 @@ procedure makeaddressable(var k: keyindex);
       adjustregcount(k, - refcount);
       if restorereg then
         begin
-        oprnd.reg := getreg;
+        {DRB try to restore a register operand to the current register param
+         target if possible.
+        }
+        if paramlist_started and (oprnd.mode = register) and
+           (registers[keytable[regparam_target].oprnd.reg] = 1) then
+          oprnd.reg := keytable[regparam_target].oprnd.reg
+        else
+          oprnd.reg := getreg;
         recall_reg(oprnd.reg, properreg);
         settemp(long, reg_oprnd(reg));
         gen2(buildinst(ldr, true, false), tempkey, properreg);
@@ -2119,18 +2126,13 @@ procedure putblock;
 
     finalizestackoffsets(firstnode, lastnode, maxstackoffset);
 
-    { One more temp is needed for 68881 code.  Proctrailer kills it.
-      Another temp is used by Modula2 for openarrays.  Proctrailer kills
-      it too.
-    }
-    if stackcounter < keysize - 2 then
-      begin
-      compilerabort(undeltemps);
-{
-      writeln('Excess temps: ', keysize - 2 - stackcounter: 1, ', Bytes left: ',
-             stackoffset + keytable[stackcounter].oprnd.offset: 1);
-}
-      end;
+    while stackcounter < keysize do
+      if keytable[stackcounter].refcount > 0 then
+        begin
+        compilerabort(undeltemps);
+        break;
+        end
+      else stackcounter := stackcounter + 1;
 
     { eventually peephole optimizations happen now }
 
@@ -2323,6 +2325,7 @@ procedure regtempx;
     if left = 0 then
       begin
       paramlist_started := true;
+      regparam_target := pseudoinst.key;
       markreg(pseudoinst.oprnds[3]);
       setvalue(reg_oprnd(pseudoinst.oprnds[3]));
       regused[pseudoinst.oprnds[3]] := true;
@@ -2398,22 +2401,31 @@ procedure indxx;
 
 
   begin {indxx}
-    address(left);
-
-    { ONLY works for gp, fp, sl at the moment!}
-    if keytable[left].oprnd.mode in [signed_offset, unsigned_offset] then
+    if right = 0 then
       begin
-      setkeyvalue(left);
-      keytable[key].len := long; {unnecessary?}
-      with keytable[key].oprnd do
-        index := index + right;
+      setallfields(left);
+      dereference(left);
       end
+    else
+      begin
+      address(left);
+
+      { ONLY works for gp, fp, sl at the moment!}
+      if keytable[left].oprnd.mode in [signed_offset, unsigned_offset] then
+        begin
+        setkeyvalue(left);
+        keytable[key].len := long; {unnecessary?}
+        with keytable[key].oprnd do
+          index := index + right;
+        end
+{
+    eventually needs to work with the results of aindx and also register
+    params the contain short records.
+
     else if keytable[left].oprnd.mode = register
       then setkeyvalue(left);
-
-    { eventually needs to work with the results of aindx and also register
-      params the contain short records.
-    }
+}
+    end
   end {indxx} ;
 
 procedure loopholefnx;
