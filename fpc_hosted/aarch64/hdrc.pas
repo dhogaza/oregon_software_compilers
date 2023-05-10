@@ -86,6 +86,8 @@ const
 
 type
 
+  regtypes = (general, floating);
+
   oprnd_range = 0 .. max_oprnds;
 
   regindex = -1..maxreg; {possible register values}
@@ -319,6 +321,7 @@ type
 
   oprndtype = packed record
     reg: regindex;
+    regtype: regtypes;
     reg2: regindex; {extra register if indexed & bitindexed}
     case mode: oprnd_modes of
       shift_reg: (reg_shift: reg_shifts;

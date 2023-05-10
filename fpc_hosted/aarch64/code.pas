@@ -1498,6 +1498,26 @@ procedure addressboth;
     unlock(right);
   end {addressboth} ;
 
+procedure maketargetaddressable(var k: keyindex);
+
+  begin {maketargetaddressable}
+    if keytable[k].oprnd.mode = register then
+      keytable[k].regvalid := true
+    else
+      makeaddressable(k);
+  end {maketargetaddressable} ;
+
+procedure addresstarget(var k: keyindex);
+
+{ Shorthand concatenation of a dereference and maketargetaddressable call }
+
+
+  begin
+    dereference(k);
+    maketargetaddressable(k);
+  end {address} ;
+
+
 procedure initblock;
 
 { Initialize global variables for a new block.
@@ -1742,18 +1762,24 @@ procedure integerarithmetic(inst: insts {simple integer inst} );
   begin {integerarithmetic}
     {unpkshkboth(len);}
     addressboth;
+    { Only some variant of a regtemp can be used as a target }
     if keytable[target].oprnd.mode = register then
-      setallfields(target)
+      begin
+      maketargetaddressable(target);
+      setallfields(target);
+      end
     else
+      begin
       setvalue(reg_oprnd(getreg));
-    lock(target);
+      end;
+    lock(right);
     loadreg(left);
     lock(left);
     if (inst = mul) or (keytable[right].oprnd.mode <> immediate) then
       loadreg(right);
     gen3(buildinst(inst, len = long, false), key, left, right);
     unlock(left);
-    unlock(target);
+    unlock(right);
     keytable[key].signed := signedoprnds;
   end {integerarithmetic} ;
 
@@ -2127,12 +2153,16 @@ procedure putblock;
     finalizestackoffsets(firstnode, lastnode, maxstackoffset);
 
     while stackcounter < keysize do
+      begin
       if keytable[stackcounter].refcount > 0 then
         begin
-        compilerabort(undeltemps);
+        writeln('stackcounter: ', stackcounter, ' refcount: ', keytable[stackcounter].refcount);
         break;
-        end
-      else stackcounter := stackcounter + 1;
+        end;
+      stackcounter := stackcounter + 1;
+      end;
+    if stackcounter < keysize then
+      compilerabort(undeltemps);
 
     { eventually peephole optimizations happen now }
 
@@ -2374,8 +2404,8 @@ procedure movlitintx;
     p: nodeptr;
 
   begin
+    addresstarget(left);
     setallfields(left);
-    dereference(left);
     settemp(len, immediate16_oprnd(right, 0));
     gensimplemove(tempkey, left); 
   end;
