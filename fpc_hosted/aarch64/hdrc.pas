@@ -281,7 +281,7 @@ type
   insts = (noinst, nop,
 
   {basic arithmetic instructions}
-  first_a, add, sub, mul, madd, msub, sdiv, udiv, cmp, cmn, last_a,
+  first_a, add, sub, mul, madd, msub, sdiv, udiv, cmp, cmn, neg, last_a,
 
   {move instructions}
 

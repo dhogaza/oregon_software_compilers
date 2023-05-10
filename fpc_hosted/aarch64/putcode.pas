@@ -298,6 +298,7 @@ begin
     movz: write(macfile, 'movz');
     msub: write(macfile, 'msub');
     mul: write(macfile, 'mul');
+    neg: write(macfile, 'neg');
     ret: write(macfile, 'ret');
     sdiv: write(macfile, 'sdiv');
     stp: write(macfile, 'stp');

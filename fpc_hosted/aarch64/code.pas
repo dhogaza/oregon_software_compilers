@@ -1517,6 +1517,21 @@ procedure addresstarget(var k: keyindex);
     maketargetaddressable(k);
   end {address} ;
 
+procedure settargetorreg;
+
+{ Set the current key value to the target, if possible,  If
+  not allocate a register and set the key value to that.
+}
+
+begin {settargetorreg}
+  if keytable[target].oprnd.mode = register then
+    begin
+    maketargetaddressable(target);
+    setallfields(target);
+    end
+  else
+    setvalue(reg_oprnd(getreg));
+end {settargetorreg};
 
 procedure initblock;
 
@@ -1762,16 +1777,7 @@ procedure integerarithmetic(inst: insts {simple integer inst} );
   begin {integerarithmetic}
     {unpkshkboth(len);}
     addressboth;
-    { Only some variant of a regtemp can be used as a target }
-    if keytable[target].oprnd.mode = register then
-      begin
-      maketargetaddressable(target);
-      setallfields(target);
-      end
-    else
-      begin
-      setvalue(reg_oprnd(getreg));
-      end;
+    settargetorreg;
     lock(right);
     loadreg(left);
     lock(left);
@@ -1782,6 +1788,23 @@ procedure integerarithmetic(inst: insts {simple integer inst} );
     unlock(right);
     keytable[key].signed := signedoprnds;
   end {integerarithmetic} ;
+
+procedure incdec(inst: insts {add, sub} );
+
+{ Generate add/sub #1, left.  Handles compbool, incint and decint pseudoops.
+}
+
+
+  begin {incdec}
+{    unpackshrink(left, len);}
+    address(left);
+    settargetorreg; 
+    loadreg(left);
+    settemp(len, immediate_oprnd(1, false));
+    gen3(buildinst(inst, len = long, false), key, left, tempkey);
+    tempkey := tempkey + 1;
+  end {incdec} ;
+
 
 procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
 
@@ -2866,8 +2889,10 @@ procedure codeselect;
       shiftlint: shiftlintx(false);
       shiftrint: shiftlintx(true);
       negint: unaryintx(neg);
-      incint: incdec(add, false);
-      decint: incdec(sub, false);
+}
+      incint: incdec(add);
+      decint: incdec(sub);
+{
       orint: integerarithmetic(orinst);
       andint: integerarithmetic(andinst);
       xorint: xorintx;
