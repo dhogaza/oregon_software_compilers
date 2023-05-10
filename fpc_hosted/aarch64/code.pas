@@ -2326,7 +2326,6 @@ procedure regtempx;
       begin
       paramlist_started := true;
       regparam_target := pseudoinst.key;
-      markreg(pseudoinst.oprnds[3]);
       setvalue(reg_oprnd(pseudoinst.oprnds[3]));
       regused[pseudoinst.oprnds[3]] := true;
       if (pseudoinst.oprnds[3] > firstreg) then
