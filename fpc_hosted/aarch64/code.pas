@@ -1803,7 +1803,45 @@ procedure incdec(inst: insts {add, sub} );
     settemp(len, immediate_oprnd(1, false));
     gen3(buildinst(inst, len = long, false), key, left, tempkey);
     tempkey := tempkey + 1;
+    keytable[key].signed := keytable[left].signed;
   end {incdec} ;
+
+procedure cmpintptrx(signedbr, unsignedbr: insts {branch on result});
+
+{ Compare scalars or pointers in keytable[left] and keytable[right].
+  Keytable[key] is set by setbr to the appropriate branch.
+}
+
+  var
+    brinst: insts; {the actual branch to use}
+
+
+  begin {cmpintptrx}
+    addressboth;
+{ DRB
+    if keytable[left].signed = keytable[right].signed then
+      len := min(len, max(bytelength(left), bytelength(right)));
+    if len = 3 then len := 4;
+}
+
+    { Shrinking operands is only safe if the sign is set back to the original
+      sign for that length.  The field "signlimit" provides that function.
+    }
+    {unpkshkboth(len);}
+
+    if signedoprnds then brinst := signedbr
+    else brinst := unsignedbr;
+
+    lock(right);
+    loadreg(left);
+    unlock(right);
+    lock(left);
+    loadreg(right);
+    unlock(left);
+    gen2(buildinst(cmp, len = 4, false), left, right);
+    setbr(brinst);
+  end {cmpintptrx} ;
+
 
 
 procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
@@ -2480,6 +2518,14 @@ procedure indxx;
     end
   end {indxx} ;
 
+procedure indxindrx;
+
+begin {indsindrx}
+  address(left);
+  loadreg(left);
+  setvalue(index_oprnd(unsigned_offset, keytable[left].oprnd.reg, 0));
+end {indsindrx};
+
 procedure loopholefnx;
 
 { Generate code for a loophole function.  This actually generates code
@@ -2601,6 +2647,99 @@ procedure callroutinex(s: boolean {signed function value} );
   end {callroutinex} ;
 
 { context processing }
+
+procedure copyaccessx;
+
+{ Make a copy at the current context level of the keytable entry
+  for the operand in oprnds[1].  This allows modifications to the
+  local key without affecting the outer context key.  If the flag
+  "clearflag" is set in the local context mark,  The properaddress of
+  the key is copied into the local key, as we assume that the volatile
+  copy of the key may not exist at this point, and we must use the
+  non-volatile copy in "properaddress".
+
+  The refcount of the key being copied (and all intermediate copies)
+  is reduced by the difference between the local refcount and
+  copycount.  This number is the number of references in the new
+  local context.
+}
+
+  var
+    delta: integer; {difference between refcount and copycount}
+    useproperaddress: boolean; {true if copy is logically within a loop}
+
+
+  begin
+    { Because of hoisting, we may have a copy operator appearing
+      before the clearlabel, defeating the purpose of the context
+      clearflag.  Fortunately, travrs warns us by passing a flag
+      in the len field.
+    }
+    useproperaddress := (len <> 0) or context[contextsp].clearflag;
+
+    with keytable[key] do
+      begin {copy the key}
+      len := keytable[left].len;
+      copylink := left;
+      delta := refcount - copycount;
+      end;
+
+    with keytable[left], oprnd do
+      begin
+      keytable[key].regsaved := regsaved;
+      keytable[key].reg2saved := reg2saved;
+      keytable[key].regvalid := regvalid;
+      keytable[key].reg2valid := reg2valid;
+      keytable[key].properreg := properreg;
+      keytable[key].properreg2 := properreg2;
+      keytable[key].tempflag := tempflag;
+      keytable[key].packedaccess := packedaccess;
+
+      { Point to the properaddress if clearcontext}
+      if useproperaddress then
+        begin
+        if joinreg then keytable[key].regvalid := false;
+        if joinreg2 then keytable[key].reg2valid := false;
+        end;
+{
+      with loopstack[loopsp] do
+        begin
+        with aregstate[reg] do
+          if keytable[key].regvalid and active then used := true;
+        with dregstate[reg] do
+          if keytable[key].regvalid and active then used := true;
+        with fpregstate[reg] do
+          if keytable[key].regvalid and active then used := true;
+
+        with aregstate[indxr] do
+          if keytable[key].reg2valid and active then used := true;
+        with dregstate[indxr] do
+          if keytable[key].reg2valid and active then used := true;
+        with fpregstate[indxr] do
+          if keytable[key].reg2valid and active then used := true;
+        end; { loopstack[loopsp] }
+}
+      setvalue(oprnd);
+{
+      keytable[key].oprnd.flavor := flavor;
+      keytable[key].oprnd.scale := scale;
+      keytable[key].oprnd.commonlong_reloc := commonlong_reloc;
+}
+      keytable[key].signed := signed;
+      keytable[key].signlimit := signlimit;
+      end;
+
+    { Now decrement refcounts }
+    repeat
+      with keytable[left] do
+        begin
+        refcount := refcount - delta;
+        copycount := copycount - delta;
+        bumptempcount(left, - delta);
+        left := copylink;
+        end;
+    until left = 0;
+  end {copyaccessx} ;
 
 procedure clearlabelx;
 
@@ -2807,9 +2946,7 @@ procedure codeselect;
       dofptr: dofptrx;
 }
       stmtbrk: stmtbrkx;
-{
       copyaccess: copyaccessx;
-}
       clearlabel: clearlabelx;
       savelabel: savelabelx;
       restorelabel: restorelabelx;
@@ -2852,8 +2989,8 @@ procedure codeselect;
       ptrtemp: ptrtempx;
       realregparam: realregparamx;
       realtemp: realtempx;
-      indxindr: indxindrx;
 }
+      indxindr: indxindrx;
       indx: indxx;
 {
       aindx: aindxx;
@@ -2971,16 +3108,15 @@ procedure codeselect;
       leqreal: cmprealx(ble, libdlss, fble);
       geqreal: cmprealx(bge, libdgtr, fbge);
       gtrreal: cmprealx(bgt, libdgtr, fbgt);
+}
 
-      eqint: cmpx(beq, beq, dreg, @getdreg);
-      eqptr, eqfptr: cmpx(beq, beq, areg, @getareg);
-      neqint: cmpx(bne, bne, dreg, @getdreg);
-      neqptr, neqfptr: cmpx(bne, bne, areg, @getareg);
-      leqint, leqptr: cmpx(ble, bls, dreg, @getdreg);
-      geqint, geqptr: cmpx(bge, bhs, dreg, @getdreg);
-      lssint, lssptr: cmpx(blt, blo, dreg, @getdreg);
-      gtrint, gtrptr: cmpx(bgt, bhi, dreg, @getdreg);
-
+      eqint, eqptr, eqfptr: cmpintptrx(beq, beq);
+      neqint, neqptr: cmpintptrx(bne, bne);
+      leqint, leqptr: cmpintptrx(ble, bls);
+      geqint, geqptr: cmpintptrx(bge, bhs);
+      lssint, lssptr: cmpintptrx(blt, blo);
+      gtrint, gtrptr: cmpintptrx(bgt, bhi);
+{
       eqstruct: cmpstructx(beq);
       neqstruct: cmpstructx(bne);
       leqstruct: cmpstructx(ble);
