@@ -1701,6 +1701,41 @@ procedure gensimplemove(src, dst: keyindex);
         gen2(strinst(keytable[dst].len), src, dst);
   end {gensimplemove} ;
 
+function genmoveaddress(src, dst: keyindex): keyindex;
+
+{ Move the address of the src value to the destination value,
+  which must be a general register.
+}
+
+  begin {genmoveaddress}
+    if keytable[src].oprnd.mode = register then
+      begin
+{ DRB or real register or two regs reg vector or ... ? }
+      keytable[keytable[src].properreg].tempflag := true;
+      if not keytable[src].regsaved then
+        begin
+        write('fix_effective_addr screw-up ');
+        compilerabort(inconsistent);
+        end;
+      src := keytable[src].properreg;
+      end;
+    with keytable[src].oprnd do
+      case mode of
+      signed_offset, unsigned_offset:
+        begin
+        settemp(long, reg_oprnd(reg));
+        settemp(long, immediate_oprnd(index, false));
+        gen3(buildinst(add, true, false), dst, tempkey + 1, tempkey);
+        tempkey := tempkey + 2;
+        end
+      otherwise
+        begin
+        write('bad operand in genmoveaddress ');
+        compilerabort(inconsistent);
+        end;
+      end;
+  end; {genmoveaddress}
+
 function signedoprnds : boolean;
 
 { True if both left and right operands of the current operation are
@@ -1798,7 +1833,9 @@ procedure incdec(inst: insts {add, sub} );
   begin {incdec}
 {    unpackshrink(left, len);}
     address(left);
+    lock(left);
     settargetorreg; 
+    unlock(left);
     loadreg(left);
     settemp(len, immediate_oprnd(1, false));
     gen3(buildinst(inst, len = long, false), key, left, tempkey);
@@ -2526,6 +2563,16 @@ begin {indsindrx}
   setvalue(index_oprnd(unsigned_offset, keytable[left].oprnd.reg, 0));
 end {indsindrx};
 
+procedure addrx;
+
+begin {addrx}
+  address(left);
+  lock(left);
+  settargetorreg; 
+  unlock(left);
+  genmoveaddress(left, key);
+end {addrx};
+
 procedure loopholefnx;
 
 { Generate code for a loophole function.  This actually generates code
@@ -3000,7 +3047,9 @@ procedure codeselect;
       createtrue: createtruex;
       createtemp: createtempx;
       jointemp: jointempx;
+}
       addr: addrx;
+{
       setinsert: setinsertx;
       inset: insetx;
 }

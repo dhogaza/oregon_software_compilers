@@ -11,15 +11,7 @@
   Oregon Software does not apply to user-modified programs.  All copies 
   of this program must display this notice and all copyright notices. 
 
-
-  Release version: 0045  Level: 1
-  Processor: ~processor~
-  System: ~system~
-  Flavor: ~flavor~
-  MC68000 common code generator definitions.
- Last modified by KRIS on 21-Nov-1990 15:28:33
- Purpose:
-Update release version for PC-VV0-GS0 at 2.3.0.1
+  AArch64 common code generator definitions.
 }
 
 unit hdrc;

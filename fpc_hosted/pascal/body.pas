@@ -1869,6 +1869,37 @@ procedure genparamvalue(p: entryptr; form: types);
      end;
   end {genparamvalue};
 
+procedure genparamaddr(p: entryptr; form: types);
+
+{ Generate pseudoop to push a parameter or move it to the proper
+  register class.  
+}
+
+  var
+    olen: addressrange;
+
+  begin {genparamaddr}
+   if p^.varalloc = normalalloc then
+     genunary(pushaddr, form)
+   else
+     begin
+     genunary(addrop, ptrs);
+     olen := oprndstk[sp].oprndlen;
+     genoprnd;
+     genlit(p^.regid);
+     case p^.varalloc of
+       regparam: genop(regvalue);
+       ptrregparam: genop(ptrregvalue);
+       realregparam: genop(realregvalue);
+       end; 
+     genint(olen);
+     genint(1);
+     genform(form);
+     sp := sp + 1;
+     oprndstk[sp].operandkind := exproperand;
+     end;
+  end {genparamaddr};
+
 procedure foldintplusminus(sign: integer {1 if add, -1 if sub} );
 
 { Fold integer addition or subtraction.  This can be done if both
@@ -4449,8 +4480,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                    (oprndstk[sp].operandkind <> exproperand) then
                   genunary(pushcvalue, resultform);
                 oprndstk[sp].oprndlen := ptrsize;
-{DRB: genparamaddr(p, resultform) }
-                genunary(pushaddr, resultform);
+                genparamaddr(p, resultform);
                 end
               else
                 begin
@@ -4475,8 +4505,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                 if not (p^.univparam or identical(p^.vartype, resulttype)) then
                   warnbefore(paramtypeerr);
                 oprndstk[sp].oprndlen := ptrsize;
-{DRB: genparamaddr(p, resultform) }
-                genunary(pushaddr, resultform);
+                genparamaddr(p, resultform);
                 if token in begexprset then warn(varparamerr);
                 end;
               procparam:
