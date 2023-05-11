@@ -1,0 +1,87 @@
+-- next priorities:
+
+1. reference reg parameters 
+2. function return values
+3. aindxx
+4. simple i/o output for testing purposes (fpc library?)
+5. instantiation of integers to include large numbers.
+6. instantiation of integers as bitmasks
+7. long addresses for global, frame-based, and stack-based addresses.
+
+-- more general
+
+1. if current block makes no calls allocate regtemps to
+   callee-saved registers.
+2. look into registerfunction
+
+
+Advantages of using negative sp offsets when generating code:
+
+1. no need to adjust offsets when growing the stacks, just
+   track the maximum depth of the stack.
+2  can simplify by only deleting unnecessary saves to the stack
+   and ignoring space reclamation (this doesn't depend on 
+   stack offsets being negative).
+3. parameter offsets can be kept positive.
+4. at the end, adjust all negative stack offsets by the maximum
+   depth.  not adjusting param positive offsets keeps them at
+   the top of the stack where they need to be for function
+   calls.
+5. restore stackoffset at restorelabel but keep maxstackoffset
+   untouched of course.
+6. haven't figured out how to reclaim space and don't care much
+   at the moment.
+
+Big integer issues:
+
+1. materializing integers will require some work though the first
+   effort should just be a string of moves to build up the proper
+   length number.
+
+2. materialized integers are most likely not worth preserving as
+   on high-end aarch64 cores mov/movk pairs execute in a single
+   cycle.  Preserving the resulting register is a one instruction
+   win in space but no gain in speed and eats a register that might
+   be useful elsewhere.  Default integers are 32-bit.  64-bit integers
+   take four instructions or two cycles.  Unless they can be
+   generated as bitmasks.
+
+3. big index offsets are a pain.  Most likely preserving them, once
+   calculated, isn't all that worthwhile. 
+
+4. Ignore all of the above until some stuff actually works.
+
+Register parameters:
+
+1. allocated and forced to be a local variable if it is referenced by a
+   nested procedure. Beginning of the procedure body will be passed
+   [gen/fp/ptr]regops which reference a level and offset if they have
+   been forced to memory.
+
+2. If the reg param doesn't need to be converted to a local variable,
+   the code generator will be responsible for saving on the stack like
+   any other expression that lands in a reg.  This stack temp will be
+   managed like any other, including deleting the save code and the temp
+   slot if the saved value is never used.  Slick enough.
+
+   This means that any pseudoop which requires an address for the parameter
+   (passed to a var param, operand to ref(), various built-in functions) will
+   have to save the value to its stack temp address, set join flag, and all
+   that.
+
+3. Complications include short structs that are passed in two registers.
+   GCC passes the struct on the stack if there aren't two variables left.
+
+4, Huge complication regarding records with uniform float/double fields that
+   will fit in the parameter registers.
+
+5. r8 is used to pass the pointer to large non-fp return values.
+
+Future enhancements:
+
+1. vectorization because that was something I always wanted to do ...
+
+Peephold needs:
+
+Two register loads from consecutive memory address converted to
+ldp insruction.
