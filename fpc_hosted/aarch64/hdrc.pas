@@ -45,6 +45,7 @@ const
   short = 2;
   word = 4;
   long = 8;
+  quad = 16;
 
   { front end puts out labels greater than zero }
   bsslabel = 0;

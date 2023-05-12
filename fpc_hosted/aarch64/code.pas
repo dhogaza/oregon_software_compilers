@@ -1681,7 +1681,7 @@ procedure gensimplemove(src, dst: keyindex);
     if not equivaddr(dst, src) then
       if (keytable[dst].oprnd.mode = register) and
          ((keytable[src].oprnd.mode = register) or
-          (keytable[src].oprnd.mode = immediate))  then
+          (keytable[src].oprnd.mode in [immediate, immediate16]))  then
         gen2(buildinst(mov, true, false), dst, src)
       else if keytable[dst].oprnd.mode = register then
         gen2(ldrinst(keytable[src].len, keytable[src].signed), dst, src)
@@ -2309,7 +2309,9 @@ procedure putblock;
     sptemp := tempkey;
     settemp(long, reg_oprnd(fp));
     fptemp := tempkey;
-    settemp(long, immediate_oprnd(long * 2 + blksize + regcost + maxstackoffset, false));
+    blockcost := blksize + regcost + maxstackoffset;
+    blockcost := (blockcost + (2 * long - 1)) and - (2 * long);
+    settemp(long, immediate_oprnd(long * 2 + blockcost, false));
     spadjusttemp := tempkey;
     settemp(long, index_oprnd(unsigned_offset, sp, regcost + maxstackoffset));
     spoffsettemp := tempkey;
