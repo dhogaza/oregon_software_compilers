@@ -307,6 +307,7 @@ type
   reg_extends = (xtb, xth, xtw, xtx);
   reg_shifts = (lsl, lsr, asr);
 
+  imm2 = 0..3;
   imm3 = 0..7;
   imm6 = 0..63;
   imm12 = 0..4095;
@@ -314,20 +315,19 @@ type
 
   oprndtype = packed record
     reg: regindex;
-    regtype: regtypes;
     reg2: regindex; {extra register if indexed & bitindexed}
     case mode: oprnd_modes of
       shift_reg: (reg_shift: reg_shifts;
                   shift_amount: imm6);
       extend_reg: (reg_extend: reg_extends;
-                   extend_amount: imm3;
+                   extend_shift: imm3;
                    extend_signed: boolean); 
       immediate: (imm_value: imm12;
                   imm_shift: boolean);
       immediate16: (imm16_value: imm16;
                   imm16_shift: 0..48);
       pre_index, post_index, signed_offset, unsigned_offset: (index: integer);
-      reg_offset: (shift: boolean; extend: reg_extends; signed: boolean);
+      reg_offset: (shift: imm2; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
       labeltarget: (labelno: unsigned; lowbits: boolean);
       proccall: (proclabelno: unsigned; entry_offset: integer);

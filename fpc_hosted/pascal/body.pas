@@ -1894,7 +1894,7 @@ procedure genparamaddr(p: entryptr; form: types);
        end; 
      genint(olen);
      genint(1);
-     genform(form);
+     genform(ptrs);
      sp := sp + 1;
      oprndstk[sp].operandkind := exproperand;
      end;

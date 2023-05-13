@@ -22,7 +22,6 @@ reg_prefix: array[boolean] of char;
 signed_prefix: array[boolean] of char;
 reg_extends_text: array[reg_extends] of packed array [1..3] of char;
 reg_shifts_text: array[reg_shifts] of packed array [1..3] of char;
-reg_offset_shifts: array [boolean] of 2..3;
 
 
 { Since this doesn't have to run on a tiny 'ole computer like the
@@ -326,7 +325,7 @@ begin
     begin
       write_reg(o.reg, sf);
       write(macfile, ', ', signed_prefix[o.extend_signed], reg_extends_text[o.reg_extend],
-            ' ', o.extend_amount);
+            ' ', o.extend_shift);
     end;
     immediate16:
     begin
@@ -367,14 +366,14 @@ begin
       write_reg(o.reg, true);
       write(macfile, ', ');
       write_reg(o.reg2, o.extend = xtx);
-      if (o.extend = xtx) and not o.signed and o.shift then
-        write(macfile, ', ', reg_shifts_text[lsl], ' ', reg_offset_shifts[sf])
+      if (o.extend = xtx) and not o.signed and (o.shift <> 0) then
+        write(macfile, ', ', reg_shifts_text[lsl], ' ', o.shift)
       else if o.signed or (o.extend <> xtx) then
         begin
         write(macfile, ', ', signed_prefix[o.signed],
               reg_extends_text[o.extend]);
-        if o.shift then
-          write(macfile, ' ', reg_offset_shifts[sf]);
+        if (o.shift <> 0) then
+          write(macfile, ' ', o.shift);
         end;
       write(macfile, ']');
       end;
@@ -447,7 +446,6 @@ end {write_node};
 procedure initmac;
 
 begin
-  reg_offset_shifts[false] := 2; reg_offset_shifts[true] := 3;
   reg_prefix[false] := 'w'; reg_prefix[true] := 'x';
   signed_prefix[false] := 'u'; signed_prefix[true] := 's';
 

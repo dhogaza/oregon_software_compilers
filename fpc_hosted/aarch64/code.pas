@@ -14,6 +14,22 @@ procedure exitcode;
 
 implementation
 
+function bits(i: unsigned): integer;
+
+{ return the number of bits in i }
+
+var b: integer;
+
+begin {bits}
+  b := -1;
+  while i <> 0 do
+    begin
+    b := b + 1;
+    i := i div 2;
+    end;
+  bits := b;
+end {bits};
+
 procedure settemp(l: unsigned; o: oprndtype);
 
 { Set up a temporary key entry with the characteristics specified.  This has
@@ -161,7 +177,7 @@ function shift_reg_oprnd(reg: regindex; reg_shift: reg_shifts;
     shift_reg_oprnd := o;
   end;
 
-function extend_reg_oprnd(reg: regindex; reg_extend: reg_extends; extend_amount: imm3;
+function extend_reg_oprnd(reg: regindex; reg_extend: reg_extends; extend_shift: imm3;
                           extend_signed: boolean): oprndtype;
 
   var
@@ -171,7 +187,7 @@ function extend_reg_oprnd(reg: regindex; reg_extend: reg_extends; extend_amount:
     o.reg := reg;
     o.reg2 := noreg;
     o.reg_extend := reg_extend;
-    o.extend_amount := extend_amount;
+    o.extend_shift := extend_shift;
     o.extend_signed := extend_signed;
     extend_reg_oprnd := o;
   end;
@@ -188,7 +204,7 @@ function index_oprnd(mode: oprnd_modes; reg: regindex; index: integer): oprndtyp
     index_oprnd := o;
   end;
 
-function reg_offset_oprnd(reg, reg2: regindex; shift: boolean;
+function reg_offset_oprnd(reg, reg2: regindex; shift: imm2;
                           extend: reg_extends; signed: boolean): oprndtype;
 
   var
@@ -614,7 +630,7 @@ procedure adjustregcount(k: keyindex; {operand to adjust}
           signed_offset, unsigned_offset:
             if regvalid then
               registers[reg] := registers[reg] + delta;
-          reg_offset:
+          reg_offset, tworeg:
             begin
             if regvalid then
               registers[reg] := registers[reg] + delta;
@@ -1657,7 +1673,7 @@ function equivaddr(l, r: keyindex): boolean;
         shift_reg: same := (reg_shift = oprnd.reg_shift) and
                           (shift_amount = oprnd.shift_amount);
         extend_reg: same := (reg_extend = oprnd.reg_extend) and
-                            (extend_amount = oprnd.extend_amount) and
+                            (extend_shift = oprnd.extend_shift) and
                             (extend_signed = oprnd.extend_signed);
          pre_index, post_index, signed_offset, unsigned_offset:
            same := (index = oprnd.index);
@@ -1727,7 +1743,14 @@ function genmoveaddress(src, dst: keyindex): keyindex;
         settemp(long, immediate_oprnd(index, false));
         gen3(buildinst(add, true, false), dst, tempkey + 1, tempkey);
         tempkey := tempkey + 2;
-        end
+        end;
+      reg_offset:
+        begin
+        settemp(long, reg_oprnd(reg));
+        settemp(long, extend_reg_oprnd(reg2, extend, shift, signed));
+        gen3(buildinst(add, true, false), dst, tempkey + 1, tempkey);
+        tempkey := tempkey + 2;
+        end;
       otherwise
         begin
         write('bad operand in genmoveaddress ');
@@ -2506,7 +2529,7 @@ procedure movlitintx;
   begin
     addresstarget(left);
     setallfields(left);
-    settemp(len, immediate16_oprnd(right, 0));
+    settemp(len, immediate_oprnd(right, false));
     gensimplemove(tempkey, left); 
   end;
 
@@ -2524,7 +2547,7 @@ end {regparamx};
 
 procedure indxx;
 
-{ Index the pointer reference in oprnds[1] (left) by the constant offset
+{ Index the address reference in oprnds[1] (left) by the constant offset
   in oprnds[2].  The result ends up in "key".
 }
 
@@ -2559,21 +2582,70 @@ procedure indxx;
 
 procedure indxindrx;
 
-begin {indsindrx}
-  address(left);
-  loadreg(left);
-  setvalue(index_oprnd(unsigned_offset, keytable[left].oprnd.reg, 0));
-end {indsindrx};
+{ Indirect reference operator
+}
+
+  begin {indxindrx}
+    address(left);
+    loadreg(left);
+    setvalue(index_oprnd(unsigned_offset, keytable[left].oprnd.reg, 0));
+  end {indxindrx};
+
+procedure aindxx;
+
+{ Generate code for an array access.  Oprnds[1] is the base address
+  of the array and oprnds[2] is the index expression.  The index expression
+  is adjusted by earlier passes for any offset changes due to the range
+  check algorithm.  The result is a pointer to the array element.  The length
+  field is the scale factor.
+}
+
+  var
+    extend: reg_extends;
+
+  begin {aindxx}
+    addressboth;
+    lock(left);
+{    with keytable[right] do
+      if not packedaccess and not signed and (len = word) then
+        unpack(right, long)
+      else unpack(right, word);
+}
+
+    if keytable[right].oprnd.mode <> register then
+      begin
+      settemp(keytable[right].len, reg_oprnd(getreg));
+      gensimplemove(right, tempkey);
+      changevalue(right, tempkey);
+      end;
+
+    unlock(left);
+    lock(right);
+    settemp(long, reg_oprnd(getreg));
+    genmoveaddress(left, tempkey);
+    unlock(right);
+    case keytable[right].len of
+      1: extend := xtb;
+      2: extend := xth;
+      4: extend := xtw;
+      8: extend := xtx;
+      otherwise compilerabort(inconsistent);
+    end;
+    setvalue(reg_offset_oprnd(keytable[tempkey].oprnd.reg, keytable[right].oprnd.reg, bits(len),
+                          extend, keytable[right].signed));                         
+    keytable[key].len := long; {The front end changed the length because of
+                                index scaling}
+  end {aindxx} ;
 
 procedure addrx;
 
-begin {addrx}
-  address(left);
-  lock(left);
-  settargetorreg; 
-  unlock(left);
-  genmoveaddress(left, key);
-end {addrx};
+  begin {addrx}
+    address(left);
+    lock(left);
+    settargetorreg; 
+    unlock(left);
+    genmoveaddress(left, key);
+  end {addrx};
 
 procedure loopholefnx;
 
@@ -3041,8 +3113,8 @@ procedure codeselect;
 }
       indxindr: indxindrx;
       indx: indxx;
-{
       aindx: aindxx;
+{
       pindx: pindxx;
       paindx: paindxx;
       createfalse: createfalsex;
