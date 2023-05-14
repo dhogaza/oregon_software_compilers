@@ -1,12 +1,10 @@
 -- next priorities:
 
-1. reference reg parameters 
+1. enter and restore loop code
 2. function return values
-3. aindxx
-4. simple i/o output for testing purposes (fpc library?)
 5. instantiation of integers to include large numbers.
 6. instantiation of integers as bitmasks
-7. long addresses for global, frame-based, and stack-based addresses.
+7. long address index values
 8. REVERSE STACK PARAM PUSHES
 
 -- more general

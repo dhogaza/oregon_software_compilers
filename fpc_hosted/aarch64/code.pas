@@ -1336,9 +1336,13 @@ procedure savekey(k: keyindex {operand to save} );
      if dontchangevalue <= 0 then
       begin
       for i := context[contextsp].keymark to lastkey do
-      with keytable[i] do
-        if (refcount > 0) and not (regsaved and reg2saved)
-        then savekey(i);
+{
+        with keytable[i] do
+          if (refcount > 0) and not (regsaved and reg2saved)
+          then savekey(i);
+}
+        if keytable[i].refcount > 0 then
+          savekey(i);
       end;
     end {saveactivekeys} ;
 
@@ -2618,12 +2622,22 @@ procedure aindxx;
       gensimplemove(right, tempkey);
       changevalue(right, tempkey);
       end;
-
     unlock(left);
-    lock(right);
-    settemp(long, reg_oprnd(getreg));
-    genmoveaddress(left, tempkey);
-    unlock(right);
+ 
+    { A register indexed by zero will happen whenever an array is passed
+      by reference.
+    }
+    if (keytable[left].oprnd.mode in [signed_offset, unsigned_offset]) and
+      (keytable[left].oprnd.index = 0) then
+      settemp(long, reg_oprnd(keytable[left].oprnd.reg))
+    else
+      begin
+      lock(right);
+      settemp(long, reg_oprnd(getreg));
+      genmoveaddress(left, tempkey);
+      unlock(right);
+      end;
+
     case keytable[right].len of
       1: extend := xtb;
       2: extend := xth;
@@ -2631,6 +2645,7 @@ procedure aindxx;
       8: extend := xtx;
       otherwise compilerabort(inconsistent);
     end;
+
     setvalue(reg_offset_oprnd(keytable[tempkey].oprnd.reg, keytable[right].oprnd.reg, bits(len),
                           extend, keytable[right].signed));                         
     keytable[key].len := long; {The front end changed the length because of
