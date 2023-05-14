@@ -1742,12 +1742,15 @@ function genmoveaddress(src, dst: keyindex): keyindex;
     with keytable[src].oprnd do
       case mode of
       signed_offset, unsigned_offset:
-        begin
-        settemp(long, reg_oprnd(reg));
-        settemp(long, immediate_oprnd(index, false));
-        gen3(buildinst(add, true, false), dst, tempkey + 1, tempkey);
-        tempkey := tempkey + 2;
-        end;
+        if (keytable[dst].oprnd.mode <> register) or
+           (keytable[dst].oprnd.reg <> reg) or
+           (index <> 0) then
+          begin
+          settemp(long, reg_oprnd(reg));
+          settemp(long, immediate_oprnd(index, false));
+          gen3(buildinst(add, true, false), dst, tempkey + 1, tempkey);
+          tempkey := tempkey + 2;
+          end;
       reg_offset:
         begin
         settemp(long, reg_oprnd(reg));
@@ -2566,14 +2569,23 @@ procedure indxx;
       begin
       address(left);
 
-      { ONLY works for gp, fp, sl at the moment!}
-      if keytable[left].oprnd.mode in [signed_offset, unsigned_offset] then
-        begin
-        setkeyvalue(left);
-        keytable[key].len := long; {unnecessary?}
-        with keytable[key].oprnd do
-          index := index + right;
-        end
+{ DRB this doesn't really work as we don't check for oprnd alignment,
+  the range of the index, etc etc.  Good enough for preliminary testing.
+}
+      case keytable[left].oprnd.mode of
+        reg_offset:
+          begin
+          settemp(long, reg_oprnd(getreg));
+          genmoveaddress(left, tempkey);
+          setvalue(index_oprnd(signed_offset, keytable[tempkey].oprnd.reg, right));
+          end;
+        signed_offset, unsigned_offset:
+          begin
+          setkeyvalue(left);
+          keytable[key].len := long; {unnecessary?}
+          keytable[key].oprnd.index := keytable[key].oprnd.index + right;
+          end
+      end
 {
     eventually needs to work with the results of aindx and also register
     params the contain short records.

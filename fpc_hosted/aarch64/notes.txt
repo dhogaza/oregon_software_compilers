@@ -1,10 +1,12 @@
 -- next priorities:
 
+0. madd for array indexes - look at refcount/copycounts and kludge
+   if following pseudoop is aindx or ... ?
 1. enter and restore loop code
 2. function return values
 5. instantiation of integers to include large numbers.
 6. instantiation of integers as bitmasks
-7. long address index values
+7. long address index values, consider alignment
 8. REVERSE STACK PARAM PUSHES
 
 -- more general
