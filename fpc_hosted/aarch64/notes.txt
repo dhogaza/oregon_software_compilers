@@ -1,7 +1,7 @@
 -- next priorities:
 
-0. madd for array indexes - look at refcount/copycounts and kludge
-   if following pseudoop is aindx or ... ?
+0. fix unique ID of varops built on regparams for proper
+   clobbering INCLUDING cse tracking in proc call stuff.
 1. enter and restore loop code
 2. function return values
 5. instantiation of integers to include large numbers.
@@ -54,35 +54,25 @@ Big integer issues:
 
 Register parameters:
 
-1. allocated and forced to be a local variable if it is referenced by a
-   nested procedure. Beginning of the procedure body will be passed
-   [gen/fp/ptr]regops which reference a level and offset if they have
-   been forced to memory.
-
-2. If the reg param doesn't need to be converted to a local variable,
-   the code generator will be responsible for saving on the stack like
-   any other expression that lands in a reg.  This stack temp will be
-   managed like any other, including deleting the save code and the temp
-   slot if the saved value is never used.  Slick enough.
-
-   This means that any pseudoop which requires an address for the parameter
-   (passed to a var param, operand to ref(), various built-in functions) will
-   have to save the value to its stack temp address, set join flag, and all
-   that.
-
-3. Complications include short structs that are passed in two registers.
+1. Complications include short structs that are passed in two registers.
    GCC passes the struct on the stack if there aren't two variables left.
 
-4, Huge complication regarding records with uniform float/double fields that
+2, Huge complication regarding records with uniform float/double fields that
    will fit in the parameter registers.
 
-5. r8 is used to pass the pointer to large non-fp return values.
+3. r8 is used to pass the pointer to large non-fp return values.
 
-Future enhancements:
+Future enhancements to improve:
 
+1. This will require new pseudoops with some way to pass the add/sub
+   operand along with the normal left/right ones, preferably without
+   losing targeting.
+   a) combine multiply followed by add or subtract into MADD/MSUB
+   b) combine multiply followed by aindx with length of 1 (no scaling)
+      into addrop+MADD/MSUB.
 1. vectorization because that was something I always wanted to do ...
 
-Peephold needs:
+Peephole needs:
 
-Two register loads from consecutive memory address converted to
-ldp insruction.
+1. Two register loads from consecutive memory address converted to
+   ldp insruction.
