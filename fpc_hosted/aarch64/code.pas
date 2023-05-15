@@ -1847,7 +1847,11 @@ procedure integerarithmetic(inst: insts {simple integer inst} );
     loadreg(left);
     lock(left);
     if (inst = mul) or (keytable[right].oprnd.mode <> immediate) then
+      begin
+      unlock(right);
       loadreg(right);
+      lock(right);
+      end;
     gen3(buildinst(inst, len = long, false), key, left, right);
     unlock(left);
     unlock(right);
@@ -2647,6 +2651,8 @@ procedure aindxx;
       lock(right);
       settemp(long, reg_oprnd(getreg));
       genmoveaddress(left, tempkey);
+      settemp(long, index_oprnd(unsigned_offset, keytable[tempkey].oprnd.reg, 0));
+      changevalue(left, tempkey);
       unlock(right);
       end;
 

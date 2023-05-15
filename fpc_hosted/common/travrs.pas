@@ -2746,6 +2746,7 @@ procedure build;
             if bigcompilerversion then p := @(bignodetable[nindex]);
             equal := p^.valid and (n.op = p^.op) and (n.form = p^.form) and
                      (n.len = p^.len);
+
             if equal then
               case language of
                 pascal, modula2:
@@ -3645,6 +3646,7 @@ procedure build;
                   if bigcompilerversion then ptr := @(bignodetable[nindex]);
                   with ptr^ do
                     begin
+{ DRB: regparams??? }
                     if (oprnds[1] >= l) and (oprnds[1] <= u) and
                        ((oprnds[1] > 1) or (language = c) or
                        (oprnds[2] >= cseregiontable[cr, ownvar].low) and
