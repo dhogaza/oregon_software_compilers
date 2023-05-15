@@ -18,9 +18,6 @@
       to the allocated space with specially allocated keys based on the
       level pseudoop?
 
-   -- one clobber procedure in travrs appears to improperly ignore the
-      third oprnd of a var node.
-
 1. enter and restore loop code
 2. function return values
 5. instantiation of integers to include large numbers.
