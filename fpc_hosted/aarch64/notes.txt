@@ -1,13 +1,35 @@
 -- next priorities:
 
-0. fix unique ID of varops built on regparams for proper
+0. Fix unique ID of varops built on regparams for proper
    clobbering INCLUDING cse tracking in proc call stuff.
+
+   The easiest way to do this is to pass the local variable
+   offset of the register param in the varop to travrs
+   rather than the constpart computed by selection and all
+   this.  This implies that records and arrays must always
+   be saved to memory if they are passed in registers.
+
+   A bit trickier would be to add the constpart to the 
+   assigned offset for the varop offset field, or to 
+   subtract the signed offset from the constpart when 
+   emitting lastindex.  This preserves the possibility
+   of keeping small structured values in a regparam
+   and breaking up the parts in the generated code.
+
 1. enter and restore loop code
 2. function return values
 5. instantiation of integers to include large numbers.
 6. instantiation of integers as bitmasks
 7. long address index values, consider alignment
 8. REVERSE STACK PARAM PUSHES
+9. lots of sign extension and the like issues going from
+   variables to Xn parameter regs and how they're used
+   inside procedures to sort out.  Bookkeeping.  Will
+   make code worse.  This probably mostly impacts array
+   indexing by word-length values.  The mul followed by
+   add or reg offset mode works because the third operand
+   can be extended.  madd won't work with 32-bit integers
+   and a 64-bit address base.
 
 -- more general
 

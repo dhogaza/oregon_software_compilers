@@ -2997,15 +2997,9 @@ begin {regparams}
         begin
         debugstmt(simple, 0, 0, 0);
         intstate := opstate;
-        if p^.regparamaddressable then
-          getlevel(level, true)
-        else
-          begin
-          genlit(0);
-          pushdummy;
-          end;
+        getlevel(level, true);
         genlit(p^.offset);
-        genlit(p^.regid);
+        genlit(p^.regid + ord(p^.regparamaddressable) * 256);
         case p^.varalloc of
           regparam: genunary(regparamop, ints);
           ptrregparam: genunary(ptrregparamop, ints);
@@ -3651,6 +3645,7 @@ procedure statement(follow: tokenset {legal following symbols} );
               else
                 begin {not within a with}
                 constpart := offset;
+                off := offset;
                 if (varlev = level) then
                   begin {local variable}
                   if not (varalloc in [usealloc, definealloc, sharedalloc]) and
@@ -3664,6 +3659,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                   if (varlev > 1) then
                     begin
                     proctable[display[level].blockref].intlevelrefs := true;
+{ not changing off in this case might break cses? }
                     if (varlev > 2) and (varalloc <> absolute) then
                       constpart := constpart + staticlinkoffset;
                     end;
@@ -3740,10 +3736,12 @@ procedure statement(follow: tokenset {legal following symbols} );
                      (varalloc in [regparam, ptrregparam, realregparam]) and
                      not regparamaddressable then
                     begin
-                    pushdummy;
-                    genlit(0);
-                    genlit(0);
-                    genlit(regid);
+                    getlevel(varlev,
+                             namekind in
+                             [param, varparam, funcparam, procparam, confparam,
+                              varconfparam, boundid]);
+                    genlit(offset);
+                    genlit(regid + ord(regparamaddressable) * 256);
                     case varalloc of
                       regparam: genunary(regparamop, ints);
                       ptrregparam: genunary(ptrregparamop, ints);
@@ -3757,7 +3755,6 @@ procedure statement(follow: tokenset {legal following symbols} );
                              [param, varparam, funcparam, procparam, confparam,
                               varconfparam, boundid]);
                 len := sizeof(resultptr, unpacking);
-                off := constpart;
 
                 { This fixes a 68k problem where a small packed array (of
                   boolean for instance) when moved as a unit, is moved to

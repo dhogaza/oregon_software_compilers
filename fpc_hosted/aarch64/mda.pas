@@ -253,13 +253,7 @@ procedure makeregparamaddressable(varlev: levelindex; varptr: entryptr);
 }
 
 begin
-  if (varptr^.varalloc <> normalalloc) and not varptr^.regparamaddressable then
-    with display[varlev] do
-      begin
-      varptr^.regparamaddressable := true;
-      varptr^.offset := blocksize;
-      blocksize := blocksize + forcealign(varptr^.length, stackalign, false);
-      end;
+  varptr^.regparamaddressable := true;
 end;
 
 procedure fixupparamoffsets(endofdefs: boolean {last chance} );
@@ -394,6 +388,8 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.varalloc := realregparam;
       paramptr^.regid := regparams.realregparams;
       paramptr^.regcount := 1;
+      paramptr^.offset := blocksize;
+      blocksize := blocksize + forcealign(paramptr^.length, stackalign, false);
       regparams.realregparams := regparams.realregparams + 1;
       end
     else if (paramptr^.length <= ptrsize) and (regparams.regparams < maxregparams) then
@@ -401,6 +397,8 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.varalloc := regparam;
       paramptr^.regid := regparams.regparams;
       paramptr^.regcount := 1;
+      paramptr^.offset := blocksize;
+      blocksize := blocksize + forcealign(paramptr^.length, stackalign, false);
       regparams.regparams := regparams.regparams + 1;
 
       { If we allow structured types and sets to be left in registers, then
@@ -410,11 +408,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       }
       if (typeptr^.typ in [sets, fields, arrays, strings, conformantarrays]) and
          not paramptr^.refparam  then
-        begin
         paramptr^.regparamaddressable := true;
-        paramptr^.offset := blocksize;
-        blocksize := blocksize + forcealign(paramptr^.length, stackalign, false);
-        end;
 
       end
     else

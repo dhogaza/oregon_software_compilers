@@ -2547,12 +2547,14 @@ procedure movlitintx;
 procedure regparamx;
 
 begin {regparamx}
-  setvalue(reg_oprnd(target));
-  if left <> 0 then
+  setvalue(reg_oprnd(target mod 256));
+  if target div 256 <> 0 then
     begin
     address(left);
-    gensimplemove(key, left);
-    setkeyvalue(left);
+    settemp(long, index_oprnd(unsigned_offset, keytable[left].oprnd.reg,
+            keytable[left].oprnd.index + right));
+    gensimplemove(key, tempkey);
+    setkeyvalue(tempkey);
     end;
 end {regparamx};
 
