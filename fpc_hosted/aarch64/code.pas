@@ -1105,49 +1105,54 @@ function savereg(r: regindex {register to save}) : keyindex;
   var
     i: keyindex; {induction var used to search keytable}
     found: boolean; {set true when we find an existing saved copy}
-    stackkey: keyindex; {where we will save it if we must}
+    saved: boolean; {true if we don't need to save it}
+    savekey: keyindex; {where we will save it if we must}
     p: nodeptr;
 
   begin {savereg}
     i := lastkey;
     found := false;
+    saved := false;
 
     with context[contextsp] do
       while not found and (i >= keymark) do
         begin
         with keytable[i], oprnd do
           if (access = valueaccess) and (refcount > 0) then
-            if (r = reg) and regvalid and regsaved and
-               keytable[properreg].validtemp and
+            if (r = reg) and regvalid and keytable[properreg].validtemp and
                ((properreg >= stackcounter) or (properreg <= lastkey)) then
               begin
               found := true;
-              savereg := properreg;
+              savekey := properreg;
+              saved := regsaved;
               end
-            else if (r = reg2) and reg2valid and reg2saved and
+            else if (r = reg2) and reg2valid and
                keytable[properreg2].validtemp and
                ((properreg2 >= stackcounter) or (properreg2 <= lastkey)) then
               begin
               found := true;
-              savereg := properreg2;
+              savekey := properreg2;
+              saved := reg2saved;
               end;
         i := i - 1;
         end;
-    if not found then
+
+    if not saved then
       begin
-      stackkey := stacktemp(long);
+      if not found then
+        savekey := stacktemp(long);
       settemp(long, reg_oprnd(r));
       p := newnode(instnode);
-      gen2p(p, buildinst(str, true, false), tempkey, stackkey);
-      keytable[stackkey].first := p;
-      keytable[stackkey].last := lastnode;
+      gen2p(p, buildinst(str, true, false), tempkey, savekey);
+      keytable[savekey].first := p;
+      keytable[savekey].last := lastnode;
 if switcheverplus[test] and (keytable[key].first <> nil) then
 begin
-writeln(macfile, 'stackkey:', stackkey);
-write_nodes(keytable[stackkey].first, keytable[stackkey].last);
+writeln(macfile, 'savekey:', savekey);
+write_nodes(keytable[savekey].first, keytable[savekey].last);
 end;
-      savereg := stackkey;
       end;
+    savereg := savekey;
   end {savereg} ;
 
 procedure markreg(r: regindex {register to clobber} );
@@ -1191,12 +1196,12 @@ procedure markreg(r: regindex {register to clobber} );
                 begin
                 if not regsaved and (refcount > 0) then
                   begin
-                  regsaved := true;
                   if not saved then
                     begin
                     savedreg := savereg(r);
                     saved := true;
                     end;
+                  regsaved := true;
                   properreg := savedreg;
                   keytable[savedreg].refcount := keytable[savedreg].refcount +
                                                  refcount
@@ -1211,12 +1216,12 @@ procedure markreg(r: regindex {register to clobber} );
                 begin
                 if not reg2saved and (refcount > 0) then
                   begin
-                  reg2saved := true;
                   if not saved then
                     begin
                     savedreg := savereg(r);
                     saved := true;
                     end;
+                  reg2saved := true;
                   properreg2 := savedreg;
                   keytable[savedreg].refcount := keytable[savedreg].refcount +
                                                  refcount
