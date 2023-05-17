@@ -6,9 +6,9 @@ var a: integer;
 procedure P(i:integer); nonpascal;
 procedure pp(k:integer; var l:integer);
 begin
-  l := k;
+{  l := k;
   k := k + 1;
-  a := a + 1;
+  a := a + 1;}
   a := k * 3;
   P(k);
   a := k + 2;

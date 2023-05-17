@@ -30,19 +30,13 @@ begin {bits}
   bits := b;
 end {bits};
 
-procedure settemp(l: unsigned; o: oprndtype);
+procedure setkeyentry(k: keyindex; l:unsigned; o: oprndtype);
 
-{ Set up a temporary key entry with the characteristics specified.  This has
-  nothing to do with runtime temp administration.  It strictly sets up a key
-  entry.  Negative key values are used for these temp entries, and they are
-  basically administered as a stack using "tempkey" as the stack pointer.
+{ Set up an arbitrary key entry with the given operand.
 }
 
-
-  begin {settemp}
-    if tempkey = lowesttemp then compilerabort(interntemp);
-    tempkey := tempkey - 1;
-    with keytable[tempkey] do
+  begin {setkeyentry}
+    with keytable[k] do
       begin
       len := l;
       refcount := 0;
@@ -61,6 +55,21 @@ procedure settemp(l: unsigned; o: oprndtype);
       signlimit := 0;
       oprnd := o;
       end;
+  end {setkeyentry};
+
+procedure settemp(l: unsigned; o: oprndtype);
+
+{ Set up a temporary key entry with the given operand.  This has
+  nothing to do with runtime temp administration.  It strictly sets up a key
+  entry.  Negative key values are used for these temp entries, and they are
+  basically administered as a stack using "tempkey" as the stack pointer.
+}
+
+
+  begin {settemp}
+    if tempkey = lowesttemp then compilerabort(interntemp);
+    tempkey := tempkey - 1;
+    setkeyentry(tempkey, l, o);
   end {settemp} ;
 
 
@@ -937,9 +946,9 @@ var
 
 begin
   K := stackcounter;
-  while k < keysize do
+  while k < stackbase do
     begin
-    while (k < keysize) and not uselesstemp(k) do
+    while (k < stackbase) and not uselesstemp(k) do
       k := k + 1;
     len := 0;
     k1 := k;
@@ -997,7 +1006,7 @@ function besttemp(size: addressrange): keyindex;
   begin {besttemp}
     size := (size + (stackalign - 1)) and - stackalign;
     bestsize := maxaddr;
-    k := keysize;
+    k := stackbase;
     besttemp := 0;
 
     while (k >= stackcounter) and (bestsize > size) do
@@ -1137,7 +1146,6 @@ begin
 writeln(macfile, 'stackkey:', stackkey);
 write_nodes(keytable[stackkey].first, keytable[stackkey].last);
 end;
-      tempkey := tempkey + 1;
       savereg := stackkey;
       end;
   end {savereg} ;
@@ -1582,7 +1590,14 @@ procedure initblock;
         end;
 
     {initialize temp allocation vars}
-    stackcounter := keysize;
+
+    {save space in the keytable for the local vars assigned to
+     register parameters, including the one used to pass a pointer
+     to a large function return value.
+    }
+
+    stackbase := keysize - 1 - maxregparams - maxrealregparams;
+    stackcounter := stackbase;
     stackoffset := 0;
     maxstackoffset := 0;
     keytable[stackcounter].oprnd := index_oprnd(unsigned_offset, sp, 0);
@@ -1728,7 +1743,7 @@ procedure gensimplemove(src, dst: keyindex);
         gen2(strinst(keytable[dst].len), src, dst);
   end {gensimplemove} ;
 
-function genmoveaddress(src, dst: keyindex): keyindex;
+procedure genmoveaddress(src, dst: keyindex);
 
 { Move the address of the src value to the destination value,
   which must be a general register.
@@ -1839,6 +1854,57 @@ procedure forcebranch(k: keyindex {operand to test});
 {start of individual pseudoop codegen procedures}
 
 
+procedure shiftintx(backwards: boolean);
+
+{ Shift the operand by the distance given in oprnds[2].
+}
+
+  var
+    shiftfactor: integer; {amount to shift}
+    shiftinst: insts; {either asl, asr, or lsr}
+    knowneven: boolean; {true if result is known to be even.  Left shifts will
+                         always give an even result; we can't tell for right
+                         shifts. }
+
+
+  begin {shiftintx}
+    addressboth;
+    settargetorreg;
+    lock(key);
+    lock(right);
+    loadreg(left);
+    unlock(right);
+{
+    unpackshrink(left, len);
+    lock(left);
+    unpackshrink(right, word);
+    unlock(left);
+}
+    shiftinst := lslinst;
+    if keytable[right].oprnd.mode = immediate then
+      begin
+      shiftfactor := keytable[right].oprnd.imm_value;
+      knowneven := shiftfactor > 0;
+      if shiftfactor < 0 then backwards := not backwards;
+      shiftfactor := abs(shiftfactor);
+      settemp(len, immediate_oprnd(shiftfactor, false));
+      right := tempkey;
+      end
+    else
+      begin
+      lock(left);
+      loadreg(right);
+      unlock(left);
+      end;
+    unlock(key);
+    if backwards then
+      if keytable[left].signed then shiftinst := asrinst
+      else shiftinst := lsrinst;
+    gen3(buildinst(shiftinst, len = long, false), key, left, right);
+    keytable[key].signed := keytable[left].signed;
+  end {shiftintx} ;
+
+
 {shared by add, sub, mul (so far)}
 
 procedure integerarithmetic(inst: insts {simple integer inst} );
@@ -1850,6 +1916,7 @@ procedure integerarithmetic(inst: insts {simple integer inst} );
     {unpkshkboth(len);}
     addressboth;
     settargetorreg;
+    lock(key);
     lock(right);
     loadreg(left);
     lock(left);
@@ -1862,6 +1929,7 @@ procedure integerarithmetic(inst: insts {simple integer inst} );
     gen3(buildinst(inst, len = long, false), key, left, right);
     unlock(left);
     unlock(right);
+    unlock(key);
     keytable[key].signed := signedoprnds;
   end {integerarithmetic} ;
 
@@ -2291,7 +2359,7 @@ procedure putblock;
 
     finalizestackoffsets(firstnode, lastnode, maxstackoffset);
 
-    while stackcounter < keysize do
+    while stackcounter < stackbase do
       begin
       if keytable[stackcounter].refcount > 0 then
         begin
@@ -2300,7 +2368,7 @@ procedure putblock;
         end;
       stackcounter := stackcounter + 1;
       end;
-    if stackcounter < keysize then
+    if stackcounter < stackbase then
       compilerabort(undeltemps);
 
     { eventually peephole optimizations happen now }
@@ -2553,15 +2621,24 @@ procedure movlitintx;
 
 procedure regparamx;
 
+var o: oprndtype;
+
 begin {regparamx}
   setvalue(reg_oprnd(target mod 256));
+  address(left);
+  o := index_oprnd(unsigned_offset, keytable[left].oprnd.reg,
+                   keytable[left].oprnd.index + right);
   if target div 256 <> 0 then
     begin
-    address(left);
-    settemp(long, index_oprnd(unsigned_offset, keytable[left].oprnd.reg,
-            keytable[left].oprnd.index + right));
+    settemp(long, o);
     gensimplemove(key, tempkey);
     setkeyvalue(tempkey);
+    end
+  else
+    begin
+    setkeyentry(keysize - target, long, o);
+    keytable[keysize - target].validtemp := true;
+    keytable[key].properreg := keysize - target;
     end;
 end {regparamx};
 
@@ -3187,9 +3264,9 @@ procedure codeselect;
       divint: divintx;
       getquo: getquox;
       getrem: getremx;
+      shiftlint: shiftintx(false);
+      shiftrint: shiftintx(true);
 {
-      shiftlint: shiftlintx(false);
-      shiftrint: shiftlintx(true);
       negint: unaryintx(neg);
 }
       incint: incdec(add);
@@ -3715,6 +3792,7 @@ procedure initcode;
     if switcheverplus[outputmacro] then initmac;
 
     stackcounter := keysize - 1; {fiddle consistency check}
+    stackbase := keysize - 1;
 
     if peeping then for i := 0 to maxpeephole do peep[i] := 0;
 
