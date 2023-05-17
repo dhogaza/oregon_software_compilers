@@ -916,6 +916,12 @@ function uselesstemp(k: keyindex): boolean;
     uselesstemp := (keytable[k].refcount = 0) and not preceedslastbranch(k);
   end {uselesstemp} ;
 
+procedure deletesave(stackkey: keyindex);
+begin {deletesave}
+  if not switcheverplus[test] then
+    deletenodes(keytable[stackkey].first, keytable[stackkey].last);
+end {deletesave};
+
 procedure consolidatestack;
 
 { Consolidates consecutive useless stack slots into a single slot.  This
@@ -940,6 +946,7 @@ begin
     while uselesstemp(k) do
       begin
       len := len + keytable[k].len;
+      deletesave(k);
       k := k + 1;
       end;
     movecnt := k - k1 - 1;

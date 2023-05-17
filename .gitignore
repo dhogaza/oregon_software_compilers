@@ -3,4 +3,4 @@
 *.sa
 *.ppu
 *.res
-cross/fpc_sources/main
+*.s
