@@ -1,18 +1,24 @@
-program main;
+program test;
+type ar = array[1..5] of integer;
+const arc = ar(16#10203040,16#22334455,3,4,5);
+var a: ar;
+    i,j: 1..10;
+    k: integer;
+    l: set of char;
 
-procedure f;
-var i,j: integer;
+procedure phooey;
+ var j:integer;
+ procedure p1;
 
-  procedure ff;
-  begin i := 3; end;
+   procedure p2;
+   begin j := 0; p1  end;
+
+ begin p2; end;
+
+begin p1; end;
 
 begin
-  j := 3;
-  i := i * j;
-  ff;
-  i := i * j;
-end;
-
-begin end.
-
-  
+a := arc;
+l := ['a','z','0'];
+writeln('ab');
+end.
