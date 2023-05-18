@@ -1,29 +1,20 @@
 -- next priorities:
-
-0. fix unique ID of varops built on regparams for proper
-   clobbering INCLUDING cse tracking in proc call stuff.
-
-   -- Easiest approach would seem to be to allocate space for
-      all reg params in allocparam, then have the code generator
-      save them when necessary.  We're talking a max of 64 bytes for
-      allocating space for 8 general 8 byte registers, 64 bytes for
-      real/double floating point registers.
-
-   -- Need to encode the flag that forces the regparam to memory with
-      regid, most likely.  For structured values passed in [a] register[s],
-      those accessed by nested procedures, etc.
-
-   -- need to do something about keytables and stack temps, rather than
-      keysize track the true bottom of the stack?  Use properreg pointers
-      to the allocated space with specially allocated keys based on the
-      level pseudoop?
-
+0. delete stores to temps that are unused unless in test mode,
+   and manage stack space.
 1. enter and restore loop code
 2. function return values
 5. instantiation of integers to include large numbers.
 6. instantiation of integers as bitmasks
 7. long address index values, consider alignment
 8. REVERSE STACK PARAM PUSHES
+9. lots of sign extension and the like issues going from
+   variables to Xn parameter regs and how they're used
+   inside procedures to sort out.  Bookkeeping.  Will
+   make code worse.  This probably mostly impacts array
+   indexing by word-length values.  The mul followed by
+   add or reg offset mode works because the third operand
+   can be extended.  madd won't work with 32-bit integers
+   and a 64-bit address base.
 
 -- more general
 

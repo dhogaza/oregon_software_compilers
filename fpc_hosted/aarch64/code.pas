@@ -30,19 +30,13 @@ begin {bits}
   bits := b;
 end {bits};
 
-procedure settemp(l: unsigned; o: oprndtype);
+procedure setkeyentry(k: keyindex; l:unsigned; o: oprndtype);
 
-{ Set up a temporary key entry with the characteristics specified.  This has
-  nothing to do with runtime temp administration.  It strictly sets up a key
-  entry.  Negative key values are used for these temp entries, and they are
-  basically administered as a stack using "tempkey" as the stack pointer.
+{ Set up an arbitrary key entry with the given operand.
 }
 
-
-  begin {settemp}
-    if tempkey = lowesttemp then compilerabort(interntemp);
-    tempkey := tempkey - 1;
-    with keytable[tempkey] do
+  begin {setkeyentry}
+    with keytable[k] do
       begin
       len := l;
       refcount := 0;
@@ -51,7 +45,7 @@ procedure settemp(l: unsigned; o: oprndtype);
       properreg := 0;
       properreg2 := 0;
       access := valueaccess;
-      tempflag := true;
+      tempflag := false;
       regsaved := false;
       reg2saved := false;
       regvalid := true;
@@ -61,6 +55,21 @@ procedure settemp(l: unsigned; o: oprndtype);
       signlimit := 0;
       oprnd := o;
       end;
+  end {setkeyentry};
+
+procedure settemp(l: unsigned; o: oprndtype);
+
+{ Set up a temporary key entry with the given operand.  This has
+  nothing to do with runtime temp administration.  It strictly sets up a key
+  entry.  Negative key values are used for these temp entries, and they are
+  basically administered as a stack using "tempkey" as the stack pointer.
+}
+
+
+  begin {settemp}
+    if tempkey = lowesttemp then compilerabort(interntemp);
+    tempkey := tempkey - 1;
+    setkeyentry(tempkey, l, o);
   end {settemp} ;
 
 
@@ -542,7 +551,7 @@ procedure genbr(inst: insts; labelno: integer);
 procedure deletenodes(first, last: nodeptr);
 
   var
-    p, p1: nodeptr;
+    p, p1, p2: nodeptr;
 
   begin {deletenodes}
 
@@ -556,8 +565,8 @@ procedure deletenodes(first, last: nodeptr);
     else
       last^.nextnode^.prevnode := first^.prevnode;
 
-    p := first;
-    while p <> last^.nextnode do
+    p := first; p2 := last^.nextnode;
+    while p <> p2 do
       begin
       p1 := p^.nextnode;
       dispose(p);
@@ -883,12 +892,12 @@ procedure adjuststackoffsets(firstnode: nodeptr; lastnode: nodeptr;
 
 { Stack temp allocation procedures }
 
-function preceedslastbranch(k: keyindex): boolean;
+function precedeslastbranch(k: keyindex): boolean;
   var
     p: nodeptr;
 
-  begin {preceedslastbranch}
-    preceedslastbranch := false;
+  begin {precedeslastbranch}
+    precedeslastbranch := false;
     if context[contextsp].lastbranch <> nil then
       begin
       p := context[contextsp].lastbranch;
@@ -896,10 +905,9 @@ function preceedslastbranch(k: keyindex): boolean;
         p := p^.nextnode;
       until (p = nil) or
             (p = keytable[k].first);
-      preceedslastbranch := p <> nil;
+      precedeslastbranch := p <> nil;
       end
-  end {preceedslastbranch} ;
-
+  end {precedeslastbranch} ;
 
 function uselesstemp(k: keyindex): boolean;
 
@@ -913,8 +921,14 @@ function uselesstemp(k: keyindex): boolean;
     p, p1: nodeptr;
 
   begin {uselesstemp}
-    uselesstemp := (keytable[k].refcount = 0) and not preceedslastbranch(k);
+    uselesstemp := (keytable[k].refcount = 0) and not precedeslastbranch(k);
   end {uselesstemp} ;
+
+procedure deletesave(stackkey: keyindex);
+begin {deletesave}
+  if not switcheverplus[test] then
+    deletenodes(keytable[stackkey].first, keytable[stackkey].last);
+end {deletesave};
 
 procedure consolidatestack;
 
@@ -931,15 +945,16 @@ var
 
 begin
   K := stackcounter;
-  while k < keysize do
+  while k < stackbase do
     begin
-    while (k < keysize) and not uselesstemp(k) do
+    while (k < stackbase) and not uselesstemp(k) do
       k := k + 1;
     len := 0;
     k1 := k;
     while uselesstemp(k) do
       begin
       len := len + keytable[k].len;
+      deletesave(k);
       k := k + 1;
       end;
     movecnt := k - k1 - 1;
@@ -990,7 +1005,7 @@ function besttemp(size: addressrange): keyindex;
   begin {besttemp}
     size := (size + (stackalign - 1)) and - stackalign;
     bestsize := maxaddr;
-    k := keysize;
+    k := stackbase;
     besttemp := 0;
 
     while (k >= stackcounter) and (bestsize > size) do
@@ -1076,6 +1091,13 @@ function stacktemp(size: addressrange): keyindex;
 
 { Register allocation procedures }
 
+{ Currently registers are always spilled to the stack.  At one point regparams
+  were being assigned local variable space and would be saved there instead,
+  but that turned out to be not necessarily and somewhat wasteful of memory.
+  However we might spill to caller-saved registers in the future and this
+  code should handle that case with the addition of allocation code.
+}
+
 function savereg(r: regindex {register to save}) : keyindex;
 
 { Save the given register on the runtime stack.  This routine is quite clever
@@ -1089,50 +1111,54 @@ function savereg(r: regindex {register to save}) : keyindex;
   var
     i: keyindex; {induction var used to search keytable}
     found: boolean; {set true when we find an existing saved copy}
-    stackkey: keyindex; {where we will save it if we must}
+    saved: boolean; {true if we don't need to save it}
+    savekey: keyindex; {where we will save it if we must}
     p: nodeptr;
 
   begin {savereg}
     i := lastkey;
     found := false;
+    saved := false;
 
     with context[contextsp] do
       while not found and (i >= keymark) do
         begin
         with keytable[i], oprnd do
           if (access = valueaccess) and (refcount > 0) then
-            if (r = reg) and regvalid and regsaved and
-               keytable[properreg].validtemp and
+            if (r = reg) and regvalid and keytable[properreg].validtemp and
                ((properreg >= stackcounter) or (properreg <= lastkey)) then
               begin
               found := true;
-              savereg := properreg;
+              savekey := properreg;
+              saved := regsaved;
               end
-            else if (r = reg2) and reg2valid and reg2saved and
+            else if (r = reg2) and reg2valid and
                keytable[properreg2].validtemp and
                ((properreg2 >= stackcounter) or (properreg2 <= lastkey)) then
               begin
               found := true;
-              savereg := properreg2;
+              savekey := properreg2;
+              saved := reg2saved;
               end;
         i := i - 1;
         end;
-    if not found then
+
+    if not saved then
       begin
-      stackkey := stacktemp(long);
+      if not found then
+        savekey := stacktemp(long);
       settemp(long, reg_oprnd(r));
       p := newnode(instnode);
-      gen2p(p, buildinst(str, true, false), tempkey, stackkey);
-      keytable[stackkey].first := p;
-      keytable[stackkey].last := lastnode;
+      gen2p(p, buildinst(str, true, false), tempkey, savekey);
+      keytable[savekey].first := p;
+      keytable[savekey].last := lastnode;
 if switcheverplus[test] and (keytable[key].first <> nil) then
 begin
-writeln(macfile, 'stackkey:', stackkey);
-write_nodes(keytable[stackkey].first, keytable[stackkey].last);
+writeln(macfile, 'savekey:', savekey);
+write_nodes(keytable[savekey].first, keytable[savekey].last);
 end;
-      tempkey := tempkey + 1;
-      savereg := stackkey;
       end;
+    savereg := savekey;
   end {savereg} ;
 
 procedure markreg(r: regindex {register to clobber} );
@@ -1176,12 +1202,12 @@ procedure markreg(r: regindex {register to clobber} );
                 begin
                 if not regsaved and (refcount > 0) then
                   begin
-                  regsaved := true;
                   if not saved then
                     begin
                     savedreg := savereg(r);
                     saved := true;
                     end;
+                  regsaved := true;
                   properreg := savedreg;
                   keytable[savedreg].refcount := keytable[savedreg].refcount +
                                                  refcount
@@ -1196,12 +1222,12 @@ procedure markreg(r: regindex {register to clobber} );
                 begin
                 if not reg2saved and (refcount > 0) then
                   begin
-                  reg2saved := true;
                   if not saved then
                     begin
                     savedreg := savereg(r);
                     saved := true;
                     end;
+                  reg2saved := true;
                   properreg2 := savedreg;
                   keytable[savedreg].refcount := keytable[savedreg].refcount +
                                                  refcount
@@ -1359,7 +1385,7 @@ procedure allowmodify(var k: keyindex; {operand to be modified}
 
 
   begin
-    if forcecopy or (k >= 0) and preceedslastbranch(k) then
+    if forcecopy or (k >= 0) and precedeslastbranch(k) then
       begin
       if tempkey = lowesttemp then compilerabort(interntemp);
       tempkey := tempkey - 1;
@@ -1574,8 +1600,16 @@ procedure initblock;
         currentswitch := currentswitch + 1;
         end;
 
-    {initialize temp allocation vars}
-    stackcounter := keysize;
+    { initialize stack temp allocation vars
+
+      Pascal-2 code generators traditionally use keysize as the
+      base of the stack, but on this machine we might want to
+      spill to registers or the like so we're using a variable
+      for the stack base to make things more flexible.
+    }
+
+    stackbase := keysize;
+    stackcounter := stackbase;
     stackoffset := 0;
     maxstackoffset := 0;
     keytable[stackcounter].oprnd := index_oprnd(unsigned_offset, sp, 0);
@@ -1721,7 +1755,7 @@ procedure gensimplemove(src, dst: keyindex);
         gen2(strinst(keytable[dst].len), src, dst);
   end {gensimplemove} ;
 
-function genmoveaddress(src, dst: keyindex): keyindex;
+procedure genmoveaddress(src, dst: keyindex);
 
 { Move the address of the src value to the destination value,
   which must be a general register.
@@ -1832,6 +1866,57 @@ procedure forcebranch(k: keyindex {operand to test});
 {start of individual pseudoop codegen procedures}
 
 
+procedure shiftintx(backwards: boolean);
+
+{ Shift the operand by the distance given in oprnds[2].
+}
+
+  var
+    shiftfactor: integer; {amount to shift}
+    shiftinst: insts; {either asl, asr, or lsr}
+    knowneven: boolean; {true if result is known to be even.  Left shifts will
+                         always give an even result; we can't tell for right
+                         shifts. }
+
+
+  begin {shiftintx}
+    addressboth;
+    settargetorreg;
+    lock(key);
+    lock(right);
+    loadreg(left);
+    unlock(right);
+{
+    unpackshrink(left, len);
+    lock(left);
+    unpackshrink(right, word);
+    unlock(left);
+}
+    shiftinst := lslinst;
+    if keytable[right].oprnd.mode = immediate then
+      begin
+      shiftfactor := keytable[right].oprnd.imm_value;
+      knowneven := shiftfactor > 0;
+      if shiftfactor < 0 then backwards := not backwards;
+      shiftfactor := abs(shiftfactor);
+      settemp(len, immediate_oprnd(shiftfactor, false));
+      right := tempkey;
+      end
+    else
+      begin
+      lock(left);
+      loadreg(right);
+      unlock(left);
+      end;
+    unlock(key);
+    if backwards then
+      if keytable[left].signed then shiftinst := asrinst
+      else shiftinst := lsrinst;
+    gen3(buildinst(shiftinst, len = long, false), key, left, right);
+    keytable[key].signed := keytable[left].signed;
+  end {shiftintx} ;
+
+
 {shared by add, sub, mul (so far)}
 
 procedure integerarithmetic(inst: insts {simple integer inst} );
@@ -1843,6 +1928,7 @@ procedure integerarithmetic(inst: insts {simple integer inst} );
     {unpkshkboth(len);}
     addressboth;
     settargetorreg;
+    lock(key);
     lock(right);
     loadreg(left);
     lock(left);
@@ -1855,6 +1941,7 @@ procedure integerarithmetic(inst: insts {simple integer inst} );
     gen3(buildinst(inst, len = long, false), key, left, right);
     unlock(left);
     unlock(right);
+    unlock(key);
     keytable[key].signed := signedoprnds;
   end {integerarithmetic} ;
 
@@ -2284,7 +2371,7 @@ procedure putblock;
 
     finalizestackoffsets(firstnode, lastnode, maxstackoffset);
 
-    while stackcounter < keysize do
+    while stackcounter < stackbase do
       begin
       if keytable[stackcounter].refcount > 0 then
         begin
@@ -2293,7 +2380,7 @@ procedure putblock;
         end;
       stackcounter := stackcounter + 1;
       end;
-    if stackcounter < keysize then
+    if stackcounter < stackbase then
       compilerabort(undeltemps);
 
     { eventually peephole optimizations happen now }
@@ -2546,13 +2633,17 @@ procedure movlitintx;
 
 procedure regparamx;
 
+var o: oprndtype;
+
 begin {regparamx}
   setvalue(reg_oprnd(target));
   if left <> 0 then
     begin
     address(left);
-    gensimplemove(key, left);
-    setkeyvalue(left);
+    with keytable[left].oprnd do
+      settemp(long, index_oprnd(unsigned_offset, reg, index + right));
+    gensimplemove(key, tempkey);
+    setkeyvalue(tempkey);
     end;
 end {regparamx};
 
@@ -2704,6 +2795,12 @@ procedure loopholefnx;
     keytable[key].signed := (pseudoinst.oprnds[2] = 0);
   end; {loopholefnx}
 
+
+procedure makeroomx;
+
+begin {makeroomx}
+  saveactivekeys;
+end {makeroomx};
 
 procedure callroutinex(s: boolean {signed function value} );
 
@@ -3178,9 +3275,9 @@ procedure codeselect;
       divint: divintx;
       getquo: getquox;
       getrem: getremx;
+      shiftlint: shiftintx(false);
+      shiftrint: shiftintx(true);
 {
-      shiftlint: shiftlintx(false);
-      shiftrint: shiftlintx(true);
       negint: unaryintx(neg);
 }
       incint: incdec(add);
@@ -3202,8 +3299,8 @@ procedure codeselect;
       mulset: setarithmetic(andinst, false);
       divset: setarithmetic(eor, false);
       stacktarget: stacktargetx;
-      makeroom: makeroomx;
 }
+      makeroom: makeroomx;
       callroutine: callroutinex(true);
       unscallroutine: callroutinex(false);
 {
@@ -3706,6 +3803,7 @@ procedure initcode;
     if switcheverplus[outputmacro] then initmac;
 
     stackcounter := keysize - 1; {fiddle consistency check}
+    stackbase := keysize - 1;
 
     if peeping then for i := 0 to maxpeephole do peep[i] := 0;
 
