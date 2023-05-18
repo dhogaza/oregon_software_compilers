@@ -19,6 +19,7 @@ begin
   P(l);
   a := k + 2;
   i := 7;
+  j := l;
 end;
 
 begin pp(a, a, a); end.

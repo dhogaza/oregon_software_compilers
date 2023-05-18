@@ -270,6 +270,7 @@ begin
   case i.inst of
     add: write(macfile, 'add');
     adrp: write(macfile, 'adrp');
+    asrinst: write(macfile, 'asr');
     b: write(macfile, 'b');
     beq: write(macfile, 'b.eq');
     bge: write(macfile, 'b.ge');
@@ -292,6 +293,8 @@ begin
     ldrsh: write(macfile, 'ldrsh');
     ldrsw: write(macfile, 'ldrsw');
     ldp: write(macfile, 'ldp');
+    lslinst: write(macfile, 'lsl');
+    lsrinst: write(macfile, 'lsr');
     madd: write(macfile, 'madd');
     mov: write(macfile, 'mov');
     movz: write(macfile, 'movz');

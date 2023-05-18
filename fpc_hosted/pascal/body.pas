@@ -3620,6 +3620,11 @@ procedure statement(follow: tokenset {legal following symbols} );
               begin
               var_is_valid := (namekind in [param, boundid]) or knownvalid;
               newresulttype(vartype);
+              if (varlev < level) and
+                 (namekind in [param, varparam, funcparam, procparam, confparam,
+                               varconfparam, boundid]) and
+                 (varalloc in [regparam, realregparam, ptrregparam]) then
+                makeregparamaddressable(varlev, varptr);
               if varlev > level then
                 with display[varlev] do
                   begin {within a with}
@@ -3664,7 +3669,6 @@ procedure statement(follow: tokenset {legal following symbols} );
                   end
                 else
                   begin {not local variable}
-                  makeregparamaddressable(varlev, varptr);
                   if (varlev > 1) then
                     begin
                     proctable[display[level].blockref].intlevelrefs := true;
