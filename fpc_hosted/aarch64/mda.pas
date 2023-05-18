@@ -388,8 +388,13 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.varalloc := realregparam;
       paramptr^.regid := regparams.realregparams;
       paramptr^.regcount := 1;
-      paramptr^.offset := blocksize;
-      blocksize := blocksize + forcealign(paramptr^.length, stackalign, false);
+      if paramptr^.regparamaddressable then
+        begin
+        paramptr^.offset := blocksize;
+        blocksize := blocksize + forcealign(paramptr^.length, stackalign, false);
+        end
+      else
+        paramptr^.offset := maxaddr - paramptr^.regid - maxregparams - 1;
       regparams.realregparams := regparams.realregparams + 1;
       end
     else if (paramptr^.length <= ptrsize) and (regparams.regparams < maxregparams) then
@@ -397,8 +402,13 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.varalloc := regparam;
       paramptr^.regid := regparams.regparams;
       paramptr^.regcount := 1;
-      paramptr^.offset := blocksize;
-      blocksize := blocksize + forcealign(paramptr^.length, stackalign, false);
+      if paramptr^.regparamaddressable then
+        begin
+        paramptr^.offset := blocksize;
+        blocksize := blocksize + forcealign(paramptr^.length, stackalign, false);
+        end
+      else
+        paramptr^.offset := maxaddr - paramptr^.regid;
       regparams.regparams := regparams.regparams + 1;
 
       { If we allow structured types and sets to be left in registers, then

@@ -1,5 +1,6 @@
 -- next priorities:
-0. delete stores to temps that are unused unless in test mode.
+0. delete stores to temps that are unused unless in test mode,
+   and manage stack space.
 1. enter and restore loop code
 2. function return values
 5. instantiation of integers to include large numbers.

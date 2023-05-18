@@ -2997,9 +2997,18 @@ begin {regparams}
         begin
         debugstmt(simple, 0, 0, 0);
         intstate := opstate;
-        getlevel(level, true);
-        genlit(p^.offset);
-        genlit(p^.regid + ord(p^.regparamaddressable) * 256);
+        if p^.regparamaddressable then
+          begin
+          getlevel(level, true);
+          genlit(p^.offset);
+          end
+        else
+          begin
+          genlit(0);
+          pushdummy;
+          genlit(0);
+          end;
+        genlit(p^.regid);
         case p^.varalloc of
           regparam: genunary(regparamop, ints);
           ptrregparam: genunary(ptrregparamop, ints);
@@ -3736,12 +3745,10 @@ procedure statement(follow: tokenset {legal following symbols} );
                      (varalloc in [regparam, ptrregparam, realregparam]) and
                      not regparamaddressable then
                     begin
-                    getlevel(varlev,
-                             namekind in
-                             [param, varparam, funcparam, procparam, confparam,
-                              varconfparam, boundid]);
-                    genlit(offset);
-                    genlit(regid + ord(regparamaddressable) * 256);
+                    genlit(0);
+                    pushdummy;
+                    genlit(0);
+                    genlit(regid);
                     case varalloc of
                       regparam: genunary(regparamop, ints);
                       ptrregparam: genunary(ptrregparamop, ints);

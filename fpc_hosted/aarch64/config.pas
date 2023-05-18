@@ -123,7 +123,7 @@ const
   hostintsize = 4;  {host integer size in HOST addressing units}
   maxintarray = 1; {number of integral host integers per target integer}
 
-  maxaddr = $FFFFFFFF; { 32 bits is max value of address on M68020 }
+  maxaddr = $FFFFFFFF; { actually 64-bit on aarch64 but FP makes this a pain}
   defaulttargetmaxint = $7FFFFFFF; { max value for integer on M68000 }
   defaulttargetminint = $80000000; { min value for an integer on the M68000 }
   shortmaxint = $7FFFFFFF; {Max value for a short integer}

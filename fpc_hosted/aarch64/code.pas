@@ -45,7 +45,7 @@ procedure setkeyentry(k: keyindex; l:unsigned; o: oprndtype);
       properreg := 0;
       properreg2 := 0;
       access := valueaccess;
-      tempflag := true;
+      tempflag := false;
       regsaved := false;
       reg2saved := false;
       regvalid := true;
@@ -551,7 +551,7 @@ procedure genbr(inst: insts; labelno: integer);
 procedure deletenodes(first, last: nodeptr);
 
   var
-    p, p1: nodeptr;
+    p, p1, p2: nodeptr;
 
   begin {deletenodes}
 
@@ -565,8 +565,8 @@ procedure deletenodes(first, last: nodeptr);
     else
       last^.nextnode^.prevnode := first^.prevnode;
 
-    p := first;
-    while p <> last^.nextnode do
+    p := first; p2 := last^.nextnode;
+    while p <> p2 do
       begin
       p1 := p^.nextnode;
       dispose(p);
@@ -892,12 +892,12 @@ procedure adjuststackoffsets(firstnode: nodeptr; lastnode: nodeptr;
 
 { Stack temp allocation procedures }
 
-function preceedslastbranch(k: keyindex): boolean;
+function precedeslastbranch(k: keyindex): boolean;
   var
     p: nodeptr;
 
-  begin {preceedslastbranch}
-    preceedslastbranch := false;
+  begin {precedeslastbranch}
+    precedeslastbranch := false;
     if context[contextsp].lastbranch <> nil then
       begin
       p := context[contextsp].lastbranch;
@@ -905,10 +905,9 @@ function preceedslastbranch(k: keyindex): boolean;
         p := p^.nextnode;
       until (p = nil) or
             (p = keytable[k].first);
-      preceedslastbranch := p <> nil;
+      precedeslastbranch := p <> nil;
       end
-  end {preceedslastbranch} ;
-
+  end {precedeslastbranch} ;
 
 function uselesstemp(k: keyindex): boolean;
 
@@ -922,7 +921,7 @@ function uselesstemp(k: keyindex): boolean;
     p, p1: nodeptr;
 
   begin {uselesstemp}
-    uselesstemp := (keytable[k].refcount = 0) and not preceedslastbranch(k);
+    uselesstemp := (keytable[k].refcount = 0) and not precedeslastbranch(k);
   end {uselesstemp} ;
 
 procedure deletesave(stackkey: keyindex);
@@ -1091,6 +1090,13 @@ function stacktemp(size: addressrange): keyindex;
   end {stacktemp} ;
 
 { Register allocation procedures }
+
+{ Currently registers are always spilled to the stack.  At one point regparams
+  were being assigned local variable space and would be saved there instead,
+  but that turned out to be not necessarily and somewhat wasteful of memory.
+  However we might spill to caller-saved registers in the future and this
+  code should handle that case with the addition of allocation code.
+}
 
 function savereg(r: regindex {register to save}) : keyindex;
 
@@ -1379,7 +1385,7 @@ procedure allowmodify(var k: keyindex; {operand to be modified}
 
 
   begin
-    if forcecopy or (k >= 0) and preceedslastbranch(k) then
+    if forcecopy or (k >= 0) and precedeslastbranch(k) then
       begin
       if tempkey = lowesttemp then compilerabort(interntemp);
       tempkey := tempkey - 1;
@@ -1594,14 +1600,15 @@ procedure initblock;
         currentswitch := currentswitch + 1;
         end;
 
-    {initialize temp allocation vars}
+    { initialize stack temp allocation vars
 
-    {save space in the keytable for the local vars assigned to
-     register parameters, including the one used to pass a pointer
-     to a large function return value.
+      Pascal-2 code generators traditionally use keysize as the
+      base of the stack, but on this machine we might want to
+      spill to registers or the like so we're using a variable
+      for the stack base to make things more flexible.
     }
 
-    stackbase := keysize - 1 - maxregparams - maxrealregparams;
+    stackbase := keysize;
     stackcounter := stackbase;
     stackoffset := 0;
     maxstackoffset := 0;
@@ -2629,21 +2636,14 @@ procedure regparamx;
 var o: oprndtype;
 
 begin {regparamx}
-  setvalue(reg_oprnd(target mod 256));
-  address(left);
-  o := index_oprnd(unsigned_offset, keytable[left].oprnd.reg,
-                   keytable[left].oprnd.index + right);
-  if target div 256 <> 0 then
+  setvalue(reg_oprnd(target));
+  if left <> 0 then
     begin
-    settemp(long, o);
+    address(left);
+    with keytable[left].oprnd do
+      settemp(long, index_oprnd(unsigned_offset, reg, index + right));
     gensimplemove(key, tempkey);
     setkeyvalue(tempkey);
-    end
-  else
-    begin
-    setkeyentry(keysize - target, long, o);
-    keytable[keysize - target].validtemp := true;
-    keytable[key].properreg := keysize - target;
     end;
 end {regparamx};
 
@@ -2795,6 +2795,12 @@ procedure loopholefnx;
     keytable[key].signed := (pseudoinst.oprnds[2] = 0);
   end; {loopholefnx}
 
+
+procedure makeroomx;
+
+begin {makeroomx}
+  saveactivekeys;
+end {makeroomx};
 
 procedure callroutinex(s: boolean {signed function value} );
 
@@ -3293,8 +3299,8 @@ procedure codeselect;
       mulset: setarithmetic(andinst, false);
       divset: setarithmetic(eor, false);
       stacktarget: stacktargetx;
-      makeroom: makeroomx;
 }
+      makeroom: makeroomx;
       callroutine: callroutinex(true);
       unscallroutine: callroutinex(false);
 {
