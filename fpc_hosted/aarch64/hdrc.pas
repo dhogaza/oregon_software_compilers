@@ -291,6 +291,8 @@ type
 
   {miscellaneous instructions}
 
+  lslinst, asrinst, lsrinst,
+
   ret);
 
   insttype = packed record
@@ -534,6 +536,7 @@ var
   paramsize, blksize: addressrange;
 
   stackcounter: keyindex; {key describing top of runtime stack}
+  stackbase: keyindex; {key describing the base of the runtime stack}
   stackoffset, maxstackoffset: integer;
 
   registers: array [regindex] of integer;
