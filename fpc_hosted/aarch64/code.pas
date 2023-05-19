@@ -914,7 +914,7 @@ function activetemp(k: keyindex): boolean;
 begin
 writeln('activetemp: ', k: 6, context[contextsp].savedstackcounter: 6,
         k < context[contextsp].savedstackcounter:8);
-  activetemp := k < context[contextsp].savedstackcounter;
+  activetemp := keytable[k].validtemp and (k < context[contextsp].savedstackcounter);
 end;
 
 function uselesstemp(k: keyindex): boolean;
@@ -930,15 +930,37 @@ function uselesstemp(k: keyindex): boolean;
 
   begin {uselesstemp}
 writeln('uselesstemp: ', k:6, keytable[k].refcount:8, precedeslastbranch(k):8);
-    uselesstemp := (keytable[k].refcount = 0)
+    uselesstemp := activetemp(k) and (keytable[k].refcount = 0)
                    and not precedeslastbranch(k);
   end {uselesstemp} ;
 
-procedure deletesave(k: keyindex);
-begin {deletesave}
-  if not switcheverplus[test] then
+procedure deleteregsave(k: keyindex);
+begin
+  if keytable[k].first <> nil then
+    begin
     deletenodes(keytable[k].first, keytable[k].last);
-end {deletesave};
+    keytable[k].first := nil;
+    keytable[k].last := nil;
+    end;
+end;
+
+procedure deleteregsaves;
+
+var
+  k: keyindex;
+
+begin {deleteregsaves}
+  if not switcheverplus[test] then
+  begin
+    k := stackcounter;
+    while activetemp(k) do
+      begin
+      if uselesstemp(k) and not keytable[k].tempflag then
+        deleteregsave(k);
+      k := k + 1;
+      end;
+  end;
+end {deleteregsaves};
 
 procedure consolidatestack;
 
@@ -961,11 +983,11 @@ begin
       k := k + 1;
     len := 0;
     k1 := k;
-    while activetemp(k) and uselesstemp(k) do
+    while uselesstemp(k) do
       begin
       len := len + keytable[k].len;
-      if not keytable[k].tempflag then
-        deletesave(k);
+      if uselesstemp(k) and not keytable[k].tempflag then
+        deleteregsave(k);
       k := k + 1;
       end;
     movecnt := k - k1 - 1;
@@ -979,30 +1001,33 @@ begin
     end;
 end;
 
-procedure splittemp(stackkey: keyindex; size: addressrange);
+procedure splittemp(k: keyindex; size: addressrange);
 
   var
-    k: keyindex;
+    k1: keyindex;
 
   begin {splittemp}
     size := (size + (stackalign - 1)) and - stackalign;
 
-    if not uselesstemp(stackkey) or
-       (keytable[stackkey].len < size) then
+    if not uselesstemp(k) or
+       (keytable[k].len < size) then
       compilerabort(inconsistent);
 
-    if keytable[stackkey].len > size then
+    if not keytable[k].tempflag then
+      deleteregsave(k);
+
+    if keytable[k].len > size then
       begin
       stackcounter := stackcounter - 1;
       if stackcounter <= lastkey then compilerabort(manykeys);
-      for k := stackcounter to stackkey - 1 do
-        keytable[k] := keytable[k + 1];
-      with keytable[stackkey] do
+      for k1 := stackcounter to k - 1 do
+        keytable[k1] := keytable[k1 + 1];
+      with keytable[k] do
         begin
         oprnd.index := oprnd.index + len - size;
         len := size;
         end;
-      with keytable[stackkey - 1] do
+      with keytable[k - 1] do
         len := len - size;
       end;
   end {splittemp} ;
@@ -1047,10 +1072,6 @@ procedure newtemp(size: addressrange {size of temp to allocate} );
   unsigned_offset, while parameters are given unsigned_offset when
   first allocated.
 }
-
-  var
-    besttemp: keyindex;
-    besttempsize: addressrange;
 
   begin {newtemp}
     size := (size + (stackalign - 1)) and - stackalign;
@@ -2379,10 +2400,10 @@ procedure putblock;
     { save procedure symbol table index }
 
 
-    { Clean up stack, and make sure we did so
+    { delete unnecessary register saves
     }
 
-    consolidatestack;
+    deleteregsaves;
 
     finalizestackoffsets(firstnode, lastnode, maxstackoffset);
 
@@ -3094,9 +3115,9 @@ procedure restorelabelx;
         end;
 
 {DRB is this order correct?  Also need to delete unused temp store instructions}
-    contextsp := contextsp - 1;
     stackcounter := context[contextsp].savedstackcounter;
     stackoffset := context[contextsp].savedstackoffset;
+    contextsp := contextsp - 1;
     for i := context[contextsp].keymark to lastkey do
       adjustregcount(i, keytable[i].refcount);
   end {restorelabelx} ;

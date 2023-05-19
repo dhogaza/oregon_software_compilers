@@ -21,9 +21,9 @@
 	.text
 	.align 2
 .P2:
-	sub	sp,sp,48
-	stp	x30,x29,[sp, 16]
-	add	x29,sp,16
+	sub	sp,sp,32
+	stp	x30,x29,[sp]
+	add	x29,sp,0
 # Line: 14, Stmt: 1
 	str	x0,[x29, 24]
 # Line: 15, Stmt: 2
@@ -35,21 +35,14 @@
 	mov	x14,3
 	mul	w15,w1,w14
 	str	w15,[x28, 16]
-	str	x2,[sp, 8]
-	str	x1,[sp]
-	ldrsw	x0,[x2]
-	bl	P
-	ldr	x15,[sp]
-	add	w15,w15,2
+	add	w15,w1,1
+	str	w15,[x28, 16]
 	str	w15,[x28, 16]
 	mov	x15,7
 	str	w15,[x29, 16]
-	ldr	x15,[sp, 8]
-	ldrsw	x15,[x15]
-	str	w15,[x29, 24]
 .L3:
-	ldp	x30,x29,[sp, 16]
-	add	sp,sp,48
+	ldp	x30,x29,[sp]
+	add	sp,sp,32
 	ret
 	.bss
 	.align 3
@@ -68,7 +61,7 @@ main:
 	str	x28,[x29, -8]
 	adrp	x28,.L0
 	add	x28,x28,:lo12:.L0
-# Line: 25, Stmt: 1
+# Line: 26, Stmt: 1
 	ldrsw	x0,[x28, 16]
 	ldrsw	x1,[x28, 16]
 	add	x2,x28,16

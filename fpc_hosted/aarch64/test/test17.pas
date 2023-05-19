@@ -17,9 +17,10 @@ begin
   a := a + 1;
   a := k * 3;
   P(l);
-  a := k + 2;
+  a := k + 1;
+  P(k + 1);
+  a := k + 1;
   i := 7;
-  j := l;
 end;
 
 begin pp(a, a, a); end.
