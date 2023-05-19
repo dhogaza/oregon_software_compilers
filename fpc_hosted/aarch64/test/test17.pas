@@ -12,9 +12,9 @@ procedure pp(j, k:integer; var l:integer);
     end;
 
 begin
-{  l := k;
+  l := k;
   k := k + 1;
-  a := a + 1;}
+  a := a + 1;
   a := k * 3;
   P(l);
   a := k + 2;

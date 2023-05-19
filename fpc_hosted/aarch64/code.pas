@@ -909,6 +909,14 @@ function precedeslastbranch(k: keyindex): boolean;
       end
   end {precedeslastbranch} ;
 
+function activetemp(k: keyindex): boolean;
+
+begin
+writeln('activetemp: ', k: 6, context[contextsp].savedstackcounter: 6,
+        k < context[contextsp].savedstackcounter:8);
+  activetemp := k < context[contextsp].savedstackcounter;
+end;
+
 function uselesstemp(k: keyindex): boolean;
 
 { True if the top temp on the tempstack is no longer needed.  It must
@@ -921,13 +929,15 @@ function uselesstemp(k: keyindex): boolean;
     p, p1: nodeptr;
 
   begin {uselesstemp}
-    uselesstemp := (keytable[k].refcount = 0) and not precedeslastbranch(k);
+writeln('uselesstemp: ', k:6, keytable[k].refcount:8, precedeslastbranch(k):8);
+    uselesstemp := (keytable[k].refcount = 0)
+                   and not precedeslastbranch(k);
   end {uselesstemp} ;
 
-procedure deletesave(stackkey: keyindex);
+procedure deletesave(k: keyindex);
 begin {deletesave}
   if not switcheverplus[test] then
-    deletenodes(keytable[stackkey].first, keytable[stackkey].last);
+    deletenodes(keytable[k].first, keytable[k].last);
 end {deletesave};
 
 procedure consolidatestack;
@@ -945,16 +955,17 @@ var
 
 begin
   K := stackcounter;
-  while k < stackbase do
+  while activetemp(k) do
     begin
-    while (k < stackbase) and not uselesstemp(k) do
+    while activetemp(k) and not uselesstemp(k) do
       k := k + 1;
     len := 0;
     k1 := k;
-    while uselesstemp(k) do
+    while activetemp(k) and uselesstemp(k) do
       begin
       len := len + keytable[k].len;
-      deletesave(k);
+      if not keytable[k].tempflag then
+        deletesave(k);
       k := k + 1;
       end;
     movecnt := k - k1 - 1;
@@ -1047,6 +1058,7 @@ procedure newtemp(size: addressrange {size of temp to allocate} );
     if stackoffset > maxstackoffset then
       maxstackoffset := stackoffset;
     stackcounter := stackcounter - 1;
+writeln('stackcounter: ', stackcounter);
     if stackcounter <= lastkey then compilerabort(manykeys)
     else
       begin
@@ -1762,9 +1774,9 @@ procedure genmoveaddress(src, dst: keyindex);
 }
 
   begin {genmoveaddress}
+{
     if keytable[src].oprnd.mode = register then
       begin
-{ DRB or real register or two regs reg vector or ... ? }
       keytable[keytable[src].properreg].tempflag := true;
       if not keytable[src].regsaved then
         begin
@@ -1773,6 +1785,7 @@ procedure genmoveaddress(src, dst: keyindex);
         end;
       src := keytable[src].properreg;
       end;
+}
     with keytable[src].oprnd do
       case mode of
       signed_offset, unsigned_offset:
@@ -2368,6 +2381,8 @@ procedure putblock;
 
     { Clean up stack, and make sure we did so
     }
+
+    consolidatestack;
 
     finalizestackoffsets(firstnode, lastnode, maxstackoffset);
 
@@ -3071,12 +3086,14 @@ procedure restorelabelx;
     while lastkey >= context[contextsp].keymark do
       with keytable[lastkey] do
         begin
+{DRB why aren't refcounts zero?}
         bumptempcount(lastkey, - refcount);
         adjustregcount(lastkey, - refcount);
         refcount := 0;
         lastkey := lastkey - 1;
         end;
 
+{DRB is this order correct?  Also need to delete unused temp store instructions}
     contextsp := contextsp - 1;
     stackcounter := context[contextsp].savedstackcounter;
     stackoffset := context[contextsp].savedstackoffset;
