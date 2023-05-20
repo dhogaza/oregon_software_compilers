@@ -1392,16 +1392,16 @@ procedure savekey(k: keyindex {operand to save} );
 
 
     begin {saveactivekeys}
+writeln('saveactivekeys');
      if dontchangevalue <= 0 then
       begin
       for i := context[contextsp].keymark to lastkey do
-{
         with keytable[i] do
+begin
+writeln('i:', i:5, ' refcount:', refcount:5, ' regsaved: ', regsaved, ' reg2saved: ', reg2saved);
           if (refcount > 0) and not (regsaved and reg2saved)
           then savekey(i);
-}
-        if keytable[i].refcount > 0 then
-          savekey(i);
+end;
       end;
     end {saveactivekeys} ;
 
@@ -2059,10 +2059,9 @@ procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
       i := cmn;
       right := -right;
       end;
-    settemp(len, immediate_oprnd(right, false));
     loadreg(left);
+    settemp(len, immediate_oprnd(right, false));
     gen2(buildinst(i, len = long, false), left, tempkey);
-    tempkey := tempkey + 1;
     if keytable[left].signed then
       setbr(signedbr)
   end {cmplitintx} ;
@@ -3456,8 +3455,8 @@ procedure codeselect;
       dummyarg: dummyargx;
       dummyarg2: dummyarg2x;
       openarray: openarrayx;
-      saveactkeys: saveactivekeys;
 }
+      saveactkeys: saveactivekeys;
       otherwise
         begin
         {writeln('Not yet implemented: ', ord(pseudoinst.op): 1);
