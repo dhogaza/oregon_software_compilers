@@ -1430,7 +1430,7 @@ procedure allowmodify(var k: keyindex; {operand to be modified}
 
 
   begin
-    if forcecopy or (k >= 0) and not precedeslastbranch(k) then
+    if forcecopy or (k <= context[contextsp].keymark) or precedeslastbranch(k) then
       begin
       if tempkey = lowesttemp then compilerabort(interntemp);
       tempkey := tempkey - 1;
@@ -1591,12 +1591,15 @@ procedure addressboth;
 procedure makedstaddressable(k: keyindex);
 
   begin
-    if (keytable[k].oprnd.mode = register) and not keytable[k].regvalid then
+    if (keytable[k].oprnd.mode = register) then
       begin
-      keytable[k].oprnd.reg := getreg;
+      if not keytable[k].regvalid then
+        begin
+        keytable[k].oprnd.reg := getreg;
+        keytable[k].regvalid := true;
+        adjustregcount(k, keytable[k].refcount);
+        end;
       keytable[k].regsaved := false;
-      keytable[k].regvalid := true;
-      adjustregcount(k, keytable[k].refcount);
       end
     else makeaddressable(k);
   end;
