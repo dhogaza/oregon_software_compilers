@@ -912,8 +912,8 @@ function precedeslastbranch(k: keyindex): boolean;
 function activetemp(k: keyindex): boolean;
 
 begin
-writeln('activetemp: ', k: 6, context[contextsp].savedstackcounter: 6,
-        k < context[contextsp].savedstackcounter:8);
+{writeln('activetemp: ', k: 6, context[contextsp].savedstackcounter: 6,
+        k < context[contextsp].savedstackcounter:8);}
   activetemp := keytable[k].validtemp and (k < context[contextsp].savedstackcounter);
 end;
 
@@ -929,7 +929,7 @@ function uselesstemp(k: keyindex): boolean;
     p, p1: nodeptr;
 
   begin {uselesstemp}
-writeln('uselesstemp: ', k:6, keytable[k].refcount:8, precedeslastbranch(k):8);
+{writeln('uselesstemp: ', k:6, keytable[k].refcount:8, precedeslastbranch(k):8);}
     uselesstemp := activetemp(k) and (keytable[k].refcount = 0)
                    and not precedeslastbranch(k);
   end {uselesstemp} ;
@@ -1079,7 +1079,7 @@ procedure newtemp(size: addressrange {size of temp to allocate} );
     if stackoffset > maxstackoffset then
       maxstackoffset := stackoffset;
     stackcounter := stackcounter - 1;
-writeln('stackcounter: ', stackcounter);
+{writeln('stackcounter: ', stackcounter);}
     if stackcounter <= lastkey then compilerabort(manykeys)
     else
       begin
@@ -1354,6 +1354,18 @@ function getreg: regindex;
 
 {various keytable manipulation routes}
 
+procedure savedstkey(k: keyindex);
+
+  begin
+    with keytable[k],oprnd do
+      if regvalid and not regsaved and (reg >= firstreg) and
+         (reg <= lastreg) and keytable[properreg].validtemp then
+        begin
+        gen2(buildinst(str, true, false), k, properreg);
+        regsaved := true;
+        end;
+  end;
+
 procedure savekey(k: keyindex {operand to save} );
 
 { Save all volatile registers required by given key.
@@ -1392,13 +1404,13 @@ procedure savekey(k: keyindex {operand to save} );
 
 
     begin {saveactivekeys}
-writeln('saveactivekeys');
+{writeln('saveactivekeys');}
      if dontchangevalue <= 0 then
       begin
       for i := context[contextsp].keymark to lastkey do
         with keytable[i] do
 begin
-writeln('i:', i:5, ' refcount:', refcount:5, ' regsaved: ', regsaved, ' reg2saved: ', reg2saved);
+{writeln('i:', i:5, ' refcount:', refcount:5, ' regsaved: ', regsaved, ' reg2saved: ', reg2saved);}
           if (refcount > 0) and not (regsaved and reg2saved)
           then savekey(i);
 end;
@@ -1418,7 +1430,7 @@ procedure allowmodify(var k: keyindex; {operand to be modified}
 
 
   begin
-    if forcecopy or (k >= 0) and precedeslastbranch(k) then
+    if forcecopy or (k >= 0) and not precedeslastbranch(k) then
       begin
       if tempkey = lowesttemp then compilerabort(interntemp);
       tempkey := tempkey - 1;
@@ -1553,7 +1565,6 @@ procedure makeaddressable(var k: keyindex);
       end;
   end {makeaddressable} ;
 
-
 procedure address(var k: keyindex);
 
 { Shorthand concatenation of a dereference and makeaddressable call }
@@ -1577,24 +1588,26 @@ procedure addressboth;
     unlock(right);
   end {addressboth} ;
 
-procedure maketargetaddressable(var k: keyindex);
+procedure makedstaddressable(k: keyindex);
 
-  begin {maketargetaddressable}
-    if keytable[k].oprnd.mode = register then
-      keytable[k].regvalid := true
-    else
-      makeaddressable(k);
-  end {maketargetaddressable} ;
+  begin
+    if (keytable[k].oprnd.mode = register) and not keytable[k].regvalid then
+      begin
+      keytable[k].oprnd.reg := getreg;
+      keytable[k].regsaved := false;
+      keytable[k].regvalid := true;
+      adjustregcount(k, keytable[k].refcount);
+      end
+    else makeaddressable(k);
+  end;
 
-procedure addresstarget(var k: keyindex);
-
-{ Shorthand concatenation of a dereference and maketargetaddressable call }
-
+procedure addressdst(k: keyindex);
 
   begin
     dereference(k);
-    maketargetaddressable(k);
-  end {address} ;
+    makedstaddressable(k);
+  end;
+
 
 procedure settargetorreg;
 
@@ -1603,13 +1616,10 @@ procedure settargetorreg;
 }
 
 begin {settargetorreg}
-  if keytable[target].oprnd.mode = register then
-    begin
-    maketargetaddressable(target);
-    setallfields(target);
-    end
+  if (keytable[target].oprnd.mode = register) and keytable[target].regvalid then
+    setallfields(target)
   else
-    setvalue(reg_oprnd(getreg));
+    setvalue(reg_oprnd(getreg()));
 end {settargetorreg};
 
 procedure initblock;
@@ -1994,7 +2004,6 @@ procedure incdec(inst: insts {add, sub} );
     loadreg(left);
     settemp(len, immediate_oprnd(1, false));
     gen3(buildinst(inst, len = long, false), key, left, tempkey);
-    tempkey := tempkey + 1;
     keytable[key].signed := keytable[left].signed;
   end {incdec} ;
 
@@ -2650,8 +2659,15 @@ procedure dovarx(s: boolean {signed variable reference} );
 procedure movintptrx;
 
   begin {movintptrx}
-    addressboth;
+    lock(right);
+    addressdst(left);
+    unlock(right);
+    lock(left);
+    address(right);
+    unlock(left);
     gensimplemove(right, left);
+    savedstkey(left);
+    setallfields(left);
   end {movintptrx};
 
 procedure movlitintx;
@@ -2660,10 +2676,11 @@ procedure movlitintx;
     p: nodeptr;
 
   begin
-    addresstarget(left);
-    setallfields(left);
+    addressdst(left);
     settemp(len, immediate_oprnd(right, false));
     gensimplemove(tempkey, left); 
+    savedstkey(left);
+    setallfields(left);
   end;
 
 procedure regparamx;
@@ -3107,8 +3124,8 @@ procedure restorelabelx;
       with keytable[lastkey] do
         begin
 {DRB why aren't refcounts zero?}
-        bumptempcount(lastkey, - refcount);
-        adjustregcount(lastkey, - refcount);
+        bumptempcount(lastkey, -refcount);
+        adjustregcount(lastkey, -refcount);
         refcount := 0;
         lastkey := lastkey - 1;
         end;
@@ -3490,276 +3507,276 @@ procedure codeselect;
   end; {codeselect}
 
 
-procedure dumppseudo;
+procedure dumppseudo(var f: text);
 
 
   begin {dumppseudo}
     with pseudoinst do
       begin
         if (op = blockentry) then
-          writeln;
+          writeln(f);
         case op of
-          blockentry: write('blockentry': 15);
-          addint: write('addint': 15);
-          addptr: write('addptr': 15);
-          addr: write('addr': 15);
-          addreal: write('addreal': 15);
-          addset: write('addset': 15);
-          addstr: write('addstr': 15);
-          aindx: write('aindx': 15);
-          andint: write('andint': 15);
-          arraystr: write('arraystr': 15);
-          bad: write('bad': 15);
-          blockcode: write('blockcode': 15);
-          blockexit: write('blockexit': 15);
-          callroutine: write('callroutine': 15);
-          casebranch: write('casebranch': 15);
-          caseelt: write('caseelt': 15);
-          caseerr: write('caseerr': 15);
-          castfptrint: write('castfptrint': 15);
-          castint: write('castint': 15);
-          castintfptr: write('castintfptr': 15);
-          castintptr: write('castintptr': 15);
-          castptr: write('castptr': 15);
-          castptrint: write('castptrint': 15);
-          castreal: write('castreal': 15);
-          castrealint: write('castrealint': 15);
-          chrstr: write('chrstr': 15);
-          clearlabel: write('clearlabel': 15);
-          closerange: write('closerange': 15);
-          commafake: write('commafake': 15);
-          compbool: write('compbool': 15);
-          compint: write('compint': 15);
-          congruchk: write('congruchk': 15);
-          copyaccess: write('copyaccess': 15);
-          copystack: write('copystack': 15);
-          createfalse: write('createfalse': 15);
-          createtemp: write('createtemp': 15);
-          createtrue: write('createtrue': 15);
-          cvtdr: write('cvtdr': 15);
-          cvtrd: write('cvtrd': 15);
-          dataadd: write('dataadd': 15);
-          dataaddr: write('dataaddr': 15);
-          dataend: write('dataend': 15);
-          datafaddr: write('datafaddr': 15);
-          datafield: write('datafield': 15);
-          datafill: write('datafill': 15);
-          dataint: write('dataint': 15);
-          datareal: write('datareal': 15);
-          datastart: write('datastart': 15);
-          datastore: write('datastore': 15);
-          datastruct: write('datastruct': 15);
-          datasub: write('datasub': 15);
-          decint: write('decint': 15);
-          defforindex: write('defforindex': 15);
-          defforlitindex: write('defforlitindex': 15);
-          definelazy: write('definelazy': 15);
-          defunsforindex: write('defunsforindex': 15);
-          defunsforlitindex: write('defunsforlitindex': 15);
-          divint: write('divint': 15);
-          divreal: write('divreal': 15);
-          divset: write('divset': 15);
-          doext: write('doext': 15);
-          dofptr: write('dofptr': 15);
-          dofptrvar: write('dofptrvar': 15);
-          doint: write('doint': 15);
-          dolevel: write('dolevel': 15);
-          doorigin: write('doorigin': 15);
-          doown: write('doown': 15);
-          doptr: write('doptr': 15);
-          doptrvar: write('doptrvar': 15);
-          doreal: write('doreal': 15);
-          doretptr: write('doretptr': 15);
-          doset: write('doset': 15);
-          dostruct: write('dostruct': 15);
-          dotemp: write('dotemp': 15);
-          dounsvar: write('dounsvar': 15);
-          dovar: write('dovar': 15);
-          dummyarg: write('dummyarg': 15);
-          dummyarg2: write('dummyarg2': 15);
-          endpseudocode: write('endpseudocode': 15);
-          endreflex: write('endreflex': 15);
-          eqfptr: write('eqfptr': 15);
-          eqint: write('eqint': 15);
-          eqlitfptr: write('eqlitfptr': 15);
-          eqlitint: write('eqlitint': 15);
-          eqlitptr: write('eqlitptr': 15);
-          eqlitreal: write('eqlitreal': 15);
-          eqptr: write('eqptr': 15);
-          eqreal: write('eqreal': 15);
-          eqset: write('eqset': 15);
-          eqstr: write('eqstr': 15);
-          eqstruct: write('eqstruct': 15);
-          flt: write('flt': 15);
-          fmt: write('fmt': 15);
-          fordnbottom: write('fordnbottom': 15);
-          fordnchk: write('fordnchk': 15);
-          fordnimproved: write('fordnimproved': 15);
-          fordntop: write('fordntop': 15);
-          forerrchk: write('forerrchk': 15);
-          forupbottom: write('forupbottom': 15);
-          forupchk: write('forupchk': 15);
-          forupimproved: write('forupimproved': 15);
-          foruptop: write('foruptop': 15);
-          geqint: write('geqint': 15);
-          geqlitint: write('geqlitint': 15);
-          geqlitptr: write('geqlitptr': 15);
-          geqlitreal: write('geqlitreal': 15);
-          geqptr: write('geqptr': 15);
-          geqreal: write('geqreal': 15);
-          geqset: write('geqset': 15);
-          geqstr: write('geqstr': 15);
-          geqstruct: write('geqstruct': 15);
-          getquo: write('getquo': 15);
-          getrem: write('getrem': 15);
-          gtrint: write('gtrint': 15);
-          gtrlitint: write('gtrlitint': 15);
-          gtrlitptr: write('gtrlitptr': 15);
-          gtrlitreal: write('gtrlitreal': 15);
-          gtrptr: write('gtrptr': 15);
-          gtrreal: write('gtrreal': 15);
-          gtrstr: write('gtrstr': 15);
-          gtrstruct: write('gtrstruct': 15);
-          incint: write('incint': 15);
-          incstk: write('incstk': 15);
-          indx: write('indx': 15);
-          indxchk: write('indxchk': 15);
-          indxindr: write('indxindr': 15);
-          inset: write('inset': 15);
-          joinlabel: write('joinlabel': 15);
-          jointemp: write('jointemp': 15);
-          jump: write('jump': 15);
-          jumpf: write('jumpf': 15);
-          jumpt: write('jumpt': 15);
-          jumpvfunc: write('jumpvfunc': 15);
-          kwoint: write('kwoint': 15);
-          leqint: write('leqint': 15);
-          leqlitint: write('leqlitint': 15);
-          leqlitptr: write('leqlitptr': 15);
-          leqlitreal: write('leqlitreal': 15);
-          leqptr: write('leqptr': 15);
-          leqreal: write('leqreal': 15);
-          leqset: write('leqset': 15);
-          leqstr: write('leqstr': 15);
-          leqstruct: write('leqstruct': 15);
-          loopholefn: write('loopholefn': 15);
-          lssint: write('lssint': 15);
-          lsslitint: write('lsslitint': 15);
-          lsslitptr: write('lsslitptr': 15);
-          lsslitreal: write('lsslitreal': 15);
-          lssptr: write('lssptr': 15);
-          lssreal: write('lssreal': 15);
-          lssstr: write('lssstr': 15);
-          lssstruct: write('lssstruct': 15);
-          makeroom: write('makeroom': 15);
-          modint: write('modint': 15);
-          movcstruct: write('movcstruct': 15);
-          movint: write('movint': 15);
-          movlitint: write('movlitint': 15);
-          movlitptr: write('movlitptr': 15);
-          movlitreal: write('movlitreal': 15);
-          movptr: write('movptr': 15);
-          movreal: write('movreal': 15);
-          movset: write('movset': 15);
-          movstr: write('movstr': 15);
-          movstruct: write('movstruct': 15);
-          mulint: write('mulint': 15);
-          mulreal: write('mulreal': 15);
-          mulset: write('mulset': 15);
-          negint: write('negint': 15);
-          negreal: write('negreal': 15);
-          neqfptr: write('neqfptr': 15);
-          neqint: write('neqint': 15);
-          neqlitfptr: write('neqlitfptr': 15);
-          neqlitint: write('neqlitint': 15);
-          neqlitptr: write('neqlitptr': 15);
-          neqlitreal: write('neqlitreal': 15);
-          neqptr: write('neqptr': 15);
-          neqreal: write('neqreal': 15);
-          neqset: write('neqset': 15);
-          neqstr: write('neqstr': 15);
-          neqstruct: write('neqstruct': 15);
-          openarray: write('openarray': 15);
-          orint: write('orint': 15);
-          paindx: write('paindx': 15);
-          pascalgoto: write('pascalgoto': 15);
-          pascallabel: write('pascallabel': 15);
-          pindx: write('pindx': 15);
-          postint: write('postint': 15);
-          postptr: write('postptr': 15);
-          postreal: write('postreal': 15);
-          preincptr: write('preincptr': 15);
-          pseudolabel: write('pseudolabel': 15);
-          pshaddr: write('pshaddr': 15);
-          pshfptr: write('pshfptr': 15);
-          pshint: write('pshint': 15);
-          pshlitfptr: write('pshlitfptr': 15);
-          pshlitint: write('pshlitint': 15);
-          pshlitptr: write('pshlitptr': 15);
-          pshlitreal: write('pshlitreal': 15);
-          pshproc: write('pshproc': 15);
-          pshptr: write('pshptr': 15);
-          pshreal: write('pshreal': 15);
-          pshretptr: write('pshretptr': 15);
-          pshset: write('pshset': 15);
-          pshstr: write('pshstr': 15);
-          pshstraddr: write('pshstraddr': 15);
-          pshstruct: write('pshstruct': 15);
-          ptrchk: write('ptrchk': 15);
-          ptrregparam: write('ptrregparam': 15);
-          ptrtemp: write('ptrtemp': 15);
-          rangechk: write('rangechk': 15);
-          rdbin: write('rdbin': 15);
-          rdchar: write('rdchar': 15);
-          rdint: write('rdint': 15);
-          rdreal: write('rdreal': 15);
-          rdst: write('rdst': 15);
-          rdxstr: write('rdxstr': 15);
-          realregparam: write('realregparam': 15);
-          realtemp: write('realtemp': 15);
-          regparam: write('regparam': 15);
-          regtemp: write('regtemp': 15);
-          restorelabel: write('restorelabel': 15);
-          restoreloop: write('restoreloop': 15);
-          returnfptr: write('returnfptr': 15);
-          returnint: write('returnint': 15);
-          returnptr: write('returnptr': 15);
-          returnreal: write('returnreal': 15);
-          returnstruct: write('returnstruct': 15);
-          savelabel: write('savelabel': 15);
-          saveactkeys: write('saveactkeys': 15);
-          setbinfile: write('setbinfile': 15);
-          setfile: write('setfile': 15);
-          setinsert: write('setinsert': 15);
-          shiftlint: write('shiftlint': 15);
-          shiftrint: write('shiftrint': 15);
-          stacktarget: write('stacktarget': 15);
-          startreflex: write('startreflex': 15);
-          stddivint: write('stddivint': 15);
-          stdmodint: write('stdmodint': 15);
-          stmtbrk: write('stmtbrk': 15);
-          subint: write('subint': 15);
-          subptr: write('subptr': 15);
-          subreal: write('subreal': 15);
-          subset: write('subset': 15);
-          sysfnint: write('sysfnint': 15);
-          sysfnreal: write('sysfnreal': 15);
-          sysfnstring: write('sysfnstring': 15);
-          sysroutine: write('sysroutine': 15);
-          temptarget: write('temptarget': 15);
-          unscallroutine: write('unscallroutine': 15);
-          wrbin: write('wrbin': 15);
-          wrbool: write('wrbool': 15);
-          wrchar: write('wrchar': 15);
-          wrint: write('wrint': 15);
-          wrreal: write('wrreal': 15);
-          wrst: write('wrst': 15);
-          wrxstr: write('wrxstr': 15);
-          xorint: write('xorint': 15);
-          otherwise write('unknown op:', ord(op): 15);
+          blockentry: write(f, 'blockentry': 15);
+          addint: write(f, 'addint': 15);
+          addptr: write(f, 'addptr': 15);
+          addr: write(f, 'addr': 15);
+          addreal: write(f, 'addreal': 15);
+          addset: write(f, 'addset': 15);
+          addstr: write(f, 'addstr': 15);
+          aindx: write(f, 'aindx': 15);
+          andint: write(f, 'andint': 15);
+          arraystr: write(f, 'arraystr': 15);
+          bad: write(f, 'bad': 15);
+          blockcode: write(f, 'blockcode': 15);
+          blockexit: write(f, 'blockexit': 15);
+          callroutine: write(f, 'callroutine': 15);
+          casebranch: write(f, 'casebranch': 15);
+          caseelt: write(f, 'caseelt': 15);
+          caseerr: write(f, 'caseerr': 15);
+          castfptrint: write(f, 'castfptrint': 15);
+          castint: write(f, 'castint': 15);
+          castintfptr: write(f, 'castintfptr': 15);
+          castintptr: write(f, 'castintptr': 15);
+          castptr: write(f, 'castptr': 15);
+          castptrint: write(f, 'castptrint': 15);
+          castreal: write(f, 'castreal': 15);
+          castrealint: write(f, 'castrealint': 15);
+          chrstr: write(f, 'chrstr': 15);
+          clearlabel: write(f, 'clearlabel': 15);
+          closerange: write(f, 'closerange': 15);
+          commafake: write(f, 'commafake': 15);
+          compbool: write(f, 'compbool': 15);
+          compint: write(f, 'compint': 15);
+          congruchk: write(f, 'congruchk': 15);
+          copyaccess: write(f, 'copyaccess': 15);
+          copystack: write(f, 'copystack': 15);
+          createfalse: write(f, 'createfalse': 15);
+          createtemp: write(f, 'createtemp': 15);
+          createtrue: write(f, 'createtrue': 15);
+          cvtdr: write(f, 'cvtdr': 15);
+          cvtrd: write(f, 'cvtrd': 15);
+          dataadd: write(f, 'dataadd': 15);
+          dataaddr: write(f, 'dataaddr': 15);
+          dataend: write(f, 'dataend': 15);
+          datafaddr: write(f, 'datafaddr': 15);
+          datafield: write(f, 'datafield': 15);
+          datafill: write(f, 'datafill': 15);
+          dataint: write(f, 'dataint': 15);
+          datareal: write(f, 'datareal': 15);
+          datastart: write(f, 'datastart': 15);
+          datastore: write(f, 'datastore': 15);
+          datastruct: write(f, 'datastruct': 15);
+          datasub: write(f, 'datasub': 15);
+          decint: write(f, 'decint': 15);
+          defforindex: write(f, 'defforindex': 15);
+          defforlitindex: write(f, 'defforlitindex': 15);
+          definelazy: write(f, 'definelazy': 15);
+          defunsforindex: write(f, 'defunsforindex': 15);
+          defunsforlitindex: write(f, 'defunsforlitindex': 15);
+          divint: write(f, 'divint': 15);
+          divreal: write(f, 'divreal': 15);
+          divset: write(f, 'divset': 15);
+          doext: write(f, 'doext': 15);
+          dofptr: write(f, 'dofptr': 15);
+          dofptrvar: write(f, 'dofptrvar': 15);
+          doint: write(f, 'doint': 15);
+          dolevel: write(f, 'dolevel': 15);
+          doorigin: write(f, 'doorigin': 15);
+          doown: write(f, 'doown': 15);
+          doptr: write(f, 'doptr': 15);
+          doptrvar: write(f, 'doptrvar': 15);
+          doreal: write(f, 'doreal': 15);
+          doretptr: write(f, 'doretptr': 15);
+          doset: write(f, 'doset': 15);
+          dostruct: write(f, 'dostruct': 15);
+          dotemp: write(f, 'dotemp': 15);
+          dounsvar: write(f, 'dounsvar': 15);
+          dovar: write(f, 'dovar': 15);
+          dummyarg: write(f, 'dummyarg': 15);
+          dummyarg2: write(f, 'dummyarg2': 15);
+          endpseudocode: write(f, 'endpseudocode': 15);
+          endreflex: write(f, 'endreflex': 15);
+          eqfptr: write(f, 'eqfptr': 15);
+          eqint: write(f, 'eqint': 15);
+          eqlitfptr: write(f, 'eqlitfptr': 15);
+          eqlitint: write(f, 'eqlitint': 15);
+          eqlitptr: write(f, 'eqlitptr': 15);
+          eqlitreal: write(f, 'eqlitreal': 15);
+          eqptr: write(f, 'eqptr': 15);
+          eqreal: write(f, 'eqreal': 15);
+          eqset: write(f, 'eqset': 15);
+          eqstr: write(f, 'eqstr': 15);
+          eqstruct: write(f, 'eqstruct': 15);
+          flt: write(f, 'flt': 15);
+          fmt: write(f, 'fmt': 15);
+          fordnbottom: write(f, 'fordnbottom': 15);
+          fordnchk: write(f, 'fordnchk': 15);
+          fordnimproved: write(f, 'fordnimproved': 15);
+          fordntop: write(f, 'fordntop': 15);
+          forerrchk: write(f, 'forerrchk': 15);
+          forupbottom: write(f, 'forupbottom': 15);
+          forupchk: write(f, 'forupchk': 15);
+          forupimproved: write(f, 'forupimproved': 15);
+          foruptop: write(f, 'foruptop': 15);
+          geqint: write(f, 'geqint': 15);
+          geqlitint: write(f, 'geqlitint': 15);
+          geqlitptr: write(f, 'geqlitptr': 15);
+          geqlitreal: write(f, 'geqlitreal': 15);
+          geqptr: write(f, 'geqptr': 15);
+          geqreal: write(f, 'geqreal': 15);
+          geqset: write(f, 'geqset': 15);
+          geqstr: write(f, 'geqstr': 15);
+          geqstruct: write(f, 'geqstruct': 15);
+          getquo: write(f, 'getquo': 15);
+          getrem: write(f, 'getrem': 15);
+          gtrint: write(f, 'gtrint': 15);
+          gtrlitint: write(f, 'gtrlitint': 15);
+          gtrlitptr: write(f, 'gtrlitptr': 15);
+          gtrlitreal: write(f, 'gtrlitreal': 15);
+          gtrptr: write(f, 'gtrptr': 15);
+          gtrreal: write(f, 'gtrreal': 15);
+          gtrstr: write(f, 'gtrstr': 15);
+          gtrstruct: write(f, 'gtrstruct': 15);
+          incint: write(f, 'incint': 15);
+          incstk: write(f, 'incstk': 15);
+          indx: write(f, 'indx': 15);
+          indxchk: write(f, 'indxchk': 15);
+          indxindr: write(f, 'indxindr': 15);
+          inset: write(f, 'inset': 15);
+          joinlabel: write(f, 'joinlabel': 15);
+          jointemp: write(f, 'jointemp': 15);
+          jump: write(f, 'jump': 15);
+          jumpf: write(f, 'jumpf': 15);
+          jumpt: write(f, 'jumpt': 15);
+          jumpvfunc: write(f, 'jumpvfunc': 15);
+          kwoint: write(f, 'kwoint': 15);
+          leqint: write(f, 'leqint': 15);
+          leqlitint: write(f, 'leqlitint': 15);
+          leqlitptr: write(f, 'leqlitptr': 15);
+          leqlitreal: write(f, 'leqlitreal': 15);
+          leqptr: write(f, 'leqptr': 15);
+          leqreal: write(f, 'leqreal': 15);
+          leqset: write(f, 'leqset': 15);
+          leqstr: write(f, 'leqstr': 15);
+          leqstruct: write(f, 'leqstruct': 15);
+          loopholefn: write(f, 'loopholefn': 15);
+          lssint: write(f, 'lssint': 15);
+          lsslitint: write(f, 'lsslitint': 15);
+          lsslitptr: write(f, 'lsslitptr': 15);
+          lsslitreal: write(f, 'lsslitreal': 15);
+          lssptr: write(f, 'lssptr': 15);
+          lssreal: write(f, 'lssreal': 15);
+          lssstr: write(f, 'lssstr': 15);
+          lssstruct: write(f, 'lssstruct': 15);
+          makeroom: write(f, 'makeroom': 15);
+          modint: write(f, 'modint': 15);
+          movcstruct: write(f, 'movcstruct': 15);
+          movint: write(f, 'movint': 15);
+          movlitint: write(f, 'movlitint': 15);
+          movlitptr: write(f, 'movlitptr': 15);
+          movlitreal: write(f, 'movlitreal': 15);
+          movptr: write(f, 'movptr': 15);
+          movreal: write(f, 'movreal': 15);
+          movset: write(f, 'movset': 15);
+          movstr: write(f, 'movstr': 15);
+          movstruct: write(f, 'movstruct': 15);
+          mulint: write(f, 'mulint': 15);
+          mulreal: write(f, 'mulreal': 15);
+          mulset: write(f, 'mulset': 15);
+          negint: write(f, 'negint': 15);
+          negreal: write(f, 'negreal': 15);
+          neqfptr: write(f, 'neqfptr': 15);
+          neqint: write(f, 'neqint': 15);
+          neqlitfptr: write(f, 'neqlitfptr': 15);
+          neqlitint: write(f, 'neqlitint': 15);
+          neqlitptr: write(f, 'neqlitptr': 15);
+          neqlitreal: write(f, 'neqlitreal': 15);
+          neqptr: write(f, 'neqptr': 15);
+          neqreal: write(f, 'neqreal': 15);
+          neqset: write(f, 'neqset': 15);
+          neqstr: write(f, 'neqstr': 15);
+          neqstruct: write(f, 'neqstruct': 15);
+          openarray: write(f, 'openarray': 15);
+          orint: write(f, 'orint': 15);
+          paindx: write(f, 'paindx': 15);
+          pascalgoto: write(f, 'pascalgoto': 15);
+          pascallabel: write(f, 'pascallabel': 15);
+          pindx: write(f, 'pindx': 15);
+          postint: write(f, 'postint': 15);
+          postptr: write(f, 'postptr': 15);
+          postreal: write(f, 'postreal': 15);
+          preincptr: write(f, 'preincptr': 15);
+          pseudolabel: write(f, 'pseudolabel': 15);
+          pshaddr: write(f, 'pshaddr': 15);
+          pshfptr: write(f, 'pshfptr': 15);
+          pshint: write(f, 'pshint': 15);
+          pshlitfptr: write(f, 'pshlitfptr': 15);
+          pshlitint: write(f, 'pshlitint': 15);
+          pshlitptr: write(f, 'pshlitptr': 15);
+          pshlitreal: write(f, 'pshlitreal': 15);
+          pshproc: write(f, 'pshproc': 15);
+          pshptr: write(f, 'pshptr': 15);
+          pshreal: write(f, 'pshreal': 15);
+          pshretptr: write(f, 'pshretptr': 15);
+          pshset: write(f, 'pshset': 15);
+          pshstr: write(f, 'pshstr': 15);
+          pshstraddr: write(f, 'pshstraddr': 15);
+          pshstruct: write(f, 'pshstruct': 15);
+          ptrchk: write(f, 'ptrchk': 15);
+          ptrregparam: write(f, 'ptrregparam': 15);
+          ptrtemp: write(f, 'ptrtemp': 15);
+          rangechk: write(f, 'rangechk': 15);
+          rdbin: write(f, 'rdbin': 15);
+          rdchar: write(f, 'rdchar': 15);
+          rdint: write(f, 'rdint': 15);
+          rdreal: write(f, 'rdreal': 15);
+          rdst: write(f, 'rdst': 15);
+          rdxstr: write(f, 'rdxstr': 15);
+          realregparam: write(f, 'realregparam': 15);
+          realtemp: write(f, 'realtemp': 15);
+          regparam: write(f, 'regparam': 15);
+          regtemp: write(f, 'regtemp': 15);
+          restorelabel: write(f, 'restorelabel': 15);
+          restoreloop: write(f, 'restoreloop': 15);
+          returnfptr: write(f, 'returnfptr': 15);
+          returnint: write(f, 'returnint': 15);
+          returnptr: write(f, 'returnptr': 15);
+          returnreal: write(f, 'returnreal': 15);
+          returnstruct: write(f, 'returnstruct': 15);
+          savelabel: write(f, 'savelabel': 15);
+          saveactkeys: write(f, 'saveactkeys': 15);
+          setbinfile: write(f, 'setbinfile': 15);
+          setfile: write(f, 'setfile': 15);
+          setinsert: write(f, 'setinsert': 15);
+          shiftlint: write(f, 'shiftlint': 15);
+          shiftrint: write(f, 'shiftrint': 15);
+          stacktarget: write(f, 'stacktarget': 15);
+          startreflex: write(f, 'startreflex': 15);
+          stddivint: write(f, 'stddivint': 15);
+          stdmodint: write(f, 'stdmodint': 15);
+          stmtbrk: write(f, 'stmtbrk': 15);
+          subint: write(f, 'subint': 15);
+          subptr: write(f, 'subptr': 15);
+          subreal: write(f, 'subreal': 15);
+          subset: write(f, 'subset': 15);
+          sysfnint: write(f, 'sysfnint': 15);
+          sysfnreal: write(f, 'sysfnreal': 15);
+          sysfnstring: write(f, 'sysfnstring': 15);
+          sysroutine: write(f, 'sysroutine': 15);
+          temptarget: write(f, 'temptarget': 15);
+          unscallroutine: write(f, 'unscallroutine': 15);
+          wrbin: write(f, 'wrbin': 15);
+          wrbool: write(f, 'wrbool': 15);
+          wrchar: write(f, 'wrchar': 15);
+          wrint: write(f, 'wrint': 15);
+          wrreal: write(f, 'wrreal': 15);
+          wrst: write(f, 'wrst': 15);
+          wrxstr: write(f, 'wrxstr': 15);
+          xorint: write(f, 'xorint': 15);
+          otherwise write(f, 'unknown op:', ord(op): 15);
         end;
-        write(':', len: 6, ' (', key: 3, ',', refcount: 3, ',', copycount: 3, ') ');
-        writeln(oprnds[1]:5, oprnds[2]:5, oprnds[3]:5);
+        write(f, ':', len: 6, ' (', key: 3, ',', refcount: 3, ',', copycount: 3, ') ');
+        writeln(f, oprnds[1]:5, oprnds[2]:5, oprnds[3]:5);
     end
   end {dumppseudo} ;
 
@@ -3773,7 +3790,10 @@ procedure codeone;
     if travcode then
       begin
       if switcheverplus[test] then
-        dumppseudo;
+        begin
+        dumppseudo(output);
+        dumppseudo(macfile);
+        end;
       key := pseudoinst.key;
       len := pseudoinst.len;
       left := pseudoinst.oprnds[1];
