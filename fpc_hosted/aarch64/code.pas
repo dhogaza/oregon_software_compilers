@@ -546,6 +546,7 @@ procedure genbr(inst: insts; labelno: integer);
     settemp(long, labeltarget_oprnd(labelno, false));
     gen1(buildinst(inst, false, false), tempkey);
     tempkey := tempkey + 1;
+    context[contextsp].lastbranch := lastnode;
   end {genbr};
 
 procedure deletenodes(first, last: nodeptr);
@@ -929,7 +930,7 @@ function uselesstemp(k: keyindex): boolean;
     p, p1: nodeptr;
 
   begin {uselesstemp}
-{writeln('uselesstemp: ', k:6, keytable[k].refcount:8, precedeslastbranch(k):8);}
+writeln('uselesstemp: ', k:6, keytable[k].refcount:8, precedeslastbranch(k):8);
     uselesstemp := activetemp(k) and (keytable[k].refcount = 0)
                    and not precedeslastbranch(k);
   end {uselesstemp} ;
@@ -950,11 +951,13 @@ var
   k: keyindex;
 
 begin {deleteregsaves}
+writeln('deleteregsaves');
   if not switcheverplus[test] then
   begin
     k := stackcounter;
     while activetemp(k) do
       begin
+writeln('k:',k,' tempflag:',keytable[k].tempflag);
       if uselesstemp(k) and not keytable[k].tempflag then
         deleteregsave(k);
       k := k + 1;
@@ -1591,17 +1594,18 @@ procedure addressboth;
 procedure makedstaddressable(k: keyindex);
 
   begin
-    if (keytable[k].oprnd.mode = register) then
-      begin
-      if not keytable[k].regvalid then
+    with keytable[k], oprnd do
+      if (mode = register) then
         begin
-        keytable[k].oprnd.reg := getreg;
-        keytable[k].regvalid := true;
-        adjustregcount(k, keytable[k].refcount);
-        end;
-      keytable[k].regsaved := false;
-      end
-    else makeaddressable(k);
+        if not regvalid then
+          begin
+          reg := getreg;
+          regvalid := true;
+          adjustregcount(k, keytable[k].refcount);
+          end;
+        regsaved := false;
+        end
+      else makeaddressable(k);
   end;
 
 procedure addressdst(k: keyindex);
@@ -3097,7 +3101,7 @@ procedure savelabelx;
       keymark := lastkey + 1;
       first := lastnode;
       last := lastnode;
-      lastbranch := lastnode;
+      lastbranch := nil;
       bump := context[contextsp - 1].bump;
       fpbump := context[contextsp - 1].fpbump;
       for i := 0 to lastreg do if registers[i] > 0 then bump[i] := true;
@@ -3134,6 +3138,7 @@ procedure restorelabelx;
         end;
 
 {DRB is this order correct?  Also need to delete unused temp store instructions}
+    deleteregsaves;
     stackcounter := context[contextsp].savedstackcounter;
     stackoffset := context[contextsp].savedstackoffset;
     contextsp := contextsp - 1;

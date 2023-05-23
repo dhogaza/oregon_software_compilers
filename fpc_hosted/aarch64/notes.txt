@@ -1,6 +1,8 @@
 -- next priorities:
-0. delete stores to temps that are unused unless in test mode,
-   and manage stack space.
+0. determiing if a stack temp store instruction is used or not
+   is much more difficult than a simple flag.  counter?  A list of
+   store instructions resolved at join time?  Or when the temp becomes
+   useless, if tempflag ever set then keep them all?
 1. enter and restore loop code
 2. function return values
 5. instantiation of integers to include large numbers.
@@ -19,7 +21,14 @@
 -- more general
 
 1. if current block makes no calls allocate regtemps to
-   callee-saved registers.
+   caller-saved registers.  Better, track calls to procs
+   including intrinsics and determine which scratch registers
+   are never used by called procedures in a block and 
+   allocate those first so we can avoid saving them.
+2. Need to allow parameters that aren't required to be in
+   memory for nested procs to be assigned true regtemps
+   as frequent use of params in the context of many calls
+   to procs leads to horrendous number of spills
 2. look into registerfunction
 
 
