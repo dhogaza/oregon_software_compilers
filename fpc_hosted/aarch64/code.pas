@@ -948,13 +948,11 @@ var
   k: keyindex;
 
 begin {deleteregsaves}
-writeln('deleteregsaves');
   if not switcheverplus[test] then
   begin
     k := stackcounter;
     while activetemp(k) do
       begin
-writeln('k:',k,' tempflag:',keytable[k].tempflag);
       if uselesstemp(k) and not keytable[k].tempflag then
         deleteregsave(k);
       k := k + 1;
@@ -1079,7 +1077,6 @@ procedure newtemp(size: addressrange {size of temp to allocate} );
     if stackoffset > maxstackoffset then
       maxstackoffset := stackoffset;
     stackcounter := stackcounter - 1;
-{writeln('stackcounter: ', stackcounter);}
     if stackcounter <= lastkey then compilerabort(manykeys)
     else
       begin
@@ -1185,11 +1182,12 @@ function savereg(r: regindex {register to save}) : keyindex;
       gen2p(p, buildinst(str, true, false), tempkey, savekey);
       keytable[savekey].first := p;
       keytable[savekey].last := lastnode;
-if switcheverplus[test] and (keytable[key].first <> nil) then
+{if switcheverplus[test] and (keytable[key].first <> nil) then
 begin
 writeln(macfile, 'savekey:', savekey);
 write_nodes(keytable[savekey].first, keytable[savekey].last);
 end;
+}
       end;
     savereg := savekey;
   end {savereg} ;
@@ -1404,13 +1402,11 @@ procedure savekey(k: keyindex {operand to save} );
 
 
     begin {saveactivekeys}
-{writeln('saveactivekeys');}
      if dontchangevalue <= 0 then
       begin
       for i := context[contextsp].keymark to lastkey do
         with keytable[i] do
 begin
-{writeln('i:', i:5, ' refcount:', refcount:5, ' regsaved: ', regsaved, ' reg2saved: ', reg2saved);}
           if (refcount > 0) and not (regsaved and reg2saved)
           then savekey(i);
 end;
@@ -1859,14 +1855,15 @@ function signedoprnds : boolean;
     signedoprnds := keytable[left].signed and keytable[right].signed;
   end {signedoprnds} ;
 
-procedure loadreg(var k: keyindex);
+procedure loadreg(var k: keyindex; other: keyindex);
 
-{load key into a register for read access.
+{load key into a register for read access, without bothering other
 
  won't work for longs extended from shorter sized most likely at the moment
 }
 
 begin {loadreg}
+  lock(other);
   if keytable[k].oprnd.mode <> register then
     begin
     settemp(keytable[k].len, keytable[k].oprnd);
@@ -1875,6 +1872,7 @@ begin {loadreg}
     changevalue(k, tempkey);
     tempkey := tempkey + 2;
     end;
+  unlock(other);
 end {loadreg} ;
 
 
@@ -1931,9 +1929,7 @@ procedure shiftintx(backwards: boolean);
     addressboth;
     settargetorreg;
     lock(key);
-    lock(right);
-    loadreg(left);
-    unlock(right);
+    loadreg(left, right);
 {
     unpackshrink(left, len);
     lock(left);
@@ -1951,11 +1947,7 @@ procedure shiftintx(backwards: boolean);
       right := tempkey;
       end
     else
-      begin
-      lock(left);
-      loadreg(right);
-      unlock(left);
-      end;
+      loadreg(right, left);
     unlock(key);
     if backwards then
       if keytable[left].signed then shiftinst := asrinst
@@ -1977,18 +1969,12 @@ procedure integerarithmetic(inst: insts {simple integer inst} );
     addressboth;
     settargetorreg;
     lock(key);
-    lock(right);
-    loadreg(left);
-    lock(left);
+    loadreg(left, right);
     if (inst = mul) or (keytable[right].oprnd.mode <> immediate) then
       begin
-      unlock(right);
-      loadreg(right);
-      lock(right);
+      loadreg(right, left);
       end;
     gen3(buildinst(inst, len = long, false), key, left, right);
-    unlock(left);
-    unlock(right);
     unlock(key);
     keytable[key].signed := signedoprnds;
   end {integerarithmetic} ;
@@ -2001,11 +1987,11 @@ procedure incdec(inst: insts {add, sub} );
 
   begin {incdec}
 {    unpackshrink(left, len);}
-    address(left);
-    lock(left);
     settargetorreg; 
-    unlock(left);
-    loadreg(left);
+    lock(key);
+    address(left);
+    loadreg(left, 0);
+    unlock(key);
     settemp(len, immediate_oprnd(1, false));
     gen3(buildinst(inst, len = long, false), key, left, tempkey);
     keytable[key].signed := keytable[left].signed;
@@ -2037,12 +2023,8 @@ procedure cmpintptrx(signedbr, unsignedbr: insts {branch on result});
     if signedoprnds then brinst := signedbr
     else brinst := unsignedbr;
 
-    lock(right);
-    loadreg(left);
-    unlock(right);
-    lock(left);
-    loadreg(right);
-    unlock(left);
+    loadreg(left, right);
+    loadreg(right, left);
     gen2(buildinst(cmp, len = 4, false), left, right);
     setbr(brinst);
   end {cmpintptrx} ;
@@ -2072,7 +2054,7 @@ procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
       i := cmn;
       right := -right;
       end;
-    loadreg(left);
+    loadreg(left, 0);
     settemp(len, immediate_oprnd(right, false));
     gen2(buildinst(i, len = long, false), left, tempkey);
     if keytable[left].signed then
@@ -2754,7 +2736,7 @@ procedure indxindrx;
 
   begin {indxindrx}
     address(left);
-    loadreg(left);
+    loadreg(left, 0);
     setvalue(index_oprnd(unsigned_offset, keytable[left].oprnd.reg, 0));
   end {indxindrx};
 
@@ -3480,11 +3462,13 @@ procedure codeselect;
         compilerabort(inconsistent);}
         end;
       end;
+
     if key > lastkey then lastkey := key;
-{
+
     with keytable[key] do
       if refcount + copycount > 1 then savekey(key);
 
+{
     adjusttemps;
 }
 

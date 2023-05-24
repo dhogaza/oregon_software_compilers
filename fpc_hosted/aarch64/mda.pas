@@ -704,10 +704,9 @@ procedure possibletemp(off: addressrange;
     if tempvars < maxtrackvar then
       begin
       if bigcompilerversion then f := @(bigtable[vartype]);
-      if ((f^.typ = reals) and not switcheverplus[doublereals]) or
-         (switcheverplus[fpc68881] and (f^.typ in [reals, doubles])) or
-         ((f^.typ in [bools, chars, ints, ptrs, scalars, subranges]) and
-         (f^.size <= targetintsize)) then
+      if (f^.typ in [reals, doubles]) or
+         ((f^.typ in [bools, chars, ints, ptrs, scalars, subranges, sets]) and
+         (f^.size <= defaultptrsize)) then
         begin
         tempvars := tempvars + 1;
         localvar.offset := off;
