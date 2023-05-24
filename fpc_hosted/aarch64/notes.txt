@@ -1,10 +1,9 @@
 -- next priorities:
-0. determiing if a stack temp store instruction is used or not
-   is much more difficult than a simple flag.  counter?  A list of
-   store instructions resolved at join time?  Or when the temp becomes
-   useless, if tempflag ever set then keep them all?
-1. enter and restore loop code
-2. function return values
+0. can we use regok for parameters allocated to a paramterreg
+   and not forced to memory rather than the specific boolean
+   used now?
+1. function return values
+2. enter and restore loop code
 5. instantiation of integers to include large numbers.
 6. instantiation of integers as bitmasks
 7. long address index values, consider alignment

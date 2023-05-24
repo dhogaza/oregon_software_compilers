@@ -729,6 +729,7 @@ procedure setcommonkey;
       tempflag := false;
       first := nil;
       last := nil;
+      saves := nil;
       end;
   end {setcommonkey} ;
 
@@ -933,21 +934,34 @@ function uselesstemp(k: keyindex): boolean;
   end {uselesstemp} ;
 
 procedure deleteregsave(k: keyindex);
-begin
-  if keytable[k].first <> nil then
-    begin
-    deletenodes(keytable[k].first, keytable[k].last);
-    keytable[k].first := nil;
-    keytable[k].last := nil;
-    end;
-end;
+  var p: tempsaveptr;
 
-procedure deleteregsaves;
+  begin
+    p := keytable[k].saves;
+    while p <> nil do
+      begin
+      deletenodes(p^.first, p^.last);
+      p := p^.nextsave;
+      end;
+  end;
+
+procedure processregsaves;
+
+{ Iterate over the stack temps allocated in this block,
+  deleting all saves to that temp so the temp itself
+  can later be deleted.
+
+  This code also disposes the list of reg saves for
+  each temp, whether it is used or not, as this is only
+  done once when we are finished with each context
+  block.
+}
 
 var
   k: keyindex;
+  p, p1: tempsaveptr;
 
-begin {deleteregsaves}
+begin {processregsaves}
   if not switcheverplus[test] then
   begin
     k := stackcounter;
@@ -955,10 +969,18 @@ begin {deleteregsaves}
       begin
       if uselesstemp(k) and not keytable[k].tempflag then
         deleteregsave(k);
+      p := keytable[k].saves;
+      while p <> nil do
+        begin
+        p1 := p^.nextsave;
+        dispose(p);
+        p := p1;
+        end;
+      keytable[k].saves := nil;
       k := k + 1;
       end;
   end;
-end {deleteregsaves};
+end {processregsaves};
 
 procedure consolidatestack;
 
@@ -1128,6 +1150,24 @@ function stacktemp(size: addressrange): keyindex;
   code should handle that case with the addition of allocation code.
 }
 
+procedure addtempsave(k: keyindex; first, last: nodeptr);
+
+  var
+    p: tempsaveptr;
+
+  begin {addtempsave}
+    if k < stackcounter then
+      begin
+      writeln('attemping to add a stack save to a non-stack entry');
+      compilerabort(inconsistent);
+      end;
+    new(p);
+    p^.first := first;
+    p^.last := last;
+    p^.nextsave := keytable[k].saves;
+    keytable[k].saves := p;
+  end {addtempsave};
+
 function savereg(r: regindex {register to save}) : keyindex;
 
 { Save the given register on the runtime stack.  This routine is quite clever
@@ -1144,6 +1184,7 @@ function savereg(r: regindex {register to save}) : keyindex;
     saved: boolean; {true if we don't need to save it}
     savekey: keyindex; {where we will save it if we must}
     p: nodeptr;
+    tempsave: tempsaveptr;
 
   begin {savereg}
     i := lastkey;
@@ -1180,12 +1221,11 @@ function savereg(r: regindex {register to save}) : keyindex;
       settemp(long, reg_oprnd(r));
       p := newnode(instnode);
       gen2p(p, buildinst(str, true, false), tempkey, savekey);
-      keytable[savekey].first := p;
-      keytable[savekey].last := lastnode;
+      addtempsave(savekey, p, lastnode);
 {if switcheverplus[test] and (keytable[key].first <> nil) then
 begin
 writeln(macfile, 'savekey:', savekey);
-write_nodes(keytable[savekey].first, keytable[savekey].last);
+write_nodes(tempsave^.first, tempsave^.last);
 end;
 }
       end;
@@ -1214,7 +1254,7 @@ procedure markreg(r: regindex {register to clobber} );
 
   begin {markreg}
     regused[r] := true;
-    if r <= lastreg then
+    if (r >= firstreg) and (r <= lastreg) then
       begin
       saved := false;
       registers[r] := 0;
@@ -1354,12 +1394,16 @@ function getreg: regindex;
 
 procedure savedstkey(k: keyindex);
 
+  var
+    p: nodeptr;
   begin
     with keytable[k],oprnd do
       if regvalid and not regsaved and (reg >= firstreg) and
          (reg <= lastreg) and keytable[properreg].validtemp then
         begin
-        gen2(buildinst(str, true, false), k, properreg);
+        p := newnode(instnode);
+        gen2p(p, buildinst(str, true, false), k, properreg);
+        addtempsave(properreg, p, lastnode);
         regsaved := true;
         end;
   end;
@@ -1585,6 +1629,8 @@ procedure addressboth;
   end {addressboth} ;
 
 procedure makedstaddressable(k: keyindex);
+  var
+    i: keyindex;
 
   begin
     with keytable[k], oprnd do
@@ -1597,6 +1643,15 @@ procedure makedstaddressable(k: keyindex);
           adjustregcount(k, keytable[k].refcount);
           end;
         regsaved := false;
+        if (reg >= firstreg) and (reg <= lastreg) then
+          for i := context[contextsp].keymark downto 1 do
+            if (keytable[i].access = valueaccess) then
+              begin
+              if keytable[i].oprnd.reg = reg then
+                keytable[i].joinreg := true;
+              if keytable[i].oprnd.reg2 = reg then
+                keytable[i].joinreg2 := true;
+              end;
         end
       else makeaddressable(k);
   end;
@@ -2397,7 +2452,7 @@ procedure putblock;
     { delete unnecessary register saves
     }
 
-    deleteregsaves;
+    processregsaves;
 
     finalizestackoffsets(firstnode, lastnode, maxstackoffset);
 
@@ -3112,7 +3167,7 @@ procedure restorelabelx;
         end;
 
 {DRB is this order correct?  Also need to delete unused temp store instructions}
-    deleteregsaves;
+    processregsaves;
     stackcounter := context[contextsp].savedstackcounter;
     stackoffset := context[contextsp].savedstackoffset;
     contextsp := contextsp - 1;
@@ -3785,10 +3840,7 @@ procedure codeone;
       target := pseudoinst.oprnds[3];
       codeselect;
 if switcheverplus[test] and (keytable[key].first <> nil) then
-begin
-writeln(macfile, 'key:', key);
 write_nodes(keytable[key].first, keytable[key].last);
-end;
       end;
   end {codeone};
 

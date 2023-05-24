@@ -405,6 +405,26 @@ type
 type
   accesstype = (noaccess, branchaccess, valueaccess);
 
+  { Linked list used to track all saves to a particular stack entry in
+    the keytable.
+
+    Register params caused a new case to arise in the pseudocode where
+    a register that's not a permanent regtemp can be the destination of a
+    move.  If the register is killed at some point, future code has to
+    refer to a stack copy of the contents.  The register can be saved in
+    multiple contexts since parameters can be assigned to, which is untrue
+    of registers allocated as the result of a computation.  Thus we need
+    to track all such saves so that if the stack copy is never reloaded, we
+    can delete it and all saves to it.
+  }
+
+  tempsaveptr = ^tempsave;
+  tempsave =
+    record
+      nextsave: tempsaveptr;
+      first, last: nodeptr;
+    end;
+
   keyx =
     packed record
       refcount, copycount: unsigned; {reference info from pseudocode}
@@ -439,6 +459,7 @@ type
                       created this value}
       oprnd: oprndtype; {the machine description of the operand}
       brinst: insts; {use this instruction for 'true' branch}
+      saves: tempsaveptr; {list of save operations if a stack temp}
     end;
 
   keytabletype = array [lowesttemp..keysize] of keyx;
