@@ -913,8 +913,6 @@ function precedeslastbranch(k: keyindex): boolean;
 function activetemp(k: keyindex): boolean;
 
 begin
-{writeln('activetemp: ', k: 6, context[contextsp].savedstackcounter: 6,
-        k < context[contextsp].savedstackcounter:8);}
   activetemp := keytable[k].validtemp and (k < context[contextsp].savedstackcounter);
 end;
 
@@ -930,7 +928,6 @@ function uselesstemp(k: keyindex): boolean;
     p, p1: nodeptr;
 
   begin {uselesstemp}
-writeln('uselesstemp: ', k:6, keytable[k].refcount:8, precedeslastbranch(k):8);
     uselesstemp := activetemp(k) and (keytable[k].refcount = 0)
                    and not precedeslastbranch(k);
   end {uselesstemp} ;
@@ -3030,11 +3027,6 @@ procedure copyaccessx;
         end; { loopstack[loopsp] }
 }
       setvalue(oprnd);
-{
-      keytable[key].oprnd.flavor := flavor;
-      keytable[key].oprnd.scale := scale;
-      keytable[key].oprnd.commonlong_reloc := commonlong_reloc;
-}
       keytable[key].signed := signed;
       keytable[key].signlimit := signlimit;
       end;
