@@ -2997,7 +2997,7 @@ begin {regparams}
         begin
         debugstmt(simple, 0, 0, 0);
         intstate := opstate;
-        if p^.regparamaddressable then
+        if not p^.registercandidate then
           begin
           getlevel(level, true);
           genlit(p^.offset);
@@ -3624,7 +3624,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                  (namekind in [param, varparam, funcparam, procparam, confparam,
                                varconfparam, boundid]) and
                  (varalloc in [regparam, realregparam, ptrregparam]) then
-                makeregparamaddressable(varlev, varptr);
+                forcememoryparam(varlev, varptr);
               if varlev > level then
                 with display[varlev] do
                   begin {within a with}
@@ -3747,7 +3747,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                   if (namekind in [param, varparam, funcparam, procparam, confparam,
                                    varconfparam, boundid]) and
                      (varalloc in [regparam, ptrregparam, realregparam]) and
-                     not regparamaddressable then
+                     registercandidate then
                     begin
                     genlit(0);
                     pushdummy;

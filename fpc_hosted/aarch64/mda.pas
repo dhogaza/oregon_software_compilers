@@ -238,7 +238,7 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
   calling standard.
 }
 
-procedure makeregparamaddressable(varlev: levelindex; paramptr: entryptr);
+procedure forcememoryparam(varlev: levelindex; paramptr: entryptr);
 
 {Register parameters must be assigned to the stack if it is referenced
  by a nested procedure.  
@@ -254,7 +254,7 @@ function  allocparamoffset(var blocksize, length: addressrange; overflowed: bool
     else overflowed := true;
   end {allocparamoffset};
 
-procedure makeregparamaddressable(varlev: levelindex; paramptr: entryptr);
+procedure forcememoryparam(varlev: levelindex; paramptr: entryptr);
 
 {Register parameters must be assigned to the stack if it is referenced
  by a nested procedure.  
@@ -265,7 +265,7 @@ var overflowed: boolean;
 begin
   with paramptr^ do
     begin 
-    regparamaddressable := true;
+    registercandidate := false;
     offset := allocparamoffset(display[varlev].blocksize, length, overflowed);
     end;
 end;
@@ -388,7 +388,6 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
     overflowed := false;
     typeptr := @(bigtable[paramptr^.vartype]);
     paramptr^.refparam := paramptr^.namekind <> param;
-    paramptr^.regparamaddressable := false;
     if (paramptr^.namekind = param) and (length > maxparambytes) and
        not (typeptr^.typ in [reals, doubles]) then
       begin
@@ -402,10 +401,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.varalloc := realregparam;
       paramptr^.regid := regparams.realregparams;
       paramptr^.regcount := 1;
-      if paramptr^.regparamaddressable then
-        paramptr^.offset := allocparamoffset(blocksize, paramptr^.length, overflowed)
-      else
-        paramptr^.offset := maxaddr - paramptr^.regid - maxregparams - 1;
+      paramptr^.offset := maxaddr - paramptr^.regid - maxregparams - 1;
       regparams.realregparams := regparams.realregparams + 1;
       end
     else if (paramptr^.length <= ptrsize) and (regparams.regparams < maxregparams) then
@@ -413,10 +409,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.varalloc := regparam;
       paramptr^.regid := regparams.regparams;
       paramptr^.regcount := 1;
-      if paramptr^.regparamaddressable then
-        paramptr^.offset := allocparamoffset(blocksize, paramptr^.length, overflowed)
-      else
-        paramptr^.offset := maxaddr - paramptr^.regid;
+      paramptr^.offset := maxaddr - paramptr^.regid;
       regparams.regparams := regparams.regparams + 1;
 
       { If we allow structured types and sets to be left in registers, then
@@ -426,13 +419,14 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       }
       if (typeptr^.typ in [sets, fields, arrays, strings, conformantarrays]) and
          not paramptr^.refparam  then
-        paramptr^.regparamaddressable := true;
+        paramptr^.registercandidate := false;
 
       end
     else
       begin
       paramptr^.varalloc := normalalloc;
       paramptr^.offset := allocparamoffset(paramsize, paramptr^.length, overflowed);
+      paramptr^.registercandidate := false; {might allow in the future}
       end;
   end {allocparam} ;
 
