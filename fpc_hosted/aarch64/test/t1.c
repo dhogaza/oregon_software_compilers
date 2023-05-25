@@ -4,5 +4,5 @@ int bar();
 
 int main()
 {
-  printf("%d", foo()/bar(), foo() % bar());
+  printf("%d", foo()/bar(), foo() % bar(), ~foo());
 }

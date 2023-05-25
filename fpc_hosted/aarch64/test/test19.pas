@@ -15,7 +15,8 @@ begin
     a := k * 3;
     P(0);
     end;
-  i := k;
+  i := -k;
+  j := not i;
 end;
 
 begin pp(a, a, a); end.

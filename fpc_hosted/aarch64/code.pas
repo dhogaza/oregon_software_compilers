@@ -240,6 +240,17 @@ function tworeg_oprnd(reg, reg2: regindex): oprndtype;
     tworeg_oprnd := o;
   end;
 
+function cond_oprnd(c: conds): oprndtype;
+
+  var
+    o:oprndtype;
+  begin
+    o.mode := cond;
+    o.condition := c;
+    o.reg := noreg;
+    o.reg2 := noreg;
+    cond_oprnd := o;
+  end;
 
 function literal_oprnd(lit: integer): oprndtype;
 
@@ -666,7 +677,8 @@ procedure bumptempcount(k: keyindex; {key of temp desired}
           begin
           if (delta < - refcount) then { overflow is rarely a problem }
             begin
-            write('BUMPTEMPCOUNT, refcount underflow');
+            write('BUMPTEMPCOUNT properreg: ', properreg, ' delta: ', delta, ' refcount: ',
+                  refcount); 
             compilerabort(inconsistent);
             end;
           refcount := refcount + delta;
@@ -2034,6 +2046,40 @@ procedure integerarithmetic(inst: insts {simple integer inst} );
     keytable[key].signed := signedoprnds;
   end {integerarithmetic} ;
 
+procedure unaryint(inst: insts);
+
+{ Generate an operator such a neg that has only one source operand,
+  which must be in a register.  Generally these are aliases for
+  generalized instructions such as sub, with one operand being the
+  zero register.
+}
+
+
+  begin {incdec}
+{    unpackshrink(left, len);}
+    settargetorreg; 
+    lock(key);
+    address(left);
+    loadreg(left, 0);
+    unlock(key);
+    gen2(buildinst(inst, len = long, false), key, left);
+    keytable[key].signed := keytable[left].signed;
+  end {incdec} ;
+
+procedure compintx;
+
+{DRB cinv doesn't work with al!}
+  begin {compintx}
+{    unpackshrink(left, len);}
+    settargetorreg; 
+    lock(key);
+    address(left);
+    loadreg(left, 0);
+    unlock(key);
+    gen2(buildinst(mvn, len = long, false), key, left);
+    keytable[key].signed := keytable[left].signed;
+  end {compintx};
+
 procedure incdec(inst: insts {add, sub} );
 
 { Generate add/sub #1, left.  Handles compbool, incint and decint pseudoops.
@@ -3260,11 +3306,39 @@ procedure jumpcond(inv: boolean {invert the sense of the branch} );
   begin
     forcebranch(right);
     if inv then genbr(invert[keytable[key].brinst], pseudoinst.oprnds[1])
-    else genbr(keytable[key].brinst, pseudoinst.oprnds[1]);
-{
-    if findlabel(pseudoinst.oprnds[1]) = 0 then
-      context[contextsp].lastbranch := lastnode;}
+    else genbr(keytable[key].brinst, left);
   end {jumpcond} ;
+
+{ These are awful in that a top level compare can be collapsed into a
+  single csel ...
+}
+
+procedure createfalsex;
+
+{ Create false constant prior to conversion of comparison to value.
+}
+
+
+  begin {createfalsex}
+    settargetorreg;
+    settemp(len, immediate_oprnd(0, false));
+    gensimplemove(tempkey, key);
+  end {createfalsex} ;
+
+
+procedure createtruex;
+
+{ Create the value 'true'.
+}
+
+
+  begin {createtruex}
+    address(left);
+    setallfields(left);
+    settemp(len, immediate_oprnd(1, false));
+    gensimplemove(tempkey, key);
+  end {createtruex} ;
+
 
 procedure codeselect;
 
@@ -3273,276 +3347,6 @@ procedure codeselect;
 }
 
   begin {codeselect}
-    tempkey := loopcount - 1;
-    setcommonkey;
-    use_preferred_key := false; {code generator flag}
-    case pseudoinst.op of
-      doint, doptr: dointx;
-      dolevel:  dolevelx(false);
-      doown: dolevelx(true);
-      blockentry: blockentryx;
-      blockcode: blockcodex;
-      blockexit: blockexitx;
-{
-      doreal: dorealx;
-      dofptr: dofptrx;
-}
-      stmtbrk: stmtbrkx;
-      copyaccess: copyaccessx;
-      clearlabel: clearlabelx;
-      savelabel: savelabelx;
-      restorelabel: restorelabelx;
-      joinlabel: joinlabelx;
-      pseudolabel: pseudolabelx;
-{
-      pascallabel: pascallabelx;
-      pascalgoto: pascalgotox;
-      defforlitindex: defforindexx(true, true);
-      defforindex: defforindexx(true, false);
-      defunsforlitindex: defforindexx(false, true);
-      defunsforindex: defforindexx(false, false);
-      fordntop: fortopx(blt, blo);
-      fordnbottom: forbottomx(false, sub, bge, bhs);
-      fordnimproved: forbottomx(true, sub, bge, bhs);
-      foruptop: fortopx(bgt, bhi);
-      forupbottom: forbottomx(false, add, ble, bls);
-      forupimproved: forbottomx(true, add, ble, bls);
-      forupchk: forcheckx(true);
-      fordnchk: forcheckx(false);
-      forerrchk: forerrchkx;
-      casebranch: casebranchx;
-      caseelt: caseeltx;
-      caseerr: caseerrx;
-      dostruct: dostructx;
-      doset: dosetx;
-      dolevel: dolevelx;
-}
-      dovar: dovarx(true);
-      dounsvar, doptrvar, dofptrvar: dovarx(false);
-{
-      doext: doextx;
-      indxchk: checkx(false, index_error);
-      rangechk: checkx(true, range_error);
-      congruchk: checkx(true, index_error);
-}
-      regparam: regparamx;
-      regtemp: regtempx;
-{
-      ptrtemp: ptrtempx;
-      realregparam: realregparamx;
-      realtemp: realtempx;
-}
-      indxindr: indxindrx;
-      indx: indxx;
-      aindx: aindxx;
-{
-      pindx: pindxx;
-      paindx: paindxx;
-      createfalse: createfalsex;
-      createtrue: createtruex;
-      createtemp: createtempx;
-      jointemp: jointempx;
-}
-      addr: addrx;
-{
-      setinsert: setinsertx;
-      inset: insetx;
-}
-      movint, returnint, movptr, returnptr, returnfptr: movintptrx;
-      movlitint, movlitptr: movlitintx;
-{
-      movreal, returnreal: movrealx;
-      movlitreal: movlitrealx;
-      movstruct, returnstruct: movstructx(false, true);
-      movstr: movstrx;
-      movcstruct: movcstructx;
-      movset: movstructx(true, true);
-      addstr: addstrx;
-}
-      addint: integerarithmetic(add);
-      subint, subptr: integerarithmetic(sub);
-      mulint: integerarithmetic(mul);
-      stddivint: divintx;
-      divint: divintx;
-      getquo: getquox;
-      getrem: getremx;
-      shiftlint: shiftintx(false);
-      shiftrint: shiftintx(true);
-{
-      negint: unaryintx(neg);
-}
-      incint: incdec(add);
-      decint: incdec(sub);
-{
-      orint: integerarithmetic(orinst);
-      andint: integerarithmetic(andinst);
-      xorint: xorintx;
-      addptr: addptrx;
-      compbool: incdec(add, true);
-      compint: unaryintx(notinst);
-      addreal: realarithmeticx(true, libfadd, libdadd, fadd);
-      subreal: realarithmeticx(false, libfsub, libdsub, fsub);
-      mulreal: realarithmeticx(true, libfmult, libdmult, fmul);
-      divreal: realarithmeticx(false, libfdiv, libddiv, fdiv);
-      negreal: negrealx;
-      addset: setarithmetic(orinst, false);
-      subset: setarithmetic(andinst, true);
-      mulset: setarithmetic(andinst, false);
-      divset: setarithmetic(eor, false);
-      stacktarget: stacktargetx;
-}
-      makeroom: makeroomx;
-      callroutine: callroutinex(true);
-      unscallroutine: callroutinex(false);
-{
-      sysfnstring: sysfnstringx;
-      sysfnint: sysfnintx;
-      sysfnreal: sysfnrealx;
-      castreal: castrealx;
-      castrealint: castrealintx;
-      castint, castptr: castintx;
-}
-      loopholefn, castptrint, castintptr, castfptrint, castintfptr:
-	loopholefnx;
-{
-      sysroutine: sysroutinex;
-      chrstr: chrstrx;
-      arraystr: arraystrx;
-      flt: fltx;
-      pshint, pshptr: pshx;
-      pshfptr: pshfptrx;
-      pshlitint: pshlitintx;
-      pshlitptr, pshlitfptr: pshlitptrx;
-      pshlitreal: pshlitrealx;
-      pshreal: pshx;
-      pshaddr: pshaddrx;
-      pshstraddr: pshstraddrx;
-      pshproc: pshprocx;
-      pshstr: pshstrx;
-      pshstruct, pshset: pshstructx;
-      fmt: fmtx;
-      setbinfile: setbinfilex;
-      setfile: setfilex;
-      closerange: closerangex;
-      copystack: copystackx;
-      rdint: rdintcharx(libreadint, defaulttargetintsize);
-      rdchar: rdintcharx(libreadchar, byte);
-      rdreal: rdintcharx(libreadreal, len);
-      rdst:
-        if filenamed then callandpop(libreadstring, 2)
-        else callandpop(libreadstringi, 2);
-      rdxstr: rdxstrx;
-      rdbin: callsupport(libget);
-      wrbin: callsupport(libput);
-      wrint: wrcommon(libwriteint, 12);
-      wrchar: wrcommon(libwritechar, 1);
-      wrst: wrstx(true);
-      wrxstr: wrstx(false);
-      wrbool: wrcommon(libwritebool, 5);
-      wrreal: wrrealx;
-}
-      jump: jumpx(pseudoinst.oprnds[1]);
-      jumpf: jumpcond(true);
-      jumpt: jumpcond(false);
-{
-
-      eqreal: cmprealx(beq, libdeql, fbngl);
-      neqreal: cmprealx(bne, libdeql, fbgl);
-      lssreal: cmprealx(blt, libdlss, fblt);
-      leqreal: cmprealx(ble, libdlss, fble);
-      geqreal: cmprealx(bge, libdgtr, fbge);
-      gtrreal: cmprealx(bgt, libdgtr, fbgt);
-}
-
-      eqint, eqptr, eqfptr: cmpintptrx(beq, beq);
-      neqint, neqptr: cmpintptrx(bne, bne);
-      leqint, leqptr: cmpintptrx(ble, bls);
-      geqint, geqptr: cmpintptrx(bge, bhs);
-      lssint, lssptr: cmpintptrx(blt, blo);
-      gtrint, gtrptr: cmpintptrx(bgt, bhi);
-{
-      eqstruct: cmpstructx(beq);
-      neqstruct: cmpstructx(bne);
-      leqstruct: cmpstructx(ble);
-      geqstruct: cmpstructx(bge);
-      lssstruct: cmpstructx(blt);
-      gtrstruct: cmpstructx(bgt);
-
-      eqstr: cmpstrx(beq);
-      neqstr: cmpstrx(bne);
-      leqstr: cmpstrx(ble);
-      geqstr: cmpstrx(bge);
-      lssstr: cmpstrx(blt);
-      gtrstr: cmpstrx(bgt);
-
-      eqlitreal: cmplitrealx(beq, libdeql, fbngl);
-      neqlitreal: cmplitrealx(bne, libdeql, fbgl);
-      lsslitreal: cmplitrealx(blt, libdlss, fblt);
-      leqlitreal: cmplitrealx(ble, libdlss, fble);
-      gtrlitreal: cmplitrealx(bgt, libdgtr, fbgt);
-      geqlitreal: cmplitrealx(bge, libdgtr, fbge);
-}
-      eqlitint, eqlitptr: cmplitintx(beq, beq);
-      neqlitint, neqlitptr: cmplitintx(bne, bne);
-      leqlitint: cmplitintx(ble, bls);
-      geqlitint: cmplitintx(bge, bhs);
-      lsslitint: cmplitintx(blt, blo);
-      gtrlitint: cmplitintx(bgt, bhi);
-{
-
-      eqset: cmpstructx(beq);
-      neqset: cmpstructx(bne);
-      geqset: cmpsetinclusion(left, right);
-      leqset: cmpsetinclusion(right, left);
-
-      postint: postintptrx(false);
-      postptr: postintptrx(true);
-      postreal: postrealx;
-
-      ptrchk: ptrchkx;
-      definelazy: definelazyx;
-      restoreloop: restoreloopx;
-      startreflex: dontchangevalue := dontchangevalue + 1;
-      endreflex: dontchangevalue := dontchangevalue - 1;
-      cvtrd: cvtrdx;
-      cvtdr: cvtdrx; { SNGL function }
-      dummyarg: dummyargx;
-      dummyarg2: dummyarg2x;
-      openarray: openarrayx;
-}
-      saveactkeys: saveactivekeys;
-      otherwise
-        begin
-        {writeln('Not yet implemented: ', ord(pseudoinst.op): 1);
-        compilerabort(inconsistent);}
-        end;
-      end;
-
-    if key > lastkey then lastkey := key;
-
-    with keytable[key] do
-      if refcount + copycount > 1 then savekey(key);
-
-{
-    adjusttemps;
-}
-
-    while (keytable[lastkey].refcount = 0) and
-          (lastkey >= context[contextsp].keymark) do
-      begin
-      keytable[lastkey].access := noaccess;
-      lastkey := lastkey - 1;
-      end;
-
-    { This prevents stumbling on an old key later.
-    }
-{    key := lastkey;
-
-    while key >= context[contextsp].keymark do
-      begin
-      if keytable[key].refcount = 0 then keytable[key].access := noaccess;
-      key := key - 1;
-      end;}
   end; {codeselect}
 
 
@@ -3826,21 +3630,291 @@ procedure codeone;
 }
 
   begin {codeone}
-    if travcode then
-      begin
-      if switcheverplus[test] then
+    key := pseudoinst.key;
+    len := pseudoinst.len;
+    left := pseudoinst.oprnds[1];
+    right := pseudoinst.oprnds[2];
+    target := pseudoinst.oprnds[3];
+    tempkey := loopcount - 1;
+    setcommonkey;
+    use_preferred_key := false; {code generator flag}
+    case pseudoinst.op of
+      doint, doptr: dointx;
+      dolevel:  dolevelx(false);
+      doown: dolevelx(true);
+      blockentry: blockentryx;
+      blockcode: blockcodex;
+      blockexit: blockexitx;
+{
+      doreal: dorealx;
+      dofptr: dofptrx;
+}
+      stmtbrk: stmtbrkx;
+      copyaccess: copyaccessx;
+      clearlabel: clearlabelx;
+      savelabel: savelabelx;
+      restorelabel: restorelabelx;
+      joinlabel: joinlabelx;
+      pseudolabel: pseudolabelx;
+{
+      pascallabel: pascallabelx;
+      pascalgoto: pascalgotox;
+      defforlitindex: defforindexx(true, true);
+      defforindex: defforindexx(true, false);
+      defunsforlitindex: defforindexx(false, true);
+      defunsforindex: defforindexx(false, false);
+      fordntop: fortopx(blt, blo);
+      fordnbottom: forbottomx(false, sub, bge, bhs);
+      fordnimproved: forbottomx(true, sub, bge, bhs);
+      foruptop: fortopx(bgt, bhi);
+      forupbottom: forbottomx(false, add, ble, bls);
+      forupimproved: forbottomx(true, add, ble, bls);
+      forupchk: forcheckx(true);
+      fordnchk: forcheckx(false);
+      forerrchk: forerrchkx;
+      casebranch: casebranchx;
+      caseelt: caseeltx;
+      caseerr: caseerrx;
+      dostruct: dostructx;
+      doset: dosetx;
+      dolevel: dolevelx;
+}
+      dovar: dovarx(true);
+      dounsvar, doptrvar, dofptrvar: dovarx(false);
+{
+      doext: doextx;
+      indxchk: checkx(false, index_error);
+      rangechk: checkx(true, range_error);
+      congruchk: checkx(true, index_error);
+}
+      regparam: regparamx;
+      regtemp: regtempx;
+{
+      ptrtemp: ptrtempx;
+      realregparam: realregparamx;
+      realtemp: realtempx;
+}
+      indxindr: indxindrx;
+      indx: indxx;
+      aindx: aindxx;
+{
+      pindx: pindxx;
+      paindx: paindxx;
+}
+      createfalse: createfalsex;
+      createtrue: createtruex;
+{
+      createtemp: createtempx;
+      jointemp: jointempx;
+}
+      addr: addrx;
+{
+      setinsert: setinsertx;
+      inset: insetx;
+}
+      movint, returnint, movptr, returnptr, returnfptr: movintptrx;
+      movlitint, movlitptr: movlitintx;
+{
+      movreal, returnreal: movrealx;
+      movlitreal: movlitrealx;
+      movstruct, returnstruct: movstructx(false, true);
+      movstr: movstrx;
+      movcstruct: movcstructx;
+      movset: movstructx(true, true);
+      addstr: addstrx;
+}
+      addint: integerarithmetic(add);
+      subint, subptr: integerarithmetic(sub);
+      mulint: integerarithmetic(mul);
+      stddivint: divintx;
+      divint: divintx;
+      getquo: getquox;
+      getrem: getremx;
+      shiftlint: shiftintx(false);
+      shiftrint: shiftintx(true);
+      negint: unaryint(neg);
+      incint: incdec(add);
+      decint: incdec(sub);
+{
+      orint: integerarithmetic(orinst);
+      andint: integerarithmetic(andinst);
+      xorint: xorintx;
+      addptr: addptrx;
+      compbool: incdec(add, true);
+}
+      compint: compintx;
+{
+      addreal: realarithmeticx(true, libfadd, libdadd, fadd);
+      subreal: realarithmeticx(false, libfsub, libdsub, fsub);
+      mulreal: realarithmeticx(true, libfmult, libdmult, fmul);
+      divreal: realarithmeticx(false, libfdiv, libddiv, fdiv);
+      negreal: negrealx;
+      addset: setarithmetic(orinst, false);
+      subset: setarithmetic(andinst, true);
+      mulset: setarithmetic(andinst, false);
+      divset: setarithmetic(eor, false);
+      stacktarget: stacktargetx;
+}
+      makeroom: makeroomx;
+      callroutine: callroutinex(true);
+      unscallroutine: callroutinex(false);
+{
+      sysfnstring: sysfnstringx;
+      sysfnint: sysfnintx;
+      sysfnreal: sysfnrealx;
+      castreal: castrealx;
+      castrealint: castrealintx;
+      castint, castptr: castintx;
+}
+      loopholefn, castptrint, castintptr, castfptrint, castintfptr:
+	loopholefnx;
+{
+      sysroutine: sysroutinex;
+      chrstr: chrstrx;
+      arraystr: arraystrx;
+      flt: fltx;
+      pshint, pshptr: pshx;
+      pshfptr: pshfptrx;
+      pshlitint: pshlitintx;
+      pshlitptr, pshlitfptr: pshlitptrx;
+      pshlitreal: pshlitrealx;
+      pshreal: pshx;
+      pshaddr: pshaddrx;
+      pshstraddr: pshstraddrx;
+      pshproc: pshprocx;
+      pshstr: pshstrx;
+      pshstruct, pshset: pshstructx;
+      fmt: fmtx;
+      setbinfile: setbinfilex;
+      setfile: setfilex;
+      closerange: closerangex;
+      copystack: copystackx;
+      rdint: rdintcharx(libreadint, defaulttargetintsize);
+      rdchar: rdintcharx(libreadchar, byte);
+      rdreal: rdintcharx(libreadreal, len);
+      rdst:
+        if filenamed then callandpop(libreadstring, 2)
+        else callandpop(libreadstringi, 2);
+      rdxstr: rdxstrx;
+      rdbin: callsupport(libget);
+      wrbin: callsupport(libput);
+      wrint: wrcommon(libwriteint, 12);
+      wrchar: wrcommon(libwritechar, 1);
+      wrst: wrstx(true);
+      wrxstr: wrstx(false);
+      wrbool: wrcommon(libwritebool, 5);
+      wrreal: wrrealx;
+}
+      jump: jumpx(pseudoinst.oprnds[1]);
+      jumpf: jumpcond(true);
+      jumpt: jumpcond(false);
+{
+
+      eqreal: cmprealx(beq, libdeql, fbngl);
+      neqreal: cmprealx(bne, libdeql, fbgl);
+      lssreal: cmprealx(blt, libdlss, fblt);
+      leqreal: cmprealx(ble, libdlss, fble);
+      geqreal: cmprealx(bge, libdgtr, fbge);
+      gtrreal: cmprealx(bgt, libdgtr, fbgt);
+}
+
+      eqint, eqptr, eqfptr: cmpintptrx(beq, beq);
+      neqint, neqptr: cmpintptrx(bne, bne);
+      leqint, leqptr: cmpintptrx(ble, bls);
+      geqint, geqptr: cmpintptrx(bge, bhs);
+      lssint, lssptr: cmpintptrx(blt, blo);
+      gtrint, gtrptr: cmpintptrx(bgt, bhi);
+{
+      eqstruct: cmpstructx(beq);
+      neqstruct: cmpstructx(bne);
+      leqstruct: cmpstructx(ble);
+      geqstruct: cmpstructx(bge);
+      lssstruct: cmpstructx(blt);
+      gtrstruct: cmpstructx(bgt);
+
+      eqstr: cmpstrx(beq);
+      neqstr: cmpstrx(bne);
+      leqstr: cmpstrx(ble);
+      geqstr: cmpstrx(bge);
+      lssstr: cmpstrx(blt);
+      gtrstr: cmpstrx(bgt);
+
+      eqlitreal: cmplitrealx(beq, libdeql, fbngl);
+      neqlitreal: cmplitrealx(bne, libdeql, fbgl);
+      lsslitreal: cmplitrealx(blt, libdlss, fblt);
+      leqlitreal: cmplitrealx(ble, libdlss, fble);
+      gtrlitreal: cmplitrealx(bgt, libdgtr, fbgt);
+      geqlitreal: cmplitrealx(bge, libdgtr, fbge);
+}
+      eqlitint, eqlitptr: cmplitintx(beq, beq);
+      neqlitint, neqlitptr: cmplitintx(bne, bne);
+      leqlitint: cmplitintx(ble, bls);
+      geqlitint: cmplitintx(bge, bhs);
+      lsslitint: cmplitintx(blt, blo);
+      gtrlitint: cmplitintx(bgt, bhi);
+{
+
+      eqset: cmpstructx(beq);
+      neqset: cmpstructx(bne);
+      geqset: cmpsetinclusion(left, right);
+      leqset: cmpsetinclusion(right, left);
+
+      postint: postintptrx(false);
+      postptr: postintptrx(true);
+      postreal: postrealx;
+
+      ptrchk: ptrchkx;
+      definelazy: definelazyx;
+      restoreloop: restoreloopx;
+}
+      { C only }
+      startreflex: dontchangevalue := dontchangevalue + 1;
+      endreflex: dontchangevalue := dontchangevalue - 1;
+{
+      cvtrd: cvtrdx;
+      cvtdr: cvtdrx; { SNGL function }
+      dummyarg: dummyargx;
+      dummyarg2: dummyarg2x;
+      openarray: openarrayx;
+}
+      saveactkeys: saveactivekeys;
+      otherwise
         begin
-        dumppseudo(output);
-        dumppseudo(macfile);
+        {writeln('Not yet implemented: ', ord(pseudoinst.op): 1);
+        compilerabort(inconsistent);}
         end;
-      key := pseudoinst.key;
-      len := pseudoinst.len;
-      left := pseudoinst.oprnds[1];
-      right := pseudoinst.oprnds[2];
-      target := pseudoinst.oprnds[3];
-      codeselect;
-if switcheverplus[test] and (keytable[key].first <> nil) then
-write_nodes(keytable[key].first, keytable[key].last);
+      end;
+
+    if key > lastkey then lastkey := key;
+
+    with keytable[key] do
+      if refcount + copycount > 1 then savekey(key);
+
+{
+    adjusttemps;
+}
+
+    while (keytable[lastkey].refcount = 0) and
+          (lastkey >= context[contextsp].keymark) do
+      begin
+      keytable[lastkey].access := noaccess;
+      lastkey := lastkey - 1;
+      end;
+
+    { This prevents stumbling on an old key later.
+    }
+{    key := lastkey;
+
+    while key >= context[contextsp].keymark do
+      begin
+      if keytable[key].refcount = 0 then keytable[key].access := noaccess;
+      key := key - 1;
+      end;}
+    if switcheverplus[test] then
+      begin
+      dumppseudo(macfile);
+      if keytable[key].first <> nil then
+        write_nodes(keytable[key].first, keytable[key].last);
       end;
   end {codeone};
 

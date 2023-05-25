@@ -268,17 +268,21 @@ type
     last_call  { must be last -- this one means nothing }
   );
 
-  { AARCH64 instruction definitions, including some dummies to make creating
-    sets easier. }
+  { AARCH64 instruction definitions.  These include aliases supported by
+    standard assembler/disassemblers which makes reading the generated
+    code easier.
+  }
 
   insts = (noinst, nop,
 
   {basic arithmetic instructions}
   first_a, add, sub, mul, madd, msub, sdiv, udiv, cmp, cmn, neg, last_a,
 
+  {bit manipulation}
+  cinv, mvn,
   {move instructions}
 
-  first_mov, movz, mov, last_mov,
+  first_mov, movz, mov, movn, last_mov,
 
   {load/store instruction}
   first_ls, ldr, ldrb, ldrh, ldrw, ldrsb, ldrsh, ldrsw, ldp,
@@ -287,7 +291,7 @@ type
   {branch instructions}
 
   first_b, b, bl, beq, bne, blt, bgt, ble, bge, bhi, bhs, blo, bls,
-  bvc, bvs, last_b,
+  bvc, bvs, cbz, cbnz, last_b,
 
   {miscellaneous instructions}
 
@@ -304,7 +308,10 @@ type
   oprnd_modes = (nomode, register, tworeg, shift_reg, extend_reg,
                  immediate, immediate16, relative, pre_index, post_index, signed_offset,
                  unsigned_offset, reg_offset, literal, labeltarget, proccall,
-                 syscall);
+                 syscall, cond);
+
+  conds = (al, eq, ne, gt, lt, le, ge, hi, hs, lo, ls, cc, cs, mi, pl,
+           vs, vc);
 
   reg_extends = (xtb, xth, xtw, xtx);
   reg_shifts = (lsl, lsr, asr);
@@ -331,6 +338,7 @@ type
       pre_index, post_index, signed_offset, unsigned_offset: (index: integer);
       reg_offset: (shift: imm2; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
+      cond: (condition: conds);
       labeltarget: (labelno: unsigned; lowbits: boolean);
       proccall: (proclabelno: unsigned; entry_offset: integer);
       syscall: (syslabelno: unsigned);

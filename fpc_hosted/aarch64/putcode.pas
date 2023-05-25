@@ -18,11 +18,14 @@ implementation
 
 var
 
-reg_prefix: array[boolean] of char;
-signed_prefix: array[boolean] of char;
-reg_extends_text: array[reg_extends] of packed array [1..3] of char;
-reg_shifts_text: array[reg_shifts] of packed array [1..3] of char;
-
+  {if I ever get this compiler self-hosted it will be awfully nice to
+   initialize these with constants!
+  }
+  reg_prefix: array[boolean] of char;
+  signed_prefix: array[boolean] of char;
+  reg_extends_text: array[reg_extends] of packed array [1..3] of char;
+  reg_shifts_text: array[reg_shifts] of packed array [1..3] of char;
+  conds_text: array[conds] of packed array [1..2] of char;
 
 { Since this doesn't have to run on a tiny 'ole computer like the
   PDP-11 this is an artifact of the old disk-caching implementation
@@ -283,6 +286,9 @@ begin
     bne: write(macfile, 'b.ne');
     bvc: write(macfile, 'b.vc');
     bvs: write(macfile, 'b.vs');
+    cbnz: write(macfile, 'cbnz');
+    cbz: write(macfile, 'cbz');
+    cinv: write(macfile, 'cinv');
     cmp: write(macfile, 'cmp');
     cmn: write(macfile, 'cmn');
     ldr: write(macfile, 'ldr');
@@ -297,9 +303,11 @@ begin
     lsrinst: write(macfile, 'lsr');
     madd: write(macfile, 'madd');
     mov: write(macfile, 'mov');
+    movn: write(macfile, 'movn');
     movz: write(macfile, 'movz');
     msub: write(macfile, 'msub');
     mul: write(macfile, 'mul');
+    mvn: write(macfile, 'mvn');
     neg: write(macfile, 'neg');
     ret: write(macfile, 'ret');
     sdiv: write(macfile, 'sdiv');
@@ -380,6 +388,7 @@ begin
         end;
       write(macfile, ']');
       end;
+    cond: write(macfile, conds_text[o.condition]);
     literal: write(macfile, o.literal);
     proccall:
       if proctable[o.proclabelno].externallinkage and
@@ -460,6 +469,24 @@ begin
   reg_extends_text[xth] := 'xth';
   reg_extends_text[xtw] := 'xtw';
   reg_extends_text[xtx] := 'xtx';
+
+  conds_text[al] := 'al';
+  conds_text[eq] := 'eq';
+  conds_text[ne] := 'ne';
+  conds_text[gt] := 'gt';
+  conds_text[lt] := 'lt';
+  conds_text[le] := 'le';
+  conds_text[ge] := 'ge';
+  conds_text[hi] := 'hi';
+  conds_text[hs] := 'hs';
+  conds_text[lo] := 'lo';
+  conds_text[ls] := 'ls';
+  conds_text[cc] := 'cc';
+  conds_text[cs] := 'cs';
+  conds_text[mi] := 'mi';
+  conds_text[pl] := 'pl';
+  conds_text[vs] := 'vs';
+  conds_text[vc] := 'vc';
 
   copysfile;
 

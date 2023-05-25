@@ -1,7 +1,4 @@
 -- next priorities:
-0. can we use regok for parameters allocated to a paramterreg
-   and not forced to memory rather than the specific boolean
-   used now?
 1. function return values
 2. enter and restore loop code
 5. instantiation of integers to include large numbers.
@@ -85,9 +82,12 @@ Future enhancements to improve:
    a) combine multiply followed by add or subtract into MADD/MSUB
    b) combine multiply followed by aindx with length of 1 (no scaling)
       into addrop+MADD/MSUB.
-1. vectorization because that was something I always wanted to do ...
+2. flatten expressions with comparisions
+n-1: find uses for all sorts of weird instructions
+n. vectorization because that was something I always wanted to do ...
 
 Peephole needs:
 
 1. Two register loads from consecutive memory address converted to
    ldp insruction.
+2. cmp xn,0; b.cond l -> cbz x0,l, cond and associated thingies
