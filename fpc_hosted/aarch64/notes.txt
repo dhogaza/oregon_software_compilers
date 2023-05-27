@@ -13,6 +13,8 @@
    add or reg offset mode works because the third operand
    can be extended.  madd won't work with 32-bit integers
    and a 64-bit address base.
+10.targeting logic sucks on this machine, too many instances
+   of ld xn, mem/op xm,xn/mov xn,xm/ when xm is no longer useful.
 
 -- more general
 
