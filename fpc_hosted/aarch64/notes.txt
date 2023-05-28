@@ -1,18 +1,12 @@
 -- next priorities:
-1. function return values
+1. function return values - don't need to worry about large types
+   and r8.  can registerfunction be used?
 2. enter and restore loop code
 5. instantiation of integers to include large numbers.
 6. instantiation of integers as bitmasks
 7. long address index values, consider alignment
 8. REVERSE STACK PARAM PUSHES
-9. lots of sign extension and the like issues going from
-   variables to Xn parameter regs and how they're used
-   inside procedures to sort out.  Bookkeeping.  Will
-   make code worse.  This probably mostly impacts array
-   indexing by word-length values.  The mul followed by
-   add or reg offset mode works because the third operand
-   can be extended.  madd won't work with 32-bit integers
-   and a 64-bit address base.
+9. lots of sign extension and the like issues
 10.targeting logic sucks on this machine, too many instances
    of ld xn, mem/op xm,xn/mov xn,xm/ when xm is no longer useful.
 
@@ -27,7 +21,6 @@
    memory for nested procs to be assigned true regtemps
    as frequent use of params in the context of many calls
    to procs leads to horrendous number of spills
-2. look into registerfunction
 
 
 Advantages of using negative sp offsets when generating code:
@@ -73,8 +66,6 @@ Register parameters:
 
 2, Huge complication regarding records with uniform float/double fields that
    will fit in the parameter registers.
-
-3. r8 is used to pass the pointer to large non-fp return values.
 
 Future enhancements to improve:
 

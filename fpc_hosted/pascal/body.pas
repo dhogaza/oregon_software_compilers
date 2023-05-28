@@ -3848,7 +3848,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                 if varlev > 2 then constpart := constpart + staticlinkoffset;
                 end;
               off := constpart;
-              newresulttype(functype);
+              newresulttype(vartype);
               len := sizeof(resultptr, false);
               if parsing then gettoken;
               end;
@@ -4536,7 +4536,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                   newresulttype(p^.vartype);
                   if actualptr^.namekind = funcparam then
                     calltype := actualptr^.vartype
-                  else calltype := actualptr^.functype;
+                  else calltype := actualptr^.vartype;
                   if not identical(resulttype, calltype) then
                     warn(paramtypeerr);
                   callparam;
@@ -4622,7 +4622,7 @@ procedure statement(follow: tokenset {legal following symbols} );
       if bigcompilerversion then p := @(bigtable[where]);
       with p^ do
         begin
-        ftype := functype;
+        ftype := vartype;
         pref := procref;
         end;
       if bigcompilerversion then p := @(bigtable[ftype]);
@@ -7914,7 +7914,7 @@ procedure statement(follow: tokenset {legal following symbols} );
           funcname:
             begin
             if not bigcompilerversion then blocksin[1].written := true;
-            varptr^.funcassigned := true;
+            varptr^.modified := true;
             newexprstmt(simple);
             if (lev >= level) or (varindex <> display[lev + 1].blockname) then
               begin

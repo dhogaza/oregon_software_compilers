@@ -146,6 +146,17 @@ function reg_oprnd(reg: regindex): oprndtype;
     reg_oprnd := o;
   end;
 
+function fpreg_oprnd(reg: regindex): oprndtype;
+
+  var
+    o:oprndtype;
+  begin
+    o.mode := fpregister;
+    o.reg := reg;
+    o.reg2 := noreg;
+    fpreg_oprnd := o;
+  end;
+
 function immediate16_oprnd(imm16_value: imm16; imm16_shift: unsigned): oprndtype;
 
   var
@@ -1330,7 +1341,7 @@ procedure markscratchregs;
     r: regindex;
 
   begin {markscratchregs}
-    for r := 0 to ip0 - 1 do
+    for r := 0 to pr - 1 do
       markreg(r);
   end {markscratchregs};
 
@@ -1338,8 +1349,7 @@ procedure markscratchregs;
 function regvalue(r: regindex): unsigned;
   begin {regvalue}
     regvalue := registers[r] + ord(context[contextsp].bump[r]) * 4 +
-                ord((r > pr) and not regused[r]) * 2 +
-                ord(r < ip0);
+                ord((r > pr) and not regused[r]) * 2;
   end {regvalue} ;
 
 function countreg: regindex;
@@ -1793,8 +1803,6 @@ procedure initblock;
       end;
 
     registers[pr] := maxrefcount;
-    registers[ip0] := maxrefcount;
-    registers[ip1] := maxrefcount;
 
   end {initblock} ;
 
@@ -2636,7 +2644,7 @@ procedure blockexitx;
       anyfound := false;
       for i := 0 to lastreg do
         begin
-        if (registers[i] <> 0) and not (i in [ip0 .. pr]) then
+        if (registers[i] <> 0) and (i <> pr) then
           anyfound := true;
         if fpregisters[i] <> 0 then anyfound := true;
         end;
@@ -2647,7 +2655,7 @@ procedure blockexitx;
         compilerabort(inconsistent); { Display procedure name }
 
         for i := 0 to lastreg do
-          if (registers[i] <> 0) and not (i in [ip0 .. pr]) then
+          if (registers[i] <> 0) and (i <> pr) then
             write('  x', i:1, ' = ', registers[i]:1);
 
         for i := 0 to maxreg do
@@ -2998,17 +3006,17 @@ procedure callroutinex(s: boolean {signed function value} );
       begin
 
       { direct call }
-      linkreg := proctable[pseudoinst.oprnds[1]].intlevelrefs and
-                 (proctable[pseudoinst.oprnds[1]].level > 2);
+      linkreg := proctable[left].intlevelrefs and
+                 (proctable[left].level > 2);
 
       if linkreg then
         begin
         regused[sl] := true;
-        levelhack := level - proctable[pseudoinst.oprnds[1]].level;
+        levelhack := level - proctable[left].level;
         if levelhack < 0 then
           gensimplemove(framekey, slkey);
         end;
-      settemp(long, proccall_oprnd(pseudoinst.oprnds[1], max(0, levelhack)));
+      settemp(long, proccall_oprnd(left, max(0, levelhack)));
       gen1(buildinst(bl, false, false), tempkey);
       end
     else
@@ -3028,10 +3036,11 @@ procedure callroutinex(s: boolean {signed function value} );
     { for stack parameters }
     dontchangevalue := dontchangevalue - 1;
 
-    { later need to deal with x0/x1 pairs and floating point return
-      values which might actually be in X0..
+    { later need to deal with x0/x1 pairs.
     }
-    if (len = word) then
+     if proctable[left].realfunction then
+       setvalue(fpreg_oprnd(0))
+    else if (len <= long) then
       setvalue(reg_oprnd(0));
 
   end {callroutinex} ;

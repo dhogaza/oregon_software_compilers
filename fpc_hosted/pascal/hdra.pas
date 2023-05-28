@@ -188,7 +188,9 @@ type
                (consttype: index; {type for this constant}
                 constvalue: const_descr {value for this constant} );
              varname, fieldname, param, varparam, procparam, funcparam,
-             confparam, varconfparam, boundid, undefname:
+             confparam, varconfparam, boundid, undefname,
+             procname, funcname, forwardproc, forwardfunc, externalproc,
+             externalfunc:
                (modified: boolean; {becomes true when value assigned}
                 nestedmod: boolean; {true if modified by nested procedure}
                 parammodified: boolean; {becomes true when param value changes}
@@ -208,20 +210,15 @@ type
                 regcount: 0..255; {register params can occupy more than one register}
                 length: addressrange; {length of item}
                 vartype: index; {name's type}
+                paramlist: index; {Index of last parameter}
+                savedparamsize: addressrange; {size of parameters} 
+                procref: proctableindex; {index into global proc data for
+                                          routine}
                 sparelink: index; {for boundid, array for which it's a bound;
                                    for use/shared vars index into vartable;
                                    for fields used to pass info to debugger} );
              standardproc, standardfunc, directivename:
-               (procid: standardids {which standard procedure} );
-             procname, funcname, forwardproc, forwardfunc, externalproc,
-             externalfunc:
-               (functype: index; {function result type}
-                funclen: addressrange; {length of resulting value}
-                paramlist: index; {Index of last parameter}
-                funcassigned: boolean; {true if function value defined}
-                procref: proctableindex; {index into global proc data for
-                                          routine}
-                savedparamsize: addressrange {size of parameters} ); );
+               (procid: standardids {which standard procedure} ); );
     end;
 
   undefindex = 0..undeftablesize;

@@ -350,6 +350,7 @@ begin
       if o.imm_shift then
         write(macfile, ', lsl 12');
     end;
+    fpregister: write(macfile, 's', o.reg);
     register: write_reg(o.reg, sf);
     pre_index:
       begin

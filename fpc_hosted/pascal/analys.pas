@@ -2904,8 +2904,8 @@ procedure procdefinition;
           ((f^.typ = reals) or (f^.typ = doubles)) and functiondefinition;
         proctable[procref].intlevelrefs := false;
         proctable[procref].level := level + 1;
-        funclen := f^.size;
-        functype := returntype;
+        length := f^.size;
+        vartype := returntype;
         paramlist := paramindex
         end;
       if token = ident then
@@ -2945,30 +2945,30 @@ procedure procdefinition;
             if targetmachine = iAPX86 then
               begin
               if functiondefinition and
-                 ((directive = nonpascalid) and (funclen <= 4)) or
-                 ((directive = fortranid) and (funclen <= 4) and
+                 ((directive = nonpascalid) and (length <= 4)) or
+                 ((directive = fortranid) and (length <= 4) and
                   not proctable[procref].realfunction) then
-                proctable[procref].registerfunction := funclen;
+                proctable[procref].registerfunction := length;
               end
             else if targetmachine = i80386 then
               begin
               if functiondefinition and
-                 (directive = nonpascalid) and (funclen <= 4) then
-                proctable[procref].registerfunction := funclen;
+                 (directive = nonpascalid) and (length <= 4) then
+                proctable[procref].registerfunction := length;
               end
             else if targetopsys = apollo then
               begin
               if functiondefinition and
-                 (directive = nonpascalid) and (funclen <= 4) then
-                proctable[procref].registerfunction := funclen;
+                 (directive = nonpascalid) and (length <= 4) then
+                proctable[procref].registerfunction := length;
               end
             else if targetopsys = vms then
               begin
               if functiondefinition and
-                 (directive = nonpascalid) and ((funclen <= 4) or
-                 (funclen = 8)) then
+                 (directive = nonpascalid) and ((length <= 4) or
+                 (length = 8)) then
                 proctable[procref].registerfunction := 
-                  forcealign (funclen, 4, false);
+                  forcealign (length, 4, false);
               end;
             end;
           end
@@ -2988,7 +2988,7 @@ procedure procdefinition;
         if functiondefinition then namekind := funcname
         else namekind := procname;
 
-        funcassigned := not functiondefinition;
+        modified := not functiondefinition;
         if forwardbody then changeparamids(procindex + 1, paramlist, lastid)
         else
           begin
@@ -3011,7 +3011,7 @@ procedure procdefinition;
         block;
         if bigcompilerversion then procptr := @(bigtable[procindex]);
         level := level - 1;
-        if not procptr^.funcassigned then
+        if not procptr^.modified then
           warnat(nofuncass, funcline, funccol);
         proctable[procptr^.procref].bodydefined := true;
         directiveindex := procptr^.paramlist; {cache buffer...}
@@ -3901,8 +3901,8 @@ procedure initanalys;
         charindex := 1;
         charlen := 0;
         paramlist := 0;
-        functype := noneindex;
-        funclen := 0;
+        vartype := noneindex;
+        length := 0;
         dbgsymbol := 0;
         end;
       enterdebuggerid('main     ', 4);
