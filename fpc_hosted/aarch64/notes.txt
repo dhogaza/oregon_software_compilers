@@ -1,6 +1,11 @@
 -- next priorities:
 1. function return values - don't need to worry about large types
-   and r8.  can registerfunction be used?
+   and r8 for standard Pascal.  Will want to extend later on, like
+   after procedure params, conformant params, and the like, as the
+   code generator uses the ability to return records heavily.
+
+  can registerfunction be used?
+
 2. enter and restore loop code
 5. instantiation of integers to include large numbers.
 6. instantiation of integers as bitmasks

@@ -1347,9 +1347,18 @@ procedure markscratchregs;
 
 
 function regvalue(r: regindex): unsigned;
+
+{ the idea here is that callee-saved registers are more expensive than
+  caller-saved registers unless it has already been used, because the
+  first use invokes a save/restore.  After being used once, they're cheaper
+  than scratch registers due to the fact that proc calls kill all
+  scratch registers.  This kludge actually fails miserably but we'll work
+  on it as we get further on.  
+}
+
   begin {regvalue}
     regvalue := registers[r] + ord(context[contextsp].bump[r]) * 4 +
-                ord((r > pr) and not regused[r]) * 2;
+                ord((r > pr) and not regused[r]) * 2 + ord(r < pr);
   end {regvalue} ;
 
 function countreg: regindex;
