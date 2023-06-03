@@ -3008,20 +3008,20 @@ procedure procdefinition;
           cseregiontable[procref, true].high := 0;
           end;
         level := level + 1;
-        block;
-        if bigcompilerversion then procptr := @(bigtable[procindex]);
-        level := level - 1;
-        if not procptr^.modified then
-          warnat(nofuncass, funcline, funccol);
-        proctable[procptr^.procref].bodydefined := true;
-        directiveindex := procptr^.paramlist; {cache buffer...}
-        if forwardbody then
-          changeparamids(procindex + 1, directiveindex, deadscope);
-        for directiveindex := procindex + 1 to directiveindex do
-          begin
-          if bigcompilerversion then f := @(bigtable[directiveindex]);
-          if not f^.form then f^.modified := f^.parammodified;
-          end;
+      end;
+      block;
+      if bigcompilerversion then procptr := @(bigtable[procindex]);
+      level := level - 1;
+      if not procptr^.modified then
+        warnat(nofuncass, funcline, funccol);
+      proctable[procptr^.procref].bodydefined := true;
+      directiveindex := procptr^.paramlist; {cache buffer...}
+      if forwardbody then
+        changeparamids(procindex + 1, directiveindex, deadscope);
+      for directiveindex := procindex + 1 to directiveindex do
+        begin
+        if bigcompilerversion then f := @(bigtable[directiveindex]);
+        if not f^.form then f^.modified := f^.parammodified;
         end;
       end;
     displaytop := level;

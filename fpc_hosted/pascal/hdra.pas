@@ -201,6 +201,8 @@ type
                                              reg}
                 univparam: boolean; {true if universal parameter}
                 lastinsection: boolean; {last in a parameter section}
+                funcallocated: boolean; {Only set true for aarch64, older
+                                         targets totally kludged this}
                 varalloc: allockind; {kind of allocation made}
                 refparam: boolean; {if pass by reference}
                 nextparamlink: index; {if parameter, points to next param in

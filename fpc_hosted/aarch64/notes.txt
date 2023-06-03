@@ -26,6 +26,7 @@
    memory for nested procs to be assigned true regtemps
    as frequent use of params in the context of many calls
    to procs leads to horrendous number of spills
+3. what's with cseregions being zero?  bug in the code?
 
 
 Advantages of using negative sp offsets when generating code:

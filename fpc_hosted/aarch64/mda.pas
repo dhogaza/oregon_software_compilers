@@ -67,6 +67,15 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
 { Allocate space or a register for a single parameter.
 }
 
+procedure allocfunction(procptr: entryptr;
+                        var blocksize: addressrange);
+
+{ Function return values are allocated in local variable storage and allowed to
+  be register candidates.  If the function is not a real function and the
+  size is greater than two 64-bit registers can hold, then it is allocated
+  as special regiater parameter 8, with refparam set.
+}
+
 procedure allocpacked(align: alignmentrange; {variable alignment}
                       length: addressrange; {length of variable}
                       var spacesize: addressrange; {size of data space}
@@ -417,10 +426,10 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
         are operands to indx, aindx, etc.  Eventually we'll do so for structs,
         at least, as that's part of the calling standard.
       }
+
       if (typeptr^.typ in [sets, fields, arrays, strings, conformantarrays]) and
          not paramptr^.refparam  then
         paramptr^.registercandidate := false;
-
       end
     else
       begin
@@ -456,6 +465,48 @@ procedure alloc(align: alignmentrange; {variable alignment}
     else overflowed := true;
   end; {alloc}
 
+procedure allocfunction(procptr: entryptr;
+                        var blocksize: addressrange);
+
+{ Function return values are allocated in local variable storage and allowed to
+  be register candidates.  If the function is not a real function and the
+  size is greater than two 64-bit registers can hold, then it is allocated
+  as special regiater parameter 8, with refparam set.
+
+}
+
+  var
+    typeptr: entryptr;
+
+  begin {allocfunction}
+    typeptr := @(bigtable[procptr^.vartype]);
+    procptr^.funcallocated := true;
+    {if not (typeptr^.typ in [reals, doubles]) and
+       procptr^,length >= 2 * ptrsize) then}
+    if (typeptr^.typ in [sets, fields, arrays, strings, conformantarrays]) then
+      begin
+      procptr^.varalloc := regparam;
+      procptr^.regid := 8;
+      procptr^.refparam := true;
+      procptr^.length := ptrsize;
+      procptr^.offset := 0;
+      end
+    else
+      begin
+
+      { If we allow structured types and sets to be left in registers, then
+        the code generator must be prepared to access register bits when they
+        are operands to indx, aindx, etc.  Eventually we'll do so for structs,
+        at least, as that's part of the calling standard.
+      }
+
+      procptr^.length := typeptr^.size;
+      procptr^.varalloc := normalalloc;
+      procptr^.offset := blocksize;
+      blocksize := blocksize + procptr^.length;
+      procptr^.registercandidate := true;
+      end;
+  end; {allocfunction}
 
 procedure allocpacked(align: alignmentrange; {variable alignment}
                       length: addressrange; {length of variable}
