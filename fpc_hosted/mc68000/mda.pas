@@ -46,6 +46,21 @@ procedure initregparams(var regparams: regparamstype);
 
 }
 
+procedure forcememoryparam(varlev: levelindex; paramptr: entryptr);
+
+{Register parameters must be assigned to the stack if it is referenced
+ by a nested procedure.  
+
+  ***M68000***
+  Params are passed on the stack so nothing is done.
+}
+
+procedure allocfunction(procptr: entryptr;
+                        var blocksize: addressrange);
+
+{ NOP for all codegens that predate 2023!
+}
+
 procedure allocparam(paramptr: entryptr; {the param we are allocating}
                      align: alignmentrange; {param alignment}
                      length: addressrange; {length of param}
@@ -70,7 +85,6 @@ procedure alloc(align: alignmentrange; {variable alignment}
   "spacesize" addressing units allocated.  The address of the
   newly allocated field is returned in "varloc", and "spacesize"
   is updated to include the new field.}
-
 
 procedure allocpacked(align: alignmentrange; {variable alignment}
                       length: addressrange; {length of variable}
@@ -322,7 +336,7 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
       if bigcompilerversion then p := @(bigtable[bn]);
 
       if targetopsys = vms then
-        if (p^.funclen <= ptrsize) or (p^.funclen = 8) then
+        if (p^.length <= ptrsize) or (p^.length = 8) then
           startoffset := 0
         else
           startoffset := 4; {extra parameter for return value}
@@ -334,7 +348,7 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
 }
       if (proctable[blockref].calllinkage = fortrancall) and
          (proctable[blockref].registerfunction = 0) and    
-         (p^.functype <> noneindex) then
+         (p^.vartype <> noneindex) then
         paramsize := paramsize + wordsize;
 
       i := bn + 1;
@@ -386,8 +400,21 @@ procedure initregparams(var regparams: regparamstype);
 
 }
 
-begin {initregparams}
-end {initregparams};
+  begin {initregparams}
+  end {initregparams};
+
+procedure forcememoryparam(varlev: levelindex; paramptr: entryptr);
+
+{Register parameters must be assigned to the stack if it is referenced
+ by a nested procedure.  
+
+  ***M68000***
+  Params are passed on the stack so nothing is done.
+}
+
+  begin {forcememoryparam}
+  end; {forcememoryparam}
+
 
 function alignmentof(f: entryptr; {form to check}
                      packedresult: boolean {result is packed} ):
@@ -460,6 +487,15 @@ procedure alloc(align: alignmentrange; {variable alignment}
       end
     else overflowed := true;
   end; {alloc}
+
+procedure allocfunction(procptr: entryptr;
+                        var blocksize: addressrange);
+
+{ NOP for all codegens that predate 2023!
+}
+
+  begin {allocfunction}
+  end; {allocfunction}
 
 
 procedure allocpacked(align: alignmentrange; {variable alignment}

@@ -149,7 +149,7 @@ procedure exitblock(level: levelindex {level of block being exited} );
           begin
           if bigcompilerversion then p := @(bigtable[i]);
           { tell travrs about any var that may be assigned to a register }
-          if not p^.form and (p^.namekind = varname) and
+          if not p^.form and p^.allocated and
              regok and p^.registercandidate then
                possibletemp(p^.offset, p^.vartype, p^.dbgsymbol);
           end;
@@ -495,6 +495,7 @@ procedure enterident(id: integer; {scope id for entry}
       p^.vartype := noneindex;
       p^.sparelink := 0; { pdb kluge, see dumpname }
       p^.varalloc := normalalloc; { initialization needed for $multidef }
+      p^.allocated := false;
       if token = ident then
         begin
         p^.charindex := thistoken.keypos;
@@ -909,6 +910,7 @@ procedure alloconevar(t: index; { name entry for variable }
   begin {alloconevar}
     if bigcompilerversion then p := @(bigtable[t]);
     p^.namekind := varkind;
+    p^.allocated := true;
 
     if switcheverplus[multidef] and (p^.namekind = varname) and
        (p^.varalloc in [usealloc, definealloc]) and
@@ -3009,8 +3011,8 @@ procedure procdefinition;
           end;
         level := level + 1;
       end;
+      allocfunction(procptr, display[level].blocksize);
       block;
-      if bigcompilerversion then procptr := @(bigtable[procindex]);
       level := level - 1;
       if not procptr^.modified then
         warnat(nofuncass, funcline, funccol);

@@ -1,4 +1,4 @@
-{**************************************************************}
+{o**************************************************************}
 {                                                              }
 {                          Pascal-2                            }
 {                                                              }
@@ -387,7 +387,7 @@ type
       farprocedure: boolean; {true if this is a far procedure}
       needsframeptr: boolean; {true if procedure needs a frame pointer}
       calllinkage: linkages; {type of procedure/function linkage}
-      registerfunction: 0..8; {size of function value in regs}
+      registerfunction: 0..16; {size of function value in regs}
       extref: var_index; {C only -- external name, if any}
       backlink: proctableindex; {link to enclosing procedure}
       charlen: 0..maxprocnamelen; {length of name (first maxprocnamelen

@@ -396,6 +396,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
   begin {allocparam}
     overflowed := false;
     typeptr := @(bigtable[paramptr^.vartype]);
+    paramptr^.allocated := true;
     paramptr^.refparam := paramptr^.namekind <> param;
     if (paramptr^.namekind = param) and (length > maxparambytes) and
        not (typeptr^.typ in [reals, doubles]) then
@@ -480,7 +481,7 @@ procedure allocfunction(procptr: entryptr;
 
   begin {allocfunction}
     typeptr := @(bigtable[procptr^.vartype]);
-    procptr^.funcallocated := true;
+    procptr^.allocated := true;
     {if not (typeptr^.typ in [reals, doubles]) and
        procptr^,length >= 2 * ptrsize) then}
     if (typeptr^.typ in [sets, fields, arrays, strings, conformantarrays]) then
@@ -719,7 +720,8 @@ procedure possibletemp(off: addressrange;
 
 {
     Purpose:
-      Determine if tha var at off is eligible for assignment to register
+      Determine if tha var or function return value at off is eligible for
+      assignment to register
 
     Inputs:
       off: offset from local data area of the possible temp.

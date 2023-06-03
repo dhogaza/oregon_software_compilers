@@ -2988,11 +2988,14 @@ procedure regparams;
 begin {regparams}
   if bigcompilerversion then p := @(bigtable[display[level].blockname]);
   t := p^.paramlist;
+{ DRB 2023 function return value might be passed as a regparam ptr
   i := display[level].blockname  + 1;
+}
+  i := display[level].blockname;
   while i <= t do
     begin
     if bigcompilerversion then p := @(bigtable[i]);
-    if not p^.form then
+    if not p^.form and p^.allocated then
       if (p^.varalloc <> normalalloc) then
         begin
         debugstmt(simple, 0, 0, 0);
@@ -3812,45 +3815,71 @@ procedure statement(follow: tokenset {legal following symbols} );
             forwardfunc, funcname:
               begin
               varlev := varlev + 1;
-              if (targetopsys=vms) and
-                 (proctable[display[varlev].blockref].calllinkage =
-                     nonpascalcall) and
-                 (proctable[display[varlev].blockref].registerfunction = 0)
-              then
+              if allocated then
                 begin
-                getlevel(varlev, true);
-                genlit(4);
-                genunary(indxop, ints);
-                genunary(indrop, ints);
-                constpart := 0;
+                if varalloc = normalalloc then
+                  begin
+                  getlevel(varlev, false);
+                  constpart := offset;
+                  end
+                else
+                  begin
+                  genlit(0);
+                  pushdummy;
+                  genlit(0);
+                  genlit(regid);
+                  case varalloc of
+                    regparam: genunary(regparamop, ints);
+                    ptrregparam: genunary(ptrregparamop, ints);
+                    realregparam: genunary(realregparamop, ints);
+                    end; 
+                  constpart := 0;
+                  end 
                 end
               else
                 begin
-                getlevel(varlev, false);
-                with display[varlev] do
+                if (targetopsys=vms) and
+                   (proctable[display[varlev].blockref].calllinkage =
+                       nonpascalcall) and
+                   (proctable[display[varlev].blockref].registerfunction = 0)
+                then
                   begin
-                  constpart := blocksize + paramsize;
-                  if proctable[blockref].externallinkage then
-                    constpart := constpart + extreturnlinksize
-                  else constpart := constpart + returnlinksize;
+                  getlevel(varlev, true);
+                  genlit(4);
+                  genunary(indxop, ints);
+                  genunary(indrop, ints);
+                  constpart := 0;
+                  end
+                else
+                  begin
+                  getlevel(varlev, false);
+                  with display[varlev] do
+                    begin
+                    constpart := blocksize + paramsize;
+                    if proctable[blockref].externallinkage then
+                      constpart := constpart + extreturnlinksize
+                    else constpart := constpart + returnlinksize;
+                    end;
                   end;
-                end;
 {
               Override offset of function value if value must be
               returned in registers.  In that case we allocate the
               function space in the local variables area.
 }
-              if proctable[display[varlev].blockref].registerfunction <> 0 then
-                constpart := 0;
-              if (varlev <> level) and (varlev > 1) then
-                begin
-                proctable[display[level].blockref].intlevelrefs := true;
-                if varlev > 2 then constpart := constpart + staticlinkoffset;
+                if proctable[display[varlev].blockref].registerfunction <> 0 then
+                  constpart := 0;
+                if (varlev <> level) and (varlev > 2) then
+                  constpart := constpart + staticlinkoffset;
                 end;
-              off := constpart;
-              newresulttype(vartype);
-              len := sizeof(resultptr, false);
-              if parsing then gettoken;
+                if varlev <> level then
+                  begin
+                  registercandidate := false;
+                  proctable[display[level].blockref].intlevelrefs := true;
+                  end;
+                off := constpart;
+                newresulttype(vartype);
+                len := sizeof(resultptr, false);
+                if parsing then gettoken;
               end;
             otherwise
               begin
@@ -7978,6 +8007,8 @@ procedure body;
       else verify1([semicolon], nosemierr);
       statement(neverskipset);
       end;
+
+    variable(false, false, false, false, false, display[level].blockname);
 
   end {body} ;
 
