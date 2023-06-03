@@ -1839,34 +1839,41 @@ procedure genunary(op: operatortype; {operation to generate}
     if bigcompilerversion then resultptr := @(bigtable[resulttype]);
   end {genunary} ;
 
+procedure genregvalue(p: entryptr; form: types);
+
+{ called by genparamvalue and also by the code to return a function
+  return value in a value}
+
+  var
+    olen: addressrange;
+
+  begin {genregvalue}
+   olen := oprndstk[sp].oprndlen;
+   genoprnd;
+   genlit(p^.regid);
+   case p^.varalloc of
+     regparam: genop(regvalue);
+     ptrregparam: genop(ptrregvalue);
+     realregparam: genop(realregvalue);
+     end; 
+   genint(olen);
+   genint(1);
+   genform(form);
+   sp := sp + 1;
+   oprndstk[sp].operandkind := exproperand;
+  end; {genregvalue}
+
 procedure genparamvalue(p: entryptr; form: types);
 
 { Generate pseudoop to push a parameter or move it to the proper
   register class.  
 }
 
-  var
-    olen: addressrange;
-
   begin {genparamvalue}
    if p^.varalloc = normalalloc then
      genunary(pushvalue, form)
    else
-     begin
-     olen := oprndstk[sp].oprndlen;
-     genoprnd;
-     genlit(p^.regid);
-     case p^.varalloc of
-       regparam: genop(regvalue);
-       ptrregparam: genop(ptrregvalue);
-       realregparam: genop(realregvalue);
-       end; 
-     genint(olen);
-     genint(1);
-     genform(form);
-     sp := sp + 1;
-     oprndstk[sp].operandkind := exproperand;
-     end;
+     genregvalue(p, form);
   end {genparamvalue};
 
 procedure genparamaddr(p: entryptr; form: types);
@@ -7974,7 +7981,6 @@ procedure statement(follow: tokenset {legal following symbols} );
         end;
   end {statement} ;
 
-
 procedure body;
 
 { Syntactic routine to parse a block.
@@ -7990,6 +7996,48 @@ procedure body;
   It is called using "callo"
 }
 
+  procedure functionreturn;
+
+    var
+      procptr: entryptr;
+      len, off: addressrange;
+
+    begin {functionreturn}
+      if bigcompilerversion then
+        procptr := @(bigtable[display[level].blockname]);
+      if procptr^.allocated and (procptr^.varalloc = normalalloc) then
+        begin
+        newexprstmt(simple);
+        newresulttype(procptr^.vartype);
+        off := procptr^.offset;
+        len := sizeof(resultptr, false);
+        getlevel(level, false);
+        genlit(off);
+        genunary(indxop, ints);
+        if unsigned(resultptr, len, false) then genop(unsvarop)
+        else genop(varop);
+        genint(len);
+        genint(level);
+        genint(off);
+        genint(0);
+        oprndstk[sp].oprndlen := len;
+        oprndstk[sp].extended := resultptr^.extendedrange;
+        oprndstk[sp].operandkind := varoperand;
+        genoprnd;
+        genlit(procptr^.regid);
+        case resultform of
+          ptrs: genop(ptrregreturn);
+          reals, doubles: genop(realregreturn);
+          otherwise genop(regreturn);
+        end; 
+        genint(len);
+        genint(1);
+        genform(resultform);
+        sp := sp + 1;
+        oprndstk[sp].operandkind := exproperand;
+        genoprndstmt;
+        end;
+    end; {functionreturn}
 
   begin {body}
     if switcheverplus[defineswitch] then warn(bodyfounderr);
@@ -8007,9 +8055,7 @@ procedure body;
       else verify1([semicolon], nosemierr);
       statement(neverskipset);
       end;
-
-    variable(false, false, false, false, false, display[level].blockname);
-
+    functionreturn;
   end {body} ;
 
 end.

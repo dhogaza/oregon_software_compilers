@@ -63,6 +63,7 @@ type
               bldset, setelt, setpair, bldnil, bldfmt, inop, addrop, pushaddr,
               pushstraddr, pushvalue, pushcvalue, pushfinal, pushlitvalue,
               pushret, pushfptr, regvalue, realregvalue, ptrregvalue,
+              regreturn, realregreturn, ptrregreturn,
               retop, call, jumpvfuncop,
               unscall, callparam, unscallparam, copystackop, reserve,
               pushproc, rd, wr, switchstack, structop, closerangeop,

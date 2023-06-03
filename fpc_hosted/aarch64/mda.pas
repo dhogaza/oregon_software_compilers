@@ -74,6 +74,9 @@ procedure allocfunction(procptr: entryptr;
   be register candidates.  If the function is not a real function and the
   size is greater than two 64-bit registers can hold, then it is allocated
   as special regiater parameter 8, with refparam set.
+
+  We also set regid to note which register this should be returned in, and
+  how many of them.
 }
 
 procedure allocpacked(align: alignmentrange; {variable alignment}
@@ -474,6 +477,8 @@ procedure allocfunction(procptr: entryptr;
   size is greater than two 64-bit registers can hold, then it is allocated
   as special regiater parameter 8, with refparam set.
 
+  We also set regid to note which register this should be returned in, and
+  how many of them.  This is a kludge.
 }
 
   var
@@ -506,6 +511,7 @@ procedure allocfunction(procptr: entryptr;
       procptr^.offset := blocksize;
       blocksize := blocksize + procptr^.length;
       procptr^.registercandidate := true;
+      procptr^.regid := 0;
       end;
   end; {allocfunction}
 

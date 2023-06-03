@@ -4302,6 +4302,7 @@ procedure build;
                 collectseqargs(2);
                 end;
               pushvalue, pushlitvalue, bldfmt, pushfptr, pushret: collectseqargs(2);
+              regreturn: collectargs(2);
               regvalue: collectseqargs(3);
               notop:
                 begin

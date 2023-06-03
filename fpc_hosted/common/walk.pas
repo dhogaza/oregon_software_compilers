@@ -1536,6 +1536,27 @@ with target = 0.
         genpseudo(map[pushret, ptrs], len, key, 0, 0, rkey, 0, 0);
       end; {pushretnode}
 
+    procedure regreturnnode(form: types {operand form});
+
+{ Walk and generate code for a node which returns a function node in
+  a register.
+
+  DRB
+
+  The regtemp refcount is hardwired to one because no other node
+  references the top-level move.  regvaluenode, used in parameter
+  list, gets its single reference from being linked to in the list.
+}
+
+      begin {regreturnnode}
+        mapkey;
+        genpseudo(regtemp, len, key, 1, copycount, 0, 0, r);
+        walkvalue(l, lkey, key);
+        genpseudo(map[moveop, form], len, 0, 0, 0, key, lkey, 0);
+        if language <> c then clearkeys;
+      end {regreturnnode} ;
+
+
     procedure regvaluenode(form: types; {operand form}
                            regid: integer);
 
@@ -1543,7 +1564,7 @@ with target = 0.
   register.
 
   Left operand is the link to other parameters, third operand is the
-  value.
+  register id.
 }
 
       begin {regvaluenode}
@@ -2102,6 +2123,7 @@ with target = 0.
           pushproc: pushprocnode;
           pushfinal: pushfinalnode;
           pushvalue, pushlitvalue, pushfptr: stacknode(op, form);
+          regreturn: regreturnnode(form);
           regvalue: regvaluenode(form, oprnds[3]);
           pushcvalue: pushcvaluenode(form);
           pushret: pushretnode;

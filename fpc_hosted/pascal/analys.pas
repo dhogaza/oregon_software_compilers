@@ -3011,7 +3011,8 @@ procedure procdefinition;
           end;
         level := level + 1;
       end;
-      allocfunction(procptr, display[level].blocksize);
+      if functiondefinition then
+        allocfunction(procptr, display[level].blocksize);
       block;
       level := level - 1;
       if not procptr^.modified then

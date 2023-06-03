@@ -7,11 +7,13 @@
    need dummy allocfunction in mc68K mda.pas though might later
    unkludge this and do it properly.
 
-   if a function has funcallocated true and is not some kind of register
-   allocation and some magic to tell us it needs to be returned in a
-   register (set regid in the mda allocfunction code? could this use
-   registerfunction?) then generate a regvalue of the correct type,
-   the address of the stored functino return value, and a move.
+   a regreturn op has been added, which gets mapped to regtemp,
+   as does regvalue.   Both are kludgely.  Also form could be
+   used to generate the right type of regtemp.  
+
+   we have regtemp, realtemp, ptrtemp ... can we have regtarget,
+   realtarget, ptrtarget and a flag to tell us if it is a reg
+   return or not?  Or just keep using regid ...
 
 2. enter and restore loop code
 5. instantiation of integers to include large numbers.
