@@ -2,7 +2,6 @@ program main;
 
 var i, j, k:integer;
 
-<<<<<<< HEAD
 procedure pext; external;
 procedure p;
 

@@ -1548,14 +1548,19 @@ with target = 0.
   list, gets its single reference from being linked to in the list.
 }
 
+     var
+       tk: keyindex;
+
       begin {regreturnnode}
         mapkey;
         genpseudo(map[regtargetop, form], len, key, 1, copycount, 0, 0, r);
         walkvalue(l, lkey, key);
-        genpseudo(map[moveop, form], len, 0, 0, 0, key, lkey, 0);
+        tk := newkey;
+        context[contextsp].high := tk;
+        keytable[tk] := 0;
+        genpseudo(map[moveop, form], len, tk, 0, 0, key, lkey, 0);
         if language <> c then clearkeys;
       end {regreturnnode} ;
-
 
     procedure regtargetnode(form: types; {operand form}
                            regid: integer);
@@ -1567,12 +1572,18 @@ with target = 0.
   register id.
 }
 
+     var
+       tk: keyindex;
+
       begin {regtargetnode}
         walknode(l, lkey, 0, true);
         mapkey;
         genpseudo(map[regtargetop, form], len, key, refcount, copycount, 0, 0, regid);
         walkvalue(r, rkey, key);
-        genpseudo(map[moveop, form], len, 0, 0, 0, key, rkey, 0);
+        tk := newkey;
+        context[contextsp].high := tk;
+        keytable[tk] := 0;
+        genpseudo(map[moveop, form], len, tk, 0, 0, key, lkey, 0);
         if language <> c then clearkeys;
       end {regtargetnode} ;
 

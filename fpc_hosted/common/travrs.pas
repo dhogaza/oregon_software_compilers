@@ -177,8 +177,8 @@ procedure inittravrs;
       { new for 32k }                      map[kwoop, ints] := kwoint;
       map[modop, ints] := modint;          map[stdmodop, ints] := stdmodint;
       map[regparamop, ints] := regparam;
-      map[realregparamop, ints] := realregparam;
-      map[ptrregparamop, ints] := ptrregparam;
+      map[realregparamop, reals] := realregparam;
+      map[ptrregparamop, ptrs] := ptrregparam;
 
     end; {[s=1] map1}
 

@@ -3013,8 +3013,8 @@ begin {regparams}
         genlit(p^.regid);
         case p^.varalloc of
           regparam: genunary(regparamop, ints);
-          ptrregparam: genunary(ptrregparamop, ints);
-          realregparam: genunary(realregparamop, ints);
+          ptrregparam: genunary(ptrregparamop, ptrs);
+          realregparam: genunary(realregparamop, reals);
           end; 
         genoprndstmt;
         end;

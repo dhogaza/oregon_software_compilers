@@ -1,20 +1,8 @@
 -- next priorities:
-1. function return values - don't need to worry about large types
-   and r8 for standard Pascal.  Will want to extend later on, like
-   after procedure params, conformant params, and the like, as the
-   code generator uses the ability to return records heavily.
-
-   need dummy allocfunction in mc68K mda.pas though might later
-   unkludge this and do it properly.
-
-   a regreturn op has been added, which gets mapped to regtemp,
-   as does regvalue.   Both are kludgely.  Also form could be
-   used to generate the right type of regtemp.  
-
-   we have regtemp, realtemp, ptrtemp ... can we have regtarget,
-   realtarget, ptrtarget and a flag to tell us if it is a reg
-   return or not?  Or just keep using regid ...
-
+0. external procedures don't work?
+1. rationalize the register pseudoops, in particular regparam
+   should work like regtarget and be mapped in travrs rather
+   than be emitting the various register types in analys.
 2. enter and restore loop code
 5. instantiation of integers to include large numbers.
 6. instantiation of integers as bitmasks
