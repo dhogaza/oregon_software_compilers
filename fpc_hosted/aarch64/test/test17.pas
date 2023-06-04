@@ -4,6 +4,7 @@ var a: integer;
   b: array [1..10] of integer;
 
 procedure P(i:integer); nonpascal;
+<<<<<<< HEAD
 procedure pp(j, k:integer; var l:integer);
   var i: integer;
   procedure ppp;
@@ -11,6 +12,7 @@ procedure pp(j, k:integer; var l:integer);
       j:= 3;
     end;
 
+procedure pp(k:integer; var l:integer);
 begin
   l := k;
   k := k + 1;
@@ -24,4 +26,9 @@ begin
 end;
 
 begin pp(a, a, a); end.
+  P(k);
+  a := k + 2;
+end;
+
+begin pp(a, a); end.
 

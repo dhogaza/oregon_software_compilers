@@ -2,6 +2,7 @@ program main;
 
 var i, j, k:integer;
 
+<<<<<<< HEAD
 procedure pext; external;
 procedure p;
 
@@ -11,6 +12,10 @@ begin
     pext;
      k := i
     end
+procedure p;
+
+begin
+  if i < j then k := i
   else k := j;
 end;
 
