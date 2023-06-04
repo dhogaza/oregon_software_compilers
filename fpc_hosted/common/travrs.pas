@@ -105,6 +105,16 @@ procedure inittravrs;
       map[congruchkop, ints] := congruchk; map[levop, ints] := dolevel;
       map[intop, ints] := doint;           map[originop, ints] := doorigin;
       map[ptrop, ints] := doptr;           map[realop, ints] := doreal;
+
+      map[regtargetop, ints] := regtarget;
+      map[regtargetop, reals] := realregtarget;    map[regtargetop, bools] := regtarget;
+      map[regtargetop, chars] := regtarget;        map[regtargetop, ptrs] := ptrregtarget;
+      map[regtargetop, scalars] := regtarget;      map[regtargetop, arrays] := regtarget;
+      map[regtargetop, fields] := regtarget;       map[regtargetop, sets] := regtarget;
+      map[regtargetop, fptrs] := ptrregtarget;
+      map[regtargetop, words] := regtarget;        map[regtargetop, opaques] := ptrregtarget;
+      map[regtargetop, bytes] := regtarget;
+
       map[structop, ints] := dostruct;     map[moveop, ints] := movint;
       map[moveop, reals] := movreal;       map[moveop, bools] := movint;
       map[moveop, chars] := movint;        map[moveop, ptrs] := movptr;
@@ -4302,8 +4312,8 @@ procedure build;
                 collectseqargs(2);
                 end;
               pushvalue, pushlitvalue, bldfmt, pushfptr, pushret: collectseqargs(2);
-              regreturn: collectargs(2);
-              regvalue: collectseqargs(3);
+              regreturnop: collectargs(2);
+              regtargetop: collectseqargs(3);
               notop:
                 begin
                 collectopdata;

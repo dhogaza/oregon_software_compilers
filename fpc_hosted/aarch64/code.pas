@@ -1608,7 +1608,7 @@ procedure makeaddressable(var k: keyindex);
         {DRB try to restore a register operand to the current register param
          target if possible.
         }
-        if paramlist_started and (oprnd.mode = register) and
+        if (oprnd.mode = register) and
            (registers[keytable[regparam_target].oprnd.reg] = 1) then
           oprnd.reg := keytable[regparam_target].oprnd.reg
         else
@@ -1717,7 +1717,7 @@ procedure initblock;
     i: integer; {general purpose induction variable}
 
   begin
-    paramlist_started := false; {reset switch}
+    regparam_target := 0; {reset switch}
 
     while (currentswitch <= lastswitch) and
           ((switches[currentswitch].mhi = gethi) and
@@ -2705,38 +2705,35 @@ procedure blockentryx;
 	or ((language = modula2) and proctable[blockref].needsframeptr);
   end {blockentryx} ;
 
+procedure regtargetx;
+
+{ Set up a register target.
+}
+
+
+  begin {regtargetx}
+    regparam_target := pseudoinst.key;
+    setvalue(reg_oprnd(left));
+    regused[left] := true;
+    if left > firstreg then
+        firstreg := left;
+  end {regtargetx} ;
+
 procedure regtempx;
 
 { Generate a reference to a local variable permanently assigned to a
-  general register, or to a register parameter target.
+  general register.
 
-  If left is not zero, pseudoinst.oprnds[3] contains the number of the
-  permanent register assigned to the variable at that address, and oprnds[1]
-  is the variable access being so assigned.  These are always allocated in
-  callee-saved registers.
-
-  If left is zero, pseudoinst,oprnds[3] contains the number of the param
-  register that is being targeted.
+  Currently they are assigned to callee-saved registers, but leaf
+  routines could allocate them to scratch registers
 
 }
 
 
   begin
-    if left = 0 then
-      begin
-      paramlist_started := true;
-      regparam_target := pseudoinst.key;
-      setvalue(reg_oprnd(pseudoinst.oprnds[3]));
-      regused[pseudoinst.oprnds[3]] := true;
-      if (pseudoinst.oprnds[3] > firstreg) then
-        firstreg := pseudoinst.oprnds[3];
-      end
-    else
-      begin
-      address(left);
-      setvalue(reg_oprnd(sl - pseudoinst.oprnds[3]));
-      regused[sl - pseudoinst.oprnds[3]] := true;
-      end;
+    address(left);
+    setvalue(reg_oprnd(sl - pseudoinst.oprnds[3]));
+    regused[sl - pseudoinst.oprnds[3]] := true;
   end {regtempx} ;
 
 procedure dovarx(s: boolean {signed variable reference} );
@@ -3597,6 +3594,7 @@ procedure dumppseudo(var f: text);
           realregparam: write(f, 'realregparam': 15);
           realtemp: write(f, 'realtemp': 15);
           regparam: write(f, 'regparam': 15);
+          regtarget: write(f, 'regtarget': 15);
           regtemp: write(f, 'regtemp': 15);
           restorelabel: write(f, 'restorelabel': 15);
           restoreloop: write(f, 'restoreloop': 15);
@@ -3707,6 +3705,7 @@ procedure codeone;
       congruchk: checkx(true, index_error);
 }
       regparam: regparamx;
+      regtarget: regtargetx;
       regtemp: regtempx;
 {
       ptrtemp: ptrtempx;

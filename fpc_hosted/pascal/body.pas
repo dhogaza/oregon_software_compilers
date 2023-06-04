@@ -1839,7 +1839,7 @@ procedure genunary(op: operatortype; {operation to generate}
     if bigcompilerversion then resultptr := @(bigtable[resulttype]);
   end {genunary} ;
 
-procedure genregvalue(p: entryptr; form: types);
+procedure genregtargetop(p: entryptr; form: types);
 
 { called by genparamvalue and also by the code to return a function
   return value in a value}
@@ -1847,21 +1847,17 @@ procedure genregvalue(p: entryptr; form: types);
   var
     olen: addressrange;
 
-  begin {genregvalue}
+  begin {genregtargetop}
    olen := oprndstk[sp].oprndlen;
    genoprnd;
    genlit(p^.regid);
-   case p^.varalloc of
-     regparam: genop(regvalue);
-     ptrregparam: genop(ptrregvalue);
-     realregparam: genop(realregvalue);
-     end; 
+   genop(regtargetop);
    genint(olen);
    genint(1);
    genform(form);
    sp := sp + 1;
    oprndstk[sp].operandkind := exproperand;
-  end; {genregvalue}
+  end; {genregtargetop}
 
 procedure genparamvalue(p: entryptr; form: types);
 
@@ -1873,7 +1869,7 @@ procedure genparamvalue(p: entryptr; form: types);
    if p^.varalloc = normalalloc then
      genunary(pushvalue, form)
    else
-     genregvalue(p, form);
+     genregtargetop(p, form);
   end {genparamvalue};
 
 procedure genparamaddr(p: entryptr; form: types);
@@ -1894,11 +1890,7 @@ procedure genparamaddr(p: entryptr; form: types);
      olen := oprndstk[sp].oprndlen;
      genoprnd;
      genlit(p^.regid);
-     case p^.varalloc of
-       regparam: genop(regvalue);
-       ptrregparam: genop(ptrregvalue);
-       realregparam: genop(realregvalue);
-       end; 
+     genop(regtargetop);
      genint(olen);
      genint(1);
      genform(ptrs);
@@ -8025,11 +8017,7 @@ procedure body;
         oprndstk[sp].operandkind := varoperand;
         genoprnd;
         genlit(procptr^.regid);
-        case resultform of
-          ptrs: genop(ptrregreturn);
-          reals, doubles: genop(realregreturn);
-          otherwise genop(regreturn);
-        end; 
+        genop(regreturnop);
         genint(len);
         genint(1);
         genform(resultform);

@@ -1544,20 +1544,20 @@ with target = 0.
   DRB
 
   The regtemp refcount is hardwired to one because no other node
-  references the top-level move.  regvaluenode, used in parameter
+  references the top-level move.  regtargetnode, used in parameter
   list, gets its single reference from being linked to in the list.
 }
 
       begin {regreturnnode}
         mapkey;
-        genpseudo(regtemp, len, key, 1, copycount, 0, 0, r);
+        genpseudo(map[regtargetop, form], len, key, 1, copycount, 0, 0, r);
         walkvalue(l, lkey, key);
         genpseudo(map[moveop, form], len, 0, 0, 0, key, lkey, 0);
         if language <> c then clearkeys;
       end {regreturnnode} ;
 
 
-    procedure regvaluenode(form: types; {operand form}
+    procedure regtargetnode(form: types; {operand form}
                            regid: integer);
 
 { Walk and generate code for a node which passes a param in a general
@@ -1567,14 +1567,14 @@ with target = 0.
   register id.
 }
 
-      begin {regvaluenode}
+      begin {regtargetnode}
         walknode(l, lkey, 0, true);
         mapkey;
-        genpseudo(regtemp, len, key, refcount, copycount, 0, 0, regid);
+        genpseudo(map[regtargetop, form], len, key, refcount, copycount, 0, 0, regid);
         walkvalue(r, rkey, key);
         genpseudo(map[moveop, form], len, 0, 0, 0, key, rkey, 0);
         if language <> c then clearkeys;
-      end {regvaluenode} ;
+      end {regtargetnode} ;
 
 
     procedure stacknode(op: operatortype; {root operator}
@@ -2123,8 +2123,8 @@ with target = 0.
           pushproc: pushprocnode;
           pushfinal: pushfinalnode;
           pushvalue, pushlitvalue, pushfptr: stacknode(op, form);
-          regreturn: regreturnnode(form);
-          regvalue: regvaluenode(form, oprnds[3]);
+          regreturnop: regreturnnode(form);
+          regtargetop: regtargetnode(form, oprnds[3]);
           pushcvalue: pushcvaluenode(form);
           pushret: pushretnode;
           sysfn: sysfnnode(op, form);
