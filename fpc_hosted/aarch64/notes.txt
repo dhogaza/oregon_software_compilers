@@ -1,6 +1,19 @@
 -- next priorities:
-0. argh function return ops ... how to tell body what kind
-   of return register is needed?
+0. argh function return ops ... map form to register type
+   in mda, d'oh!
+
+   earlier mapped in travrs but that's wrong as it removes
+   control from mda, where it belongs.
+
+   check calls to allocparam to see if typeptr can be used
+   to compute length for param allocation type rather than
+   passing length in.
+
+   yet to be figured out how to put the reg return value forced
+   to physical reg 0 in leaf functions if allocated as a valuable
+   regtemp by improve?  Or is this really a viable
+   idea if param 0 is being used?
+
 1. rationalize the register pseudoops, in particular regparam
    should work like regtarget and be mapped in travrs rather
    than be emitting the various register types in analys.

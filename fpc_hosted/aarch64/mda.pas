@@ -36,6 +36,12 @@ interface
 
 uses config, hdr, utils, hdra, a_t;
 
+function paramalloc(typeptr: entryptr): allockind;
+
+{ Determine which type of register a param can be allocated to,
+  if any.
+}
+
 procedure initregparams(var regparams: regparamstype);
 
 { Initialize the bookkeeping structure used to track allocation of
@@ -258,6 +264,18 @@ procedure forcememoryparam(varlev: levelindex; paramptr: entryptr);
 
 implementation
 
+function paramalloc(typeptr: entryptr): allockind;
+
+{ Determine which type of register a param can be allocated to,
+  if any.
+}
+
+  begin {paramclass}
+    if typeptr^,form in [reals, doubles] then paramalloc := realregparam
+    else if sizeof(typetpr, false) <= ptrsize then paramalloc := regparam
+    else paramalloc := normalalloc;
+  end; {paramclass}
+
 function  allocparamoffset(var blocksize, length: addressrange; overflowed: boolean): addressrange;
   begin {allocparamoffset}
     allocparamoffset := blocksize;
@@ -395,6 +413,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
 
   var
     typeptr: entryptr; 
+    alloc: alloctype;
 
   begin {allocparam}
     overflowed := false;
@@ -408,7 +427,8 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.refparam := true;
       end
     else paramptr^.length := length;
-    if (typeptr^.typ in [reals, doubles]) and
+    alloc := paramalloc(typeptr);
+    if (alloc = realregparam) and
        (regparams.realregparams < maxrealregparams) then
       begin
       paramptr^.varalloc := realregparam;
@@ -417,7 +437,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.offset := maxaddr - paramptr^.regid - maxregparams - 1;
       regparams.realregparams := regparams.realregparams + 1;
       end
-    else if (paramptr^.length <= ptrsize) and (regparams.regparams < maxregparams) then
+    else if (alloc = regparam) and (regparams.regparams < maxregparams) then
       begin
       paramptr^.varalloc := regparam;
       paramptr^.regid := regparams.regparams;

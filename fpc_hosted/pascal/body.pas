@@ -8020,13 +8020,13 @@ procedure body;
         oprndstk[sp].operandkind := varoperand;
         genoprnd;
         genlit(procptr^.regid);
-{DRB fails because it is normal alloc, which is why we went down the
- mapping rathole in the first place.  Maybe dual entries or the like?}
-        case procptr^.varalloc of
+        case paramalloc(resultptr)  of
           regparam: genop(regreturnop);
           ptrregparam: genop(ptrregreturnop);
           realregparam: genop(realregreturnop);
+          otherwise warn(compilerwritererror);
         end; 
+}
         genint(len);
         genint(1);
         genform(resultform);
