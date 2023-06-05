@@ -1536,7 +1536,7 @@ with target = 0.
         genpseudo(map[pushret, ptrs], len, key, 0, 0, rkey, 0, 0);
       end; {pushretnode}
 
-    procedure regreturnnode(form: types {operand form});
+    procedure regreturnnode(psop: pseudoop; form: types {operand form});
 
 { Walk and generate code for a node which returns a function node in
   a register.
@@ -1553,7 +1553,7 @@ with target = 0.
 
       begin {regreturnnode}
         mapkey;
-        genpseudo(map[regtargetop, form], len, key, 1, copycount, 0, 0, r);
+        genpseudo(psop, len, key, 1, copycount, 0, 0, r);
         walkvalue(l, lkey, key);
         tk := newkey;
         context[contextsp].high := tk;
@@ -1562,8 +1562,8 @@ with target = 0.
         if language <> c then clearkeys;
       end {regreturnnode} ;
 
-    procedure regtargetnode(form: types; {operand form}
-                           regid: integer);
+    procedure regtargetnode(psop: pseudoop; form: types; {operand form}
+                            regid: integer);
 
 { Walk and generate code for a node which passes a param in a general
   register.
@@ -1578,7 +1578,7 @@ with target = 0.
       begin {regtargetnode}
         walknode(l, lkey, 0, true);
         mapkey;
-        genpseudo(map[regtargetop, form], len, key, refcount, copycount, 0, 0, regid);
+        genpseudo(psop, len, key, refcount, copycount, 0, 0, regid);
         walkvalue(r, rkey, key);
         tk := newkey;
         context[contextsp].high := tk;
@@ -2134,8 +2134,8 @@ with target = 0.
           pushproc: pushprocnode;
           pushfinal: pushfinalnode;
           pushvalue, pushlitvalue, pushfptr: stacknode(op, form);
-          regreturnop: regreturnnode(form);
-          regtargetop: regtargetnode(form, oprnds[3]);
+          regreturnop: regreturnnode(regtarget, form);
+          regtargetop: regtargetnode(regtarget, form, oprnds[3]);
           pushcvalue: pushcvaluenode(form);
           pushret: pushretnode;
           sysfn: sysfnnode(op, form);

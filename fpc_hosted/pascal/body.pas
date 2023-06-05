@@ -1805,8 +1805,7 @@ procedure genunary(op: operatortype; {operation to generate}
       if not (op in
          [bldfmt, filebufindrop, float, indrop, indxop, ptrchkop, pushaddr,
          pushvalue, pushfinal, pushproc, paindxop, pindxop, call, callparam,
-         unscall, unscallparam, chrstrop, arraystrop, regparamop, ptrregparamop,
-         realregparamop]) and (form = ints) then
+         unscall, unscallparam, chrstrop, arraystrop]) and (form = ints) then
         begin
         olen := range_length(result_range.optimistic);
         if (not foldedunary and (oprndstk[sp].oprndlen > olen)) or
@@ -1851,7 +1850,11 @@ procedure genregtargetop(p: entryptr; form: types);
    olen := oprndstk[sp].oprndlen;
    genoprnd;
    genlit(p^.regid);
-   genop(regtargetop);
+   case p^.varalloc of
+     regparam: genop(regtargetop);
+     ptrregparam: genop(ptrregtargetop);
+     realregparam: genop(realregtargetop);
+   end; 
    genint(olen);
    genint(1);
    genform(form);
@@ -3012,9 +3015,9 @@ begin {regparams}
           end;
         genlit(p^.regid);
         case p^.varalloc of
-          regparam: genunary(regparamop, ints);
-          ptrregparam: genunary(ptrregparamop, ptrs);
-          realregparam: genunary(realregparamop, reals);
+          regparam: genunary(regparamop, none);
+          ptrregparam: genunary(ptrregparamop, none);
+          realregparam: genunary(realregparamop, none);
           end; 
         genoprndstmt;
         end;
@@ -3756,9 +3759,9 @@ procedure statement(follow: tokenset {legal following symbols} );
                     genlit(0);
                     genlit(regid);
                     case varalloc of
-                      regparam: genunary(regparamop, ints);
-                      ptrregparam: genunary(ptrregparamop, ints);
-                      realregparam: genunary(realregparamop, ints);
+                      regparam: genunary(regparamop, none);
+                      ptrregparam: genunary(ptrregparamop, none);
+                      realregparam: genunary(realregparamop, none);
                       end; 
                     constpart := 0;
                     end 
@@ -3828,9 +3831,9 @@ procedure statement(follow: tokenset {legal following symbols} );
                   genlit(0);
                   genlit(regid);
                   case varalloc of
-                    regparam: genunary(regparamop, ints);
-                    ptrregparam: genunary(ptrregparamop, ints);
-                    realregparam: genunary(realregparamop, ints);
+                    regparam: genunary(regparamop, none);
+                    ptrregparam: genunary(ptrregparamop, none);
+                    realregparam: genunary(realregparamop, none);
                     end; 
                   constpart := 0;
                   end 
@@ -8017,7 +8020,13 @@ procedure body;
         oprndstk[sp].operandkind := varoperand;
         genoprnd;
         genlit(procptr^.regid);
-        genop(regreturnop);
+{DRB fails because it is normal alloc, which is why we went down the
+ mapping rathole in the first place.  Maybe dual entries or the like?}
+        case procptr^.varalloc of
+          regparam: genop(regreturnop);
+          ptrregparam: genop(ptrregreturnop);
+          realregparam: genop(realregreturnop);
+        end; 
         genint(len);
         genint(1);
         genform(resultform);

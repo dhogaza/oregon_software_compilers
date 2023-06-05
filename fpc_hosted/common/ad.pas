@@ -350,6 +350,8 @@ procedure statement;
           ptrchkop: write('ptrchkop');
           ptrop: write('ptrop');
           ptrregparamop: write('ptrregparamop');
+          ptrregreturnop: write('ptrregreturnop');
+          ptrregtargetop: write('ptrregtargetop');
           pushaddr: write('pushaddr');
           pushstraddr: write('pushstraddr');
           pushcvalue: write('pushcvalue');
@@ -363,6 +365,8 @@ procedure statement;
           rd: write('rd');
           realop: write('realop');
           realregparamop: write('realregparamop');
+          realregreturnop: write('realregreturnop');
+          realregtargetop: write('realregtargetop');
           real_to_dbl: write('real_to_dbl');
           regparamop: write('regparamop');
           regreturnop: write('regreturnop');
@@ -469,7 +473,8 @@ procedure statement;
           castrealop, diveqop, modeqop, muleqop,
           shiftleqop, shiftreqop, xoreqop, preincop, postincop, xorop,
           shiftrop, questop, pushret, tempop, regparamop, ptrregparamop,
-          realregparamop, regreturnop, regtargetop:
+          realregparamop, regreturnop, ptrregreturnop, realregreturnop,
+          regtargetop, realregtargetop, ptrregtargetop:
             begin
             read(tempfiletwo, tempfilebuf);
             write(' len:', getintfileint: 1);

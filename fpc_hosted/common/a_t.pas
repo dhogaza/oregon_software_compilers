@@ -62,8 +62,7 @@ type
               geqlit, withop, setfileop, setfileaddrop, setinput, newset,
               bldset, setelt, setpair, bldnil, bldfmt, inop, addrop, pushaddr,
               pushstraddr, pushvalue, pushcvalue, pushfinal, pushlitvalue,
-              pushret, pushfptr, regtargetop, regreturnop,
-              retop, call, jumpvfuncop,
+              pushret, pushfptr, retop, call, jumpvfuncop,
               unscall, callparam, unscallparam, copystackop, reserve,
               pushproc, rd, wr, switchstack, structop, closerangeop,
               dummyargop, filebufindrop, intop, ptrop, realop, doubleop,
@@ -82,7 +81,9 @@ type
               endscope, groupop, modeqop, muleqop, oreqop, preincop,
               postincop, questop, shiftleqop, shiftreqop, subeqop, varkind,
               xoreqop, xorop, vindxop, parmop, clearnewop, saveop, restop,
-              deleteop, regparamop, realregparamop, ptrregparamop);
+              deleteop, regparamop, realregparamop, ptrregparamop,
+              regtargetop, realregtargetop, ptrregtargetop, regreturnop,
+              realregreturnop, ptrregreturnop);
 
   { define the different kinds of records emitted by analys }
 

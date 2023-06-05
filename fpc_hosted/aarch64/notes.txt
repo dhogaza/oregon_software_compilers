@@ -1,5 +1,6 @@
 -- next priorities:
-0. external procedures don't work?
+0. argh function return ops ... how to tell body what kind
+   of return register is needed?
 1. rationalize the register pseudoops, in particular regparam
    should work like regtarget and be mapped in travrs rather
    than be emitting the various register types in analys.

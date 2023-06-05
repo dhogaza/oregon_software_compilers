@@ -105,16 +105,6 @@ procedure inittravrs;
       map[congruchkop, ints] := congruchk; map[levop, ints] := dolevel;
       map[intop, ints] := doint;           map[originop, ints] := doorigin;
       map[ptrop, ints] := doptr;           map[realop, ints] := doreal;
-
-      map[regtargetop, ints] := regtarget;
-      map[regtargetop, reals] := realregtarget;    map[regtargetop, bools] := regtarget;
-      map[regtargetop, chars] := regtarget;        map[regtargetop, ptrs] := ptrregtarget;
-      map[regtargetop, scalars] := regtarget;      map[regtargetop, arrays] := regtarget;
-      map[regtargetop, fields] := regtarget;       map[regtargetop, sets] := regtarget;
-      map[regtargetop, fptrs] := ptrregtarget;
-      map[regtargetop, words] := regtarget;        map[regtargetop, opaques] := ptrregtarget;
-      map[regtargetop, bytes] := regtarget;
-
       map[structop, ints] := dostruct;     map[moveop, ints] := movint;
       map[moveop, reals] := movreal;       map[moveop, bools] := movint;
       map[moveop, chars] := movint;        map[moveop, ptrs] := movptr;
@@ -176,9 +166,10 @@ procedure inittravrs;
       map[ptrchkop, ints] := ptrchk;       map[neqop, bytes] := neqint;
       { new for 32k }                      map[kwoop, ints] := kwoint;
       map[modop, ints] := modint;          map[stdmodop, ints] := stdmodint;
-      map[regparamop, ints] := regparam;
-      map[realregparamop, reals] := realregparam;
-      map[ptrregparamop, ptrs] := ptrregparam;
+
+      map[regparamop, none] := regparam;
+      map[realregparamop, none] := realregparam;
+      map[ptrregparamop, none] := ptrregparam;
 
     end; {[s=1] map1}
 
@@ -4312,8 +4303,8 @@ procedure build;
                 collectseqargs(2);
                 end;
               pushvalue, pushlitvalue, bldfmt, pushfptr, pushret: collectseqargs(2);
-              regreturnop: collectargs(2);
-              regtargetop: collectseqargs(3);
+              regreturnop, realregreturnop, ptrregreturnop: collectargs(2);
+              regtargetop, realregtargetop, ptrregtargetop : collectseqargs(3);
               notop:
                 begin
                 collectopdata;
