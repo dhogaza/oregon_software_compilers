@@ -2120,6 +2120,11 @@ with target = 0.
         begin
         l := oprnds[1];
         r := oprnds[2];
+if op = regtargetop then
+begin
+writeln('regtarget op oprnds: ', oprnds[1]:5, oprnds[2]:5, oprnds[3]:5);
+writeln('l: ', l, ' r: ', r);
+end;
         case op of
           indxchkop, cindxchkop, rangechkop, forupchkop, fordnchkop,
           forerrchkop, congruchkop:

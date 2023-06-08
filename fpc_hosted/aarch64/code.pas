@@ -571,6 +571,17 @@ procedure genbr(inst: insts; labelno: integer);
     context[contextsp].lastbranch := lastnode;
   end {genbr};
 
+procedure genlabeldelta(tablebase, targetlabel: integer);
+
+  var
+    p: nodeptr;
+
+  begin {genlabeldelta}
+    p := newnode(labeldeltanode);
+    p^.tablebase := tablebase;
+    p^.targetlabel := targetlabel;
+  end; {genlabeldelta}
+
 procedure deletenodes(first, last: nodeptr);
 
   var
@@ -644,6 +655,19 @@ procedure definelabel(l: integer {label number to define} );
     end;
   end {definelabel} ;
 
+procedure definelastlabel;
+
+{ Define the label with number "lastlabel".  This is used by the code
+  generator to generate new labels as needed.  Such "local" labels are
+  defined from "maxint" down, while labels emitted by travrs are defined
+  from 1 up.
+}
+
+
+  begin {definelastlabel}
+    definelabel(lastlabel);
+    lastlabel := lastlabel - 1;
+  end {definelastlabel} ;
 
 procedure adjustregcount(k: keyindex; {operand to adjust}
                          delta: integer {amount to adjust count by});
@@ -957,15 +981,18 @@ function uselesstemp(k: keyindex): boolean;
   end {uselesstemp} ;
 
 procedure deleteregsave(k: keyindex);
-  var p: tempsaveptr;
+  var p, p1: tempsaveptr;
 
   begin
     p := keytable[k].saves;
     while p <> nil do
       begin
       deletenodes(p^.first, p^.last);
+      p1 := p;
       p := p^.nextsave;
+      dispose(p1);
       end;
+    keytable[k].saves := nil;
   end;
 
 procedure processregsaves;
@@ -1947,16 +1974,16 @@ procedure loadreg(var k: keyindex; other: keyindex);
 }
 
 begin {loadreg}
-  lock(other);
   if keytable[k].oprnd.mode <> register then
     begin
+    lock(other);
     settemp(keytable[k].len, keytable[k].oprnd);
     settemp(keytable[k].len, reg_oprnd(getreg));
     gensimplemove(tempkey + 1, tempkey);
+    unlock(other);
     changevalue(k, tempkey);
     tempkey := tempkey + 2;
     end;
-  unlock(other);
 end {loadreg} ;
 
 
@@ -2518,7 +2545,6 @@ procedure putblock;
     processregsaves;
 
     finalizestackoffsets(firstnode, lastnode, maxstackoffset);
-
     while stackcounter < stackbase do
       begin
       if keytable[stackcounter].refcount > 0 then
@@ -3051,6 +3077,29 @@ procedure callroutinex(s: boolean {signed function value} );
       setvalue(reg_oprnd(0));
 
   end {callroutinex} ;
+
+
+{ Case statement generation.
+
+  The general scheme is to generate a case branch followed directly by
+  as many caseelt's as needed.  Tying a caseelt to the code for that case
+  is done by the labels generated
+}
+
+procedure caseeltx;
+
+{ Generate oprnds[2] references to label oprnds[1].
+  These will be placed in the constant psect.
+}
+
+  var
+    i: integer; {induction var}
+
+
+  begin {caseeltx}
+    for i := 1 to pseudoinst.oprnds[2] do
+      genlabeldelta(lastlabel + 1, pseudoinst.oprnds[1]);
+  end; {caseeltx}
 
 { context processing }
 
@@ -3690,7 +3739,9 @@ procedure codeone;
       fordnchk: forcheckx(false);
       forerrchk: forerrchkx;
       casebranch: casebranchx;
+}
       caseelt: caseeltx;
+{
       caseerr: caseerrx;
       dostruct: dostructx;
       doset: dosetx;

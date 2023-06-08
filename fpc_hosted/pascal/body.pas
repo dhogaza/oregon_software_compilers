@@ -1893,7 +1893,11 @@ procedure genparamaddr(p: entryptr; form: types);
      olen := oprndstk[sp].oprndlen;
      genoprnd;
      genlit(p^.regid);
-     genop(regtargetop);
+     case p^.varalloc of
+       regparam: genop(regtargetop);
+       ptrregparam: genop(ptrregtargetop);
+       realregparam: genop(realregtargetop);
+     end; 
      genint(olen);
      genint(1);
      genform(ptrs);
@@ -4342,10 +4346,7 @@ procedure statement(follow: tokenset {legal following symbols} );
         end {conformable} ;
 
 
-      procedure conformantparam(paramtype: index; {index of parameter
-                                                   description}
-                                pushbounds: boolean; {push the bounds for this
-                                                      one}
+      procedure conformantparam(paramptr: entryptr; {points to the param itself}
                                 valueparam: boolean {this is a value parameter}
                                 );
 
@@ -4356,8 +4357,8 @@ procedure statement(follow: tokenset {legal following symbols} );
 }
 
         var
-          paramptr: entryptr; {for access to parameter type data}
-          actualptr: entryptr; {for access to actual parameter bounds}
+          paramtypeptr: entryptr; {for access to parameter type data}
+          actualtypeptr: entryptr; {for access to actual parameter bounds}
           at1, pt1: index; {for tracking down lists}
           highid, lowid: index; {bound id's if conformant}
           actualisconformant: boolean; {actual parameter is also conformant}
@@ -4365,7 +4366,9 @@ procedure statement(follow: tokenset {legal following symbols} );
           indexptr: entryptr; {for access to actual index type}
           boundidsize: addressrange; {for determining size of boundid}
           boundidtype: index; {the subrange used to declare the array}
-
+          boundidptr: entryptr; {points to the current bound id}
+          paramtype: index; {index of parameter description}
+          pushbounds: boolean; {push the bounds for this param}
 
         procedure pushbound(which: index);
 
@@ -4384,11 +4387,14 @@ procedure statement(follow: tokenset {legal following symbols} );
 
 
         begin {conformantparam}
+          paramtype := paramptr^.vartype;
+          pushbounds := paramptr^.lastinsection;
+
           if oprndstk[sp].oprndlen = 0 then oprndstk[sp].oprndlen := 1
           else if valueparam then genunary(pushcvalue, resultform);
 
           oprndstk[sp].oprndlen := ptrsize;
-          genunary(pushaddr, resultform);
+          genparamaddr(p, resultform);
 
           if not identical(resulttype, lastconfactual) then
             warnbefore(confinconsistent);
@@ -4401,39 +4407,43 @@ procedure statement(follow: tokenset {legal following symbols} );
             begin
             if pushbounds then
               begin
-              if bigcompilerversion then paramptr := @(bigtable[paramtype]);
-              actualptr := resultptr;
-              while (actualptr^.typ in [arrays, conformantarrays, strings]) and
-                    (paramptr^.typ = conformantarrays) do
+              if bigcompilerversion then paramtypeptr := @(bigtable[paramtype]);
+              actualtypeptr := resultptr;
+              while (actualtypeptr^.typ in [arrays, conformantarrays, strings]) and
+                    (paramtypeptr^.typ = conformantarrays) do
                 begin
                 paramcount := paramcount + 2;
-                pt1 := paramptr^.elementtype;
-                at1 := actualptr^.elementtype;
+                pt1 := paramtypeptr^.elementtype;
+                at1 := actualtypeptr^.elementtype;
+
                 if bigcompilerversion then
-                  indexptr := @(bigtable[paramptr^.lowbound]);
-                boundidsize := indexptr^.length;
-                boundidtype := indexptr^.vartype;
-                highid := actualptr^.highbound;
-                lowid := actualptr^.lowbound;
-                desiredindex := paramptr^.indextype;
+                  boundidptr := @(bigtable[paramtypeptr^.lowbound]);
+                boundidsize := boundidptr^.length;
+                boundidtype := boundidptr^.vartype;
+                highid := actualtypeptr^.highbound;
+                lowid := actualtypeptr^.lowbound;
+                desiredindex := paramtypeptr^.indextype;
                 if bigcompilerversion then
-                  indexptr := @(bigtable[actualptr^.indextype]);
+                  indexptr := @(bigtable[actualtypeptr^.indextype]);
+
                 if actualisconformant then pushbound(lowid)
                 else pushint(lower(indexptr));
                 oprndstk[sp].typeindex := boundidtype;
                 oprndstk[sp].oprndlen := boundidsize;
-                genunary(pushvalue, getform(indexptr));
+                genparamvalue(boundidptr, getform(indexptr));
                 genoprnd;
 
+                if bigcompilerversion then
+                  boundidptr := @(bigtable[paramtypeptr^.highbound]);
                 if actualisconformant then pushbound(highid)
                 else pushint(upper(indexptr));
                 oprndstk[sp].typeindex := boundidtype;
                 oprndstk[sp].oprndlen := boundidsize;
-                genunary(pushvalue, getform(indexptr));
+                genparamvalue(boundidptr, getform(indexptr));
                 genoprnd;
 
-                if bigcompilerversion then paramptr := @(bigtable[pt1]);
-                if bigcompilerversion then actualptr := @(bigtable[at1]);
+                if bigcompilerversion then paramtypeptr := @(bigtable[pt1]);
+                if bigcompilerversion then actualtypeptr := @(bigtable[at1]);
                 end;
               end;
             end
@@ -4526,7 +4536,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                 oprndstk[sp].oprndlen := formallen;
                 genparamvalue(p, resultform);
                 end
-            else conformantparam(p^.vartype, p^.lastinsection, true);
+            else conformantparam(p, true);
             end;
           end
         else if token = ident then
@@ -4575,7 +4585,7 @@ procedure statement(follow: tokenset {legal following symbols} );
               varconfparam:
                 begin
                 modifyvariable(true, false);
-                conformantparam(p^.vartype, p^.lastinsection, false);
+                conformantparam(p, false);
                 if token in begexprset then warn(varparamerr);
                 end;
               end;
@@ -8024,9 +8034,8 @@ procedure body;
           regparam: genop(regreturnop);
           ptrregparam: genop(ptrregreturnop);
           realregparam: genop(realregreturnop);
-          otherwise warn(compilerwritererror);
+          otherwise warn(compilerwritererr);
         end; 
-}
         genint(len);
         genint(1);
         genform(resultform);

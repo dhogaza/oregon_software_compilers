@@ -452,6 +452,8 @@ begin {write_node}
     writeln(macfile, chr(9), '.space ', p^.bsssize);
     end;
   labelnode: writeln(macfile, '.L', p^.labelno, ':');
+  labeldeltanode: writeln(macfile, chr(9), '.word', chr(9), '.L', p^.targetlabel,
+                          '-.L', p^.tablebase);
   otherwise writeln('bad node');
   end;
 end {write_node};

@@ -271,8 +271,8 @@ function paramalloc(typeptr: entryptr): allockind;
 }
 
   begin {paramclass}
-    if typeptr^,form in [reals, doubles] then paramalloc := realregparam
-    else if sizeof(typetpr, false) <= ptrsize then paramalloc := regparam
+    if typeptr^.typ in [reals, doubles] then paramalloc := realregparam
+    else if sizeof(typeptr, false) <= ptrsize then paramalloc := regparam
     else paramalloc := normalalloc;
   end; {paramclass}
 
@@ -413,13 +413,13 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
 
   var
     typeptr: entryptr; 
-    alloc: alloctype;
+    alloc: allockind;
 
   begin {allocparam}
     overflowed := false;
     typeptr := @(bigtable[paramptr^.vartype]);
     paramptr^.allocated := true;
-    paramptr^.refparam := paramptr^.namekind <> param;
+    paramptr^.refparam := paramptr^.namekind in [varparam, varconfparam, confparam];
     if (paramptr^.namekind = param) and (length > maxparambytes) and
        not (typeptr^.typ in [reals, doubles]) then
       begin
@@ -604,39 +604,23 @@ procedure getallocdata(form: entryptr; {type being allocated}
   to be allocated, and "maxalign" must be updated to the alignment for
   the entire data space.  "Packedresult" and "spacelen" are included for
   information.
-
-  ***M68000***
-  Variable parameters are all assigned space for pointers to the variable.
-  Other parameters are aligned to a word boundary, since the stack is always
-  pushed in increments of a word.  Other variables are allocated the space
-  and alignment required by the type.  If a packed field crosses a byte
-  boundary, then the entire structure must be aligned on a word boundary,
-  since the allocation scheme is dependent on word access.
 }
 
 
   begin
-    if varkind in [varparam, confparam, varconfparam] then
-      begin
-      fieldlen := ptrsize;
-      fieldalign := ptralign;
-      end
-    else
-      begin
-      fieldlen := sizeof(form, packedresult);
-      if (varkind = param) or (varkind = boundid) then
-        fieldalign := stackalign
-      else if packedresult and not (form^.typ in [arrays, fields]) and
-              (spacelen mod (packingunit * bitsperunit) + fieldlen <=
-              packingunit * bitsperunit) then
-        fieldalign := 1
-      else fieldalign := alignmentof(form, packedresult);
-      if packedresult and (fieldlen <= packingunit * bitsperunit) and
-         (spacelen mod bitsperunit + fieldlen > bitsperunit) then
-        maxalign := max(maxalign, packingunit * bitsperunit)
-      else if not packedresult and (fieldlen >= 2) then
-        fieldalign := max(fieldalign, 2);
-      end;
+    fieldlen := sizeof(form, packedresult);
+    if varkind in [param, varparam, confparam, varconfparam, procparam, funcparam, boundid] then
+      fieldalign := stackalign
+    else if packedresult and not (form^.typ in [arrays, fields]) and
+            (spacelen mod (packingunit * bitsperunit) + fieldlen <=
+            packingunit * bitsperunit) then
+      fieldalign := 1
+    else fieldalign := alignmentof(form, packedresult);
+    if packedresult and (fieldlen <= packingunit * bitsperunit) and
+       (spacelen mod bitsperunit + fieldlen > bitsperunit) then
+      maxalign := max(maxalign, packingunit * bitsperunit)
+    else if not packedresult and (fieldlen >= 2) then
+      fieldalign := max(fieldalign, 2);
     maxalign := max(maxalign, fieldalign);
   end; {getallocdata}
 
