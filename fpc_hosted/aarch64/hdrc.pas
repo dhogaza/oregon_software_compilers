@@ -265,6 +265,7 @@ type
     libdebugger_goto,
     libdebugger_step, { Pascal Vdos pic only -- call for single step }
     libdbgtrap,
+    libcmemcpy,
     last_call  { must be last -- this one means nothing }
   );
 
@@ -308,7 +309,7 @@ type
   oprnd_modes = (nomode, register, fpregister, tworeg, shift_reg, extend_reg,
                  immediate, immediate16, relative, pre_index, post_index, signed_offset,
                  unsigned_offset, reg_offset, literal, labeltarget, proccall,
-                 syscall, cond);
+                 libcall, cond);
 
   conds = (al, eq, ne, gt, lt, le, ge, hi, hs, lo, ls, cc, cs, mi, pl,
            vs, vc);
@@ -341,7 +342,7 @@ type
       cond: (condition: conds);
       labeltarget: (labelno: unsigned; lowbits: boolean);
       proccall: (proclabelno: unsigned; entry_offset: integer);
-      syscall: (syslabelno: unsigned);
+      libcall: (libroutine: libroutines);
     end;
 
 { The instruction node ("node") is used to hold instructions generated and

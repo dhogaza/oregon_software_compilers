@@ -304,16 +304,16 @@ function proccall_oprnd(proclabelno: unsigned; entry_offset: integer): oprndtype
   end;
 
 
-function syscall_oprnd(syslabelno: integer): oprndtype;
+function libcall_oprnd(l: libroutines): oprndtype;
 
   var
     o:oprndtype;
   begin
     o.reg := noreg;
     o.reg2 := noreg;
-    o.mode := syscall;
-    o.syslabelno := syslabelno;
-    syscall_oprnd := o;
+    o.mode := libcall;
+    o.libroutine := l;
+    libcall_oprnd := o;
   end;
 
 function newnode(kind: nodekinds): nodeptr;
@@ -2976,6 +2976,58 @@ procedure loopholefnx;
   end; {loopholefnx}
 
 
+procedure makestacktarget;
+
+{ Create a slot on the stack for the current key
+
+  Code checks length of the temp, if it is longer than
+  long * 2 then we know it is not being pushed as a
+  parameter.  In which case we can reuse an existing slot
+  if one is available.
+
+  A true kludges.
+  
+}
+
+
+  begin {makestacktarget}
+    if len <= long * 2 then newtemp(len)
+    else stacktemp(len);
+    keytable[stackcounter].tempflag := true;
+    keytable[key].regsaved := true;
+    keytable[key].properreg := stackcounter;
+    setkeyvalue(stackcounter);
+  end {makestackstarget} ;
+
+procedure stacktargetx;
+
+{ Sets up a key to be used as a target for code generation when the actual
+  target is being pushed on the stack.  This makes targeting work with
+  temps being generated.
+
+  The sequence is:
+
+        stacktarget     skey
+        expression code
+        push            skey
+
+  Long value parameter pushes are yanked from the parameter list, so the
+  kludge that assumes we're in a parameter list is faulty.  However, a
+  parameter list or routine call is coming up soon, so this is harmless.
+
+}
+
+
+  begin
+    if not paramlist_started then
+      begin
+      paramlist_started := true;
+      saveactivekeys; {since no makeroom was called for this parameter list}
+      end;
+    makestacktarget;
+    dontchangevalue := dontchangevalue + 1;
+  end {stacktargetx} ;
+
 procedure makeroomx;
 
 begin {makeroomx}
@@ -3822,8 +3874,8 @@ procedure codeone;
       subset: setarithmetic(andinst, true);
       mulset: setarithmetic(andinst, false);
       divset: setarithmetic(eor, false);
-      stacktarget: stacktargetx;
 }
+      stacktarget: stacktargetx;
       makeroom: makeroomx;
       callroutine: callroutinex(true);
       unscallroutine: callroutinex(false);

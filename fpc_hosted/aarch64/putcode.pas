@@ -80,6 +80,172 @@ function getstringfile: hostfilebyte;
     nextstringfile := nextstringfile + 1;
   end {getstringfile} ;
 
+procedure libname(libroutine: libroutines;
+                  var s: string);
+
+  begin {libname}
+    case libroutine of
+      libarctan:        s := '_p_fatn    ';
+      libbreak:         s := '_p_break   ';
+      libcap:           s := '_p_cap     ';  { for Modula-2}
+      libcasetrap:      s := '_p_caserr  ';
+      libcexit:         s := '_p_cexit   ';  { for C }
+      libmexit:         s := '_p_mexit   ';  { for Modula-2 }
+      libcidiv:         s := '_p_cidiv   ';  { for C }
+      libcinit:         s := '_p_centry  ';  { for C }
+      libminit:         s := '_p_minit   ';  { for Modula-2 }
+      libclose:         s := '_p_close   ';
+      libcloseinrange:  s := '_p_clsrng  ';
+      libconnect:       s := '_p_connect ';
+      libcopy:          s := '_p_copy    ';
+      libcos:           s := '_p_fcos    ';
+      libcvtdr:         s := '_p_cvtdf   ';
+      libcvtrd:         s := '_p_cvtfd   ';
+      libdadd:          s := '_p_dadd    ';
+      libdarctan:       s := '_p_datn    ';
+      libdbgtrap:       s := '_p_dbgtrp  ';
+      libdcos:          s := '_p_dcos    ';
+      libddiv:          s := '_p_ddiv    ';
+      libdefinebuf:     s := '_p_define  ';
+      libdelete:        s := '_p_delete  ';
+      libdeql:          s := '_p_deql    ';
+      libdexp:          s := '_p_dexp    ';
+      libdfloat:        s := '_p_dfloat  ';
+      libdufloat:       s := '_p_dufloat ';  { for C }
+      libdfloat_uns:    s := '_p_dfltu   ';
+      libdispose:       s := '_p_dispos  ';
+      libdgtr:          s := '_p_dgtr    ';
+      libdln:           s := '_p_dln     ';
+      libdlss:          s := '_p_dlss    ';
+      libdmult:         s := '_p_dmul    ';
+      libdround:        s := '_p_dround  ';
+      libdsin:          s := '_p_dsin    ';
+      libdsqr:          s := '_p_dsqr    ';
+      libdsqrt:         s := '_p_dsqrt   ';
+      libdsub:          s := '_p_dsub    ';
+      libdswap:         s := '_p_dswap   ';
+      libdtime:         s := '_p_dtime   ';
+      libdtrunc:        s := '_p_dtrunc  ';
+      libdf:            s := '_p_libdf   ';  { for C }
+      libfd:            s := '_p_libfd   ';  { for C }
+      libexit:          s := '_p_exit    ';
+      libexp:           s := '_p_fexp    ';
+      libfadd:          s := '_p_fadd    ';
+      libfcmp:          s := '_p_fcmp    ';
+      libfiletrap:      s := '_p_filerr  ';
+      libfdiv:          s := '_p_fdiv    ';
+      libffloat:        s := '_p_ffloat  ';
+      libfufloat:       s := '_p_fufloat ';  { for C }
+      libffloat_uns:    s := '_p_ffltu   ';
+      libfmult:         s := '_p_fmul    ';
+      libfree:          s := '_p_free    ';
+      libfround:        s := '_p_fround  ';
+      libfsqr:          s := '_p_fsqr    ';
+      libfsub:          s := '_p_fsub    ';
+      libftrunc:        s := '_p_ftrunc  ';
+      libget:           s := '_p_get     ';
+      libhalt:          s := '_p_halt    ';  { for Modula-2}
+      libidiv:          s := '_p_idiv    ';
+      libimult:         s := '_p_imul    ';
+      libinitialize:    s := '_p_initio  ';
+      libioerror:       s := '_p_ioerro  ';
+      libiostatus:      s := '_p_iostat  ';
+      libiotransfer:    s := '_p_iotrans ';  { for Modula-2}
+      libln:            s := '_p_fln     ';
+      libmcopy1:        s := '_m_copy1   ';  { for Modula-2}
+      libmcopy2:        s := '_m_copy2   ';  { for Modula-2}
+      libmcopy4:        s := '_m_copy4   ';  { for Modula-2}
+      libmcopymd:       s := '_m_copymd  ';  { for Modula-2}
+      libnew:           s := '_p_new     ';
+      libnewprocess:    s := '_p_newprc  ';  { for Modula-2}
+      libnoioerror:     s := '_p_noioer  ';
+      libpack:          s := '_p_pack    ';
+      libpage:          s := '_p_page    ';
+      libpageo:         s := '_p_page_o  ';
+      libpointertrap:   s := '_p_badptr  ';
+      libpos:           s := '_p_pos     ';
+      libprofilerdump:  s := '_p_prdump  ';
+      libprofilerinit:  s := '_p_prinit  ';
+      libprofilerstmt:  s := '_p_prstmt  ';
+      libput:           s := '_p_put     ';
+      librangetrap:     s := '_p_subrng  ';
+      libreadchar:      s := '_p_rdc     ';
+      libreadchari:     s := '_p_rdc_i   ';
+      libreaddouble:    s := '_p_rdd     ';
+      libreaddoublei:   s := '_p_rdd_i   ';
+      libreadint:       s := '_p_rdi     ';
+      libreadinti:      s := '_p_rdi_i   ';
+      libreadln:        s := '_p_rdln    ';
+      libreadlni:       s := '_p_rdln_i  ';
+      libreadreal:      s := '_p_rdf     ';
+      libreadreali:     s := '_p_rdf_i   ';
+      libreadstring:    s := '_p_rds     ';
+      libreadstringi:   s := '_p_rds_i   ';
+      libreadxstring:   s := '_p_rdxs    ';
+      libreadxstringi:  s := '_p_rdxs_i  ';
+      librealloc:       s := '_p_realloc ';
+      librename:        s := '_p_rename  ';
+      libreset:         s := '_p_reset   ';
+      librewrite:       s := '_p_rewrit  ';
+      libscan:          s := '_p_scan    ';  { for Modula-2}
+      libseek:          s := '_p_seek    ';
+      libsin:           s := '_p_fsin    ';
+      libsqrt:          s := '_p_fsqrt   ';
+      libstrovr:        s := '_p_strovr  ';
+      libsubscripttrap: s := '_p_subscr  ';
+      libtell:          s := '_p_tell    ';
+      libtime:          s := '_p_ftime   ';
+      libtransfer:      s := '_p_trans   ';  { for Modula-2}
+      libunpack:        s := '_p_unpack  ';
+      libunsdiv:        s := '_p_udiv    ';
+      libunsmod:        s := '_p_umod    ';
+      libunsmult:       s := '_p_umul    ';
+      libwritebool:     s := '_p_wtb     ';
+      libwriteboolo:    s := '_p_wtb_o   ';
+      libwritechar:     s := '_p_wtc     ';
+      libwritecharo:    s := '_p_wtc_o   ';
+      libwritedouble1:  s := '_p_wtd1    ';
+      libwritedouble1o: s := '_p_wtd1_o  ';
+      libwritedouble2:  s := '_p_wtd2    ';
+      libwritedouble2o: s := '_p_wtd2_o  ';
+      libwriteint:      s := '_p_wti     ';
+      libwriteinto:     s := '_p_wti_o   ';
+      libwriteln:       s := '_p_wtln    ';
+      libwritelno:      s := '_p_wtln_o  ';
+      libwritereal1:    s := '_p_wtf1    ';
+      libwritereal1o:   s := '_p_wtf1_o  ';
+      libwritereal2:    s := '_p_wtf2    ';
+      libwritereal2o:   s := '_p_wtf2_o  ';
+      libwritestring:   s := '_p_wts     ';
+      libwritestringo:  s := '_p_wts_o   ';
+      libdebugger_goto: s := '_p_dbggto  ';
+      libdebugger_init: s := '_p_dbgint  ';
+      libdebugger_entry:s := '_p_dbgent  ';
+      libdebugger_exit: s := '_p_dbgext  ';
+      libdebugger_step: s := '_p_dbstmt  ';
+      libstrint0:       s := '_p_stri0   ';
+      libstrint1:       s := '_p_stri1   ';
+      libvalint:        s := '_p_vali    ';
+      libstrreal0:      s := '_p_strf0   ';
+      libstrreal1:      s := '_p_strf1   ';
+      libstrreal2:      s := '_p_strf2   ';
+      libvalreal:       s := '_p_valf    ';
+      libstrdouble0:    s := '_p_strd0   ';
+      libstrdouble1:    s := '_p_strd1   ';
+      libstrdouble2:    s := '_p_strd2   ';
+      libvaldouble:     s := '_p_vald    ';
+      libinsert:        s := '_p_ins     ';
+      libdeletestr:     s := '_p_delstr  ';
+      libcmemcpy:           s := 'memcpy    ';
+      otherwise
+        begin
+        write('Unexpected library name (', ord(libroutine):1, ')');
+        compilerabort(inconsistent);
+        end;
+      end;
+
+  end {libname} ;
+
 
 procedure writeint(v: integer);
 
@@ -202,6 +368,23 @@ procedure copysfile;
     write_constants(i);
   end {copysfile} ;
 
+
+  procedure writelibname(l: libroutines);
+
+  { Write the name of a library routine to the mac file }
+
+  var
+    s: string;
+    i: integer;
+
+  begin
+    libname(l, s);
+    i := 0;
+    repeat
+      i := i + 1;
+      write(macfile, s[i]);
+    until (i = length(s)) or (s[i] = ' ');
+  end;
 
 procedure writeprocname(procn: proctableindex {number of procedure to copy});
 
@@ -401,7 +584,7 @@ begin
         if o.entry_offset <> 0 then
           write(macfile, -o.entry_offset * word);
         end;
-    syscall: write(macfile, '_P_', o.labelno);
+    libcall: writelibname(o.libroutine);
     labeltarget:
       begin
         if o.lowbits then write(macfile, ':lo12:');
