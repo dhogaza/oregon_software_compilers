@@ -4168,9 +4168,6 @@ procedure build;
                 i := 0
                 end;
 
-if n.op = regtargetop then
-writeln('here');
-
             case n.op of
               jumpvfuncop:
                 begin

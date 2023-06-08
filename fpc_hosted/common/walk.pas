@@ -1553,7 +1553,7 @@ with target = 0.
 
       begin {regreturnnode}
         mapkey;
-        genpseudo(psop, len, key, 1, copycount, 0, 0, r);
+        genpseudo(psop, len, key, 1, copycount, r, 0, 0);
         walkvalue(l, lkey, key);
         tk := newkey;
         context[contextsp].high := tk;
@@ -1578,12 +1578,12 @@ with target = 0.
       begin {regtargetnode}
         walknode(l, lkey, 0, true);
         mapkey;
-        genpseudo(psop, len, key, refcount, copycount, 0, 0, regid);
+        genpseudo(psop, len, key, refcount, copycount, regid, 0, 0);
         walkvalue(r, rkey, key);
         tk := newkey;
         context[contextsp].high := tk;
         keytable[tk] := 0;
-        genpseudo(map[moveop, form], len, tk, 0, 0, key, lkey, 0);
+        genpseudo(map[moveop, form], len, tk, 0, 0, key, rkey, 0);
         if language <> c then clearkeys;
       end {regtargetnode} ;
 
@@ -2120,11 +2120,6 @@ with target = 0.
         begin
         l := oprnds[1];
         r := oprnds[2];
-if op = regtargetop then
-begin
-writeln('regtarget op oprnds: ', oprnds[1]:5, oprnds[2]:5, oprnds[3]:5);
-writeln('l: ', l, ' r: ', r);
-end;
         case op of
           indxchkop, cindxchkop, rangechkop, forupchkop, fordnchkop,
           forerrchkop, congruchkop:

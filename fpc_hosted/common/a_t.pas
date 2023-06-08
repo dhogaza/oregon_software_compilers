@@ -52,8 +52,6 @@ type
   { expression operators emitted by analys, read by travrs }
   { DO NOT ALPHABETIZE OR OTHERWISE SCREW AROUND WITH THE ORDERING }
 
-  {operators before intop are linked by travrs sequentially and are never CSEs}
-
   operatortype = (endexpr, newvarop, newunsvarop, globalop, localop, lit,
               defforlitindexop, defforindexop, forindexop,
               defunsforlitindexop, defunsforindexop, forupchkop, fordnchkop,
@@ -65,7 +63,12 @@ type
               pushret, pushfptr, retop, call, jumpvfuncop,
               unscall, callparam, unscallparam, copystackop, reserve,
               pushproc, rd, wr, switchstack, structop, closerangeop,
-              dummyargop, filebufindrop, intop, ptrop, realop, doubleop,
+              dummyargop, filebufindrop, regtargetop, realregtargetop,
+              ptrregtargetop, regreturnop, realregreturnop, ptrregreturnop,
+
+  {operators before intop are linked by travrs sequentially and are never CSEs}
+
+              intop, ptrop, realop, doubleop,
               varop, unsvarop, definelazyop, ownop, segop, extop, levop,
               tempop, originop, float1, float, float_double, real_to_dbl,
               dbl_to_real, plusop, dummyarg2op, minusop, mulop, divop,
@@ -81,9 +84,7 @@ type
               endscope, groupop, modeqop, muleqop, oreqop, preincop,
               postincop, questop, shiftleqop, shiftreqop, subeqop, varkind,
               xoreqop, xorop, vindxop, parmop, clearnewop, saveop, restop,
-              deleteop, regparamop, realregparamop, ptrregparamop,
-              regtargetop, realregtargetop, ptrregtargetop, regreturnop,
-              realregreturnop, ptrregreturnop);
+              deleteop, regparamop, realregparamop, ptrregparamop);
 
   { define the different kinds of records emitted by analys }
 
