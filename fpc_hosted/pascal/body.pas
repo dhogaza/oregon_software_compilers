@@ -3356,9 +3356,9 @@ procedure statement(follow: tokenset {legal following symbols} );
           end
         else
           begin
-          if not conformant then power2check(eltsize, power2, power2value)
-          else power2 := false;
-          if power2 and (power2value <= tmaxautoindex) then
+          power2check(eltsize, power2, power2value);
+          if (bigtable[arrayelement].typ <> conformantarrays) and
+             power2 and (power2value <= tmaxautoindex) then
             begin
             oprndstk[sp].oprndlen := eltsize;
             oprndstk[sp - 1].oprndlen := eltsize;
