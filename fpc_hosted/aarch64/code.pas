@@ -904,13 +904,19 @@ procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
       begin
       with firstnode^ do
         if (kind = instnode) then
-        for i := 1 to oprnd_cnt do
-          if (oprnds[i].mode = signed_offset) and
-             (oprnds[i].reg = sp) then
-            begin
-            oprnds[i].mode := unsigned_offset;
-            oprnds[i].index := oprnds[i].index + amount;
-            end;
+          {DRB: this is going to fail with large offsets that are already
+           set up as address registers}
+          if (inst.inst = add) and (oprnds[2].mode = register) and
+             (oprnds[2].reg = sp) and (oprnds[3].mode = immediate) then
+            oprnds[3].imm_value := oprnds[3].imm_value + amount  
+          else
+            for i := 1 to oprnd_cnt do
+              if (oprnds[i].mode = signed_offset) and
+                 (oprnds[i].reg = sp) then
+                begin
+                oprnds[i].mode := unsigned_offset;
+                oprnds[i].index := oprnds[i].index + amount;
+                end;
       firstnode := firstnode^.nextnode;
       end;
   end {finalizestackoffsets};
@@ -1126,7 +1132,7 @@ function besttemp(size: addressrange): keyindex;
     end;
   end {besttemp} ;
 
-procedure newtemp(size: addressrange {size of temp to allocate} );
+function newtemp(size: addressrange {size of temp to allocate} ): keyindex;
 
 { Create a new temp. Temps are allocated from the top of the keys,
   while expressions are allocated from the bottom.
@@ -1169,6 +1175,7 @@ procedure newtemp(size: addressrange {size of temp to allocate} );
         oprnd := index_oprnd(signed_offset, sp, -stackoffset);
         end;
       end;
+    newtemp := stackcounter;
   end {newtemp} ;
 
 function stacktemp(size: addressrange): keyindex;
@@ -1186,8 +1193,7 @@ function stacktemp(size: addressrange): keyindex;
     else
       begin
       { DRB temp }
-      newtemp(size);
-      stacktemp := stackcounter;
+      stacktemp := newtemp(size);
       end;
   end {stacktemp} ;
 
@@ -2811,6 +2817,52 @@ procedure movlitintx;
     setallfields(left);
   end;
 
+procedure movemultiple;
+
+begin {movemultiple}
+  if len <= long then movintptrx
+  else
+    begin
+    saveactivekeys;
+    markscratchregs;
+    addressboth;
+    firstreg := 3;
+    settemp(long, immediate16_oprnd(len, 0));
+    settemp(long, reg_oprnd(2));
+    gensimplemove(tempkey + 1, tempkey);
+    keytable[tempkey].oprnd.reg := 0;
+    genmoveaddress(left, tempkey);
+    keytable[tempkey].oprnd.reg := 1;
+    genmoveaddress(right, tempkey);
+    settemp(long, libcall_oprnd(libcmemcpy));
+    gen1(buildinst(bl, false, false), tempkey);
+    firstreg := 0;
+    end;
+end; {movemultiple}
+
+procedure pushmultiple;
+
+begin {pushmultiple}
+  if len <= long then movintptrx {DRB need pshintptrx}
+  else
+    begin
+    saveactivekeys;
+    markscratchregs;
+    address(left);
+    firstreg := 3;
+    settemp(long, immediate16_oprnd(len, 0));
+    settemp(long, reg_oprnd(2));
+    gensimplemove(tempkey + 1, tempkey);
+    keytable[tempkey].oprnd.reg := 0;
+    genmoveaddress(key, tempkey);
+    keytable[tempkey].oprnd.reg := 1;
+    genmoveaddress(left, tempkey);
+    settemp(long, libcall_oprnd(libcmemcpy));
+    gen1(buildinst(bl, false, false), tempkey);
+    firstreg := 0;
+    end;
+end; {pushmultiple}
+
 procedure regparamx;
 
 var o: oprndtype;
@@ -2985,18 +3037,20 @@ procedure makestacktarget;
   parameter.  In which case we can reuse an existing slot
   if one is available.
 
-  A true kludges.
+  A true kludge.
   
 }
 
+ var
+   stackkey: keyindex;
 
   begin {makestacktarget}
-    if len <= long * 2 then newtemp(len)
-    else stacktemp(len);
-    keytable[stackcounter].tempflag := true;
+    if len <= long * 2 then stackkey := newtemp(len)
+    else stackkey := stacktemp(len);
+    keytable[stackkey].tempflag := true;
     keytable[key].regsaved := true;
-    keytable[key].properreg := stackcounter;
-    setkeyvalue(stackcounter);
+    keytable[key].properreg := stackkey;
+    setkeyvalue(stackkey);
   end {makestackstarget} ;
 
 procedure stacktargetx;
@@ -3838,10 +3892,12 @@ procedure codeone;
 {
       movreal, returnreal: movrealx;
       movlitreal: movlitrealx;
-      movstruct, returnstruct: movstructx(false, true);
+}
+      movstruct, returnstruct: movemultiple;
+      movset: movemultiple;
+{
       movstr: movstrx;
       movcstruct: movcstructx;
-      movset: movstructx(true, true);
       addstr: addstrx;
 }
       addint: integerarithmetic(add);
@@ -3894,7 +3950,9 @@ procedure codeone;
       chrstr: chrstrx;
       arraystr: arraystrx;
       flt: fltx;
-      pshint, pshptr: pshx;
+}
+      pshint, pshptr: movintptrx;
+{
       pshfptr: pshfptrx;
       pshlitint: pshlitintx;
       pshlitptr, pshlitfptr: pshlitptrx;
@@ -3904,7 +3962,9 @@ procedure codeone;
       pshstraddr: pshstraddrx;
       pshproc: pshprocx;
       pshstr: pshstrx;
-      pshstruct, pshset: pshstructx;
+}
+      pshstruct, pshset: pushmultiple;
+{
       fmt: fmtx;
       setbinfile: setbinfilex;
       setfile: setfilex;

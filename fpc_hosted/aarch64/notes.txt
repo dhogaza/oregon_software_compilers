@@ -1,15 +1,5 @@
 -- next priorities:
-0. argh function return ops ... map form to register type
-   in mda, d'oh!
-
-   earlier mapped in travrs but that's wrong as it removes
-   control from mda, where it belongs.
-
-   check calls to allocparam to see if typeptr can be used
-   to compute length for param allocation type rather than
-   passing length in.
-
-   yet to be figured out how to put the reg return value forced
+0.  yet to be figured out how to put the reg return value forced
    to physical reg 0 in leaf functions if allocated as a valuable
    regtemp by improve?  Or is this really a viable
    idea if param 0 is being used?
@@ -25,6 +15,12 @@
 9. lots of sign extension and the like issues
 10.targeting logic sucks on this machine, too many instances
    of ld xn, mem/op xm,xn/mov xn,xm/ when xm is no longer useful.
+
+11. block moves should just use memcpy for now.  optimizing these is
+    very low on the priority list.
+12. code to generate the address of something needs to be able to
+    do so with a constant.  AS allows one to add a decimal constant
+    to a label apparently.  labeltarget operand needs enhancement.
 
 -- more general
 
