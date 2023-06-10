@@ -14,6 +14,25 @@ procedure exitcode;
 
 implementation
 
+procedure power2check(n: integer; { number to check }
+                      var power2: boolean; {true if n = power of 2}
+                      var power2value: integer {resulting power} );
+
+{ Find out if n is an even power of 2, and return the exponent if so.
+}
+
+
+  begin {power2check}
+    power2value := 0;
+    while (n > 0) and not odd(n) do
+      begin
+      n := n div 2;
+      power2value := power2value + 1;
+      end;
+    power2 := (n = 1);
+  end {power2check} ;
+
+
 function bits(i: unsigned): integer;
 
 { return the number of bits in i }
@@ -29,6 +48,21 @@ begin {bits}
     end;
   bits := b;
 end {bits};
+
+function regmoveok(n: integer): boolean;
+
+  var
+    power2: boolean;
+    power2value: integer;
+
+{ when we implemenet use of vector registers, we can move 16 bytes
+  in a register rather than just 8.
+}
+
+begin {regmoveok}
+  power2check(n, power2, power2value);
+  regmoveok := power2 and (power2value <= 3);
+end; {regmoveok}
 
 procedure setkeyentry(k: keyindex; l:unsigned; o: oprndtype);
 
@@ -1634,7 +1668,10 @@ procedure makeaddressable(var k: keyindex);
       restorereg2 := not reg2valid;
       if restorereg then keytable[properreg].tempflag := true;
       if restorereg2 then keytable[properreg2].tempflag := true;
-      if restorereg or restorereg2 then allowmodify(k, false);
+      end;
+    if restorereg or restorereg2 then allowmodify(k, false);
+    with keytable[k], oprnd do
+      begin
       adjustregcount(k, - refcount);
       if restorereg then
         begin
@@ -2026,7 +2063,264 @@ procedure forcebranch(k: keyindex {operand to test});
     dereference(k);
   end {forcebranch} ;
 
+procedure clearcontext;
+
+{ Clear the current context.  That is, forget where everything is in the
+  current context.  Any registers containing temps are saved.
+  This is called at labels when the context at this point is unpredictable.
+}
+
+  var
+    i: regindex; {induction var for killing variables}
+
+
+  begin
+    for i := 0 to lastreg do if regused[i] then markreg(i);
+{
+    for i := 0 to lastfpreg do if fpregused[i] then markfpreg(i);
+}
+
+{ Preserve innermost for loop induction register if this is the first
+  clear at the current level (we know the first one is derived from the
+  for loop itself, and therefore is under our control).
+}
+
+    if (forsp > 0) and forstack[forsp].firstclear then
+      begin
+      forstack[forsp].firstclear := false;
+      with forstack[forsp], keytable[forkey] do
+        if not regvalid then
+          begin
+          regvalid := true;
+          adjustregcount(forkey, refcount);
+          end;
+      end;
+
+    context[contextsp].clearflag := true;
+    context[contextsp].lastbranch := lastnode;
+  end {clearcontext} ;
+
+
 {start of individual pseudoop codegen procedures}
+
+{ context processing pseudops }
+
+procedure copyaccessx;
+
+{ Make a copy at the current context level of the keytable entry
+  for the operand in oprnds[1].  This allows modifications to the
+  local key without affecting the outer context key.  If the flag
+  "clearflag" is set in the local context mark,  The properaddress of
+  the key is copied into the local key, as we assume that the volatile
+  copy of the key may not exist at this point, and we must use the
+  non-volatile copy in "properaddress".
+
+  The refcount of the key being copied (and all intermediate copies)
+  is reduced by the difference between the local refcount and
+  copycount.  This number is the number of references in the new
+  local context.
+}
+
+  var
+    delta: integer; {difference between refcount and copycount}
+    useproperaddress: boolean; {true if copy is logically within a loop}
+
+
+  begin
+    { Because of hoisting, we may have a copy operator appearing
+      before the clearlabel, defeating the purpose of the context
+      clearflag.  Fortunately, travrs warns us by passing a flag
+      in the len field.
+    }
+    useproperaddress := (len <> 0) or context[contextsp].clearflag;
+
+    with keytable[key] do
+      begin {copy the key}
+      len := keytable[left].len;
+      copylink := left;
+      delta := refcount - copycount;
+      end;
+
+    with keytable[left], oprnd do
+      begin
+      keytable[key].regsaved := regsaved;
+      keytable[key].reg2saved := reg2saved;
+      keytable[key].regvalid := regvalid;
+      keytable[key].reg2valid := reg2valid;
+      keytable[key].properreg := properreg;
+      keytable[key].properreg2 := properreg2;
+      keytable[key].tempflag := tempflag;
+      keytable[key].packedaccess := packedaccess;
+
+      { Point to the properaddress if clearcontext}
+      if useproperaddress then
+        begin
+        if joinreg then keytable[key].regvalid := false;
+        if joinreg2 then keytable[key].reg2valid := false;
+        end;
+{
+      with loopstack[loopsp] do
+        begin
+        with aregstate[reg] do
+          if keytable[key].regvalid and active then used := true;
+        with dregstate[reg] do
+          if keytable[key].regvalid and active then used := true;
+        with fpregstate[reg] do
+          if keytable[key].regvalid and active then used := true;
+
+        with aregstate[indxr] do
+          if keytable[key].reg2valid and active then used := true;
+        with dregstate[indxr] do
+          if keytable[key].reg2valid and active then used := true;
+        with fpregstate[indxr] do
+          if keytable[key].reg2valid and active then used := true;
+        end; { loopstack[loopsp] }
+}
+      setvalue(oprnd);
+      keytable[key].signed := signed;
+      keytable[key].signlimit := signlimit;
+      end;
+
+    { Now decrement refcounts }
+    repeat
+      with keytable[left] do
+        begin
+        refcount := refcount - delta;
+        copycount := copycount - delta;
+        bumptempcount(left, - delta);
+        left := copylink;
+        end;
+    until left = 0;
+  end {copyaccessx} ;
+
+procedure clearlabelx;
+
+{ Define a label at the head of a loop.  All CSE's except 'with'
+  expressions and for loop indices were purged by travrs.  The
+  routine 'enterloop' enters bookkeeping information which allows
+  registers to be used within the loop.  This scheme depends upon
+  'restoreloopx' properly restoring registers to their state as of
+  loop entry.
+}
+
+
+  begin
+    saveactivekeys;
+{ DRB   enterloop;}
+{ DRB when enter/restoreloop complete, clearcontext goes away }
+    clearcontext;
+    definelabel(pseudoinst.oprnds[1]);
+{DRB ...
+    reloadloop;
+}
+  end {clearlabelx} ;
+
+
+procedure savelabelx;
+
+{ Define a label and save the current context for later restoration.
+  This is called at the beginning of each branching structure, and
+  corresponds to the same operation in "travrs".
+
+  The context is saved in the "contextstack" data structure.
+}
+
+  var
+    i: integer; {induction var for scanning keys and registers.}
+
+
+  begin
+
+    adjustdelay := false; {DRB probably not needed for arm64 after we pull calls from paramlists}
+    definelabel(pseudoinst.oprnds[1]);
+    saveactivekeys;
+    contextsp := contextsp + 1;
+
+    with context[contextsp] do
+      begin
+      savedstackoffset := stackoffset;
+      savedstackcounter := stackcounter;
+      clearflag := false;
+      keymark := lastkey + 1;
+      first := lastnode;
+      last := lastnode;
+      lastbranch := nil;
+      bump := context[contextsp - 1].bump;
+      fpbump := context[contextsp - 1].fpbump;
+      for i := 0 to lastreg do if registers[i] > 0 then bump[i] := true;
+      for i := 0 to lastfpreg do if fpregisters[i] > 0 then fpbump[i] := true;
+      end;
+
+    for i := context[contextsp - 1].keymark to lastkey do
+      adjustregcount(i, - keytable[i].refcount);
+
+  end {savelabelx} ;
+
+procedure restorelabelx;
+
+{ Define a label and restore the previous environment.  This is used at the
+  end of one branch of a branching construct.  It gets rid of any temps
+  generated along this branch and resets to the previous context.
+}
+
+  var
+    i: keyindex; {used to scan keys to restore register counts}
+
+
+  begin
+    definelabel(pseudoinst.oprnds[1]);
+
+    while lastkey >= context[contextsp].keymark do
+      with keytable[lastkey] do
+        begin
+{DRB why aren't refcounts zero?}
+        bumptempcount(lastkey, -refcount);
+        adjustregcount(lastkey, -refcount);
+        refcount := 0;
+        lastkey := lastkey - 1;
+        end;
+
+{DRB is this order correct?  Also need to delete unused temp store instructions}
+    processregsaves;
+    stackcounter := context[contextsp].savedstackcounter;
+    stackoffset := context[contextsp].savedstackoffset;
+    contextsp := contextsp - 1;
+    for i := context[contextsp].keymark to lastkey do
+      adjustregcount(i, keytable[i].refcount);
+  end {restorelabelx} ;
+
+procedure joinlabelx;
+
+{ Define a label and adjust temps at the end of a forking construction.
+  Temps which are used along any branch of the fork have the "join" flag
+  set, and at this point such temps are flagged as used.  This corresponds
+  to the "join" construction in travrs.
+}
+
+  var
+    i: keyindex; {induction var for scanning keys}
+
+  begin
+    definelabel(pseudoinst.oprnds[1]);
+    for i := context[contextsp].keymark to lastkey do
+      with keytable[i] do
+        begin
+        adjustregcount(i, - refcount);
+        if joinreg then regvalid := false;
+        if joinreg2 then reg2valid := false;
+        adjustregcount(i, refcount);
+        end;
+  end {joinlabelx} ;
+
+procedure pseudolabelx;
+
+{ Define a pseudo-code label.  This is the basic label definition routine.
+}
+
+
+  begin
+    definelabel(pseudoinst.oprnds[1]);
+  end {pseudolabelx} ;
 
 
 procedure shiftintx(backwards: boolean);
@@ -2817,10 +3111,17 @@ procedure movlitintx;
     setallfields(left);
   end;
 
+procedure pshintptrx;
+
+  begin {pshintptrx}
+    addressdst(left);
+    gensimplemove(left, key);
+  end {pshintptrx};
+
 procedure movemultiple;
 
 begin {movemultiple}
-  if len <= long then movintptrx
+  if regmoveok(len) then movintptrx
   else
     begin
     saveactivekeys;
@@ -2843,12 +3144,12 @@ end; {movemultiple}
 procedure pushmultiple;
 
 begin {pushmultiple}
-  if len <= long then movintptrx {DRB need pshintptrx}
+  if regmoveok(len) then pshintptrx
   else
     begin
     saveactivekeys;
-    markscratchregs;
     address(left);
+    markscratchregs;
     firstreg := 3;
     settemp(long, immediate16_oprnd(len, 0));
     settemp(long, reg_oprnd(2));
@@ -2869,6 +3170,7 @@ var o: oprndtype;
 
 begin {regparamx}
   setvalue(reg_oprnd(target));
+  regused[target] := true;
   if left <> 0 then
     begin
     address(left);
@@ -3045,7 +3347,7 @@ procedure makestacktarget;
    stackkey: keyindex;
 
   begin {makestacktarget}
-    if len <= long * 2 then stackkey := newtemp(len)
+    if paramlist_started then stackkey := newtemp(len)
     else stackkey := stacktemp(len);
     keytable[stackkey].tempflag := true;
     keytable[key].regsaved := true;
@@ -3074,11 +3376,9 @@ procedure stacktargetx;
 
   begin
     if not paramlist_started then
-      begin
-      paramlist_started := true;
       saveactivekeys; {since no makeroom was called for this parameter list}
-      end;
     makestacktarget;
+    paramlist_started := true;
     dontchangevalue := dontchangevalue + 1;
   end {stacktargetx} ;
 
@@ -3206,224 +3506,6 @@ procedure caseeltx;
     for i := 1 to pseudoinst.oprnds[2] do
       genlabeldelta(lastlabel + 1, pseudoinst.oprnds[1]);
   end; {caseeltx}
-
-{ context processing }
-
-procedure copyaccessx;
-
-{ Make a copy at the current context level of the keytable entry
-  for the operand in oprnds[1].  This allows modifications to the
-  local key without affecting the outer context key.  If the flag
-  "clearflag" is set in the local context mark,  The properaddress of
-  the key is copied into the local key, as we assume that the volatile
-  copy of the key may not exist at this point, and we must use the
-  non-volatile copy in "properaddress".
-
-  The refcount of the key being copied (and all intermediate copies)
-  is reduced by the difference between the local refcount and
-  copycount.  This number is the number of references in the new
-  local context.
-}
-
-  var
-    delta: integer; {difference between refcount and copycount}
-    useproperaddress: boolean; {true if copy is logically within a loop}
-
-
-  begin
-    { Because of hoisting, we may have a copy operator appearing
-      before the clearlabel, defeating the purpose of the context
-      clearflag.  Fortunately, travrs warns us by passing a flag
-      in the len field.
-    }
-    useproperaddress := (len <> 0) or context[contextsp].clearflag;
-
-    with keytable[key] do
-      begin {copy the key}
-      len := keytable[left].len;
-      copylink := left;
-      delta := refcount - copycount;
-      end;
-
-    with keytable[left], oprnd do
-      begin
-      keytable[key].regsaved := regsaved;
-      keytable[key].reg2saved := reg2saved;
-      keytable[key].regvalid := regvalid;
-      keytable[key].reg2valid := reg2valid;
-      keytable[key].properreg := properreg;
-      keytable[key].properreg2 := properreg2;
-      keytable[key].tempflag := tempflag;
-      keytable[key].packedaccess := packedaccess;
-
-      { Point to the properaddress if clearcontext}
-      if useproperaddress then
-        begin
-        if joinreg then keytable[key].regvalid := false;
-        if joinreg2 then keytable[key].reg2valid := false;
-        end;
-{
-      with loopstack[loopsp] do
-        begin
-        with aregstate[reg] do
-          if keytable[key].regvalid and active then used := true;
-        with dregstate[reg] do
-          if keytable[key].regvalid and active then used := true;
-        with fpregstate[reg] do
-          if keytable[key].regvalid and active then used := true;
-
-        with aregstate[indxr] do
-          if keytable[key].reg2valid and active then used := true;
-        with dregstate[indxr] do
-          if keytable[key].reg2valid and active then used := true;
-        with fpregstate[indxr] do
-          if keytable[key].reg2valid and active then used := true;
-        end; { loopstack[loopsp] }
-}
-      setvalue(oprnd);
-      keytable[key].signed := signed;
-      keytable[key].signlimit := signlimit;
-      end;
-
-    { Now decrement refcounts }
-    repeat
-      with keytable[left] do
-        begin
-        refcount := refcount - delta;
-        copycount := copycount - delta;
-        bumptempcount(left, - delta);
-        left := copylink;
-        end;
-    until left = 0;
-  end {copyaccessx} ;
-
-procedure clearlabelx;
-
-{ Define a label at the head of a loop.  All CSE's except 'with'
-  expressions and for loop indices were purged by travrs.  The
-  routine 'enterloop' enters bookkeeping information which allows
-  registers to be used within the loop.  This scheme depends upon
-  'restoreloopx' properly restoring registers to their state as of
-  loop entry.
-}
-
-
-  begin
-    saveactivekeys;
-{ DRB   enterloop;}
-{    clearcontext;}
-    definelabel(pseudoinst.oprnds[1]);
-{DRB ...
-    reloadloop;
-}
-  end {clearlabelx} ;
-
-
-procedure savelabelx;
-
-{ Define a label and save the current context for later restoration.
-  This is called at the beginning of each branching structure, and
-  corresponds to the same operation in "travrs".
-
-  The context is saved in the "contextstack" data structure.
-}
-
-  var
-    i: integer; {induction var for scanning keys and registers.}
-
-
-  begin
-
-    adjustdelay := false; {DRB probably not needed for arm64 after we pull calls from paramlists}
-    definelabel(pseudoinst.oprnds[1]);
-    saveactivekeys;
-    contextsp := contextsp + 1;
-
-    with context[contextsp] do
-      begin
-      savedstackoffset := stackoffset;
-      savedstackcounter := stackcounter;
-      clearflag := false;
-      keymark := lastkey + 1;
-      first := lastnode;
-      last := lastnode;
-      lastbranch := nil;
-      bump := context[contextsp - 1].bump;
-      fpbump := context[contextsp - 1].fpbump;
-      for i := 0 to lastreg do if registers[i] > 0 then bump[i] := true;
-      for i := 0 to lastfpreg do if fpregisters[i] > 0 then fpbump[i] := true;
-      end;
-
-    for i := context[contextsp - 1].keymark to lastkey do
-      adjustregcount(i, - keytable[i].refcount);
-
-  end {savelabelx} ;
-
-procedure restorelabelx;
-
-{ Define a label and restore the previous environment.  This is used at the
-  end of one branch of a branching construct.  It gets rid of any temps
-  generated along this branch and resets to the previous context.
-}
-
-  var
-    i: keyindex; {used to scan keys to restore register counts}
-
-
-  begin
-    definelabel(pseudoinst.oprnds[1]);
-
-    while lastkey >= context[contextsp].keymark do
-      with keytable[lastkey] do
-        begin
-{DRB why aren't refcounts zero?}
-        bumptempcount(lastkey, -refcount);
-        adjustregcount(lastkey, -refcount);
-        refcount := 0;
-        lastkey := lastkey - 1;
-        end;
-
-{DRB is this order correct?  Also need to delete unused temp store instructions}
-    processregsaves;
-    stackcounter := context[contextsp].savedstackcounter;
-    stackoffset := context[contextsp].savedstackoffset;
-    contextsp := contextsp - 1;
-    for i := context[contextsp].keymark to lastkey do
-      adjustregcount(i, keytable[i].refcount);
-  end {restorelabelx} ;
-
-procedure joinlabelx;
-
-{ Define a label and adjust temps at the end of a forking construction.
-  Temps which are used along any branch of the fork have the "join" flag
-  set, and at this point such temps are flagged as used.  This corresponds
-  to the "join" construction in travrs.
-}
-
-  var
-    i: keyindex; {induction var for scanning keys}
-
-  begin
-    definelabel(pseudoinst.oprnds[1]);
-    for i := context[contextsp].keymark to lastkey do
-      with keytable[i] do
-        begin
-        adjustregcount(i, - refcount);
-        if joinreg then regvalid := false;
-        if joinreg2 then reg2valid := false;
-        adjustregcount(i, refcount);
-        end;
-  end {joinlabelx} ;
-
-procedure pseudolabelx;
-
-{ Define a pseudo-code label.  This is the basic label definition routine.
-}
-
-
-  begin
-    definelabel(pseudoinst.oprnds[1]);
-  end {pseudolabelx} ;
 
 procedure jumpx(lab: integer {label to jump to});
 
@@ -3951,7 +4033,7 @@ procedure codeone;
       arraystr: arraystrx;
       flt: fltx;
 }
-      pshint, pshptr: movintptrx;
+      pshint, pshptr: pshintptrx;
 {
       pshfptr: pshfptrx;
       pshlitint: pshlitintx;

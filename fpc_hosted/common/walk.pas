@@ -3034,10 +3034,9 @@ stinks}
 
 
       begin {walkblk}
-        for i := 0 to nodehashsize do walknodelist(context[1].opmap[i]);
-
         genpseudo(blockcode, currentstmt.fileline, 0, 0, 0, regtemps, ptrtemps,
                   realtemps);
+        for i := 0 to nodehashsize do walknodelist(context[1].opmap[i]);
         genstmtbrk;
         contextsp := 2;
         overflowdepth := 0;

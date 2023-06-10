@@ -460,6 +460,7 @@ begin
     b: write(macfile, 'b');
     beq: write(macfile, 'b.eq');
     bge: write(macfile, 'b.ge');
+    bgt: write(macfile, 'b.gt');
     bhi: write(macfile, 'b.hi');
     bhs: write(macfile, 'b.hs');
     bl: write(macfile, 'bl');
@@ -500,7 +501,7 @@ begin
     strh: write(macfile, 'strh');
     sub: write(macfile, 'sub');
     udiv: write(macfile, 'udiv');
-    otherwise write(macfile, 'bad inst');
+    otherwise write(macfile, 'bad inst: ', ord(i.inst));
   end;
   if (i.inst in [first_a .. last_a]) and i.s then
     write(macfile, 's');

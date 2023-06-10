@@ -4268,7 +4268,7 @@ procedure build;
               regparamop, ptrregparamop, realregparamop:
                 begin
                 collectwork(3);
-                insertnode(2);
+                insertnode(1);
                 end;
               parmop: collectargs(2);
               moveop:

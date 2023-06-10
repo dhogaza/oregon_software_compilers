@@ -18,7 +18,8 @@
 
 11. block moves should just use memcpy for now.  optimizing these is
     very low on the priority list.
-12. code to generate the address of something needs to be able to
+12. need push implementation for ints, ptrs, short structs
+13. code to generate the address of something needs to be able to
     do so with a constant.  AS allows one to add a decimal constant
     to a label apparently.  labeltarget operand needs enhancement.
 
