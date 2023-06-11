@@ -493,7 +493,7 @@ type
     packed array [regindex] of
       packed record
         stackcopy: keyindex; {descriptor of saved copy of register}
-        reload: nodeptr; { index of instruction that restored copy }
+        reloadfirst, reloadlast: nodeptr; { instructions that restored copy }
         active: boolean; {set true if active at loop entry}
         used: boolean; {set true if used within loop}
         killed: boolean; {set true if killed within loop}
@@ -603,9 +603,11 @@ var
 
   firstbr: brlinkptr; {beginning of branch link data chain}
 
-  forstack: packed array [forindex] of
+  forstack: array [forindex] of
       record
         forkey: keyindex; {keytable entry of index}
+        nonvolatile: boolean; {must save index in "real" var}
+        globalreg: boolean; {non-volatile and was not a global dreg}
         firstclear: boolean; {set if next clear operation is first one (used
                               for special register handling done to optimize
                               for loop code template)}
@@ -631,7 +633,7 @@ var
         lastbranch: nodeptr; {set at each out-of-line branch}
         first, last: nodeptr; {first and last nodes for this context block}
         bump: bumparray;
-        { bump[r] is set true if dregisters[r] > 0 at context entry}
+        { bump[r] is set true if registers[r] > 0 at context entry}
         fpbump: bumparray; { floating-point regs }
         clearflag: boolean; {set at first clearlabel pseudoop}
       end;
@@ -649,8 +651,9 @@ var
       record
         thecontext: contextindex;
         savelastbranch: nodeptr; { value of lastbranch upon entry }
-        savefirstnode: nodeptr; { value of firstnode upon entry }
-        regbump: bumparray;
+        savefirst: nodeptr; { value of firstnode upon entry }
+        savelast: nodeptr; { value of lastnode upon entry }
+        bump: bumparray;
         fpbump: bumparray;
         regstate: regstate;
         fpregstate: regstate;

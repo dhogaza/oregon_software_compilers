@@ -63,7 +63,6 @@ begin
 end;
 
 begin
-
   fill(a1);
   p(a1);
   p1(a1);
