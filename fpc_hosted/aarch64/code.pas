@@ -136,7 +136,7 @@ function ldrinst(l: addressrange; s: boolean):insttype;
         compilerabort(inconsistent)
         end
     end;
-    ldrinst := buildinst(inst, l > word, false);
+    ldrinst := buildinst(inst, l >= word, false);
   end {ldrinst};
 
 function strinst(l: addressrange):insttype;
@@ -2339,95 +2339,6 @@ procedure copyaccessx;
   end {copyaccessx} ;
 
 
-procedure defforindexx(sgn, { true if signed induction var }
-                       lit: boolean { true if constant starter value } );
-
-{ Define a for-loop induction variable's starting value. There are two
-  cases - a global register induction variable and a stack induction
-  variable. The stack case will actually delay pushing the variable
-  until we are inside the loop body.  In many cases the push is not
-  needed at all.
-}
-
-
-  begin {defforindexx}
-    saveactivekeys;
-    address(right);
-
-    if lit then
-      begin
-      settemp(len, immediate_oprnd(pseudoinst.oprnds[1], false));
-      left := tempkey
-      end
-    else
-      begin
-      lock(right);
-{
-      unpackshrink(left, len);
-}
-      address(left);
-      unlock(right);
-      end;
-
-    keytable[key].signed := sgn;
-
-    { Allocate a register unless this is a permanently assigned register
-      variable.  If target <> 0, we must preserve the running index in
-      the actual variable, if not, we'll issue a "savekey" in "fortopx"
-      to save the running index on the stack.  Often, this can later be
-      deleted as with any other stack temp, making register-only loops
-      quite common.
-    }
-
-    forsp := forsp + 1;
-    with forstack[forsp], keytable[key] do
-      begin
-      nonvolatile := target <> 0;
-      globalreg := (keytable[right].oprnd.mode = register) and
-                   (keytable[right].oprnd.reg >= lastreg);
-    if not globalreg then
-      begin
-      settemp(long, reg_oprnd(getreg));
-      setkeyvalue(tempkey);    {destroys signed field}
-      keytable[key].regsaved := true;
-      if nonvolatile then
-        begin
-        keytable[right].validtemp := true;
-
-        { DRB something similar for long offsets for aarch64 }
-        { if this "nonvolatile" variable is greater than 32KB from the
-          frame base and we're in 68K mode, it will actually be relative
-          to some volatile A register.  In this case, we need to force
-          an extra reference to it so that the stack copy will be preserved
-          and restored via the enter/exitloop mechanism.  It will be
-          dereferenced in fortopx and should be a NOP in other cases.
-        }
-        rereference(right);
-
-        keytable[key].properreg := right;
-        end;
-      end
-    else setkeyvalue(right);
-
-    keytable[key].signed := sgn;
-
-    { We make it long if it's free, or if it might be used as an index.
-    }
-      originalreg := oprnd.reg;
-      litinitial := lit;
-      forkey := key;
-      firstclear := true;
-      savedlen := len;
-      initval := pseudoinst.oprnds[1];
-      end;
-
-    gensimplemove(left, key);
-
-    dontchangevalue := 0;
-
-  end {defforindexx} ;
-
-
 procedure clearlabelx;
 
 { Define a label at the head of a loop.  All CSE's except 'with'
@@ -2630,6 +2541,278 @@ procedure pseudolabelx;
   begin
     definelabel(pseudoinst.oprnds[1]);
   end {pseudolabelx} ;
+
+procedure defforindexx(sgn, { true if signed induction var }
+                       lit: boolean { true if constant starter value } );
+
+{ Define a for-loop induction variable's starting value. There are two
+  cases - a global register induction variable and a stack induction
+  variable. The stack case will actually delay pushing the variable
+  until we are inside the loop body.  In many cases the push is not
+  needed at all.
+}
+
+
+  begin {defforindexx}
+    saveactivekeys;
+    address(right);
+
+    if lit then
+      begin
+      settemp(len, immediate_oprnd(pseudoinst.oprnds[1], false));
+      left := tempkey
+      end
+    else
+      begin
+      lock(right);
+{ DRB
+      unpackshrink(left, len);
+}
+      address(left);
+      unlock(right);
+      end;
+
+    keytable[key].signed := sgn;
+
+    { Allocate a register unless this is a permanently assigned register
+      variable.  If target <> 0, we must preserve the running index in
+      the actual variable, if not, we'll issue a "savekey" in "fortopx"
+      to save the running index on the stack.  Often, this can later be
+      deleted as with any other stack temp, making register-only loops
+      quite common.
+    }
+
+    forsp := forsp + 1;
+    with forstack[forsp], keytable[key] do
+      begin
+      nonvolatile := target <> 0;
+      globalreg := (keytable[right].oprnd.mode = register) and
+                   (keytable[right].oprnd.reg >= lastreg);
+    if not globalreg then
+      begin
+      settemp(long, reg_oprnd(getreg));
+      setkeyvalue(tempkey);    {destroys signed field}
+      keytable[key].regsaved := true;
+      if nonvolatile then
+        begin
+        keytable[right].validtemp := true;
+
+        { DRB something similar for long offsets for aarch64 }
+        { if this "nonvolatile" variable is greater than 32KB from the
+          frame base and we're in 68K mode, it will actually be relative
+          to some volatile A register.  In this case, we need to force
+          an extra reference to it so that the stack copy will be preserved
+          and restored via the enter/exitloop mechanism.  It will be
+          dereferenced in fortopx and should be a NOP in other cases.
+        }
+        rereference(right);
+
+        keytable[key].properreg := right;
+        end;
+      end
+    else setkeyvalue(right);
+
+    keytable[key].signed := sgn;
+
+    { We make it long if it's free, or if it might be used as an index.
+    }
+    originalreg := oprnd.reg;
+    litinitial := lit;
+    forkey := key;
+    firstclear := true;
+    savedlen := len;
+    initval := pseudoinst.oprnds[1];
+    end;
+
+    gensimplemove(left, key);
+
+    dontchangevalue := 0;
+
+  end {defforindexx} ;
+
+procedure fortopx(signedbr, unsignedbr: insts { proper exit branch });
+
+{ Start a for loop, top or bottom.  Branch arguments determine if we
+  are going up or down.  If we have constant limits we do not generate a
+  cmp/brfinished pair at this point. If the induction var is on the
+  stack we will force storage of the original loaded register for the
+  value onto the stack after the comparison (if there is one).
+}
+
+  var
+    branch: insts;
+    regkey: keyindex; {descriptor of for-index register}
+
+
+  begin {fortopx}
+    with forstack[forsp] do
+      begin
+      if keytable[forkey].signed then branch := signedbr
+      else branch := unsignedbr;
+      pseudolabelx;
+      settemp(long, reg_oprnd(originalreg));
+      regkey := tempkey;
+      keytable[regkey].len := savedlen;
+
+      if target <> 0 then
+        begin
+        makeaddressable(target);
+{ DRB
+        shrink(target, keytable[forkey].len);
+}
+        loadreg(target, regkey);
+        gen2(buildinst(cmp, savedlen = long, false), target, regkey);
+        genbr(branch, pseudoinst.oprnds[2]);
+        end;
+
+      if nonvolatile and not globalreg
+      then gensimplemove(regkey, keytable[forkey].properreg)
+      else
+        begin
+        keytable[forkey].regsaved := false;
+        savekey(forkey);
+        end;
+
+      enterloop;
+
+      { see defforindexx for an explaination of this }
+      if nonvolatile and not globalreg then
+        dereference(keytable[forkey].properreg);
+      end;
+
+  end {fortopx} ;
+
+procedure forbottomx(improved: boolean; { true if cmp at bottom }
+                     incinst, { add or sub }
+                     signedbr, unsignedbr: insts {branch to top});
+
+{ Finish a for loop. If improved is true, we inc/dec and compare at
+  this point. If improved is false, we inc/dec and branch to comparison
+  at the top of the loop. We pop off induction variable to save a word
+  if the loop is finished. The code at the top of the loop will re-push
+  the value if we are not finished.
+}
+
+  var
+    sgn: boolean;
+    needcompare: boolean; {need to generate a comparison at end of loop}
+    branch: insts;
+    maxvalue: unsigned; {"cmp" instruction works if limit value < maxvalue}
+    i: 1..4; {induction var}
+    byvalue: unsigned; { BY value (always "1" for Pascal) }
+
+
+  begin {forbottom}
+    byvalue := len;
+    context[contextsp].lastbranch := context[contextsp].first;
+
+    with forstack[forsp] do
+      begin
+      sgn := keytable[forkey].signed;
+      dereference(forkey);
+      if sgn then branch := signedbr
+      else branch := unsignedbr;
+      with keytable[forkey], oprnd do
+        begin
+        maxvalue := 127;
+        for i := 2 to len do maxvalue := maxvalue * 256 + 255;
+        if not sgn then maxvalue := maxvalue * 2 + 1;
+        if not regvalid or (mode <> register) or (reg <> originalreg) then
+          begin
+          settemp(long, reg_oprnd(originalreg));
+          keytable[properreg].tempflag := true;
+          gensimplemove(properreg, tempkey);
+          forkey := tempkey;
+          if loopoverflow = 0 then
+            loopstack[loopsp].regstate[originalreg].killed := false;
+          end;
+        end;
+      keytable[forkey].len := savedlen;
+      restoreloopx;
+
+      { The following tests determine how we detect the last iteration through
+        the loop when the initial and final values are both constant.  We add
+        or subtract the step value then compare with the final value, and loop
+        if we've not passed by the final value.  Normally, we issue a compare
+        instruction, but if the add or subtract causes overflow (or carry, in
+        the unsigned case) the compare won't work. On the bright side, not
+        only does the compare not work but is is not needed, and a simple
+        branch on no overflow (or carry) is sufficient.
+
+        Below, "needcompare" is set true if overflow (carry) will not occur
+        when we "pass over" the final value, in which case we'll issue the
+        compare.
+      }
+
+      needcompare := improved;
+      {DRB for later to prevent ifinite loops at 8, 16, 32 and 64 bit boundaries
+      with keytable[target].oprnd, pseudoinst do
+        begin
+        if improved then
+          if incinst = add then
+            needcompare := (unsignedint(maxvalue - offset) >= byvalue)
+                           or (unsignedint(maxvalue - initval)
+                               mod byvalue < unsignedint(maxvalue - offset)) 
+          else
+            if sgn then
+              needcompare := (unsignedint(offset + maxvalue + 1) >=
+                             byvalue) or
+                             (initval mod byvalue < offset + maxvalue + 1)
+            else needcompare := (unsignedint(offset) >= byvalue) or
+                                (unsignedint(initval) mod
+                                 byvalue < offset)
+        else needcompare := false;
+        end;
+      }
+      settemp(long, immediate_oprnd(byvalue, false)); { "for" step for Modula-2 }
+      gen3(buildinst(incinst, len = long, false), forkey, forkey, tempkey);
+
+      if needcompare then
+        begin
+        address(target);
+        if tempkey = lowesttemp then compilerabort(interntemp);
+        tempkey := tempkey - 1;
+        keytable[tempkey] := keytable[target];
+        target := tempkey;
+
+        { Change comparisons against 1 to be comparisions against 0.
+        }
+
+        { DRB: later if it makes sense
+        with keytable[target].oprnd do
+          if offset = 1 then
+            begin
+            if incinst = sub then
+              begin
+              offset := 0;
+              if sgn then branch := bgt else branch := bhi;
+              end;
+            end
+          else if offset = -1 then
+            if sgn and (incinst = add) then
+              begin
+              offset := 0;
+              branch := blt;
+              end;
+         }
+
+          with keytable[forkey], oprnd do
+            begin
+            gen2(buildinst(cmp, len = long, false), forkey, target);
+            genbr(branch, pseudoinst.oprnds[1]);
+            end;
+          end {if needcompare}
+        else if sgn then genbr(bvc, pseudoinst.oprnds[1])
+        else genbr(bhs, pseudoinst.oprnds[1])
+      end; {with forstack[forsp]}
+
+    if not needcompare then dereference(target);
+
+    pseudoinst.oprnds[1] := pseudoinst.oprnds[2];
+    forsp := forsp - 1;
+    joinlabelx;
+    context[contextsp].lastbranch := context[contextsp].first;
+  end {forbottomx} ;
 
 
 procedure shiftintx(backwards: boolean);
@@ -4227,20 +4410,18 @@ procedure codeone;
       defforindex: defforindexx(true, false);
       defunsforlitindex: defforindexx(false, true);
       defunsforindex: defforindexx(false, false);
-{
       fordntop: fortopx(blt, blo);
       fordnbottom: forbottomx(false, sub, bge, bhs);
       fordnimproved: forbottomx(true, sub, bge, bhs);
       foruptop: fortopx(bgt, bhi);
       forupbottom: forbottomx(false, add, ble, bls);
       forupimproved: forbottomx(true, add, ble, bls);
+{
       forupchk: forcheckx(true);
       fordnchk: forcheckx(false);
       forerrchk: forerrchkx;
       casebranch: casebranchx;
-}
       caseelt: caseeltx;
-{
       caseerr: caseerrx;
       dostruct: dostructx;
       doset: dosetx;
