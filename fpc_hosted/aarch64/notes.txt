@@ -70,6 +70,15 @@ Advantages of using negative sp offsets when generating code:
    is corrected later, greatly complicating generating stack offsets
    greater than 4096 longs above the sp.
    
+8. gcc allocates a local variable for the copy destination of a long
+   value parameter.  Not a bad idea.  Reserving the stack for register
+   spills only and short parameters when there are more than 8 of them
+   makes the odds of neading more than 4K elements very, very unlikely.
+   Does the same for long function return values.  Again, not a bad
+   idea.
+
+9. use positive stack offsets for param pushes?  negative only for 
+   register spills?
 
 Big integer issues:
 

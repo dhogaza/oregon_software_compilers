@@ -8032,7 +8032,7 @@ procedure body;
         oprndstk[sp].operandkind := varoperand;
         genoprnd;
         genlit(procptr^.regid);
-        case paramalloc(resultptr)  of
+        case paramalloc(procptr, resultptr)  of
           regparam: genop(regreturnop);
           ptrregparam: genop(ptrregreturnop);
           realregparam: genop(realregreturnop);

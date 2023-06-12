@@ -44,14 +44,3 @@ begin
 end;
 
 begin pp(a, a, a); end.
-
-=======
-program foo;
-
-var a: array [1..10] of integer;
-  i: integer;
-
-begin
-  a[i] := 3;
-end.
->>>>>>> 05c9ae3 (Added more tests ...)

@@ -36,7 +36,7 @@ interface
 
 uses config, hdr, utils, hdra, a_t;
 
-function paramalloc(typeptr: entryptr): allockind;
+function paramalloc(paramptr, typeptr: entryptr): allockind;
 
 { Determine which type of register a param can be allocated to,
   if any.
@@ -264,7 +264,7 @@ procedure forcememoryparam(varlev: levelindex; paramptr: entryptr);
 
 implementation
 
-function paramalloc(typeptr: entryptr): allockind;
+function paramalloc(paramptr, typeptr: entryptr): allockind;
 
 { Determine which type of register a param can be allocated to,
   if any.
@@ -272,7 +272,7 @@ function paramalloc(typeptr: entryptr): allockind;
 
   begin {paramclass}
     if typeptr^.typ in [reals, doubles] then paramalloc := realregparam
-    else if sizeof(typeptr, false) <= ptrsize then paramalloc := regparam
+    else if paramptr^.length <= ptrsize then paramalloc := regparam
     else paramalloc := normalalloc;
   end; {paramclass}
 
@@ -427,7 +427,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.refparam := true;
       end
     else paramptr^.length := length;
-    alloc := paramalloc(typeptr);
+    alloc := paramalloc(paramptr, typeptr);
     if (alloc = realregparam) and
        (regparams.realregparams < maxrealregparams) then
       begin
