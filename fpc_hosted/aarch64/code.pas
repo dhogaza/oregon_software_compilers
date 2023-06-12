@@ -1441,7 +1441,8 @@ function regvalue(r: regindex): unsigned;
 
   begin {regvalue}
     regvalue := registers[r] + ord(context[contextsp].bump[r]) * 4 +
-                ord((r > pr) and not regused[r]) * 2 + ord(r < pr);
+                ord((r > pr) and not regused[r]) * 2 + ord(r < pr) +
+                maxint * ord(r = pr);
   end {regvalue} ;
 
 function countreg: regindex;
@@ -1896,8 +1897,6 @@ procedure initblock;
       context[1].bump[i] := false;
       context[1].fpbump[i] := false;
       end;
-
-    registers[pr] := maxrefcount;
 
   end {initblock} ;
 
@@ -2661,7 +2660,7 @@ procedure fortopx(signedbr, unsignedbr: insts { proper exit branch });
         shrink(target, keytable[forkey].len);
 }
         loadreg(target, regkey);
-        gen2(buildinst(cmp, savedlen = long, false), target, regkey);
+        gen2(buildinst(cmp, savedlen = long, false), regkey, target);
         genbr(branch, pseudoinst.oprnds[2]);
         end;
 
@@ -2698,7 +2697,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
     needcompare: boolean; {need to generate a comparison at end of loop}
     branch: insts;
     maxvalue: unsigned; {"cmp" instruction works if limit value < maxvalue}
-    i: 1..4; {induction var}
+    i: 1..4; {DRB: induction var limited by 32-bit integers}
     byvalue: unsigned; { BY value (always "1" for Pascal) }
 
 
@@ -2715,7 +2714,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
       with keytable[forkey], oprnd do
         begin
         maxvalue := 127;
-        for i := 2 to len do maxvalue := maxvalue * 256 + 255;
+        for i := 2 to max(word, len) do maxvalue := maxvalue * 256 + 255;
         if not sgn then maxvalue := maxvalue * 2 + 1;
         if not regvalid or (mode <> register) or (reg <> originalreg) then
           begin
@@ -2744,28 +2743,27 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
         compare.
       }
 
-      needcompare := improved;
-      {DRB for later to prevent ifinite loops at 8, 16, 32 and 64 bit boundaries
+      {DRB prevent ifinite loops at 8, 16, 32 bit boundaries}
       with keytable[target].oprnd, pseudoinst do
         begin
         if improved then
           if incinst = add then
-            needcompare := (unsignedint(maxvalue - offset) >= byvalue)
+            needcompare := (unsignedint(maxvalue - imm_value) >= byvalue)
                            or (unsignedint(maxvalue - initval)
-                               mod byvalue < unsignedint(maxvalue - offset)) 
+                               mod byvalue < unsignedint(maxvalue - imm_value)) 
           else
             if sgn then
-              needcompare := (unsignedint(offset + maxvalue + 1) >=
+              needcompare := (unsignedint(imm_value + maxvalue + 1) >=
                              byvalue) or
-                             (initval mod byvalue < offset + maxvalue + 1)
-            else needcompare := (unsignedint(offset) >= byvalue) or
+                             (initval mod byvalue < imm_value + maxvalue + 1)
+            else needcompare := (unsignedint(imm_value) >= byvalue) or
                                 (unsignedint(initval) mod
-                                 byvalue < offset)
+                                 byvalue < imm_value)
         else needcompare := false;
         end;
-      }
+
       settemp(long, immediate_oprnd(byvalue, false)); { "for" step for Modula-2 }
-      gen3(buildinst(incinst, len = long, false), forkey, forkey, tempkey);
+      gen3(buildinst(incinst, len = long, true), forkey, forkey, tempkey);
 
       if needcompare then
         begin
@@ -2803,7 +2801,9 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
             end;
           end {if needcompare}
         else if sgn then genbr(bvc, pseudoinst.oprnds[1])
-        else genbr(bhs, pseudoinst.oprnds[1])
+        else if incinst = sub then
+          genbr(bcs, pseudoinst.oprnds[1]) 
+          else genbr(bcc, pseudoinst.oprnds[1])
       end; {with forstack[forsp]}
 
     if not needcompare then dereference(target);

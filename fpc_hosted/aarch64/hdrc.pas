@@ -292,7 +292,7 @@ type
   {branch instructions}
 
   first_b, b, bl, beq, bne, blt, bgt, ble, bge, bhi, bhs, blo, bls,
-  bvc, bvs, cbz, cbnz, last_b,
+  bcc, bcs, bvc, bvs, cbz, cbnz, last_b,
 
   {miscellaneous instructions}
 

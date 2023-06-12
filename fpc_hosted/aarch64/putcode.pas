@@ -458,6 +458,8 @@ begin
     adrp: write(macfile, 'adrp');
     asrinst: write(macfile, 'asr');
     b: write(macfile, 'b');
+    bcc: write(macfile, 'b.cc');
+    bcs: write(macfile, 'b.cs');
     beq: write(macfile, 'b.eq');
     bge: write(macfile, 'b.ge');
     bgt: write(macfile, 'b.gt');
@@ -465,6 +467,7 @@ begin
     bhs: write(macfile, 'b.hs');
     bl: write(macfile, 'bl');
     ble: write(macfile, 'b.le');
+    blt: write(macfile, 'b.lt');
     blo: write(macfile, 'b.lo');
     bls: write(macfile, 'b.ls');
     bne: write(macfile, 'b.ne');

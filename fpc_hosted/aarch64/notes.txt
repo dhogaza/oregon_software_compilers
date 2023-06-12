@@ -4,10 +4,12 @@
    regtemp by improve?  Or is this really a viable
    idea if param 0 is being used?
 
-1. rationalize the register pseudoops, in particular regparam
-   should work like regtarget and be mapped in travrs rather
-   than be emitting the various register types in analys.
-2. for loo[s
+2. improve for loops
+
+   a. if a register is loaded before the top compare and after
+      last branch (boolean expressions in first or last expression),
+      mark it.  It doesn't need to be reloaded at the bottom.
+
 5. instantiation of integers to include large numbers.
 6. instantiation of integers as bitmasks
 7. long address index values, consider alignment
@@ -58,6 +60,16 @@ Advantages of using negative sp offsets when generating code:
    untouched of course.
 6. haven't figured out how to reclaim space and don't care much
    at the moment.
+
+7. Note that FPC seems to simply keep adding stuff to the stack
+   along two branches of an if etc.  Does no reusing.  GCC? CLANG?
+
+   The FPC approach is memory wasteful but means stack access can
+   be generated without any need to adjust offsets and all that
+   which is a major problem with the negative offset approach which
+   is corrected later, greatly complicating generating stack offsets
+   greater than 4096 longs above the sp.
+   
 
 Big integer issues:
 
