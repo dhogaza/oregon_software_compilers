@@ -1108,7 +1108,8 @@ procedure setcommonkey;
       end;
   end {setcommonkey} ;
 
-procedure setbr(inst: insts {branch instruction used} );
+procedure setbr(inst: insts; {branch instruction used}
+                o: oprndtype {for cbz, cbnz});
 
 { Sets the operand data for an operand which is accessed by a branch.
   That is, only the condition code is used.  The type of conditions tested
@@ -1124,7 +1125,8 @@ procedure setbr(inst: insts {branch instruction used} );
     with keytable[key] do
       begin
       access := branchaccess;
-      brinst := inst
+      brinst := inst;
+      oprnd := o;
       end;
   end {setbr} ;
 
@@ -1153,6 +1155,7 @@ procedure setkeyvalue(k: keyindex);
       setvalue(oprnd);
       keytable[key].signed := signed;
       keytable[key].signlimit := signlimit;
+      keytable[key].brinst := brinst;
       end;
   end {setkeyvalue} ;
 
@@ -2338,40 +2341,6 @@ begin {loadreg}
     end;
 end {loadreg} ;
 
-
-procedure forcebranch(k: keyindex {operand to test});
-
-{ Force key "k" to a branch reference and dereference.  This is called
-  when "k" is a boolean.
-
-  (DRB: general compare with zero might want to go here as it does with
-   the m68k)
-
-  It leaves the key set to a "branchaccess" operand.
-}
-
-  var
-    mask: unsigned; {mask values built here}
-    piecesize: integer; {size of unpacked "chunk"}
-    i: integer; {"for" index}
-    newkey: keyindex;
-
-  begin
-    with keytable[k], oprnd do
-      begin
-        case access of
-        valueaccess:
-          begin
-          write('valueaccess in forcebranch'); compilerabort(inconsistent);;
-          end;
-        branchaccess:
-          setbr(brinst);
-        otherwise compilerabort(inconsistent);
-        end;
-      end;
-    dereference(k);
-  end {forcebranch} ;
-
 procedure clearcontext;
 
 { Clear the current context.  That is, forget where everything is in the
@@ -3257,7 +3226,7 @@ procedure cmpintptrx(signedbr, unsignedbr: insts {branch on result});
     loadreg(left, right);
     loadreg(right, left);
     gen2(buildinst(cmp, len = 4, false), left, right);
-    setbr(brinst);
+    setbr(brinst, nomode_oprnd);
   end {cmpintptrx} ;
 
 
@@ -3278,18 +3247,28 @@ procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
 
   begin
     address(left);
-    if keytable[left].signed and (right >= 0) then
-      i := cmp
+    loadreg(left, 0);
+    if (right = 0) and (signedbr in [beq, bne]) then
+      if signedbr = beq then
+        setbr(cbz, keytable[left].oprnd)
+      else
+        setbr(cbz, keytable[left].oprnd)
     else
       begin
-      i := cmn;
-      right := -right;
-      end;
-    loadreg(left, 0);
-    settemp(len, immediate_oprnd(right, false));
-    gen2(buildinst(i, len = long, false), left, tempkey);
-    if keytable[left].signed then
-      setbr(signedbr)
+      if keytable[left].signed and (right >= 0) then
+        i := cmp
+      else
+        begin
+        i := cmn;
+        right := -right;
+        end;
+      settemp(len, immediate_oprnd(right, false));
+      gen2(buildinst(i, len = long, false), left, tempkey);
+      if keytable[left].signed then
+        setbr(signedbr, nomode_oprnd)
+      else
+        setbr(unsignedbr, nomode_oprnd);
+      end
   end {cmplitintx} ;
 
 
@@ -4357,18 +4336,27 @@ procedure jumpx(lab: integer {label to jump to});
       end};
   end {jumpx} ;
 
-procedure jumpcond(inv: boolean {invert the sense of the branch} );
+procedure jumpcond(b: insts {cbz or cbnz});
 
 { Used to generate a jump true or jump false on a condition.  If the key is
   not already a condition, it is forced to a "bne", as it is a boolean
   variable.
 }
 
+  var
+    sf: boolean;
 
   begin
-    forcebranch(right);
-    if inv then genbr(invert[keytable[key].brinst], pseudoinst.oprnds[1])
-    else genbr(keytable[key].brinst, left);
+    address(right);
+    if keytable[right].access = branchaccess then
+      b := keytable[right].brinst
+    else loadreg(right, 0);
+    settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1], false));
+    sf := keytable[right].len = long;
+    if keytable[right].oprnd.mode = nomode then
+      gen1(buildinst(b, sf, false), tempkey)
+    else gen2(buildinst(b, sf, false), right, tempkey);
+    context[contextsp].lastbranch := lastnode;
   end {jumpcond} ;
 
 { These are awful in that a top level compare can be collapsed into a
@@ -4595,8 +4583,8 @@ procedure codeone;
       wrreal: wrrealx;
 }
       jump: jumpx(pseudoinst.oprnds[1]);
-      jumpf: jumpcond(true);
-      jumpt: jumpcond(false);
+      jumpf: jumpcond(cbz);
+      jumpt: jumpcond(cbnz);
 {
 
       eqreal: cmprealx(beq, libdeql, fbngl);
