@@ -361,7 +361,7 @@ procedure copysfile;
       writeln(macfile, '#');
       writeln(macfile, '#  Constants');
       writeln(macfile, '#');
-      writeln(macfile, chr(9), '.data');
+      writeln(macfile, chr(9), '.rodata');
       writeln(macfile, chr(9), '.align 3');
       writeln(macfile, '.L:'); { the label associated with constants }
       end;

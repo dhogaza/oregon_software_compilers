@@ -1,5 +1,10 @@
 #include <stdio.h>
-void p(char ch) {
+struct {int i,j,k;} foo;
+char ch;
+int j;
+void p() {
+
+  foo.k = 3;
 
   switch (ch) {
    case 'a': putchar('a');

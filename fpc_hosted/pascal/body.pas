@@ -7679,9 +7679,8 @@ procedure statement(follow: tokenset {legal following symbols} );
       else
         begin
         finallen := oprndstk[sp].oprndlen;
-{
-        genunary(pushfinal, ints);
-}
+        if targetmachine <> aarch64 then
+          genunary(pushfinal, ints);
         end;
 
       finalrange := oprndstk[sp].value_range.optimistic;
