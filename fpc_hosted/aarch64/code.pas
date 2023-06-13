@@ -3621,8 +3621,10 @@ procedure putblock;
     fpregssaved : array [regindex] of boolean;
     regssaved : array [regindex] of boolean;
     reg: regindex; { temp for dummy register }
+    prepost: boolean; {if pre/post index modes can be used}
 
   begin {putblock}
+
     { save procedure symbol table index }
 
 
@@ -3704,8 +3706,20 @@ procedure putblock;
     saveregtemp := tempkey;
 
     { set up the frame for this block }
-    p1 := newinsertafter(codeproctable[blockref].proclabelnode, instnode);
-    gen3p(p1, buildinst(sub, true, false), sptemp, sptemp, spadjusttemp);
+
+    prepost := (spoffset = 0) and (blockcost < 256);
+    p1 := codeproctable[blockref].proclabelnode;
+
+    if prepost then
+      begin
+      keytable[spoffsettemp].oprnd.mode := pre_index;
+      keytable[spoffsettemp].oprnd.index := -blockcost;
+      end
+    else
+      begin
+      p1 := newinsertafter(p1, instnode);
+      gen3p(p1, buildinst(sub, true, false), sptemp, sptemp, spadjusttemp);
+      end;
 
     p1 := newinsertafter(p1, instnode);
     gen3p(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
@@ -3730,9 +3744,16 @@ procedure putblock;
         regoffset[i] := -regcost;
         end;
 
+    if prepost then
+      begin
+      keytable[spoffsettemp].oprnd.mode := post_index;
+      keytable[spoffsettemp].oprnd.index := blockcost;
+      end;
+
     gen3(buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
 
-    gen3(buildinst(add, true, false), sptemp, sptemp, spadjusttemp);
+    if not prepost then
+      gen3(buildinst(add, true, false), sptemp, sptemp, spadjusttemp);
 
     geninst(nil, buildinst(ret, false, false), 0);
 

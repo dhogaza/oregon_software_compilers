@@ -543,20 +543,20 @@ begin
       begin
       write(macfile, '[');
       write_reg(o.reg, true);
-      write(macfile, ', ', o.index, ']!');
+      write(macfile, ',', o.index, ']!');
       end;
     post_index:
       begin
       write(macfile, '[');
       write_reg(o.reg, true);
-      write(macfile, '], ', o.index);
+      write(macfile, '],', o.index);
       end;
     signed_offset, unsigned_offset:
       begin
       write(macfile, '[');
       write_reg(o.reg, true);
       if o.index <> 0 then
-        write(macfile, ', ', o.index);
+        write(macfile, ',', o.index);
       write(macfile, ']');
       end;
     reg_offset:
