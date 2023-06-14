@@ -307,6 +307,12 @@ procedure dumppseudo(var f: text);
     end
   end {dumppseudo} ;
 
+function newlabel: integer;
+
+begin {newlabel}
+  newlabel := lastlabel;
+  lastlabel := lastlabel - 1;
+end {newlabel};
 
 procedure power2check(n: integer; { number to check }
                       var power2: boolean; {true if n = power of 2}
@@ -604,7 +610,8 @@ function literal_oprnd(lit: integer): oprndtype;
   end;
 
 
-function labeltarget_oprnd(labelno: integer; lowbits: boolean): oprndtype;
+function labeltarget_oprnd(labelno: integer; lowbits: boolean;
+                           labeloffset: integer): oprndtype;
 
   var
     o:oprndtype;
@@ -614,6 +621,7 @@ function labeltarget_oprnd(labelno: integer; lowbits: boolean): oprndtype;
     o.mode := labeltarget;
     o.labelno := labelno;
     o.lowbits := lowbits;
+    o.labeloffset := labeloffset;
     labeltarget_oprnd := o;
   end;
 
@@ -893,7 +901,7 @@ procedure gen4(i: insttype;
 procedure genbr(inst: insts; labelno: integer);
 
   begin {genbr}
-    settemp(long, labeltarget_oprnd(labelno, false));
+    settemp(long, labeltarget_oprnd(labelno, false, 0));
     gen1(buildinst(inst, false, false), tempkey);
     tempkey := tempkey + 1;
     context[contextsp].lastbranch := lastnode;
@@ -3519,6 +3527,17 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
       end;
   end {dolevelx} ;
 
+procedure dostructx;
+
+begin {dostructx}
+  settemp(long, reg_oprnd(getreg));
+  settemp(long, labeltarget_oprnd(rodatalabel, false, left));
+  gen2(buildinst(adrp, true, false), tempkey + 1, tempkey);
+  keytable[tempkey].oprnd.lowbits := true;
+  gen3(buildinst(add, true, false), tempkey + 1, tempkey + 1, tempkey);
+  setvalue(index_oprnd(unsigned_offset, keytable[tempkey+1].oprnd.reg, 0));
+end {dostructx} ;
+
 procedure blockcodex;
 
 { Generate code for the beginning of a block.
@@ -3572,11 +3591,10 @@ procedure blockcodex;
     if (blockref = 0) and (switchcounters[mainbody] > 0) then
       begin
       settemp(long, reg_oprnd(gp));
-      settemp(long, labeltarget_oprnd(bsslabel, false));
+      settemp(long, labeltarget_oprnd(bsslabel, false, 0));
       gen2(buildinst(adrp, true, false), tempkey + 1, tempkey);
       keytable[tempkey].oprnd.lowbits := true;
       gen3(buildinst(add, true, false), tempkey + 1, tempkey + 1, tempkey);
-      tempkey := tempkey + 2;
       regused[gp] := true;
       end;
   end {blockcodex} ;
@@ -3913,7 +3931,6 @@ begin {movemultiple}
   else
     begin
     saveactivekeys;
-    markscratchregs;
     addressboth;
     firstreg := 3;
     settemp(long, immediate16_oprnd(len, 0));
@@ -3923,6 +3940,7 @@ begin {movemultiple}
     genmoveaddress(left, tempkey);
     keytable[tempkey].oprnd.reg := 1;
     genmoveaddress(right, tempkey);
+    markscratchregs;
     settemp(long, libcall_oprnd(libcmemcpy));
     gen1(buildinst(bl, false, false), tempkey);
     firstreg := 0;
@@ -4351,7 +4369,7 @@ procedure jumpcond(b: insts {cbz or cbnz});
     if keytable[right].access = branchaccess then
       b := keytable[right].brinst
     else loadreg(right, 0);
-    settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1], false));
+    settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1], false, 0));
     sf := keytable[right].len = long;
     if keytable[right].oprnd.mode = nomode then
       gen1(buildinst(b, sf, false), tempkey)
@@ -4445,7 +4463,9 @@ procedure codeone;
       casebranch: casebranchx;
       caseelt: caseeltx;
       caseerr: caseerrx;
+}
       dostruct: dostructx;
+{
       doset: dosetx;
       dolevel: dolevelx;
 }
@@ -4713,6 +4733,9 @@ procedure initcode;
     procno: proctableindex;
 
   begin {initcode}
+
+    bsslabel := newlabel;
+    rodatalabel := newlabel;
 
     invert[beq] := bne;     invert[bne] := beq;     invert[blt] := bge;
     invert[bgt] := ble;     invert[bge] := blt;     invert[ble] := bgt;

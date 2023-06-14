@@ -47,8 +47,6 @@ const
   long = 8;
   quad = 16;
 
-  { front end puts out labels greater than zero }
-  bsslabel = 0;
 
   maxblockslow = lowcodeblocks; {number of blocks allocated in global area}
 
@@ -340,7 +338,7 @@ type
       reg_offset: (shift: imm2; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
       cond: (condition: conds);
-      labeltarget: (labelno: unsigned; lowbits: boolean);
+      labeltarget: (labelno: unsigned; lowbits: boolean; labeloffset: integer);
       proccall: (proclabelno: unsigned; entry_offset: integer);
       libcall: (libroutine: libroutines);
     end;
@@ -376,8 +374,9 @@ type
            stackdepth: integer; {used for aligning sp at branch}
            brnodelink: nodeptr; {used by mergebranchtails} );
         labelrefnode:
-          (labelefno: unsigned;
-           lowbits: boolean; );
+          (labelrefno: unsigned;
+           lowbits: boolean;
+           labeloffset: integer;);
         labeldeltanode:
           (tablebase: integer; {label number of base of casetable}
            targetlabel: integer; {label number of case branch target}
@@ -549,6 +548,8 @@ var
   formatcount: integer; {number of field-width expressions in writearg}
 
   fileoffset: integer; {0 if default file for read/write, 2 if specified}
+
+  bsslabel, rodatalabel: integer;
 
   labeltable: array [labelindex] of
       record {links label numbers to nodes, plus useful data}

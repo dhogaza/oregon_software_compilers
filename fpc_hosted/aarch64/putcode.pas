@@ -322,29 +322,30 @@ procedure copysfile;
       wordsperline = 4;  { number of constant structure values (hex) per line }
 
     var
-      k, l, m: integer;
-      v: uns_word;
+      k, l: integer;
+      m, v: uns_word;
 
     begin {write_constants}
     while i > 0 do
       begin
       write(macfile, chr(9),'.word', chr(9));
 
-      for k := 1 to min(wordsperline, (i + 1) div word) do
-        begin
+      k := 1;
+      repeat
         if k > 1 then { separate words with commas }
           write(macfile, ',');
         v := 0;
         m := 1;
-        for l := 0 to  min(i mod word, word - 1) do
+        while (m and maxaddr <> 0) and (i > 0) do
         begin
           v := v + getstringfile * m;
           m := m * 256;
           i := i - 1;
         end;
         writehex(v);
-        end;
-      writeln(macfile);;
+        k := k + 1;
+      until (k > wordsperline) or (i = 0);
+      writeln(macfile);
       end;
     end; {write_constants}
 
@@ -355,17 +356,16 @@ procedure copysfile;
     nextstringfile := 0;
 
     { first write the string table as fixed length character strings }
-
     i := stringfilecount;
     if i > 0 then begin
       writeln(macfile, '#');
       writeln(macfile, '#  Constants');
       writeln(macfile, '#');
-      writeln(macfile, chr(9), '.rodata');
+      writeln(macfile, chr(9), '.section', chr(9), '.rodata');
       writeln(macfile, chr(9), '.align 3');
-      writeln(macfile, '.L:'); { the label associated with constants }
+      writeln(macfile, '.L', rodatalabel:1, ':'); { the label associated with constants }
+      write_constants(i);
       end;
-    write_constants(i);
   end {copysfile} ;
 
 
@@ -593,6 +593,7 @@ begin
       begin
         if o.lowbits then write(macfile, ':lo12:');
         write(macfile, '.L', o.labelno);
+        if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset:1);
       end;
     tworeg:
       begin

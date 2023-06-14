@@ -1,8 +1,26 @@
 -- next priorities:
-0.  yet to be figured out how to put the reg return value forced
-   to physical reg 0 in leaf functions if allocated as a valuable
-   regtemp by improve?  Or is this really a viable
-   idea if param 0 is being used?
+
+0. change registers to a enum to make sets of them more reasonable?
+
+0.5 a new form of index which indexes a register by the lower 12
+    bits of a symbol ... 
+   
+   to index, adrp this into a register and set the result to
+   a label index or some such or kludge mightily, if the 
+   index value is not 0 then leave it as [reg, :lo12:label+offset]
+
+   dostruct can to the same as index except the offset is always
+   zero.
+
+   or computing this via adrp can be delayed until needed ...
+
+1. if we load a register with a fp-based or sl-based indexed address
+   that is within range, set properreg to the original key and make
+   changevalue use a tempkey for the register?
+
+   ->actually this is a case where we should allocate the value to a
+     callee-saved register ...it is proc calls that makes this code look
+     so bad.
 
 2. improve for loops
 
@@ -10,6 +28,10 @@
       last branch (boolean expressions in first or last expression),
       mark it.  It doesn't need to be reloaded at the bottom.
 
+4.  yet to be figured out how to put the reg return value forced
+   to physical reg 0 in leaf functions if allocated as a valuable
+   regtemp by improve?  Or is this really a viable
+   idea if param 0 is being used?
 5. instantiation of integers to include large numbers.
 6. instantiation of integers as bitmasks
 7. long address index values, consider alignment
