@@ -1139,6 +1139,7 @@ procedure build;
       if bigcompilerversion then ptr := @(bignodetable[varp]);
       varlev := ptr^.oprnds[1];
       varoffset := ptr^.oprnds[2];
+
       if bigcompilerversion then ptr1 := @(bignodetable[ptr^.oprnds[3]]);
 
       if ptr1^.action = copy then

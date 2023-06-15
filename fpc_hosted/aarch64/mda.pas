@@ -279,7 +279,7 @@ function paramalloc(paramptr, typeptr: entryptr): allockind;
 function  allocparamoffset(var blocksize, length: addressrange; overflowed: boolean): addressrange;
   begin {allocparamoffset}
     allocparamoffset := blocksize;
-    if maxaddr - blocksize > length then
+    if maxlong - blocksize > length then
       blocksize := blocksize + forcealign(length, stackalign, false)
     else overflowed := true;
   end {allocparamoffset};
@@ -434,7 +434,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.varalloc := realregparam;
       paramptr^.regid := regparams.realregparams;
       paramptr^.regcount := 1;
-      paramptr^.offset := maxaddr - paramptr^.regid - maxregparams - 1;
+      paramptr^.offset := maxlong - paramptr^.regid - maxregparams - 1;
       regparams.realregparams := regparams.realregparams + 1;
       end
     else if (alloc = regparam) and (regparams.regparams < maxregparams) then
@@ -442,7 +442,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.varalloc := regparam;
       paramptr^.regid := regparams.regparams;
       paramptr^.regcount := 1;
-      paramptr^.offset := maxaddr - paramptr^.regid;
+      paramptr^.offset := maxlong - paramptr^.regid;
       regparams.regparams := regparams.regparams + 1;
 
       { If we allow structured types and sets to be left in registers, then
@@ -481,7 +481,7 @@ procedure alloc(align: alignmentrange; {variable alignment}
   begin
     spacesize := forcealign(spacesize, align, false);
     varloc := spacesize;
-    if maxaddr - spacesize > length then
+    if maxlong - spacesize > length then
       begin
       spacesize := spacesize + length;
       overflowed := false;
@@ -575,7 +575,7 @@ procedure allocpacked(align: alignmentrange; {variable alignment}
     else newspace := spacesize;
     unusedspace := newspace > spacesize;
     varloc := newspace;
-    if maxaddr - newspace > length then
+    if maxlong - newspace > length then
       begin
       spacesize := newspace + length;
       overflowed := false;
@@ -883,7 +883,7 @@ function sizeof(f: entryptr; {Form to get size of}
             end;
           end
         otherwise
-          if maxaddr div bitsperunit < f^.size then sizeof := maxaddr
+          if maxlong div bitsperunit < f^.size then sizeof := maxlong
           else sizeof := f^.size * bitsperunit;
         end
     else sizeof := (f^.size + bitsperunit - 1) div bitsperunit;

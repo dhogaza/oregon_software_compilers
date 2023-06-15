@@ -32,7 +32,7 @@ procedure putln;
 procedure putint;
 
   var
-    digits: packed array [0..25] of char;
+    digits: packed array [0..18] of char;
     j: integer;
 
   begin
@@ -45,8 +45,8 @@ procedure putint;
     j := 0;
     repeat
       digits[j] := chr(i mod 10 + ord('0'));
-      i := i div 10;
       j := j + 1;
+      i := i div 10;
     until i = 0;
 
     repeat

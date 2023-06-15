@@ -80,9 +80,10 @@ end;
 begin
   putint(1234);
   putln;
-  putstringln('should compile with checking enabled but can''t yet');
-  putstringln('testing with otherwise');
+  putint(0);
+  putln;
 
+  putstringln('testing with otherwise');
   p1('a');
   p1('q');
   p1('e');
@@ -93,6 +94,7 @@ begin
   p1('1');
   p1('8');
 
+  putstringln('can''t compile with checking enabled yet');
   putstringln('testing without otherwise, should throw case error');
   p('a');
   p('q');

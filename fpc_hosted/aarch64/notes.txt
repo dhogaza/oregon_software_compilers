@@ -4,6 +4,8 @@
 
 0.1 fix up lastlabel/newlabel/definelastlabel bullshit
 
+0.2 improve vs pushfinal which no longer exists (simpleinvar)
+
 0.5 a new form of index which indexes a register by the lower 12
     bits of a symbol ... 
    

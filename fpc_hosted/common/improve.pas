@@ -1027,7 +1027,10 @@ procedure loops;
 
             currentvar := loopblk^.writes;
             found := false;
+{
             while (currentvar <> finalwrite) and not found do
+}
+            while (currentvar <> finalwrite) do
               begin
               if bigcompilerversion then ptr := @(bignodetable[currentvar]);
               if (operands[1] = ptr^.oprnds[1]) and
