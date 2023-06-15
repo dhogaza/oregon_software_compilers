@@ -88,7 +88,7 @@ procedure libname(libroutine: libroutines;
       libarctan:        s := '_p_fatn    ';
       libbreak:         s := '_p_break   ';
       libcap:           s := '_p_cap     ';  { for Modula-2}
-      libcasetrap:      s := '_p_caserr  ';
+      libcasetrap:      s := '_p_caseerr ';
       libcexit:         s := '_p_cexit   ';  { for C }
       libmexit:         s := '_p_mexit   ';  { for Modula-2 }
       libcidiv:         s := '_p_cidiv   ';  { for C }
@@ -417,8 +417,6 @@ procedure writeproclabel(procn: proctableindex);
     if blockref = 0 then writeln(macfile, ' (main)')
     else writeln(macfile);
     writeln(macfile, '#');
-    writeln(macfile, chr(9), '.text');
-    writeln(macfile, chr(9), '.align 2');
 
     if proctable[blockref].externallinkage
        or ((proctable[blockref].calllinkage = implementationbody)
@@ -455,6 +453,7 @@ procedure write_inst(i: insttype);
 begin
   case i.inst of
     add: write(macfile, 'add');
+    adr: write(macfile, 'adr');
     adrp: write(macfile, 'adrp');
     asrinst: write(macfile, 'asr');
     b: write(macfile, 'b');
@@ -471,6 +470,7 @@ begin
     blo: write(macfile, 'b.lo');
     bls: write(macfile, 'b.ls');
     bne: write(macfile, 'b.ne');
+    br: write(macfile, 'br');
     bvc: write(macfile, 'b.vc');
     bvs: write(macfile, 'b.vs');
     cbnz: write(macfile, 'cbnz');
@@ -579,8 +579,7 @@ begin
     cond: write(macfile, conds_text[o.condition]);
     literal: write(macfile, o.literal);
     proccall:
-      if proctable[o.proclabelno].externallinkage and
-         not proctable[o.proclabelno].bodydefined then
+      if proctable[o.proclabelno].externallinkage then
         writeprocname(o.proclabelno)
       else
         begin
@@ -611,7 +610,6 @@ var
 
 begin {write_node}
   case p^.kind of
-  proclabelnode: writeproclabel(p^.proclabel);
   instnode:
     begin
     write(macfile, chr(9));
@@ -632,6 +630,17 @@ begin {write_node}
     writeln(macfile, '# Line: ', p^.sourceline - lineoffset: 1,
                         ', Stmt: ', i: 1);
     end;
+  rodatanode:
+    begin
+      writeln(macfile, chr(9), '.section', chr(9), '.rodata');
+      writeln(macfile, chr(9), '.align 3');
+      writeln(macfile, '.L', p^.labelno:1,':');
+     end;
+  textnode:
+    begin
+    writeln(macfile, chr(9), '.text');
+    writeln(macfile, chr(9), '.align 2');
+    end;
   bssnode:
     begin
     writeln(macfile, chr(9), '.bss');
@@ -639,9 +648,10 @@ begin {write_node}
     writeln(macfile, '.L', bsslabel, ':');
     writeln(macfile, chr(9), '.space ', p^.bsssize);
     end;
+  proclabelnode: writeproclabel(p^.proclabel);
   labelnode: writeln(macfile, '.L', p^.labelno, ':');
-  labeldeltanode: writeln(macfile, chr(9), '.word', chr(9), '.L', p^.targetlabel,
-                          '-.L', p^.tablebase);
+  labeldeltanode: writeln(macfile, chr(9), '.word', chr(9), '(.L', p^.targetlabel,
+                          '-.L', p^.tablebase, ')/4');
   otherwise writeln('bad node');
   end;
 end {write_node};

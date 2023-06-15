@@ -4409,6 +4409,7 @@ procedure statement(follow: tokenset {legal following symbols} );
               begin
               if bigcompilerversion then paramtypeptr := @(bigtable[paramtype]);
               actualtypeptr := resultptr;
+              {DRB: this code does not work for strings!}
               while (actualtypeptr^.typ in [arrays, conformantarrays, strings]) and
                     (paramtypeptr^.typ = conformantarrays) do
                 begin

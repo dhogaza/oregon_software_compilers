@@ -285,11 +285,11 @@ type
 
   {load/store instruction}
   first_ls, ldr, ldrb, ldrh, ldrw, ldrsb, ldrsh, ldrsw, ldp,
-  str, strb, strh, stp, last_ls, adrp,
+  str, strb, strh, stp, last_ls, adrp, adr,
 
   {branch instructions}
 
-  first_b, b, bl, beq, bne, blt, bgt, ble, bge, bhi, bhs, blo, bls,
+  first_b, b, bl, br, beq, bne, blt, bgt, ble, bge, bhi, bhs, blo, bls,
   bcc, bcs, bvc, bvs, cbz, cbnz, last_b,
 
   {miscellaneous instructions}
@@ -353,7 +353,7 @@ type
 
   nodeptr = ^node; {used to reference the node contents}
   nodekinds = (instnode, oprndnode, labelnode, labeldeltanode, errornode, stmtnode,
-               datanode, labelrefnode, proclabelnode, bssnode);
+               datanode, labelrefnode, proclabelnode, textnode, rodatanode, bssnode);
 
   operandrange = 0..4; {number of possible operands per inst}
   datarange = 0..63; {number of bytes or bits in possible operands}
@@ -369,7 +369,7 @@ type
            labeled: boolean; {true if a label attached here}
            oprnd_cnt: 0..4;
            oprnds: array [1..max_oprnds] of oprndtype);
-        labelnode:
+        labelnode, rodatanode:
           (labelno: unsigned;
            stackdepth: integer; {used for aligning sp at branch}
            brnodelink: nodeptr; {used by mergebranchtails} );
@@ -662,7 +662,7 @@ var
 
   oktostuff: boolean; {set false if register stuffing not allowed}
 
-  invert, fpinvert: array [insts] of insts; {for inverting sense of
+  invert, fpinvert: array [first_b .. last_b] of insts; {for inverting sense of
                                                    branches}
 
   keytable: keytabletype; {contains operand data}

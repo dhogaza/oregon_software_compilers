@@ -1,6 +1,7 @@
-procedure putchar(ch: char); external;
+%include 'testlib'
 
 var a,b: packed array [1..10] of char;
+  c: string[10];
 
 procedure print(var a:packed array [l..h: integer] of char);
   var i: integer;

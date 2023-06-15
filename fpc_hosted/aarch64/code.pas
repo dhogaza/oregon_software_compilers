@@ -3144,10 +3144,8 @@ procedure integerarithmetic(inst: insts {simple integer inst} );
     settargetorreg;
     lock(key);
     loadreg(left, right);
-    if (inst = mul) or (keytable[right].oprnd.mode <> immediate) then
-      begin
+    if (inst in [mul, sdiv, udiv]) or (keytable[right].oprnd.mode <> immediate) then
       loadreg(right, left);
-      end;
     gen3(buildinst(inst, len = long, false), key, left, right);
     unlock(key);
     keytable[key].signed := signedoprnds;
@@ -3263,15 +3261,8 @@ procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
         setbr(cbz, keytable[left].oprnd)
     else
       begin
-      if keytable[left].signed and (right >= 0) then
-        i := cmp
-      else
-        begin
-        i := cmn;
-        right := -right;
-        end;
       settemp(len, immediate_oprnd(right, false));
-      gen2(buildinst(i, len = long, false), left, tempkey);
+      gen2(buildinst(cmp, len = long, false), left, tempkey);
       if keytable[left].signed then
         setbr(signedbr, nomode_oprnd)
       else
@@ -3301,13 +3292,21 @@ procedure divintx;
     r: regindex;
 
   begin {divintx}
+    {unpkshkboth(len);}
+    addressboth;
+    loadreg(left, right);
+    loadreg(right, left);
     if (pseudobuff.op = getrem) or (pseudoinst.refcount = 2) then
       begin
       lock(right);
       lock(left);
       end;
-    if signedoprnds then integerarithmetic(sdiv)
-    else integerarithmetic(udiv);
+    settargetorreg;
+    if signedoprnds then
+      gen3(buildinst(sdiv, len = long, false), key, left, right)
+    else
+      gen3(buildinst(udiv, len = long, false), key, left, right);
+    keytable[key].signed := signedoprnds;
     if (pseudobuff.op = getrem) or (pseudoinst.refcount = 2) then
       begin
       if pseudoinst.refcount = 2 then
@@ -3320,12 +3319,11 @@ procedure divintx;
         keytable[key].oprnd.mode := tworeg;
         keytable[key].oprnd.reg2 := keytable[tempkey].oprnd.reg;
         adjustregcount(key, pseudoinst.refcount);
-        tempkey := tempkey + 1;
         end
       else
         gen4(buildinst(msub, len = long, false), key, key, right, left); 
-      unlock(left);
       unlock(right);
+      unlock(left);
       end;
   end {divintx} ;
 
@@ -3584,6 +3582,7 @@ procedure blockcodex;
           end;
         end;
       end;
+    p := newnode(textnode);
     p := newnode(proclabelnode);
     p^.proclabel := blockref;
     codeproctable[blockref].proclabelnode := p;
@@ -4298,6 +4297,111 @@ procedure callroutinex(s: boolean {signed function value} );
   is done by the labels generated
 }
 
+procedure caseerrx;
+
+  {we have one and only one job to do, and we do it well }
+
+  begin {caseerrx}
+    settemp(long, libcall_oprnd(libcasetrap));
+    gen1(buildinst(bl, false, false), tempkey);
+  end {caseerrx};
+
+procedure casebranchx;
+
+{ Generate code for a case branch.  The pseudoinstruction field have the
+  following meanings:
+
+  target:       Case expression
+
+  len:          Default label
+
+  refcount:          0, no error check; 1, default label is error
+
+  oprnds[1]:    Lower bound of cases
+
+  oprnds[2]:    Upper bound of cases
+
+  The code generated is:
+
+     ;move selection expression into Dn
+             sub.w   #lower,Dn       ;skew to range 0..(upper-lower)
+             cmpi.w  #(upper-lower),Dn       ;range test
+     if "otherwise" exists, or no error checking (refcount = 0) then:
+             bls.?   <otherwiselimb> ;condition = (C+Z); short/long branch
+     else no "otherwise" and error checking on (refcount = 1):
+             bhi.s   templabel       ;condition = not(C+Z)
+             jsr     caseerror       ;"case selector matches no label"
+         templabel:                  ;target of short branch around error
+     ;fi
+             add.w   Dn,Dn           ;make word address
+             move.w  6(PC,Dn.w),Dn   ;fetch 16-bit offset, reusing Dn
+             jmp     2(PC,Dn.w)      ;dispatch to selected case limb
+     table:  <word offsets of form "caselimb - table">
+    t: keyindex; {case expression}
+}
+
+  var
+    tablelabel: unsigned; { label of the branch table}
+    baselabel: unsigned; { label of the first instruction after the case branch }
+    p: nodeptr;
+    scratchreg: regindex;
+    scratch: keyindex; { for arithmetic on case expression }
+    addressreg: regindex; { for address calcs }
+    addresskey: keyindex; { temp key referencing addressreg }
+    default: integer; {default label}
+    errordefault: boolean; {true if error label defines error}
+
+begin {casebranchx}
+
+  errordefault := keytable[key].refcount <> 0;
+  keytable[key].refcount := 0; {so we can loadreg etc }
+  default := len;
+
+  address(target);
+  scratchreg := getreg;
+  settemp(word, reg_oprnd(scratchreg));
+  scratch := tempkey;
+  lock(scratch);
+  gensimplemove(target, scratch);
+  settemp(long, immediate_oprnd(left, false));
+  gen3(buildinst(sub, false, false), scratch, scratch, tempkey);
+  settemp(long, immediate_oprnd(right - left, false));
+  gen2(buildinst(cmp, false, false), scratch, tempkey);
+  if errordefault then
+    begin
+    genbr(bls, newlabel);
+    definelabel(default);
+    caseerrx;
+    definelabel(lastlabel + 1);
+    end
+  else genbr(bhi, default);;
+
+  tablelabel := newlabel;
+  addressreg := getreg;
+  settemp(long, reg_oprnd(addressreg));
+  addresskey := tempkey;
+  settemp(long, labeltarget_oprnd(tablelabel, false, 0));
+  gen2(buildinst(adrp, true, false), addresskey, tempkey);
+  keytable[tempkey].oprnd.lowbits := true;
+  gen3(buildinst(add, true, false), addresskey, addresskey, tempkey);
+
+  baselabel := newlabel; {must be last temp label for caseeltx}
+  settemp(word, reg_offset_oprnd(addressreg, scratchreg, 2, xtw, false));
+  gen2(buildinst(ldr, false, false), scratch,tempkey);
+  settemp(long, labeltarget_oprnd(baselabel, false, 0));
+  gen2(buildinst(adr, true, false), addresskey, tempkey);
+  settemp(long, extend_reg_oprnd(scratchreg, xtw, 2, true));
+  gen3(buildinst(add, true, false), scratch, addresskey, tempkey);
+  gen1(buildinst(br, true, false), scratch);
+  definelabel(baselabel);
+  unlock(scratch);
+
+  { now initiate the case element table }
+  p := newnode(rodatanode);
+  p^.labelno := tablelabel;
+
+end {casebranchx} ;
+
 procedure caseeltx;
 
 { Generate oprnds[2] references to label oprnds[1].
@@ -4306,11 +4410,14 @@ procedure caseeltx;
 
   var
     i: integer; {induction var}
+    p: nodeptr; {for switching back to text}
 
 
   begin {caseeltx}
     for i := 1 to pseudoinst.oprnds[2] do
       genlabeldelta(lastlabel + 1, pseudoinst.oprnds[1]);
+    if pseudobuff.op <> caseelt then
+      p := newnode(textnode);
   end; {caseeltx}
 
 procedure jumpx(lab: integer {label to jump to});
@@ -4354,7 +4461,7 @@ procedure jumpx(lab: integer {label to jump to});
       end};
   end {jumpx} ;
 
-procedure jumpcond(b: insts {cbz or cbnz});
+procedure jumpcond(inv: boolean {invert the sense of the comparision});
 
 { Used to generate a jump true or jump false on a condition.  If the key is
   not already a condition, it is forced to a "bne", as it is a boolean
@@ -4362,18 +4469,24 @@ procedure jumpcond(b: insts {cbz or cbnz});
 }
 
   var
-    sf: boolean;
+    labeltarget: keyindex;
+    b: insts;
 
   begin
     address(right);
+    settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1], false, 0));
+    labeltarget := tempkey;
     if keytable[right].access = branchaccess then
       b := keytable[right].brinst
-    else loadreg(right, 0);
-    settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1], false, 0));
-    sf := keytable[right].len = long;
-    if keytable[right].oprnd.mode = nomode then
-      gen1(buildinst(b, sf, false), tempkey)
-    else gen2(buildinst(b, sf, false), right, tempkey);
+    else
+      begin
+      b := cbz;
+      loadreg(right, 0);
+      end;
+    if inv then b := invert[b];
+    if (b = cbz) or (b = cbnz) then
+      gen2(buildinst(b, keytable[right].len = long, false), right, labeltarget)
+    else gen1(buildinst(b, false, false), labeltarget);
     context[contextsp].lastbranch := lastnode;
   end {jumpcond} ;
 
@@ -4460,10 +4573,10 @@ procedure codeone;
       forupchk: forcheckx(true);
       fordnchk: forcheckx(false);
       forerrchk: forerrchkx;
+}
       casebranch: casebranchx;
       caseelt: caseeltx;
       caseerr: caseerrx;
-}
       dostruct: dostructx;
 {
       doset: dosetx;
@@ -4603,8 +4716,8 @@ procedure codeone;
       wrreal: wrrealx;
 }
       jump: jumpx(pseudoinst.oprnds[1]);
-      jumpf: jumpcond(cbz);
-      jumpt: jumpcond(cbnz);
+      jumpf: jumpcond(true);
+      jumpt: jumpcond(false);
 {
 
       eqreal: cmprealx(beq, libdeql, fbngl);
@@ -4712,7 +4825,9 @@ procedure codeone;
       dumppseudo(macfile);
       if keytable[key].first <> nil then
         write_nodes(keytable[key].first, keytable[key].last);
+{
       dumpstack;
+}
       end;
   end {codeone};
 
@@ -4741,7 +4856,7 @@ procedure initcode;
     invert[bgt] := ble;     invert[bge] := blt;     invert[ble] := bgt;
     invert[blo] := bhs;     invert[bhi] := bls;     invert[bls] := bhi;
     invert[bhs] := blo;     invert[bvs] := bvc;     invert[bvc] := bvs;
-    invert[nop] := b;       invert[b] := nop;
+    invert[b] := nop;       invert[cbz] := cbnz;    invert[cbnz] := cbz;
 
     { Front end doesn't do this for deeply historical reasons but in Linux
       the main program's just an external procedure.

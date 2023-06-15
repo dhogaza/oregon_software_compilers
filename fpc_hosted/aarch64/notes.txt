@@ -2,6 +2,8 @@
 
 0. change registers to a enum to make sets of them more reasonable?
 
+0.1 fix up lastlabel/newlabel/definelastlabel bullshit
+
 0.5 a new form of index which indexes a register by the lower 12
     bits of a symbol ... 
    

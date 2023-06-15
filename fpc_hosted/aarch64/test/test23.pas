@@ -1,34 +1,102 @@
 program foo;
+
+%include 'testlib';
+
 procedure p(ch: char);
 
 begin
   case ch of
-    'a': write('a');
-    'b': write('b');
-    'c': write('c');
-    'd': write('d');
-    'e': write('e');
-    'f': write('f');
-    'g': write('g');
-    'h': write('h');
-    'i': write('i');
-    'j': write('j');
-    'k': write('k');
-    'l': write('l');
-    'm': write('m');
-    'n': write('n');
-    'o': write('o');
-    'p': write('p');
-    'q': write('q');
-    'r': write('r');
-    's': write('s');
-    't': write('t');
-    'u': write('u');
-    'v': write('v');
-    'w': write('w');
-    'x': write('x');
-    'y': write('y');
-    'z': write('z');
+    '1': putchar('1');
+    'a': putchar('a');
+    'b': putchar('b');
+    'c': putchar('c');
+    'd': putchar('d');
+    'e': putchar('e');
+    'f': putchar('f');
+    'g': putchar('g');
+    'h': putchar('h');
+    'i': putchar('i');
+    'j': putchar('j');
+    'k': putchar('k');
+    'l': putchar('l');
+    'm': putchar('m');
+    'n': putchar('n');
+    'o': putchar('o');
+    'p': putchar('p');
+    'q': putchar('q');
+    'r': putchar('r');
+    's': putchar('s');
+    't': putchar('t');
+    'u': putchar('u');
+    'v': putchar('v');
+    'w': putchar('w');
+    'x': putchar('x');
+    'y': putchar('y');
+    'z': putchar('z');
   end;
+  putchar(chr(10));
 end;
-begin end.
+
+procedure p1(ch: char);
+
+begin
+  case ch of
+    '1': putchar('1');
+    '8': putchar('8');
+    'a': putchar('a');
+    'b': putchar('b');
+    'd': putchar('d');
+    'e': putchar('e');
+    'f': putchar('f');
+    'g': putchar('g');
+    'h': putchar('h');
+    'i': putchar('i');
+    'j': putchar('j');
+    'k': putchar('k');
+    'l': putchar('l');
+    'm': putchar('m');
+    'n': putchar('n');
+    'o': putchar('o');
+    'p': putchar('p');
+    'q': putchar('q');
+    'r': putchar('r');
+    's': putchar('s');
+    't': putchar('t');
+    'u': putchar('u');
+    'v': putchar('v');
+    'w': putchar('w');
+    'x': putchar('x');
+    'y': putchar('y');
+    'z': putchar('z');
+     otherwise
+       begin
+       putchar('?');
+       putchar(ch);
+       end;
+  end;
+  putchar(chr(10));
+end;
+
+begin
+  putint(1234);
+  putln;
+  putstringln('should compile with checking enabled but can''t yet');
+  putstringln('testing with otherwise');
+
+  p1('a');
+  p1('q');
+  p1('e');
+  p1('d');
+  p1('z');
+  p1('c'); {otherwise}
+  p1('0'); {otherwise}
+  p1('1');
+  p1('8');
+
+  putstringln('testing without otherwise, should throw case error');
+  p('a');
+  p('q');
+  p('e');
+  p('d');
+  p('z');
+end.
