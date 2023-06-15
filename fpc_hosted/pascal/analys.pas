@@ -76,7 +76,7 @@ procedure enterblock(level: levelindex; {lex level of block}
       laststmt  := 0;
       blockref := ref;
       blockkind := codeblock;
-      blocksize := 0;
+      blocksize := initialblocksize(level);
       paramsize := 0;
       oldundeftabletop := undeftabletop;
       labellist := labelflag;

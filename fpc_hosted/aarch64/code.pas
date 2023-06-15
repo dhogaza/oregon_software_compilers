@@ -3261,8 +3261,15 @@ procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
         setbr(cbz, keytable[left].oprnd)
     else
       begin
+      if not keytable[left].signed or (right >= 0) then
+        i := cmp
+      else
+        begin
+        i := cmn;
+        right := -right;
+        end;
       settemp(len, immediate_oprnd(right, false));
-      gen2(buildinst(cmp, len = long, false), left, tempkey);
+      gen2(buildinst(i, len = long, false), left, tempkey);
       if keytable[left].signed then
         setbr(signedbr, nomode_oprnd)
       else
@@ -3510,15 +3517,15 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
       else if left = 1 then
         setvalue(index_oprnd(unsigned_offset, gp, 0))
       else if left = level then
-        setvalue(index_oprnd(unsigned_offset, fp, 2 * long))
-      else if left = level - 1 then setvalue(index_oprnd(unsigned_offset, sl, 2 * long))
+        setvalue(index_oprnd(unsigned_offset, fp, 0))
+      else if left = level - 1 then setvalue(index_oprnd(unsigned_offset, sl, 0))
       else
         begin
         address(target);
         settemp(long, index_oprnd(unsigned_offset, keytable[target].oprnd.reg, 0));
         settemp(long, reg_oprnd(getreg));
         gensimplemove(tempkey + 1, tempkey);
-        setvalue(index_oprnd(unsigned_offset, keytable[tempkey].oprnd.reg, 2 * long));
+        setvalue(index_oprnd(unsigned_offset, keytable[tempkey].oprnd.reg, 0));
         tempkey := tempkey + 2;
         end;
       len := long;
@@ -4227,6 +4234,7 @@ procedure callroutinex(s: boolean {signed function value} );
 
   begin {callroutinex}
     paramlist_started := false; {reset the switch}
+    regparam_target := 0; {we are done filling params}
 
     markscratchregs;
 

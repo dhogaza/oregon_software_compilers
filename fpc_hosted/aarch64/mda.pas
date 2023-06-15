@@ -36,6 +36,10 @@ interface
 
 uses config, hdr, utils, hdra, a_t;
 
+function initialblocksize(blocklevel: levelindex): addressrange;
+
+{ determines the offset from the fp for the first variable }
+
 function paramalloc(paramptr, typeptr: entryptr): allockind;
 
 { Determine which type of register a param can be allocated to,
@@ -263,6 +267,14 @@ procedure forcememoryparam(varlev: levelindex; paramptr: entryptr);
 }
 
 implementation
+
+function initialblocksize(blocklevel: levelindex): addressrange;
+
+{ determines the offset from the fp for the first variable }
+
+begin {initialblocksize}
+  initialblocksize := 2 * ptrsize;
+end; {initialblocksize}
 
 function paramalloc(paramptr, typeptr: entryptr): allockind;
 

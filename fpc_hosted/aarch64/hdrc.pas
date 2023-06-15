@@ -294,7 +294,7 @@ type
 
   {miscellaneous instructions}
 
-  lslinst, asrinst, lsrinst,
+  lslinst, asrinst, lsrinst, sxtw,
 
   ret);
 
