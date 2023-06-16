@@ -418,7 +418,7 @@ const
   {The following constants size the pass and the max block size for compiling}
 
   labeltablesize = 1000; {max number of labels per block}
-  lowesttemp = - 20; {lowest temp key which can be allocated}
+  lowesttemp = - 25; {lowest temp key which can be allocated}
 
 { Virtual memory sizing constants }
 { These are all HOST, not target dependent }

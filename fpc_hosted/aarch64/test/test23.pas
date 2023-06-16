@@ -78,9 +78,40 @@ begin
 end;
 
 begin
-  putint(1234);
-  putln;
-  putint(0);
+
+  putstringln('test integer const generation and putint');
+
+  putstring('0? ');
+  putintln(0);
+
+  putstring('1234? ');
+  putintln(1234);
+
+  putstring('65535? ');
+  putintln(65535);
+
+  putstring('65536? ');
+  putintln(65536);
+
+  putstring('65537? ');
+  putintln(65537);
+
+  putstring('655359 ');
+  putintln(65539);
+
+  putstring('-1? ');
+  putintln(-1);
+
+  putstring('-65536? ');
+  putintln(-65536);
+
+  putstring('-65537? ');
+  putintln(-65537);
+
+  putstring('-65539? ');
+  putintln(-65539);
+
+  putstringln('end of integer const generation and putint tests');
   putln;
 
   putstringln('testing with otherwise');

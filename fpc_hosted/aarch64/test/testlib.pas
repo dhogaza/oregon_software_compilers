@@ -3,11 +3,19 @@ procedure exit(code: integer); external;
 procedure putchar(ch: char); external;
 
 {defined here}
-procedure putstringln(a:packed array [l..h: integer] of char); external;
 procedure putstring(a:packed array [l..h: integer] of char); external;
+procedure putstringln(a:packed array [l..h: integer] of char); external;
 procedure putint(i: integer); external;
+procedure putintln(i: integer); external;
+procedure putcharln(ch: char); external;
 procedure putln; external;
 procedure _p_caseerr; external;
+
+procedure putln;
+
+  begin
+    putchar(chr(10));
+  end;
 
 procedure putstring;
   var i: integer;
@@ -19,14 +27,7 @@ procedure putstringln;
   var i: integer;
   begin
     for i := l to h do putchar(a[i]);
-    putchar(chr(10));
-  end;
-
-
-procedure putln;
-
-  begin
-    putchar(chr(10));
+    putln;
   end;
 
 procedure putint;
@@ -55,7 +56,21 @@ procedure putint;
     until j = 0;
 
   end;
+
+procedure putintln;
+
+  begin
+    putint(i);
+    putln;
+  end;
     
+procedure putcharln;
+
+  begin
+    putchar(ch);
+    putln;
+  end;
+
 procedure _p_caseerr;
   begin
     putstringln('case error');

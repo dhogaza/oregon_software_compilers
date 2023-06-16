@@ -2218,7 +2218,7 @@ procedure initblock;
 
 { code gen utilities }
 
-procedure intconst16(var k: keyindex; var movinst: insts; r: regindex);
+procedure handle_intconst16(var k: keyindex; var movinst: insts; r: regindex);
 
   { Given an abstract intconst operand, materialize it into either
     a sixteen bit immedate operand with optional shift or the full value in
@@ -2226,42 +2226,49 @@ procedure intconst16(var k: keyindex; var movinst: insts; r: regindex);
     immediately.
 
     Only handles 16 and 32 bit values currently.
+
+    Note that both Free Pascal and this compiler handle sparse case statements.
   }
 
   var
-    val: integer;
+    val: unsigned;
 
-  begin {intconst16}
+  begin {handle_intconst16}
+    movinst := mov;
     with keytable[k],oprnd do
-      begin
-      val := int_value;
       if mode = intconst then
-        begin
-        if (-val and $FFFF0000) = 0 then
-          begin
-          movinst := movn;
-          val := -val + 1; 
-          end
-        else movinst := movz;
-writeln(int_value, ', ',int_value and $FFFF0000, ', ', int_value and $FFFF);
-        if (val and $FFFF0000) = 0 then
-          settemp(len, imm16_oprnd(int_value, 0))
-        else
-          begin
-          settemp(len, imm16_oprnd(val and $FFFF, 0));
-          settemp(len, imm16_oprnd(val div $10000, 16));
-          if (val and $FFFF) <> 0 then
+      begin
+        val := int_value;
+        case (val and $FFFFFFFF) of
+          { 16-bit positive number }
+          $0..$FFFF:
             begin
+            movinst := movz;
+            settemp(len, imm16_oprnd(val, 0));
+            end;
+          {16-bit negative value}
+          $FFFF0000..$FFFFFFFF:
+            begin
+            movinst := movn;
+            settemp(len, imm16_oprnd((not val) and $FFFF, 0));
+            end;
+          otherwise
+            begin
+            settemp(len, imm16_oprnd(val and $FFFF, 0));
+            settemp(len, imm16_oprnd((val shr 16) and $FFFF, 16));
             settemp(len, reg_oprnd(r));
-            gen2(buildinst(movinst, true, false), tempkey, tempkey + 1);
-            gen2(buildinst(movk, true, false), tempkey, tempkey + 2);
-            movinst := mov; {hopefully it won't need to be moved}
+            if (val and $FFFF) <> 0 then
+              begin
+              gen2(buildinst(movz, true, false), tempkey, tempkey + 2);
+              gen2(buildinst(movk, true, false), tempkey, tempkey + 1);
+              end
+            else
+              gen2(buildinst(movz, true, false), tempkey, tempkey + 1);
             end
-          end;
-        k := tempkey;
         end;
-    end;
-  end {intconst16};
+      k := tempkey;
+      end
+  end {handle_intconst16};
 
 function equivaddr(l, r: keyindex): boolean;
 
@@ -2298,7 +2305,7 @@ function equivaddr(l, r: keyindex): boolean;
   end {equivaddr} ;
 
 
-procedure gensimplemove(src, dst: keyindex);
+procedure gensimplemove(src: keyindex; dst: keyindex);
 
   { move a simple item from the src to dst, currently just values that
     aren't in a floating-point register.
@@ -2309,28 +2316,29 @@ procedure gensimplemove(src, dst: keyindex);
 
   begin {gensimplemove}
     i := mov;
-    intconst16(src, i, ip1); {materialize constant if necessary}
-    if not equivaddr(dst, src) then
+    if (keytable[dst].oprnd.mode = register) and
+       (keytable[src].oprnd.mode = intconst) then
+      handle_intconst16(src, i, keytable[dst].oprnd.reg)
+    else handle_intconst16(src, i, ip0);
+    if not equivaddr(src, dst) then
       if (keytable[dst].oprnd.mode = register) and
          ((keytable[src].oprnd.mode = register) or
-          (keytable[src].oprnd.mode = imm16))  then
+          (keytable[src].oprnd.mode = imm16)) then
         gen2(buildinst(i, true, false), dst, src)
-      else if keytable[dst].oprnd.mode = register then
-        gen2(ldrinst(keytable[src].len, keytable[src].signed), dst, src)
-      else if keytable[src].oprnd.mode <> register then
-        begin
-        lock(dst);
-        settemp(long, reg_oprnd(getreg));
-        unlock(dst);
-        if keytable[src].oprnd.mode = imm16 then
-          gen2(buildinst(i, true, false), tempkey, src)
-        else
-          gen2(ldrinst(keytable[src].len, keytable[src].signed), tempkey, src);
-        gen2(strinst(keytable[dst].len), tempkey, dst);
-        tempkey := tempkey + 1;
-        end
+    else if keytable[dst].oprnd.mode = register then
+      gen2(ldrinst(keytable[src].len, keytable[src].signed), dst, src)
+    else if keytable[src].oprnd.mode <> register then
+      begin
+      lock(dst);
+      settemp(long, reg_oprnd(getreg));
+      unlock(dst);
+      if keytable[src].oprnd.mode = imm16 then
+        gen2(buildinst(i, true, false), tempkey, src)
       else
-        gen2(strinst(keytable[dst].len), src, dst);
+        gen2(ldrinst(keytable[src].len, keytable[src].signed), tempkey, src);
+      gen2(strinst(keytable[dst].len), tempkey, dst);
+      end
+    else gen2(strinst(keytable[dst].len), src, dst);
   end {gensimplemove} ;
 
 procedure genmoveaddress(src, dst: keyindex);
@@ -2397,17 +2405,20 @@ procedure loadreg(var k: keyindex; other: keyindex);
  won't work for longs extended from shorter sized most likely at the moment
 }
 
-begin {loadreg}
-  if keytable[k].oprnd.mode <> register then
-    begin
-    lock(other);
-    settemp(keytable[k].len, keytable[k].oprnd);
-    settemp(keytable[k].len, reg_oprnd(getreg));
-    gensimplemove(tempkey + 1, tempkey);
-    unlock(other);
-    changevalue(k, tempkey);
-    tempkey := tempkey + 2;
-    end;
+  var
+    newkey: keyindex;
+
+  begin {loadreg}
+    if keytable[k].oprnd.mode <> register then
+      begin
+      lock(other);
+      settemp(keytable[k].len, reg_oprnd(getreg));
+      newkey := tempkey;
+      settemp(keytable[k].len, keytable[k].oprnd);
+      gensimplemove(tempkey, newkey);
+      unlock(other);
+      changevalue(k, newkey);
+      end;
 end {loadreg} ;
 
 procedure clearcontext;
@@ -3989,8 +4000,8 @@ procedure movlitintx;
 procedure pshintptrx;
 
   begin {pshintptrx}
-    addressdst(left);
-    gensimplemove(left, key);
+    settemp(len, intconst_oprnd(left));
+    gensimplemove(tempkey, key);
   end {pshintptrx};
 
 procedure movemultiple;
