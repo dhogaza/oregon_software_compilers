@@ -4000,6 +4000,7 @@ procedure movlitintx;
 procedure pshintptrx;
 
   begin {pshintptrx}
+    address(left);
     settemp(len, intconst_oprnd(left));
     gensimplemove(tempkey, key);
   end {pshintptrx};
@@ -4007,8 +4008,10 @@ procedure pshintptrx;
 procedure movemultiple;
 
 begin {movemultiple}
+{
   if regmoveok(len) then movintptrx
   else
+}
     begin
     saveactivekeys;
     addressboth;
@@ -4030,8 +4033,10 @@ end; {movemultiple}
 procedure pushmultiple;
 
 begin {pushmultiple}
+{
   if regmoveok(len) then pshintptrx
   else
+}
     begin
     saveactivekeys;
     address(left);
@@ -4907,9 +4912,7 @@ procedure codeone;
       dumppseudo(macfile);
       if keytable[key].first <> nil then
         write_nodes(keytable[key].first, keytable[key].last);
-{
       dumpstack;
-}
       end;
   end {codeone};
 

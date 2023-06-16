@@ -8,6 +8,12 @@
     to add a finalop to replace pushfinal?  This is used to designate
     an invariant final limit ...
 
+0.3 align character constants to min(len, 8) byte boundary.
+
+    align variables, too.
+
+    This makes using 2, 4, 8 byte moves possible for structs.
+
 0.5 a new form of index which indexes a register by the lower 12
     bits of a symbol ... 
    
@@ -38,11 +44,10 @@
    to physical reg 0 in leaf functions if allocated as a valuable
    regtemp by improve?  Or is this really a viable
    idea if param 0 is being used?
-5. instantiation of integers to include large numbers.
 6. instantiation of integers as bitmasks
 7. long address index values, consider alignment
 8. REVERSE STACK PARAM PUSHES
-9. lots of sign extension and the like issues
+9. lots of sign extension and the like issues?
 10.targeting logic sucks on this machine, too many instances
    of ld xn, mem/op xm,xn/mov xn,xm/ when xm is no longer useful.
 
