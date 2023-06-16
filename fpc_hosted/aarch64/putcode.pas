@@ -490,6 +490,7 @@ begin
     lsrinst: write(macfile, 'lsr');
     madd: write(macfile, 'madd');
     mov: write(macfile, 'mov');
+    movk: write(macfile, 'movk');
     movn: write(macfile, 'movn');
     movz: write(macfile, 'movz');
     msub: write(macfile, 'msub');
@@ -525,16 +526,16 @@ begin
       write(macfile, ', ', signed_prefix[o.extend_signed], reg_extends_text[o.reg_extend],
             ' ', o.extend_shift);
     end;
-    immediate16:
+    imm16:
     begin
       write(macfile, o.imm16_value);
       if o.imm16_shift <> 0 then
-        write(macfile, ', lsl ', o.imm16_shift);
+        write(macfile, ',lsl ', o.imm16_shift);
     end;
-    immediate:
+    imm12:
     begin
-      write(macfile, o.imm_value);
-      if o.imm_shift then
+      write(macfile, o.imm12_value);
+      if o.imm12_shift then
         write(macfile, ', lsl 12');
     end;
     fpregister: write(macfile, 's', o.reg);

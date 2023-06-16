@@ -281,7 +281,7 @@ type
   cinv, mvn,
   {move instructions}
 
-  first_mov, movz, mov, movn, last_mov,
+  first_mov, movz, mov, movn, movk, last_mov,
 
   {load/store instruction}
   first_ls, ldr, ldrb, ldrh, ldrw, ldrsb, ldrsh, ldrsw, ldp,
@@ -305,9 +305,9 @@ type
   end;
 
   oprnd_modes = (nomode, register, fpregister, tworeg, shift_reg, extend_reg,
-                 immediate, immediate16, relative, pre_index, post_index, signed_offset,
+                 imm12, imm16, relative, pre_index, post_index, signed_offset,
                  unsigned_offset, reg_offset, literal, labeltarget, proccall,
-                 libcall, cond);
+                 libcall, cond, intconst, realconst);
 
   conds = (al, eq, ne, gt, lt, le, ge, hi, hs, lo, ls, cc, cs, mi, pl,
            vs, vc);
@@ -315,32 +315,33 @@ type
   reg_extends = (xtb, xth, xtw, xtx);
   reg_shifts = (lsl, lsr, asr);
 
-  imm2 = 0..3;
-  imm3 = 0..7;
-  imm6 = 0..63;
-  imm12 = 0..4095;
-  imm16 = 0..65535;
+  bits2 = 0..3;
+  bits3 = 0..7;
+  bits6 = 0..63;
+  bits12 = 0..4095;
+  bits16 = 0..65535;
 
   oprndtype = packed record
     reg: regindex;
     reg2: regindex; {extra register if indexed & bitindexed}
     case mode: oprnd_modes of
       shift_reg: (reg_shift: reg_shifts;
-                  shift_amount: imm6);
+                  shift_amount: bits6);
       extend_reg: (reg_extend: reg_extends;
-                   extend_shift: imm3;
+                   extend_shift: bits3;
                    extend_signed: boolean); 
-      immediate: (imm_value: imm12;
-                  imm_shift: boolean);
-      immediate16: (imm16_value: imm16;
-                  imm16_shift: 0..48);
+      imm12: (imm12_value: bits12;
+                    imm12_shift: boolean);
+      imm16: (imm16_value: bits16;
+                    imm16_shift: 0..48);
       pre_index, post_index, signed_offset, unsigned_offset: (index: integer);
-      reg_offset: (shift: imm2; extend: reg_extends; signed: boolean);
+      reg_offset: (shift: bits2; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
       cond: (condition: conds);
       labeltarget: (labelno: unsigned; lowbits: boolean; labeloffset: integer);
       proccall: (proclabelno: unsigned; entry_offset: integer);
       libcall: (libroutine: libroutines);
+      intconst: (int_value: integer);
     end;
 
 { The instruction node ("node") is used to hold instructions generated and
