@@ -275,7 +275,8 @@ type
   insts = (noinst, nop,
 
   {basic arithmetic instructions}
-  first_a, add, sub, mul, madd, msub, sdiv, udiv, cmp, cmn, neg, last_a,
+  first_a, add, sub, mul, madd, msub, sdiv, udiv, cmp, cmn, 
+  orinst, orn, andinst, ands, eor, eon, neg, last_a,
 
   {bit manipulation}
   cinv, mvn,
@@ -308,6 +309,8 @@ type
                  imm12, imm16, relative, pre_index, post_index, signed_offset,
                  unsigned_offset, reg_offset, literal, labeltarget, proccall,
                  libcall, cond, intconst, realconst);
+
+  oprnd_mode_set = set of oprnd_modes;
 
   conds = (al, eq, ne, gt, lt, le, ge, hi, hs, lo, ls, cc, cs, mi, pl,
            vs, vc);

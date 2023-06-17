@@ -2223,21 +2223,20 @@ procedure initblock;
 procedure handle_intconst12(var k: keyindex; other: keyindex);
 
   begin {handle_intconst12}
-    with keytable[k],oprnd do
+    with keytable[k].oprnd do
       if mode = intconst then
-        case int_value and $FFFFFFFF of
-          $0..$FFF:
-            begin
-            settemp(len, imm12_oprnd(int_value, false));
-            k := tempkey;
-            end;
-          $1000..$FFF000: 
-            begin
-            settemp(len, imm12_oprnd(int_value, true));
-            k := tempkey;
-            end;
-          otherwise loadreg(k, other); 
-        end;
+        if (int_value >= 0) and (int_value <= $FFF) then
+          begin
+          settemp(len, imm12_oprnd(int_value, false));
+          k := tempkey;
+          end
+        else if ((int_value and $FFF) = 0) and (int_value <= $FFF000) then
+          begin
+writeln(int_value, ', ', HexStr(int_value, 8));
+          settemp(len, imm12_oprnd(int_value div $1000, true));
+          k := tempkey;
+          end
+        else loadreg(k, other); 
   end {handle_intconst12};
 
 procedure handle_intconst16(var k: keyindex; var movinst: insts; r: regindex);
@@ -2257,7 +2256,7 @@ procedure handle_intconst16(var k: keyindex; var movinst: insts; r: regindex);
 
   begin {handle_intconst16}
     movinst := mov;
-    with keytable[k],oprnd do
+    with keytable[k].oprnd do
       if mode = intconst then
       begin
         val := int_value;
@@ -2442,6 +2441,29 @@ procedure loadreg(var k: keyindex; other: keyindex);
       changevalue(k, newkey);
       end;
 end {loadreg} ;
+
+procedure prepareoprnd(var k: keyindex; { the key we're interested inn }
+                       other: keyindex; { protect this key }
+                       modes: oprnd_mode_set; { often only register }
+                       bitmask: boolean { if true, allowed intconst must be a bitmask,
+                                          otherwise allowed intonst must be an imm12,
+                                          otherwise we load it into a register });
+
+  { If the key isn't of one of the given modes, load it into a register.
+
+    This vien key is often (but not always) the right operand of
+    a pseudo instruction, such as addint, andint, mulint, which have differing
+    ideas as to what they'll allow as their second source operand.
+  }
+
+  begin {prepareoprnd}
+    with keytable[k].oprnd do
+      if not (mode in modes) then
+        loadreg(k, other)
+      else if mode = intconst then
+        handle_intconst12(k, other)
+      else loadreg(k, other)
+  end {prepareoprnd};
 
 procedure clearcontext;
 
@@ -3226,10 +3248,9 @@ procedure shiftintx(backwards: boolean);
     keytable[key].signed := keytable[left].signed;
   end {shiftintx} ;
 
-
-{shared by add, sub, mul (so far)}
-
-procedure integerarithmetic(inst: insts {simple integer inst} );
+procedure integerarithmetic(inst: insts; {simple integer inst}
+                            modes: oprnd_mode_set; {what is allowed}
+                            bitmask: boolean {need bitmask});
 
 { Generate code for a simple binary, integer operation (add, sub, etc.)
 }
@@ -3240,10 +3261,9 @@ procedure integerarithmetic(inst: insts {simple integer inst} );
     settargetorreg;
     lock(key);
     loadreg(left, right);
-    if (inst in [mul, sdiv, udiv]) or (keytable[right].oprnd.mode <> imm12) then
-      loadreg(right, left);
-    gen3(buildinst(inst, len = long, false), key, left, right);
+    prepareoprnd(right, left, modes, bitmask);
     unlock(key);
+    gen3(buildinst(inst, len = long, false), key, left, right);
     keytable[key].signed := signedoprnds;
   end {integerarithmetic} ;
 
@@ -3397,7 +3417,7 @@ procedure divintx;
     {unpkshkboth(len);}
     addressboth;
     loadreg(left, right);
-    loadreg(right, left);
+    prepareoprnd(right, left, [register], false);
     if (pseudobuff.op = getrem) or (pseudoinst.refcount = 2) then
       begin
       lock(right);
@@ -4737,9 +4757,11 @@ procedure codeone;
       movcstruct: movcstructx;
       addstr: addstrx;
 }
-      addint: integerarithmetic(add);
-      subint, subptr: integerarithmetic(sub);
-      mulint: integerarithmetic(mul);
+      addint, addptr:
+        integerarithmetic(add, [intconst, register, extend_reg, shift_reg], false);
+      subint, subptr:
+        integerarithmetic(sub, [intconst, register, extend_reg, shift_reg], false);
+      mulint: integerarithmetic(mul, [register], false);
       stddivint: divintx;
       divint: divintx;
       getquo: getquox;
@@ -4749,15 +4771,12 @@ procedure codeone;
       negint: unaryint(neg);
       incint: incdec(add);
       decint: incdec(sub);
-{
-      orint: integerarithmetic(orinst);
-      andint: integerarithmetic(andinst);
-      xorint: xorintx;
-      addptr: addptrx;
-      compbool: incdec(add, true);
-}
+      orint: integerarithmetic(orinst, [intconst, register, shift_reg], true);
+      andint: integerarithmetic(andinst, [intconst, register, shift_reg], true);
+      xorint: integerarithmetic(eor, [intconst, register, shift_reg], true);
       compint: compintx;
 {
+      compbool: incdec(add, true);
       addreal: realarithmeticx(true, libfadd, libdadd, fadd);
       subreal: realarithmeticx(false, libfsub, libdsub, fsub);
       mulreal: realarithmeticx(true, libfmult, libdmult, fmul);

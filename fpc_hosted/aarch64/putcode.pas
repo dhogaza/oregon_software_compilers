@@ -455,6 +455,8 @@ begin
     add: write(macfile, 'add');
     adr: write(macfile, 'adr');
     adrp: write(macfile, 'adrp');
+    andinst: write(macfile, 'and');
+    ands: write(macfile, 'ands');
     asrinst: write(macfile, 'asr');
     b: write(macfile, 'b');
     bcc: write(macfile, 'b.cc');
@@ -478,6 +480,8 @@ begin
     cinv: write(macfile, 'cinv');
     cmp: write(macfile, 'cmp');
     cmn: write(macfile, 'cmn');
+    eon: write(macfile, 'eors');
+    eor: write(macfile, 'eor');
     ldr: write(macfile, 'ldr');
     ldrb: write(macfile, 'ldrb');
     ldrh: write(macfile, 'ldrh');
@@ -497,6 +501,8 @@ begin
     mul: write(macfile, 'mul');
     mvn: write(macfile, 'mvn');
     neg: write(macfile, 'neg');
+    orinst: write(macfile, 'orr');
+    orn: write(macfile, 'orn');
     ret: write(macfile, 'ret');
     sdiv: write(macfile, 'sdiv');
     stp: write(macfile, 'stp');
@@ -536,7 +542,7 @@ begin
     begin
       write(macfile, o.imm12_value);
       if o.imm12_shift then
-        write(macfile, ', lsl 12');
+        write(macfile, ',lsl 12');
     end;
     fpregister: write(macfile, 's', o.reg);
     register: write_reg(o.reg, sf);

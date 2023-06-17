@@ -1,17 +1,12 @@
-%include 'testlib';
-
+{$nomain}
+var j: integer;
 procedure p(i: integer);
 begin
-  putint(i); putln;
+  i := i + 3;
+  i := i + 4095;
+  i := i + (4096 * 4095);
+  i := i + (4096 * 4096);
+  i := i + 100000;
+  i := i and 255;
 end;
 
-begin
-  p(65535);
-  p(65536);
-  p(65537);
-  p(65539);
-  p(-1);
-  p(-65536);
-  p(-65537);
-  p(-65539);
-end.
