@@ -14,6 +14,8 @@ procedure exitcode;
 
 implementation
 
+procedure loadreg(var k: keyindex; other: keyindex); forward;
+
 procedure dumpstack;
 
   var i: integer;
@@ -2218,6 +2220,26 @@ procedure initblock;
 
 { code gen utilities }
 
+procedure handle_intconst12(var k: keyindex; other: keyindex);
+
+  begin {handle_intconst12}
+    with keytable[k],oprnd do
+      if mode = intconst then
+        case int_value and $FFFFFFFF of
+          $0..$FFF:
+            begin
+            settemp(len, imm12_oprnd(int_value, false));
+            k := tempkey;
+            end;
+          $1000..$FFF000: 
+            begin
+            settemp(len, imm12_oprnd(int_value, true));
+            k := tempkey;
+            end;
+          otherwise loadreg(k, other); 
+        end;
+  end {handle_intconst12};
+
 procedure handle_intconst16(var k: keyindex; var movinst: insts; r: regindex);
 
   { Given an abstract intconst operand, materialize it into either
@@ -3247,7 +3269,6 @@ procedure unaryint(inst: insts);
 
 procedure compintx;
 
-{DRB cinv doesn't work with al!}
   begin {compintx}
 {    unpackshrink(left, len);}
     settargetorreg; 
