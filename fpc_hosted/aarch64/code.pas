@@ -2065,6 +2065,14 @@ procedure addressboth;
   end {addressboth} ;
 
 procedure makedstaddressable(k: keyindex);
+
+{ If the destination is a volatile register, use it again but
+  mark it unsaved so that future uses as a value outside the
+  current context have a stack value to fall back on.
+
+  Otherwise, do a regular makeaddressable on it.
+}
+
   var
     i: keyindex;
 
@@ -2072,12 +2080,7 @@ procedure makedstaddressable(k: keyindex);
     with keytable[k], oprnd do
       if (mode = register) then
         begin
-        if not regvalid then
-          begin
-          reg := getreg;
-          regvalid := true;
-          adjustregcount(k, keytable[k].refcount);
-          end;
+        regvalid := true;
         regsaved := false;
         if (reg >= firstreg) and (reg <= lastreg) then
           for i := context[contextsp].keymark downto 1 do
@@ -2232,7 +2235,6 @@ procedure handle_intconst12(var k: keyindex; other: keyindex);
           end
         else if ((int_value and $FFF) = 0) and (int_value <= $FFF000) then
           begin
-writeln(int_value, ', ', HexStr(int_value, 8));
           settemp(len, imm12_oprnd(int_value div $1000, true));
           k := tempkey;
           end
@@ -2351,7 +2353,7 @@ procedure gensimplemove(src: keyindex; dst: keyindex);
     else if keytable[src].oprnd.mode <> register then
       begin
       lock(dst);
-      settemp(long, reg_oprnd(getreg));
+      settemp(long, reg_oprnd(ip0));
       unlock(dst);
       if keytable[src].oprnd.mode = imm16 then
         gen2(buildinst(i, true, false), tempkey, src)
@@ -2464,6 +2466,18 @@ procedure prepareoprnd(var k: keyindex; { the key we're interested inn }
         handle_intconst12(k, other)
       else loadreg(k, other)
   end {prepareoprnd};
+
+function preparelitint(value: integer; other: keyindex): keyindex;
+
+  var
+    newkey: keyindex;
+
+  begin
+    settemp(len, intconst_oprnd(right));
+    newkey := tempkey;
+    handle_intconst12(newkey, other);
+    preparelitint := newkey;
+  end;
 
 procedure clearcontext;
 
@@ -3365,6 +3379,7 @@ procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
   var
     packingmod: shortint;
     i: insts;
+    litkey: keyindex;
 
   begin
     address(left);
@@ -3383,8 +3398,8 @@ procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
         i := cmn;
         right := -right;
         end;
-      settemp(len, imm12_oprnd(right, false));
-      gen2(buildinst(i, len = long, false), left, tempkey);
+      litkey := preparelitint(right, left);
+      gen2(buildinst(i, len = long, false), left, litkey);
       if keytable[left].signed then
         setbr(signedbr, nomode_oprnd)
       else
@@ -4952,7 +4967,9 @@ procedure codeone;
       dumppseudo(macfile);
       if keytable[key].first <> nil then
         write_nodes(keytable[key].first, keytable[key].last);
+{
       dumpstack;
+}
       end;
   end {codeone};
 

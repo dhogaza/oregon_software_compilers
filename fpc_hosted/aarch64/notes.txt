@@ -2,7 +2,11 @@
 
 0. change registers to a enum to make sets of them more reasonable?
 
-0.1 fix up lastlabel/newlabel/definelastlabel bullshit
+0.01 change settemp to be a function to avoid the kind of problem
+     ran into with cmplitint.
+
+0.1 finish immediate mode stuff for cmp/cmplit/other_lit, including
+    the generation of bitmasks.
 
 0.2 improve vs pushfinal which no longer exists (simpleinvar), need
     to add a finalop to replace pushfinal?  This is used to designate
@@ -13,6 +17,8 @@
     align variables, too.
 
     This makes using 2, 4, 8 byte moves possible for structs.
+
+0.4 fix up lastlabel/newlabel/definelastlabel bullshit
 
 0.5 a new form of index which indexes a register by the lower 12
     bits of a symbol ... 
