@@ -1,16 +1,35 @@
 {$nomain}
-var j,k: integer;
-procedure p(i: integer);
-begin
-  i := i + 4095;
-  i := i + (4096 * 4095);
-  i := i + (4096 * 4096);
-  i := i + 100000;
-  if j < k then i := 4;
-  if j > k then i := 3;
-  if j < 3 then i := 4;
-  if j > -1 then i := 3;
-  if j < 4096 then i := 10;
-  if j < 4097 then i := 20;
-end;
+{glibc}
+procedure putchar(ch: char); external;
 
+{defined here}
+procedure putint(i: integer); external;
+
+procedure putint;
+
+  var
+    digits: packed array [0..18] of char;
+    j: integer;
+
+  begin
+{
+    if i < 0 then
+    begin
+      putchar('-');
+      i := -i;
+    end;
+}
+    j := 0;
+    repeat
+      digits[j] := chr(i mod 10 + ord('0'));
+      j := j + 1;
+      i := i div 10;
+    until i = 0;
+{
+    repeat
+      j := j - 1;
+      putchar(digits[j]);
+    until j = 0;
+}
+
+  end;

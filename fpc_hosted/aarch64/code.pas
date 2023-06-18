@@ -528,7 +528,7 @@ procedure setkeyentry(k: keyindex; l:unsigned; o: oprndtype);
       end;
   end {setkeyentry};
 
-procedure settemp(l: unsigned; o: oprndtype);
+function settemp(l: unsigned; o: oprndtype): keyindex;
 
 { Set up a temporary key entry with the given operand.  This has
   nothing to do with runtime temp administration.  It strictly sets up a key
@@ -541,6 +541,7 @@ procedure settemp(l: unsigned; o: oprndtype);
     if tempkey = lowesttemp then compilerabort(interntemp);
     tempkey := tempkey - 1;
     setkeyentry(tempkey, l, o);
+    settemp := tempkey;
   end {settemp} ;
 
 
@@ -1068,9 +1069,8 @@ procedure gen4(i: insttype;
 procedure genbr(inst: insts; labelno: integer);
 
   begin {genbr}
-    settemp(long, labeltarget_oprnd(labelno, false, 0));
-    gen1(buildinst(inst, false, false), tempkey);
-    tempkey := tempkey + 1;
+    gen1(buildinst(inst, false, false),
+         settemp(long, labeltarget_oprnd(labelno, false, 0)));
     context[contextsp].lastbranch := lastnode;
   end {genbr};
 
@@ -1796,9 +1796,10 @@ function savereg(r: regindex {register to save}) : keyindex;
       begin
       if not found then
         savekey := stacktemp(long);
-      settemp(long, reg_oprnd(r));
       p := newnode(instnode);
-      gen2p(p, buildinst(str, true, false), tempkey, savekey);
+      gen2p(p, buildinst(str, true, false),
+               settemp(long, reg_oprnd(r)),
+               savekey);
       addtempsave(savekey, p, lastnode);
 {if switcheverplus[test] and (keytable[key].first <> nil) then
 begin
@@ -2173,17 +2174,17 @@ procedure makeaddressable(var k: keyindex);
         else
           oprnd.reg := getreg;
         recall_reg(oprnd.reg, properreg);
-        settemp(long, reg_oprnd(reg));
-        gen2(buildinst(ldr, true, false), tempkey, properreg);
-        tempkey := tempkey + 1;
+        gen2(buildinst(ldr, true, false),
+             settemp(long, reg_oprnd(reg)),
+             properreg);
         end;
       if restorereg2 then
         begin
         oprnd.reg2 := getreg;
         recall_reg(oprnd.reg2, properreg2);
-        settemp(long, reg_oprnd(reg2));
-        gen2(buildinst(ldr, true, false), tempkey, properreg);
-        tempkey := tempkey + 1;
+        gen2(buildinst(ldr, true, false),
+             settemp(long, reg_oprnd(reg2)),
+             properreg);
         end;
       regvalid := true;
       reg2valid := true;
@@ -2383,8 +2384,7 @@ procedure handle_bitmask(var k: keyindex; other: keyindex);
     with keytable[k].oprnd do
       if is_bitmask(int_value, 32) then
         begin
-        settemp(len, immbitmask_oprnd(int_value));
-        k := tempkey;
+        k := settemp(len, immbitmask_oprnd(int_value));
         end
       else loadreg(k, other); 
   end {handle_intconst12};
@@ -2395,15 +2395,9 @@ procedure handle_intconst12(var k: keyindex; other: keyindex);
     with keytable[k].oprnd do
       if mode = intconst then
         if (int_value >= 0) and (int_value <= $FFF) then
-          begin
-          settemp(len, imm12_oprnd(int_value, false));
-          k := tempkey;
-          end
+          k := settemp(len, imm12_oprnd(int_value, false))
         else if ((int_value and $FFF) = 0) and (int_value <= $FFF000) then
-          begin
-          settemp(len, imm12_oprnd(int_value div $1000, true));
-          k := tempkey;
-          end
+          k := settemp(len, imm12_oprnd(int_value div $1000, true))
         else loadreg(k, other); 
   end {handle_intconst12};
 
@@ -2433,29 +2427,24 @@ procedure handle_intconst16(var k: keyindex; var movinst: insts; r: regindex);
           $0..$FFFF:
             begin
             movinst := movz;
-            settemp(len, imm16_oprnd(val, 0));
+            k := settemp(len, imm16_oprnd(val, 0));
             end;
           {16-bit negative value}
           $FFFF0000..$FFFFFFFF:
             begin
             movinst := movn;
-            settemp(len, imm16_oprnd((not val) and $FFFF, 0));
+            k := settemp(len, imm16_oprnd((not val) and $FFFF, 0));
             end;
           otherwise
             begin
-            settemp(len, imm16_oprnd(val and $FFFF, 0));
-            settemp(len, imm16_oprnd((val shr 16) and $FFFF, 16));
-            settemp(len, reg_oprnd(r));
+            k := settemp(len, reg_oprnd(r));
+            gen2(buildinst(movz, true, false), k,
+                 settemp(len, imm16_oprnd((val shr 16) and $FFFF, 16)));
             if (val and $FFFF) <> 0 then
-              begin
-              gen2(buildinst(movz, true, false), tempkey, tempkey + 2);
-              gen2(buildinst(movk, true, false), tempkey, tempkey + 1);
-              end
-            else
-              gen2(buildinst(movz, true, false), tempkey, tempkey + 1);
+              gen2(buildinst(movk, true, false), k,
+                   settemp(len, imm16_oprnd(val and $FFFF, 0)));
             end
         end;
-      k := tempkey;
       end
   end {handle_intconst16};
 
@@ -2502,6 +2491,7 @@ procedure gensimplemove(src: keyindex; dst: keyindex);
 
   var
     i: insts;
+    ip0temp: keyindex;
 
   begin {gensimplemove}
     i := mov;
@@ -2518,14 +2508,12 @@ procedure gensimplemove(src: keyindex; dst: keyindex);
       gen2(ldrinst(keytable[src].len, keytable[src].signed), dst, src)
     else if keytable[src].oprnd.mode <> register then
       begin
-      lock(dst);
-      settemp(long, reg_oprnd(ip0));
-      unlock(dst);
+      ip0temp := settemp(long, reg_oprnd(ip0));
       if keytable[src].oprnd.mode = imm16 then
-        gen2(buildinst(i, true, false), tempkey, src)
+        gen2(buildinst(i, true, false), ip0temp, src)
       else
-        gen2(ldrinst(keytable[src].len, keytable[src].signed), tempkey, src);
-      gen2(strinst(keytable[dst].len), tempkey, dst);
+        gen2(ldrinst(keytable[src].len, keytable[src].signed), ip0temp, src);
+      gen2(strinst(keytable[dst].len), ip0temp, dst);
       end
     else gen2(strinst(keytable[dst].len), src, dst);
   end {gensimplemove} ;
@@ -2556,17 +2544,15 @@ procedure genmoveaddress(src, dst: keyindex);
            (keytable[dst].oprnd.reg <> reg) or
            (index <> 0) then
           begin
-          settemp(long, reg_oprnd(reg));
-          settemp(long, imm12_oprnd(index, false));
-          gen3(buildinst(add, true, false), dst, tempkey + 1, tempkey);
-          tempkey := tempkey + 2;
+          gen3(buildinst(add, true, false), dst,
+               settemp(long, reg_oprnd(reg)),
+               settemp(long, imm12_oprnd(index, false)));
           end;
       reg_offset:
         begin
-        settemp(long, reg_oprnd(reg));
-        settemp(long, extend_reg_oprnd(reg2, extend, shift, signed));
-        gen3(buildinst(add, true, false), dst, tempkey + 1, tempkey);
-        tempkey := tempkey + 2;
+        gen3(buildinst(add, true, false), dst,
+             settemp(long, reg_oprnd(reg)),
+             settemp(long, extend_reg_oprnd(reg2, extend, shift, signed)));
         end;
       otherwise
         begin
@@ -2601,10 +2587,9 @@ procedure loadreg(var k: keyindex; other: keyindex);
     if keytable[k].oprnd.mode <> register then
       begin
       lock(other);
-      settemp(keytable[k].len, reg_oprnd(getreg));
-      newkey := tempkey;
-      settemp(keytable[k].len, keytable[k].oprnd);
-      gensimplemove(tempkey, newkey);
+      newkey := settemp(keytable[k].len, reg_oprnd(getreg));
+      gensimplemove(settemp(keytable[k].len, keytable[k].oprnd),
+                    newkey);
       unlock(other);
       changevalue(k, newkey);
       end;
@@ -2643,8 +2628,7 @@ function preparelitint(value: integer; other: keyindex): keyindex;
     newkey: keyindex;
 
   begin
-    settemp(len, intconst_oprnd(right));
-    newkey := tempkey;
+    newkey := settemp(len, intconst_oprnd(right));
     handle_intconst12(newkey, other);
     preparelitint := newkey;
   end;
@@ -3554,21 +3538,22 @@ procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
   begin
     address(left);
     loadreg(left, 0);
-    if (right = 0) and (signedbr in [beq, bne]) then
+    if (pseudoinst.oprnds[2] = 0) and (signedbr in [beq, bne]) then
       if signedbr = beq then
         setbr(cbz, keytable[left].oprnd)
       else
         setbr(cbz, keytable[left].oprnd)
     else
       begin
-      if not keytable[left].signed or (right >= 0) then
+      if not keytable[left].signed or
+         (pseudoinst.oprnds[2] >= 0) then
         i := cmp
       else
         begin
         i := cmn;
-        right := -right;
+        pseudoinst.oprnds[2]:= -pseudoinst.oprnds[2];
         end;
-      litkey := preparelitint(right, left);
+      litkey := preparelitint(pseudoinst.oprnds[2], left);
       gen2(buildinst(i, len = long, false), left, litkey);
       if keytable[left].signed then
         setbr(signedbr, nomode_oprnd)
@@ -3836,7 +3821,7 @@ procedure dostructx;
 
 begin {dostructx}
   settemp(long, reg_oprnd(getreg));
-  settemp(long, labeltarget_oprnd(rodatalabel, false, left));
+  settemp(long, labeltarget_oprnd(rodatalabel, false, pseudoinst.oprnds[1]));
   gen2(buildinst(adrp, true, false), tempkey + 1, tempkey);
   keytable[tempkey].oprnd.lowbits := true;
   gen3(buildinst(add, true, false), tempkey + 1, tempkey + 1, tempkey);
@@ -4151,10 +4136,10 @@ procedure regtargetx;
 
   begin {regtargetx}
     regparam_target := pseudoinst.key;
-    setvalue(reg_oprnd(left));
-    regused[left] := true;
-    if left > firstreg then
-        firstreg := left;
+    setvalue(reg_oprnd(pseudoinst.oprnds[1]));
+    regused[pseudoinst.oprnds[1]] := true;
+    if pseudoinst.oprnds[1] > firstreg then
+        firstreg := pseudoinst.oprnds[1];
   end {regtargetx} ;
 
 procedure regtempx;
@@ -4217,7 +4202,7 @@ procedure movlitintx;
 
   begin
     addressdst(left);
-    settemp(len, intconst_oprnd(right));
+    settemp(len, intconst_oprnd(pseudoinst.oprnds[2]));
     gensimplemove(tempkey, left); 
     savedstkey(left);
     setallfields(left);
@@ -4227,7 +4212,7 @@ procedure pshintptrx;
 
   begin {pshintptrx}
     address(left);
-    settemp(len, intconst_oprnd(left));
+    settemp(len, imm16_oprnd(0, 0));
     gensimplemove(tempkey, key);
   end {pshintptrx};
 
@@ -4286,13 +4271,14 @@ procedure regparamx;
 var o: oprndtype;
 
 begin {regparamx}
-  setvalue(reg_oprnd(target));
-  regused[target] := true;
+  setvalue(reg_oprnd(pseudoinst.oprnds[3]));
+  regused[pseudoinst.oprnds[3]] := true;
   if left <> 0 then
     begin
     address(left);
     with keytable[left].oprnd do
-      settemp(long, index_oprnd(unsigned_offset, reg, index + right));
+      settemp(long, index_oprnd(unsigned_offset, reg,
+              index + pseudoinst.oprnds[2]));
     gensimplemove(key, tempkey);
     setkeyvalue(tempkey);
     end;
@@ -4304,9 +4290,11 @@ procedure indxx;
   in oprnds[2].  The result ends up in "key".
 }
 
+  var
+    newkey: keyindex;
 
   begin {indxx}
-    if right = 0 then
+    if pseudoinst.oprnds[2] = 0 then
       begin
       setallfields(left);
       dereference(left);
@@ -4321,15 +4309,17 @@ procedure indxx;
       case keytable[left].oprnd.mode of
         reg_offset:
           begin
-          settemp(long, reg_oprnd(getreg));
-          genmoveaddress(left, tempkey);
-          setvalue(index_oprnd(signed_offset, keytable[tempkey].oprnd.reg, right));
+          newkey := settemp(long, reg_oprnd(getreg));
+          genmoveaddress(left, newkey);
+          setvalue(index_oprnd(signed_offset,
+                   keytable[newkey].oprnd.reg, pseudoinst.oprnds[2]));
           end;
         signed_offset, unsigned_offset:
           begin
           setkeyvalue(left);
           keytable[key].len := long; {unnecessary?}
-          keytable[key].oprnd.index := keytable[key].oprnd.index + right;
+          keytable[key].oprnd.index :=
+            keytable[key].oprnd.index + pseudoinst.oprnds[2];
           end
       end
 {
@@ -4563,17 +4553,17 @@ procedure callroutinex(s: boolean {signed function value} );
       begin
 
       { direct call }
-      linkreg := proctable[left].intlevelrefs and
-                 (proctable[left].level > 2);
+      linkreg := proctable[pseudoinst.oprnds[1]].intlevelrefs and
+                 (proctable[pseudoinst.oprnds[1]].level > 2);
 
       if linkreg then
         begin
         regused[sl] := true;
-        levelhack := level - proctable[left].level;
+        levelhack := level - proctable[pseudoinst.oprnds[1]].level;
         if levelhack < 0 then
           gensimplemove(framekey, slkey);
         end;
-      settemp(long, proccall_oprnd(left, max(0, levelhack)));
+      settemp(long, proccall_oprnd(pseudoinst.oprnds[1], max(0, levelhack)));
       gen1(buildinst(bl, false, false), tempkey);
       end
     else
@@ -4595,7 +4585,7 @@ procedure callroutinex(s: boolean {signed function value} );
 
     { later need to deal with x0/x1 pairs.
     }
-     if proctable[left].realfunction then
+     if proctable[pseudoinst.oprnds[1]].realfunction then
        setvalue(fpreg_oprnd(0))
     else if (len <= long) then
       setvalue(reg_oprnd(0));
@@ -4676,9 +4666,9 @@ begin {casebranchx}
   scratch := tempkey;
   lock(scratch);
   gensimplemove(target, scratch);
-  settemp(long, imm12_oprnd(left, false));
+  settemp(long, imm12_oprnd(pseudoinst.oprnds[1], false));
   gen3(buildinst(sub, false, false), scratch, scratch, tempkey);
-  settemp(long, imm12_oprnd(right - left, false));
+  settemp(long, imm12_oprnd(pseudoinst.oprnds[2] - pseudoinst.oprnds[1], false));
   gen2(buildinst(cmp, false, false), scratch, tempkey);
   if errordefault then
     begin
