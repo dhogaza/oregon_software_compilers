@@ -1,13 +1,11 @@
-var j,k: integer;
+{$nomain}
+procedure exit(code: integer); external;
+procedure putchar(ch: char); external;
+procedure putstringln(a:packed array [l..h: integer] of char); external;
 
+procedure _p_caseerr;
+  begin
+    putstringln('case error');
+    exit(1);
+  end;
 
-procedure p;
-
-begin
- j := k and $7777777;
-{
- k := $77777777;
-}
-end;
-
-begin p; end.
