@@ -544,6 +544,7 @@ begin
       if o.imm12_shift then
         write(macfile, ',lsl 12');
     end;
+    immbitmask: write(macfile, o.bitmask_value);
     fpregister: write(macfile, 's', o.reg);
     register: write_reg(o.reg, sf);
     pre_index:

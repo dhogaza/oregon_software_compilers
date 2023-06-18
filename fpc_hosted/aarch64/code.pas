@@ -351,6 +351,141 @@ begin {bits}
   bits := b;
 end {bits};
 
+{ Weird bitmask patters for aarch64 are handled by the following
+  two functions shamelessly lifted from Free Pascal.  
+}
+
+function first_set_bit(i: cardinal): integer;
+
+{ Return the index of the first set bit in i, counting from bit 0, which is
+  the rightmost bit on this machine.
+
+  Weird return value of 255 is for compatibility with Free Pascal's BsfWord.
+}
+
+  var
+    count: integer;
+begin
+  count := 0;
+  while (i <> 0) and not odd(i) do
+    begin
+    count := count + 1;
+    i := i div 2;
+    end;
+  if i = 0 then first_set_bit := 255
+  else first_set_bit := count;  
+end;
+
+function is_bitmask(d: cardinal; size: integer): boolean;
+
+{ Returns true if d can be represented by an aarch64's innovative 2-bit 
+  immr:imms bitmask implementation.  We needn't convert the constant to
+  that format because the assembler will do it for us, and Free Pascal,
+  like us, only emits assembly output.
+
+  This will only work for 32-bit integers and 32-bit masks at the moment.
+}
+
+  var
+     pattern, checkpattern: cardinal;
+     patternlen, maxbits, replicatedlen: integer;
+     rightmostone, rightmostzero, checkbit, secondrightmostbit: longint;
+  begin
+    is_bitmask := false;
+    maxbits := 32;
+
+    { patterns with all bits 0 or 1 cannot be represented this way, which
+      makes sense because the result of an "and" or "or" operation with
+      those masks is known at compile time.
+    }
+
+    if (d = 0) or (d = $FFFFFFFF) then
+      exit
+    else
+    begin
+
+    { "The Logical (immediate) instructions accept a bitmask immediate value
+      that is a 32-bit pattern or a 64-bit pattern viewed as a vector of
+      identical elements of size e = 2, 4, 8, 16, 32 or, 64 bits. Each
+      element contains the same sub-pattern, that is a single run of
+      1 to (e - 1) set bits from bit 0 followed by zero bits, then
+      rotated by 0 to (e - 1) bits." (ARMv8 ARM)
+
+      Rather than generating all possible patterns and checking whether they
+      match our constant, we check whether the lowest 2/4/8/... bits are
+      a valid pattern, and if so whether the constant consists of a
+      replication of this pattern. Such a valid pattern has the form of
+      either (regexp notation)
+        * 1+0+1*
+        * 0+1+0* }
+
+    patternlen:=2;
+    while patternlen<=maxbits do
+      begin
+        { try lowest <patternlen> bits of d as pattern }
+        if patternlen<>64 then
+          pattern:=qword(d) and ((qword(1) shl patternlen)-1)
+        else
+          pattern:=qword(d);
+        { valid pattern? If it contains too many 1<->0 transitions, larger
+          parts of d cannot be a valid pattern either }
+        rightmostone:=first_set_bit(pattern);
+        rightmostzero:=first_set_bit(not(pattern));
+        { pattern all ones or zeroes -> not a valid pattern (but larger ones
+          can still be valid, since we have too few transitions) }
+        if (rightmostone<patternlen) and
+           (rightmostzero<patternlen) then
+          begin
+            if rightmostone>rightmostzero then
+              begin
+                { we have .*1*0* -> check next zero position by shifting
+                  out the existing zeroes (shr rightmostone), inverting and
+                  then again looking for the rightmost one position }
+                checkpattern:=not(pattern);
+                checkbit:=rightmostone;
+              end
+            else
+              begin
+                { same as above, but for .*0*1* }
+                checkpattern:=pattern;
+                checkbit:=rightmostzero;
+              end;
+            secondrightmostbit:=first_set_bit(checkpattern shr checkbit)+checkbit;
+            { if this position is >= patternlen -> ok (1 transition),
+              otherwise we now have 2 transitions and have to check for a
+              third (if there is one, abort)
+
+              first_set_bit returns 255 if no 1 bit is found, so in that case it's
+              also ok
+              }
+            if secondrightmostbit<patternlen then
+              begin
+                secondrightmostbit:=first_set_bit(not(checkpattern) shr secondrightmostbit)+secondrightmostbit;
+                if secondrightmostbit<patternlen then
+                  exit;
+              end;
+            { ok, this is a valid pattern, now does d consist of a
+              repetition of this pattern? }
+            replicatedlen:=patternlen;
+            checkpattern:=pattern;
+            while replicatedlen<maxbits do
+              begin
+                { douplicate current pattern }
+                checkpattern:=checkpattern or (checkpattern shl replicatedlen);
+                replicatedlen:=replicatedlen*2;
+              end;
+            if qword(d)=checkpattern then
+              begin
+                { yes! }
+                is_bitmask:=true;
+                exit;
+              end;
+          end;
+        patternlen:=patternlen*2;
+      end;
+  end;
+end;
+
 function regmoveok(n: integer): boolean;
 
   var
@@ -464,6 +599,7 @@ function nomode_oprnd: oprndtype;
 
   var
     o:oprndtype;
+
   begin
     o.mode := nomode;
     o.reg := noreg;
@@ -475,6 +611,7 @@ function reg_oprnd(reg: regindex): oprndtype;
 
   var
     o:oprndtype;
+
   begin
     o.mode := register;
     o.reg := reg;
@@ -486,6 +623,7 @@ function fpreg_oprnd(reg: regindex): oprndtype;
 
   var
     o:oprndtype;
+
   begin
     o.mode := fpregister;
     o.reg := reg;
@@ -497,6 +635,7 @@ function imm16_oprnd(imm16_value: bits16; imm16_shift: unsigned): oprndtype;
 
   var
     o:oprndtype;
+
   begin
     o.reg := noreg;
     o.reg2 := noreg;
@@ -510,6 +649,7 @@ function imm12_oprnd(imm12_value: bits12; imm12_shift: boolean): oprndtype;
 
   var
     o:oprndtype;
+
   begin
     o.reg := noreg;
     o.reg2 := noreg;
@@ -518,6 +658,20 @@ function imm12_oprnd(imm12_value: bits12; imm12_shift: boolean): oprndtype;
     o.imm12_shift := imm12_shift;
     imm12_oprnd := o;
   end;
+
+function immbitmask_oprnd(bitmask_value: unsigned): oprndtype;
+
+  var
+    o:oprndtype;
+
+  begin
+    o.reg := noreg;
+    o.reg2 := noreg;
+    o.mode := immbitmask;
+    o.bitmask_value := bitmask_value;
+    immbitmask_oprnd := o;
+  end;
+
 
 function shift_reg_oprnd(reg: regindex; reg_shift: reg_shifts;
                          shift_amount: bits6): oprndtype;
@@ -2223,6 +2377,18 @@ procedure initblock;
 
 { code gen utilities }
 
+procedure handle_bitmask(var k: keyindex; other: keyindex);
+
+  begin {handle_bitmask}
+    with keytable[k].oprnd do
+      if is_bitmask(int_value, 32) then
+        begin
+        settemp(len, immbitmask_oprnd(int_value));
+        k := tempkey;
+        end
+      else loadreg(k, other); 
+  end {handle_intconst12};
+
 procedure handle_intconst12(var k: keyindex; other: keyindex);
 
   begin {handle_intconst12}
@@ -2463,11 +2629,15 @@ procedure prepareoprnd(var k: keyindex; { the key we're interested inn }
       if not (mode in modes) then
         loadreg(k, other)
       else if mode = intconst then
-        handle_intconst12(k, other)
+        if bitmask then handle_bitmask(k, other)
+        else handle_intconst12(k, other)
       else loadreg(k, other)
   end {prepareoprnd};
 
 function preparelitint(value: integer; other: keyindex): keyindex;
+
+  { none of the lit pseudoops have a literal bitmask.
+  }
 
   var
     newkey: keyindex;
