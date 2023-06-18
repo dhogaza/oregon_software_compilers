@@ -5,8 +5,8 @@
 0.01 change settemp to be a function to avoid the kind of problem
      ran into with cmplitint.
 
-0.1 finish immediate mode stuff for cmp/cmplit/other_lit, including
-    the generation of bitmasks.
+0.1 finish immediate mode stuff for for loop induction vars, and
+    to change movz/movk pairs to mov if the literal is a bitmask.
 
 0.2 improve vs pushfinal which no longer exists (simpleinvar), need
     to add a finalop to replace pushfinal?  This is used to designate
