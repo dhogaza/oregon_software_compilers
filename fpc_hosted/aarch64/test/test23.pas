@@ -111,6 +111,9 @@ begin
   putstring('-65539? ');
   putintln(-65539);
 
+  putstring('2004318071? ');
+  putintln(16#77777777);
+
   putstringln('end of integer const generation and putint tests');
   putln;
 

@@ -2438,11 +2438,20 @@ procedure handle_intconst16(var k: keyindex; var movinst: insts; r: regindex);
           otherwise
             begin
             k := settemp(len, reg_oprnd(r));
-            gen2(buildinst(movz, true, false), k,
-                 settemp(len, imm16_oprnd((val shr 16) and $FFFF, 16)));
-            if (val and $FFFF) <> 0 then
-              gen2(buildinst(movk, true, false), k,
-                   settemp(len, imm16_oprnd(val and $FFFF, 0)));
+            if ((val and $FFFF) <> 0) and is_bitmask(val, 32) then
+              gen2(buildinst(mov, false, false), k, 
+                   settemp(len, immbitmask_oprnd(val)))
+            else
+              begin
+              { Done in this order because peepholing might be able
+                reuse high bits for successive constants.
+              }
+              gen2(buildinst(movz, true, false), k,
+                   settemp(len, imm16_oprnd((val shr 16) and $FFFF, 16)));
+              if (val and $FFFF) <> 0 then
+                gen2(buildinst(movk, true, false), k,
+                     settemp(len, imm16_oprnd(val and $FFFF, 0)));
+              end
             end
         end;
       end
@@ -2508,9 +2517,9 @@ procedure gensimplemove(src: keyindex; dst: keyindex);
       gen2(ldrinst(keytable[src].len, keytable[src].signed), dst, src)
     else if keytable[src].oprnd.mode <> register then
       begin
-      ip0temp := settemp(long, reg_oprnd(ip0));
+      ip0temp := settemp(keytable[dst].len, reg_oprnd(ip0));
       if keytable[src].oprnd.mode = imm16 then
-        gen2(buildinst(i, true, false), ip0temp, src)
+        gen2(buildinst(i, keytable[dst].len = long, false), ip0temp, src)
       else
         gen2(ldrinst(keytable[src].len, keytable[src].signed), ip0temp, src);
       gen2(strinst(keytable[dst].len), ip0temp, dst);
@@ -4217,6 +4226,11 @@ procedure pshintptrx;
   end {pshintptrx};
 
 procedure movemultiple;
+
+{ most handle very long operands as this craps out at
+  65535 bytes at the moment.  Not that we really want
+  to encourage moving such large structures.
+}
 
 begin {movemultiple}
 {
