@@ -2007,7 +2007,7 @@ procedure savekey(k: keyindex {operand to save} );
       with keytable[k] do
         if access = valueaccess then
           begin
-          bumptempcount(k, - refcount);
+          bumptempcount(k, -refcount);
           with oprnd do
             begin
               if regvalid and not regsaved and (reg <= lastreg) and
@@ -2019,11 +2019,14 @@ procedure savekey(k: keyindex {operand to save} );
               if reg2valid and not reg2saved and (reg2 <> noreg) and
                  (reg2 >= firstreg) and (reg2 <= lastreg) then
                 begin
+                { don't reuse the temp slot we just allocated!}
+                bumptempcount(k, refcount);
                 properreg2 := savereg(reg2);
+                bumptempcount(k, -refcount);
                 reg2saved := true;
                 end;
             end;
-          bumptempcount(k, refcount);
+            bumptempcount(k, refcount);
           end;
   end {savekey} ;
 
@@ -2178,11 +2181,13 @@ procedure makeaddressable(var k: keyindex);
         end;
       if restorereg2 then
         begin
+        registers[reg] := registers[reg] + maxrefcount;
         oprnd.reg2 := getreg;
+        registers[reg] := registers[reg] - maxrefcount;
         recall_reg(oprnd.reg2, properreg2);
         gen2(buildinst(ldr, true, false),
              settemp(long, reg_oprnd(reg2)),
-             properreg);
+             properreg2);
         end;
       regvalid := true;
       reg2valid := true;
@@ -3593,6 +3598,13 @@ procedure divintx;
         keytable[key].oprnd.mode := tworeg;
         keytable[key].oprnd.reg2 := keytable[tempkey].oprnd.reg;
         adjustregcount(key, pseudoinst.refcount);
+        { we only need to save the register which contains the result
+          we need later, not for the following pseudoop
+        }
+{
+        if pseudobuff.op = getquo then keytable[key].regsaved := true
+        else keytable[key].reg2saved := true;
+}
         end
       else
         gen4(buildinst(msub, len = long, false), key, key, right, left); 
@@ -3608,7 +3620,11 @@ procedure getquox;
 }
 
   begin {getquox}
+    if keytable[left].oprnd.mode = tworeg then
+      keytable[left].reg2valid := true;
     address(left);
+    keytable[key].regsaved := keytable[left].regsaved;
+    keytable[key].properreg := keytable[left].properreg; 
     setvalue(reg_oprnd(keytable[left].oprnd.reg));
   end {getquox} ;
 
@@ -3619,11 +3635,17 @@ procedure getremx;
 }
 
   begin {getremx}
+    if keytable[left].oprnd.mode = tworeg then
+      keytable[left].regvalid := true;
     address(left);
     if keytable[left].oprnd.mode = tworeg then
-      setvalue(reg_oprnd(keytable[left].oprnd.reg2))
+      begin
+      keytable[key].reg2saved := keytable[left].reg2saved;
+      keytable[key].properreg2 := keytable[left].properreg2; 
+      setvalue(reg_oprnd(keytable[left].oprnd.reg2));
+      end
     else
-      setkeyvalue(left);
+      setallfields(left);
   end {getremx} ;
 
 

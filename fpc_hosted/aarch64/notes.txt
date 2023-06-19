@@ -8,7 +8,7 @@
     type check for compatibility of the function return value with the first
     parameter.
 
-0.2 Also need to prewalk conditional expressions and convert them to 
+0.2 Also might need to prewalk conditional expressions and convert them to 
     boolean values outside the parameter list evaluation.  Or fix them.
     Also CSEs which I think is already done.
 
