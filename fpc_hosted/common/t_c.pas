@@ -38,7 +38,7 @@ type
               casebranch, caseelt, caseerr, castfptrint, castint, castintfptr,
               castintptr, castptr, castptrint, castreal, castrealint, chrstr,
               clearlabel, closerange, commafake, compbool, compint, congruchk,
-              copyaccess, copystack, createfalse, createtemp, createtrue,
+              copyaccess, copystack, condf, condt, createfalse, createtemp, createtrue,
               cvtdr, cvtrd, dataadd, dataaddr, dataend, datafaddr, datafield,
               datafill, dataint, datareal, datastart, datastore, datastruct,
               datasub, decint, defforindex, defforlitindex, definelazy,

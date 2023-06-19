@@ -162,6 +162,8 @@ procedure dumppseudo;
           congruchk: write('congruchk': 15);
           copyaccess: write('copyaccess': 15);
           copystack: write('copystack': 15);
+          conf: write('condf': 15);
+          cont: write('condt': 15);
           createfalse: write('createfalse': 15);
           createtemp: write('createtemp': 15);
           createtrue: write('createtrue': 15);

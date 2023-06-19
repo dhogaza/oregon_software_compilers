@@ -232,6 +232,8 @@ const
   maxparambytes = maxaddr {defaultptrsize}; {value params longer than this are
                                    passed by reference rather than copied}
   optimizeinvariants = true; {turns on removal of invariants from loops}
+  usecondops = false; {old-fashioned computer}
+  usebranchlessbools = false; {old-fashioned computer}
 
 
   {disk cache parameters}

@@ -234,6 +234,8 @@ const
   maxparambytes = 16; {value params longer than this are
                        passed by reference rather than copied}
   optimizeinvariants = true; {turns on removal of invariants from loops}
+  usecondops = true; {aarch64 has cset}
+  usebranchlessbools = true; {compares can be guarded by condition flags}
 
 
   {disk cache parameters}

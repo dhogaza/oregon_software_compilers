@@ -78,6 +78,8 @@ procedure dumppseudo(var f: text);
           congruchk: write(f, 'congruchk': 15);
           copyaccess: write(f, 'copyaccess': 15);
           copystack: write(f, 'copystack': 15);
+          condf: write('condf': 15);
+          condt: write('condt': 15);
           createfalse: write(f, 'createfalse': 15);
           createtemp: write(f, 'createtemp': 15);
           createtrue: write(f, 'createtrue': 15);
