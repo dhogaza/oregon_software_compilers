@@ -4680,7 +4680,7 @@ begin {casebranchx}
   gensimplemove(target, scratch);
   t1 := preparelitint(pseudoinst.oprnds[1], scratch);
   gen3(buildinst(sub, false, false), scratch, scratch, t1);
-  t1 := preparelitint(pseudoinst.oprnds[1] - pseudoinst.oprnds[1], scratch);
+  t1 := preparelitint(pseudoinst.oprnds[2] - pseudoinst.oprnds[1], scratch);
   gen2(buildinst(cmp, false, false), scratch, t1);
   if errordefault then
     begin
