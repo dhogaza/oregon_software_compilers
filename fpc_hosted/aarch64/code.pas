@@ -4146,6 +4146,7 @@ procedure regtargetx;
 
   begin {regtargetx}
     regparam_target := pseudoinst.key;
+    markreg(pseudoinst.oprnds[1]);
     setvalue(reg_oprnd(pseudoinst.oprnds[1]));
     regused[pseudoinst.oprnds[1]] := true;
     if pseudoinst.oprnds[1] > firstreg then
@@ -5135,9 +5136,9 @@ procedure codeone;
     if switcheverplus[test] then
       begin
       dumppseudo(macfile);
+{
       if keytable[key].first <> nil then
         write_nodes(keytable[key].first, keytable[key].last);
-{
       dumpstack;
 }
       end;

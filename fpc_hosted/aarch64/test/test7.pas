@@ -13,7 +13,15 @@ begin
   f2 := not (not b) and (i = 3);
 end;
 
+function f3: boolean;
 begin
-  i := 3;
-  b := f2(i, i < f(4));
+  f3 := true;
+end;
+
+begin
+  b := f2(f(3), 8 < f(4));
+{
+  b := f2(1, f3);
+  b := f2(f(3), true);
+}
 end.

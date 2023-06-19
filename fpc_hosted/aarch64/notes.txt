@@ -1,21 +1,5 @@
 -- next priorities:
 
-0.1 test7.pas
-
-    now is the time to figure out pre-walking of functions in parameter
-    lists.  
-
-    f(f(3, 4), 3) doesn't need to prewalk the call to f in the first parameter
-    location.  f(f(3,4), f(4,3)) needs to prewalk the f(4,3) call.  Need to
-    type check for compatibility of the function return value with the first
-    parameter.
-
-0.2 test7.pas
-
-    Also might need to prewalk conditional expressions and convert them to 
-    boolean values outside the parameter list evaluation.  Or fix them.
-    Also CSEs which I think is already done.
-
 0.2 improve vs pushfinal which no longer exists (simpleinvar), need
     to add a finalop to replace pushfinal?  This is used to designate
     an invariant final limit ...

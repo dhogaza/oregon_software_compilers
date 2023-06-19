@@ -310,6 +310,49 @@ procedure definejoinlabel(l: labelrange {label to define} );
 }
 
 
+procedure unnestparams(root: nodeindex {tree to visit});
+
+{ This procedure visits all nodes in the tree rooted in "root" and
+  generates pseudocode for all function calls in the parameter
+  list unless it is destined for the first param register for
+  that type.
+
+  This is hardwired in at the moment because it is true for aarch64
+  and I'm unlikely to write any more code generators, plus it's 
+  likely true for the ABI for any architecture that passes
+  parameters in registers.
+
+  Call shortvisit before this procedure, which is currently just
+  called for aarch64.
+}
+
+  var
+    j: 1..3; {induction for operand scan}
+    k: keyindex; {dummy argument to walknode}
+    ptr: nodeptr; {used for access to root node}
+    op: operatortype; {operator for this node}
+
+  begin {unnestparams}
+    if bigcompilerversion then ptr := @(bignodetable[root]);
+    op := ptr^.op;
+    if ptr^.action = visit then
+      if (op in [regtargetop, realregtargetop, ptrregtargetop]) and
+         (ptr^.oprnds[3] = 0) then
+        unnestparams(ptr^.slink)
+      else if op in [call, unscall, callparam, unscallparam] then
+          walknode(root, k, 0, false)
+        else
+          begin
+          for j := 1 to 3 do
+            if ptr^.nodeoprnd[j] then
+              unnestparams(ptr^.oprnds[j]);
+          if (ptr^.op < intop) and (ptr^.slink <> 0) then
+            unnestparams(ptr^.slink);
+          end;
+  end {unnestparams} ;
+
+
+
 procedure shortvisit(root: nodeindex; {tree to visit}
                      inpushaddr: boolean {true sez part of a pshaddr} );
 
@@ -1403,7 +1446,8 @@ with target = 0.
 {
         shortvisit(r, false);
 }
-        shortvisit(r, targetmachine = aarch64);
+        shortvisit(r, false);
+        if targetmachine = aarch64 then unnestparams(r);
         walknode(r, rkey, 0, true);
         mapkey;
         if bigcompilerversion then rootp := @(bignodetable[root]);
