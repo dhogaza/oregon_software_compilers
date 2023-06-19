@@ -2036,15 +2036,10 @@ procedure savekey(k: keyindex {operand to save} );
     begin {saveactivekeys}
      if dontchangevalue <= 0 then
       begin
-writeln(lastkey);
       for i := context[contextsp].keymark to lastkey do
         with keytable[i] do
-begin
-if i = 6 then
-writeln(i);
           if (refcount > 0) and not (regsaved and reg2saved)
           then savekey(i);
-end;
       end;
     end {saveactivekeys} ;
 
@@ -4800,7 +4795,7 @@ procedure createtruex;
 
 
   begin {createtruex}
-    address(left);
+    addressdst(left);
     setallfields(left);
     gensimplemove(settemp(len, intconst_oprnd(1)), key);
   end {createtruex} ;

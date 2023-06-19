@@ -7,7 +7,12 @@ begin
   f := i;
 end;
 
+function f2(i: integer; b: boolean): boolean;
+begin
+  f2 := not b;
+end;
+
 begin
   i := 3;
-  b := i < f(4);
+  b := f2(i, i < f(4));
 end.

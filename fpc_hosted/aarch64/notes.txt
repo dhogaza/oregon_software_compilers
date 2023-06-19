@@ -1,6 +1,16 @@
 -- next priorities:
 
-0. change registers to a enum to make sets of them more reasonable?
+0.1 now is the time to figure out pre-walking of functions in parameter
+    lists.  
+
+    f(f(3, 4), 3) doesn't need to prewalk the call to f in the first parameter
+    location.  f(f(3,4), f(4,3)) needs to prewalk the f(4,3) call.  Need to
+    type check for compatibility of the function return value with the first
+    parameter.
+
+0.2 Also need to prewalk conditional expressions and convert them to 
+    boolean values outside the parameter list evaluation.  Or fix them.
+    Also CSEs which I think is already done.
 
 0.2 improve vs pushfinal which no longer exists (simpleinvar), need
     to add a finalop to replace pushfinal?  This is used to designate
@@ -61,6 +71,8 @@
     after this, get rid of GP.  gcc/clang/fpc all do the two instruction
     global address dance, and apparently faster versions of aarch64 fuse
     the two instructions required into a single machine cycle, so ...
+
+0. change registers to a enum to make sets of them more reasonable?
 
 
 -- more general
