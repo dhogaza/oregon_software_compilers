@@ -480,6 +480,7 @@ begin
     cinv: write(macfile, 'cinv');
     cmp: write(macfile, 'cmp');
     cmn: write(macfile, 'cmn');
+    cset: write(macfile, 'cset');
     eon: write(macfile, 'eors');
     eor: write(macfile, 'eor');
     ldr: write(macfile, 'ldr');

@@ -1801,7 +1801,8 @@ function savereg(r: regindex {register to save}) : keyindex;
                settemp(long, reg_oprnd(r)),
                savekey);
       addtempsave(savekey, p, lastnode);
-{if switcheverplus[test] and (keytable[key].first <> nil) then
+{
+if switcheverplus[test] and (keytable[key].first <> nil) then
 begin
 writeln(macfile, 'savekey:', savekey);
 write_nodes(tempsave^.first, tempsave^.last);
@@ -3452,18 +3453,28 @@ procedure compintx;
 
   begin {compintx}
 {    unpackshrink(left, len);}
-    settargetorreg; 
-    lock(key);
     address(left);
     loadreg(left, 0);
-    unlock(key);
+    settargetorreg; 
     gen2(buildinst(mvn, len = long, false), key, left);
     keytable[key].signed := keytable[left].signed;
   end {compintx};
 
+procedure compboolx;
+
+  begin {compboolx}
+    address(left);
+    loadreg(left, 0);
+    gen2(buildinst(cmp, false, false), left,
+         settemp(long, imm12_oprnd(0, false)));
+    settargetorreg; 
+    gen2(buildinst(cset, false, false), key,
+                   settemp(0, cond_oprnd(eq)));
+  end {compboolx};
+
 procedure incdec(inst: insts {add, sub} );
 
-{ Generate add/sub #1, left.  Handles compbool, incint and decint pseudoops.
+{ Generate add/sub #1, left.  Handles incint and decint pseudoops.
 }
 
 
@@ -4949,8 +4960,8 @@ procedure codeone;
       andint: integerarithmetic(andinst, [intconst, register, shift_reg], true);
       xorint: integerarithmetic(eor, [intconst, register, shift_reg], true);
       compint: compintx;
+      compbool: compboolx;
 {
-      compbool: incdec(add, true);
       addreal: realarithmeticx(true, libfadd, libdadd, fadd);
       subreal: realarithmeticx(false, libfsub, libdsub, fsub);
       mulreal: realarithmeticx(true, libfmult, libdmult, fmul);

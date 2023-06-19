@@ -1,6 +1,8 @@
 -- next priorities:
 
-0.1 now is the time to figure out pre-walking of functions in parameter
+0.1 test7.pas
+
+    now is the time to figure out pre-walking of functions in parameter
     lists.  
 
     f(f(3, 4), 3) doesn't need to prewalk the call to f in the first parameter
@@ -8,7 +10,9 @@
     type check for compatibility of the function return value with the first
     parameter.
 
-0.2 Also might need to prewalk conditional expressions and convert them to 
+0.2 test7.pas
+
+    Also might need to prewalk conditional expressions and convert them to 
     boolean values outside the parameter list evaluation.  Or fix them.
     Also CSEs which I think is already done.
 

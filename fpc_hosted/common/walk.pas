@@ -1400,7 +1400,10 @@ with target = 0.
 
 
       begin
+{
         shortvisit(r, false);
+}
+        shortvisit(r, targetmachine = aarch64);
         walknode(r, rkey, 0, true);
         mapkey;
         if bigcompilerversion then rootp := @(bignodetable[root]);

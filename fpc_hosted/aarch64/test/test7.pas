@@ -9,7 +9,8 @@ end;
 
 function f2(i: integer; b: boolean): boolean;
 begin
-  f2 := not b;
+  i := not i;
+  f2 := not (not b) and (i = 3);
 end;
 
 begin

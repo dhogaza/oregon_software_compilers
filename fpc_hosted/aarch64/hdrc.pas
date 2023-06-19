@@ -279,7 +279,7 @@ type
   orinst, orn, andinst, ands, eor, eon, neg, last_a,
 
   {bit manipulation}
-  cinv, mvn,
+  cset, cinv, mvn,
   {move instructions}
 
   first_mov, movz, mov, movn, movk, last_mov,
