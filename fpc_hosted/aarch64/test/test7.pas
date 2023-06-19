@@ -8,5 +8,6 @@ begin
 end;
 
 begin
+  i := 3;
   b := i < f(4);
 end.

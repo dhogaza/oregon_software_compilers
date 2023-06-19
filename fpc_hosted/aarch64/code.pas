@@ -2036,9 +2036,12 @@ procedure savekey(k: keyindex {operand to save} );
     begin {saveactivekeys}
      if dontchangevalue <= 0 then
       begin
+writeln(lastkey);
       for i := context[contextsp].keymark to lastkey do
         with keytable[i] do
 begin
+if i = 6 then
+writeln(i);
           if (refcount > 0) and not (regsaved and reg2saved)
           then savekey(i);
 end;
@@ -3488,11 +3491,6 @@ procedure cmpintptrx(signedbr, unsignedbr: insts {branch on result});
 
   begin {cmpintptrx}
     addressboth;
-{ DRB
-    if keytable[left].signed = keytable[right].signed then
-      len := min(len, max(bytelength(left), bytelength(right)));
-    if len = 3 then len := 4;
-}
 
     { Shrinking operands is only safe if the sign is set back to the original
       sign for that length.  The field "signlimit" provides that function.
@@ -4777,18 +4775,21 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
   end {jumpcond} ;
 
 { These are awful in that a top level compare can be collapsed into a
-  single csel ...
+  single csel ... 
 }
 
 procedure createfalsex;
 
 { Create false constant prior to conversion of comparison to value.
+
+  We have to save it now because we have an upcoming comparison.
 }
 
 
   begin {createfalsex}
     settargetorreg;
     gensimplemove(settemp(len, intconst_oprnd(0)), key);
+    savekey(key);
   end {createfalsex} ;
 
 

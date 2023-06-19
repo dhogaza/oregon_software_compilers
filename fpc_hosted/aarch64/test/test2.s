@@ -1,42 +1,53 @@
-#
-#	p
-#
 	.text
 	.align 2
+#
+#	bar
+#
 .P1:
-	sub	sp,sp,48
-	stp	x30,x29,[sp]
-	add	x29,sp,0
-# Line: 7, Stmt: 1
-# Line: 8, Stmt: 2
-	lsl	w15,w1,4
-	add	x15,x0,x15, sxtw 0
-	mov	x14,3
-	str	w14,[x15, w2, sxtw 2]
+	sub	sp,sp,64
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
+	str	x26,[x29,-8]
+# Line: 8, Stmt: 1
+# Line: 9, Stmt: 2
+	ldrsw	x15,[x28,32]
+	ldrsw	x14,[x28,36]
+	add	w26,w15,w14
+	sub	w26,w15,w14
+	mul	w26,w15,w14
+	sdiv	w14,w15,w26
+	msub	w13,w14,w26,w15
+	str	w14,[x28,36]
+	str	w13,[x28,36]
+	ldrsw	x14,[x28,36]
+	add	w26,w15,w14
+	movz	w16,3
+	str	w16,[x28,36]
 .L2:
-	ldp	x30,x29,[sp]
-	add	sp,sp,48
+	ldr	x26,[x29,-8]
+	ldp	x30,x29,[sp,24]
+	add	sp,sp,64
 	ret
 	.bss
 	.align 3
-.L0:
-	.space 80
-#
-#	main (main)
-#
+.L32766:
+	.space 40
 	.text
 	.align 2
+#
+#	foo (main)
+#
 	.global main
 main:
 	sub	sp,sp,32
-	stp	x30,x29,[sp, 8]
+	stp	x30,x29,[sp,8]
 	add	x29,sp,8
-	str	x28,[x29, -8]
-	adrp	x28,.L0
-	add	x28,x28,:lo12:.L0
-# Line: 11, Stmt: 1
+	str	x28,[x29,-8]
+	adrp	x28,.L32766
+	add	x28,x28,:lo12:.L32766
+# Line: 18, Stmt: 1
 .L3:
-	ldr	x28,[x29, -8]
-	ldp	x30,x29,[sp, 8]
+	ldr	x28,[x29,-8]
+	ldp	x30,x29,[sp,8]
 	add	sp,sp,32
 	ret

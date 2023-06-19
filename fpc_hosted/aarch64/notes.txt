@@ -2,15 +2,11 @@
 
 0. change registers to a enum to make sets of them more reasonable?
 
-0.01 change settemp to be a function to avoid the kind of problem
-     ran into with cmplitint.
-
-0.1 finish immediate mode stuff for for loop induction vars, and
-    to change movz/movk pairs to mov if the literal is a bitmask.
-
 0.2 improve vs pushfinal which no longer exists (simpleinvar), need
     to add a finalop to replace pushfinal?  This is used to designate
     an invariant final limit ...
+
+    Needs testing, it might actually work as is.
 
 0.3 align character constants to min(len, 8) byte boundary.
 
@@ -50,7 +46,6 @@
    to physical reg 0 in leaf functions if allocated as a valuable
    regtemp by improve?  Or is this really a viable
    idea if param 0 is being used?
-6. instantiation of integers as bitmasks
 7. long address index values, consider alignment
 8. REVERSE STACK PARAM PUSHES
 9. lots of sign extension and the like issues?
