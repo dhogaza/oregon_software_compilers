@@ -78,8 +78,8 @@ procedure dumppseudo(var f: text);
           congruchk: write(f, 'congruchk': 15);
           copyaccess: write(f, 'copyaccess': 15);
           copystack: write(f, 'copystack': 15);
-          condf: write('condf': 15);
-          condt: write('condt': 15);
+          condf: write(f, 'condf': 15);
+          condt: write(f, 'condt': 15);
           createfalse: write(f, 'createfalse': 15);
           createtemp: write(f, 'createtemp': 15);
           createtrue: write(f, 'createtrue': 15);
@@ -4805,6 +4805,29 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
     context[contextsp].lastbranch := lastnode;
   end {jumpcond} ;
 
+procedure cond(inv: boolean);
+
+var
+  c: conds;
+
+begin {cond}
+  address(right);
+  settargetorreg;
+  with keytable[left], oprnd do
+    if access <> branchaccess then
+      begin
+      write('Conditional to value not branch access');
+      compilerabort(inconsistent);
+      end
+    else
+      if inv then c := condmap[invert[brinst]]
+      else c := condmap[brinst];
+
+  gen2(buildinst(cset, false, false), key,
+                 settemp(0, cond_oprnd(c)));
+
+end {cond};
+
 { These are awful in that a top level compare can be collapsed into a
   single csel ... 
 }
@@ -4921,6 +4944,8 @@ procedure codeone;
       pindx: pindxx;
       paindx: paindxx;
 }
+      condf: cond(false);
+      condt: cond(true);
       createfalse: createfalsex;
       createtrue: createtruex;
 {
@@ -5172,6 +5197,11 @@ procedure initcode;
     invert[blo] := bhs;     invert[bhi] := bls;     invert[bls] := bhi;
     invert[bhs] := blo;     invert[bvs] := bvc;     invert[bvc] := bvs;
     invert[b] := nop;       invert[cbz] := cbnz;    invert[cbnz] := cbz;
+
+    condmap[beq] := eq;     condmap[bne] := ne;     condmap[blt] := lt;
+    condmap[bgt] := gt;     condmap[bge] := ge;     condmap[ble] := le;
+    condmap[blo] := lo;     condmap[bhi] := hi;     condmap[bls] := ls;
+    condmap[bhs] := hs;     condmap[bvs] := vs;     condmap[bvc] := vc;
 
     { Front end doesn't do this for deeply historical reasons but in Linux
       the main program's just an external procedure.

@@ -590,7 +590,12 @@ var
   stringblkptrtbl: array [1..maxstringblks] of diskblock_ref;
   stringblkptr: diskblock_ref; {pointer to string block}
   stringfile: bytestream;
+{
   nextstringfile: 0..diskbufsize; {stringfile buffer pointer}
+DRB: stupid FPC
+}
+nextstringfile: integer;
+
   curstringblock: integer; {currently referenced string block}
   stringfiledirty: boolean; {true if current string block changed}
 

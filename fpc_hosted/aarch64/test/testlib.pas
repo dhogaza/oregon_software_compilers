@@ -7,6 +7,8 @@ procedure putstring(a:packed array [l..h: integer] of char); external;
 procedure putstringln(a:packed array [l..h: integer] of char); external;
 procedure putint(i: integer); external;
 procedure putintln(i: integer); external;
+procedure putbool(b: boolean); external;
+procedure putboolln(b: boolean); external;
 procedure putcharln(ch: char); external;
 procedure putln; external;
 procedure _p_caseerr; external;
@@ -63,6 +65,20 @@ procedure putintln;
     putint(i);
     putln;
   end;
+
+procedure putbool;
+
+  begin
+    if b then putstring('true')
+    else putstring('false');
+  end;
+
+procedure putboolln;
+
+begin
+  putbool(b);
+  putchar(chr(10));
+end;
     
 procedure putcharln;
 

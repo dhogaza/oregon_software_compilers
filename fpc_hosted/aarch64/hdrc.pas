@@ -669,6 +669,7 @@ var
 
   invert, fpinvert: array [first_b .. last_b] of insts; {for inverting sense of
                                                    branches}
+  condmap: array [first_b .. last_b] of conds;
 
   keytable: keytabletype; {contains operand data}
 

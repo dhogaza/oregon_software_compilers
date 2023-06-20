@@ -2404,22 +2404,36 @@ procedure walkvalue(root: nodeindex; {root of tree to walk}
       oldfused := falseused;
       if language = c then valsize := defaulttargetintsize
       else valsize := unitsize;
-      tlabel := newlabel;
-      flabel := newlabel;
       if (targetkey <> 0) and targetpresent(root) then targetkey := 0;
-      k := newkey;
-      context[contextsp].high := k;
-      keytable[k] := 0;
-      genpseudo(createfalse, valsize, k, 1, 0, 0, 0, targetkey);
-      walkboolean(root, k1, tlabel, flabel);
-      if trueused then definelabel(tlabel);
-      key := newkey;
-      context[contextsp].high := key;
-      keytable[key] := root;
+
+      if usecondops and
+         (rootp^.op in [eqop, neqop, lssop, gtrop, leqop, geqop]) then
+        begin
+        if language = pascal then shortvisit(root, false);
+        key := newkey;
+        walknode(root, k1, 0, true);
+        context[contextsp].high := key;
+        genpseudo(condt, valsize, key, 1, 0, k1, 0, targetkey);
+        end
+      else
+        begin
+        tlabel := newlabel;
+        flabel := newlabel;
+        k := newkey;
+        context[contextsp].high := k;
+        keytable[k] := 0;
+        genpseudo(createfalse, valsize, k, 1, 0, 0, 0, targetkey);
+        walkboolean(root, k1, tlabel, flabel);
+        if trueused then definelabel(tlabel);
+        key := newkey;
+        context[contextsp].high := key;
+        keytable[key] := root;
+        genpseudo(createtrue, valsize, key, 1, 0, k, 0, 0);
+        definelabel(flabel);
+        end;
+
       if keytable[k1] = root then keytable[k1] := 0; { use value, not relation,
-                                                       in future }
-      genpseudo(createtrue, valsize, key, 1, 0, k, 0, 0);
-      definelabel(flabel);
+                                                       in the future }
       inverted := oldinv;
       truelabel := oldt;
       falselabel := oldf;
