@@ -4811,7 +4811,7 @@ var
   c: conds;
 
 begin {cond}
-  address(right);
+  address(left);
   settargetorreg;
   with keytable[left], oprnd do
     if access <> branchaccess then

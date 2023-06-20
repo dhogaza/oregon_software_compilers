@@ -2407,11 +2407,12 @@ procedure walkvalue(root: nodeindex; {root of tree to walk}
       if (targetkey <> 0) and targetpresent(root) then targetkey := 0;
 
       if usecondops and
-         (rootp^.op in [eqop, neqop, lssop, gtrop, leqop, geqop]) then
+         (rootp^.op in [eqop, neqop, lssop, gtrop, leqop, geqop,
+                        lsslit, leqlit, eqlit, neqlit, gtrlit, geqlit]) then
         begin
         if language = pascal then shortvisit(root, false);
-        key := newkey;
         walknode(root, k1, 0, true);
+        key := newkey;
         context[contextsp].high := key;
         genpseudo(condt, valsize, key, 1, 0, k1, 0, targetkey);
         end
