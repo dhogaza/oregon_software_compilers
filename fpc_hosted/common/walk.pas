@@ -2077,6 +2077,7 @@ with target = 0.
         trueused := false;
         oldinv := inverted;
         if language = pascal then shortvisit(r, false);
+{DRB: check for operands which can be combined with branchless compares}
         walknode(l, lkey, 0, true);
         if inverted then genpseudo(jumpt, 0, 0, 0, 0, falselabel, lkey, 0)
         else genpseudo(jumpf, 0, 0, 0, 0, falselabel, lkey, 0);

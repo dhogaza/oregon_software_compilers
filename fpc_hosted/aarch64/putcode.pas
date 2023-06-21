@@ -65,7 +65,8 @@ function getstringfile: hostfilebyte;
 }
 
   begin
-    if nextstringfile > diskbufsize then
+    getstringfile := stringblkptr^[nextstringfile];
+    if nextstringfile = diskbufsize then
       begin
       nextstringfile := 0;
       curstringblock := curstringblock + 1;
@@ -75,9 +76,8 @@ function getstringfile: hostfilebyte;
         write('unexpected end of stringtable ');
         compilerabort(inconsistent);
         end;
-      end;
-    getstringfile := stringblkptr^[nextstringfile];
-    nextstringfile := nextstringfile + 1;
+      end
+    else nextstringfile := nextstringfile + 1;
   end {getstringfile} ;
 
 procedure libname(libroutine: libroutines;
