@@ -2203,9 +2203,14 @@ procedure makeaddressable(var k: keyindex);
         else
           oprnd.reg := getreg;
         recall_reg(oprnd.reg, properreg);
-        gen2(buildinst(ldr, true, false),
-             settemp(long, reg_oprnd(reg)),
-             properreg);
+        if mode = label_offset then
+          gen2(buildinst(adrp, true, false),
+               settemp(long, reg_oprnd(reg)),
+               settemp(long, labeltarget_oprnd(labelno, false, labeloffset)))
+        else
+          gen2(buildinst(ldr, true, false),
+               settemp(long, reg_oprnd(reg)),
+               properreg);
         end;
       if restorereg2 then
         begin
@@ -4386,6 +4391,11 @@ procedure indxx;
           setvalue(label_offset_oprnd(keytable[newkey].oprnd.reg,
                                       keytable[labelkey].oprnd.labelno,
                                       keytable[labelkey].oprnd.labeloffset));
+          {makeaddressable can restore this mode faster by re-issuing the adp rather
+           than restore a copy of the register saved on the stack.
+          }
+
+          keytable[key].regsaved := true;
           end;
         reg_offset:
           begin
