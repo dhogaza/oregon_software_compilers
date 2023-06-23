@@ -4383,19 +4383,18 @@ procedure indxx;
       case keytable[left].oprnd.mode of
         labeltarget:
           begin
-          newkey := settemp(long, reg_oprnd(getreg));
-          labelkey := settemp(long, labeltarget_oprnd(keytable[left].oprnd.labelno,
-                              false,
-                              keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
-          gen2(buildinst(adrp, true, false), newkey, labelkey);
-          setvalue(label_offset_oprnd(keytable[newkey].oprnd.reg,
-                                      keytable[labelkey].oprnd.labelno,
-                                      keytable[labelkey].oprnd.labeloffset));
-          {makeaddressable can restore this mode faster by re-issuing the adp rather
-           than restore a copy of the register saved on the stack.
+          setvalue(label_offset_oprnd(noreg,
+                   keytable[left].oprnd.labelno,
+                   keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
+          {makeaddressable will issue the adp to a real register when
+           the result of this indx pseudoinst is first used as the operand
+           to an instruction.   This avoids procedure calls from marking the
+           register before it is ever used, leaving a dangling adp instruction
+           behind.
           }
 
           keytable[key].regsaved := true;
+          keytable[key].regvalid := false;
           end;
         reg_offset:
           begin

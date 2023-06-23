@@ -12,6 +12,15 @@
 
     is this as easy as it sounds? :)
 
+    almost.  Works fine but the original adp used to generate the index
+    is not, of course, deleted.  Can we delay the actual generation of
+    the address to makeaddressable?  Maybe so then the save/restore
+    kludge can disappear?  In indxx generate the proper mode but
+    don't generate the adrp, set reg to noreg (!).  Make addressable
+    will fix this up on the very first use by a pseudoinst that actually
+    needs it as an operand to an instruction.  Hmmm.  Tricky.  Just might
+    work.
+
 0.2 improve vs pushfinal which no longer exists (simpleinvar), need
     to add a finalop to replace pushfinal?  This is used to designate
     an invariant final limit ...
