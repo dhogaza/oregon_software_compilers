@@ -768,7 +768,6 @@ function literal_oprnd(lit: integer): oprndtype;
     literal_oprnd := o;
   end;
 
-
 function labeltarget_oprnd(labelno: integer; lowbits: boolean;
                            labeloffset: integer): oprndtype;
 
@@ -784,6 +783,19 @@ function labeltarget_oprnd(labelno: integer; lowbits: boolean;
     labeltarget_oprnd := o;
   end;
 
+function label_offset_oprnd(reg: regindex; labelno: integer; labeloffset: integer): oprndtype;
+
+  var
+    o:oprndtype;
+  begin
+    o.reg := reg;
+    o.reg2 := noreg;
+    o.mode := label_offset;
+    o.labelno := labelno;
+    o.lowbits := true;
+    o.labeloffset := labeloffset;
+    label_offset_oprnd := o;
+  end;
 
 function proccall_oprnd(proclabelno: unsigned; entry_offset: integer): oprndtype;
 
@@ -1188,7 +1200,7 @@ procedure adjustregcount(k: keyindex; {operand to adjust}
       if access = valueaccess then
         case mode of
           register, shift_reg, extend_reg, pre_index, post_index,
-          signed_offset, unsigned_offset:
+          signed_offset, unsigned_offset, label_offset:
             if regvalid then
               registers[reg] := registers[reg] + delta;
           reg_offset, tworeg:
@@ -2083,7 +2095,7 @@ procedure lock(k: keyindex {operand to lock} );
 }
 
 
-  begin
+  begin {lock}
     adjustregcount(k, maxrefcount);
     bumptempcount(k, maxrefcount);
   end {lock} ;
@@ -2100,6 +2112,19 @@ procedure unlock(k: keyindex {operand to unlock} );
     adjustregcount(k, - maxrefcount);
   end {unlock} ;
 
+procedure lockboth;
+
+  begin {lockboth}
+    lock(left);
+    lock(right);
+  end {lockboth};
+
+procedure unlockboth;
+
+  begin {unlockboth}
+    unlock(left);
+    unlock(right);
+  end {unlockboth};
 
 procedure changevalue(var key1: keyindex; {key to be changed}
                       key2: keyindex {source of key data} );
@@ -2539,6 +2564,9 @@ procedure genmoveaddress(src, dst: keyindex);
   which must be a general register.
 }
 
+  var
+    labelkey: keyindex; {for label_offset}
+
   begin {genmoveaddress}
 {
     if keytable[src].oprnd.mode = register then
@@ -2552,11 +2580,29 @@ procedure genmoveaddress(src, dst: keyindex);
       src := keytable[src].properreg;
       end;
 }
+    if keytable[dst].oprnd.mode <> register then
+      begin
+      write('destination is not a register in genmoveaddress ');
+      compilerabort(inconsistent);
+      end;
+
     with keytable[src].oprnd do
       case mode of
+      labeltarget:
+        begin
+        gen2(buildinst(adrp, true, false), dst, src);
+        keytable[src].oprnd.lowbits := true;
+        gen3(buildinst(add, true, false), dst, dst, src);
+        end;
+      label_offset:
+        begin
+        labelkey := settemp(long,
+                            labeltarget_oprnd(keytable[src].oprnd.labelno, true,
+                                              keytable[src].oprnd.labeloffset));
+        gen3(buildinst(add, true, false), dst, keytable[src].oprnd.reg, labelkey);
+        end;
       signed_offset, unsigned_offset:
-        if (keytable[dst].oprnd.mode <> register) or
-           (keytable[dst].oprnd.reg <> reg) or
+        if (keytable[dst].oprnd.reg <> reg) or
            (index <> 0) then
           begin
           gen3(buildinst(add, true, false), dst,
@@ -3817,7 +3863,7 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
         compilerabort(inconsistent);
         end
       else if left = 1 then
-        setvalue(index_oprnd(unsigned_offset, gp, 0))
+        setvalue(labeltarget_oprnd(bsslabel, false, 0))
       else if left = level then
         setvalue(index_oprnd(unsigned_offset, fp, 0))
       else if left = level - 1 then setvalue(index_oprnd(unsigned_offset, sl, 0))
@@ -3839,12 +3885,7 @@ procedure dostructx;
     labelkey, regkey: keyindex;
 
 begin {dostructx}
-  labelkey := settemp(long, labeltarget_oprnd(rodatalabel, false, pseudoinst.oprnds[1]));
-  regkey :=  settemp(long, reg_oprnd(getreg));
-  gen2(buildinst(adrp, true, false), regkey, labelkey);
-  keytable[labelkey].oprnd.lowbits := true;
-  gen3(buildinst(add, true, false), regkey, regkey, labelkey);
-  setvalue(index_oprnd(unsigned_offset, keytable[regkey].oprnd.reg, 0));
+  setvalue(labeltarget_oprnd(rodatalabel, false, pseudoinst.oprnds[1]));
 end {dostructx} ;
 
 { DRB regtemp }
@@ -4245,6 +4286,7 @@ begin {movemultiple}
     begin
     saveactivekeys;
     addressboth;
+    lockboth;
     firstreg := 3;
     regkey := settemp(long, reg_oprnd(2));
     gensimplemove(settemp(long, intconst_oprnd(len)), regkey);
@@ -4256,6 +4298,7 @@ begin {movemultiple}
     gen1(buildinst(bl, false, false),
          settemp(long, libcall_oprnd(libcmemcpy)));
     firstreg := 0;
+    unlockboth;
     end;
 end; {movemultiple}
 
@@ -4272,7 +4315,7 @@ begin {pushmultiple}
     begin
     saveactivekeys;
     address(left);
-    markscratchregs;
+    lock(left);
     firstreg := 3;
     regkey := settemp(long, reg_oprnd(2));
     gensimplemove(settemp(long, imm16_oprnd(len, 0)), regkey);
@@ -4280,9 +4323,11 @@ begin {pushmultiple}
     genmoveaddress(key, regkey);
     keytable[regkey].oprnd.reg := 1;
     genmoveaddress(left, regkey);
+    markscratchregs;
     gen1(buildinst(bl, false, false),
          settemp(long, libcall_oprnd(libcmemcpy)));
     firstreg := 0;
+    unlock(left);
     end;
 end; {pushmultiple}
 
@@ -4314,9 +4359,11 @@ procedure indxx;
 
   var
     newkey: keyindex;
+    labelkey: keyindex;
 
   begin {indxx}
-    if pseudoinst.oprnds[2] = 0 then
+    if (pseudoinst.oprnds[2] = 0) and
+        (keytable[left].oprnd.mode <> labeltarget) then
       begin
       setallfields(left);
       dereference(left);
@@ -4329,6 +4376,17 @@ procedure indxx;
   the range of the index, etc etc.  Good enough for preliminary testing.
 }
       case keytable[left].oprnd.mode of
+        labeltarget:
+          begin
+          newkey := settemp(long, reg_oprnd(getreg));
+          labelkey := settemp(long, labeltarget_oprnd(keytable[left].oprnd.labelno,
+                              false,
+                              keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
+          gen2(buildinst(adrp, true, false), newkey, labelkey);
+          setvalue(label_offset_oprnd(keytable[newkey].oprnd.reg,
+                                      keytable[labelkey].oprnd.labelno,
+                                      keytable[labelkey].oprnd.labeloffset));
+          end;
         reg_offset:
           begin
           newkey := settemp(long, reg_oprnd(getreg));

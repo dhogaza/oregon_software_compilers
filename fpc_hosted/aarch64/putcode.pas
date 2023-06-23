@@ -603,6 +603,21 @@ begin
         write(macfile, '.L', o.labelno);
         if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset:1);
       end;
+    label_offset:
+      begin
+      write(macfile, '[');
+      write_reg(o.reg, true);
+      write(macfile, ',');
+      if o.lowbits then write(macfile, ':lo12:')
+      else
+        begin
+        write('label_offset operand without lowbits set');
+        compilerabort(inconsistent);;
+        end;
+      write(macfile, '.L', o.labelno);
+      if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset:1);
+      write(macfile, ']');
+      end;
     tworeg:
       begin
       write('operand mode tworeg found in instruction node');

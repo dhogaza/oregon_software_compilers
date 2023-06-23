@@ -60,6 +60,9 @@
     global address dance, and apparently faster versions of aarch64 fuse
     the two instructions required into a single machine cycle, so ...
 
+    oops indxx isn't adding offset to base and there's a weird duplicate
+    register save going on as a result.
+
 0. change registers to a enum to make sets of them more reasonable?
 
 

@@ -307,8 +307,9 @@ type
 
   oprnd_modes = (nomode, register, fpregister, tworeg, shift_reg, extend_reg,
                  imm12, imm16, immbitmask, relative, pre_index, post_index,
-                 signed_offset, unsigned_offset, reg_offset, literal, labeltarget,
-                 proccall, libcall, cond, intconst, realconst);
+                 signed_offset, unsigned_offset, label_offset, reg_offset,
+                 literal, labeltarget, proccall, libcall, cond, intconst,
+                 realconst);
 
   oprnd_mode_set = set of oprnd_modes;
 
@@ -328,21 +329,18 @@ type
     reg: regindex;
     reg2: regindex; {extra register if indexed & bitindexed}
     case mode: oprnd_modes of
-      shift_reg: (reg_shift: reg_shifts;
-                  shift_amount: bits6);
-      extend_reg: (reg_extend: reg_extends;
-                   extend_shift: bits3;
+      shift_reg: (reg_shift: reg_shifts; shift_amount: bits6);
+      extend_reg: (reg_extend: reg_extends; extend_shift: bits3;
                    extend_signed: boolean); 
-      imm12: (imm12_value: bits12;
-                    imm12_shift: boolean);
-      imm16: (imm16_value: bits16;
-                    imm16_shift: 0..48);
+      imm12: (imm12_value: bits12; imm12_shift: boolean);
+      imm16: (imm16_value: bits16; imm16_shift: 0..48);
       immbitmask: (bitmask_value: unsigned);
       pre_index, post_index, signed_offset, unsigned_offset: (index: integer);
       reg_offset: (shift: bits2; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
       cond: (condition: conds);
-      labeltarget: (labelno: unsigned; lowbits: boolean; labeloffset: integer);
+      labeltarget, label_offset:
+         (labelno: unsigned; lowbits: boolean; labeloffset: integer);
       proccall: (proclabelno: unsigned; entry_offset: integer);
       libcall: (libroutine: libroutines);
       intconst: (int_value: integer);
