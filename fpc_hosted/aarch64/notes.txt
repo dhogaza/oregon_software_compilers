@@ -1,4 +1,16 @@
 -- next priorities:
+0.1 when generating a global variable address, don't save
+    the index register on the stack.  If the register is marked
+    as killed, regenerate it through a new adp as this is faster
+    than doing a ldr reg,[sp,n]
+
+    Possible approach:
+
+    1. mark regsaved in indxx
+    2. makeaddressable can kludge it by using the label_offset operand
+       to generate an adrp to a new restore register.
+
+    is this as easy as it sounds? :)
 
 0.2 improve vs pushfinal which no longer exists (simpleinvar), need
     to add a finalop to replace pushfinal?  This is used to designate
@@ -52,16 +64,6 @@
 
 11. block moves should just use memcpy for now.  optimizing these is
     very low on the priority list.
-12. code to generate the address of something needs to be able to
-    do so with a constant.  AS allows one to add a decimal constant
-    to a label apparently.  labeltarget operand needs enhancement.
-
-    after this, get rid of GP.  gcc/clang/fpc all do the two instruction
-    global address dance, and apparently faster versions of aarch64 fuse
-    the two instructions required into a single machine cycle, so ...
-
-    oops indxx isn't adding offset to base and there's a weird duplicate
-    register save going on as a result.
 
 0. change registers to a enum to make sets of them more reasonable?
 
@@ -118,18 +120,6 @@ Advantages of using negative sp offsets when generating code:
    register spills?
 
 Big integer issues:
-
-1. materializing integers will require some work though the first
-   effort should just be a string of moves to build up the proper
-   length number.
-
-2. materialized integers are most likely not worth preserving as
-   on high-end aarch64 cores mov/movk pairs execute in a single
-   cycle.  Preserving the resulting register is a one instruction
-   win in space but no gain in speed and eats a register that might
-   be useful elsewhere.  Default integers are 32-bit.  64-bit integers
-   take four instructions or two cycles.  Unless they can be
-   generated as bitmasks.
 
 3. big index offsets are a pain.  Most likely preserving them, once
    calculated, isn't all that worthwhile. 
