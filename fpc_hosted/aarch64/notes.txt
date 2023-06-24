@@ -1,26 +1,6 @@
 -- next priorities:
-0.1 when generating a global variable address, don't save
-    the index register on the stack.  If the register is marked
-    as killed, regenerate it through a new adp as this is faster
-    than doing a ldr reg,[sp,n]
 
-    Possible approach:
-
-    1. mark regsaved in indxx
-    2. makeaddressable can kludge it by using the label_offset operand
-       to generate an adrp to a new restore register.
-
-    is this as easy as it sounds? :)
-
-    almost.  Works fine but the original adp used to generate the index
-    is not, of course, deleted.  Can we delay the actual generation of
-    the address to makeaddressable?  Maybe so then the save/restore
-    kludge can disappear?  In indxx generate the proper mode but
-    don't generate the adrp, set reg to noreg (!).  Make addressable
-    will fix this up on the very first use by a pseudoinst that actually
-    needs it as an operand to an instruction.  Hmmm.  Tricky.  Just might
-    work.
-
+0.0 must align data correctly ...
 0.2 improve vs pushfinal which no longer exists (simpleinvar), need
     to add a finalop to replace pushfinal?  This is used to designate
     an invariant final limit ...
@@ -160,3 +140,43 @@ Peephole needs:
 1. Two register loads from consecutive memory address converted to
    ldp insruction.
 2. cmp xn,0; b.cond l -> cbz x0,l, cond and associated thingies
+
+FAILS (for now at least)
+
+0.1 It appears that the [Xr, :lo12:xyz+n] does the right
+    thing for all ldr/str [long, word, half, byte].  However
+    the data must be aligned correctly, obviously.
+
+    when generating a global variable address, don't save
+    the index register on the stack.  If the register is marked
+    as killed, regenerate it through a new adp as this is faster
+    than doing a ldr reg,[sp,n]
+
+    Possible approach:
+
+    1. mark regsaved in indxx
+    2. makeaddressable can kludge it by using the label_offset operand
+       to generate an adrp to a new restore register.
+
+    is this as easy as it sounds? :)
+
+    almost.  Works fine but the original adp used to generate the index
+    is not, of course, deleted.  Can we delay the actual generation of
+    the address to makeaddressable?  Maybe so then the save/restore
+    kludge can disappear?
+
+    In indxx generate the proper mode but
+    don't generate the adrp, set reg to noreg (!).  Make addressable
+    will fix this up on the very first use by a pseudoinst that actually
+    needs it as an operand to an instruction.  Hmmm.  Tricky.  Just might
+    work.
+
+    That actually works but a bunch of dupe adrps result.  indx ops are
+    hoisted so if the register can be preserved it would be a win to 
+    precalculate.  Perhaps a new keyx field "addressed" and if the proper
+    kind of key value is marked but not addressed, the dangling adrp can be
+    deleted.
+
+    Minor is that globals should be indexed before aindx with the variable
+    base for this scheme, 'way back in body.pas.  Conditionalized for aarch64
+    if course.

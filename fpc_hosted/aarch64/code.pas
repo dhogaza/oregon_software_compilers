@@ -1737,7 +1737,7 @@ function stacktemp(size: addressrange): keyindex;
 
 { Currently registers are always spilled to the stack.  At one point regparams
   were being assigned local variable space and would be saved there instead,
-  but that turned out to be not necessarily and somewhat wasteful of memory.
+  but that turned out to be not necessary and somewhat wasteful of memory.
   However we might spill to caller-saved registers in the future and this
   code should handle that case with the addition of allocation code.
 }
@@ -1750,7 +1750,7 @@ procedure addtempsave(k: keyindex; first, last: nodeptr);
   begin {addtempsave}
     if k < stackcounter then
       begin
-      writeln('attemping to add a stack save to a non-stack entry');
+      writeln('attempting to add a stack save to a non-stack entry');
       compilerabort(inconsistent);
       end;
     new(p);
@@ -2166,8 +2166,8 @@ procedure makeaddressable(var k: keyindex);
 
   var
     restorereg, restorereg2: boolean;
-    t: keyindex;
-
+    i,t: keyindex;
+    found: boolean;
   procedure recall_reg(regx: regindex; properregx: keyindex);
 
     { Unkill a general reg if possible.
@@ -2203,14 +2203,9 @@ procedure makeaddressable(var k: keyindex);
         else
           oprnd.reg := getreg;
         recall_reg(oprnd.reg, properreg);
-        if mode = label_offset then
-          gen2(buildinst(adrp, true, false),
-               settemp(long, reg_oprnd(reg)),
-               settemp(long, labeltarget_oprnd(labelno, false, labeloffset)))
-        else
-          gen2(buildinst(ldr, true, false),
-               settemp(long, reg_oprnd(reg)),
-               properreg);
+        gen2(buildinst(ldr, true, false),
+             settemp(long, reg_oprnd(reg)),
+             properreg);
         end;
       if restorereg2 then
         begin
@@ -2598,13 +2593,6 @@ procedure genmoveaddress(src, dst: keyindex);
         gen2(buildinst(adrp, true, false), dst, src);
         keytable[src].oprnd.lowbits := true;
         gen3(buildinst(add, true, false), dst, dst, src);
-        end;
-      label_offset:
-        begin
-        labelkey := settemp(long,
-                            labeltarget_oprnd(keytable[src].oprnd.labelno, true,
-                                              keytable[src].oprnd.labeloffset));
-        gen3(buildinst(add, true, false), dst, keytable[src].oprnd.reg, labelkey);
         end;
       signed_offset, unsigned_offset:
         if (keytable[dst].oprnd.reg <> reg) or
@@ -3868,7 +3856,10 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
         compilerabort(inconsistent);
         end
       else if left = 1 then
+        setvalue(index_oprnd(unsigned_offset, fp, 0))
+{ DRB: a lot of work involved here ...
         setvalue(labeltarget_oprnd(bsslabel, false, 0))
+}
       else if left = level then
         setvalue(index_oprnd(unsigned_offset, fp, 0))
       else if left = level - 1 then setvalue(index_oprnd(unsigned_offset, sl, 0))
@@ -4228,8 +4219,11 @@ procedure dovarx(s: boolean {signed variable reference} );
 
 
   begin
+address(left);
+{
+dereference(left);
+}
     setallfields(left);
-    dereference(left);
     with keytable[key] do
       begin
       signed := s;
@@ -4365,6 +4359,7 @@ procedure indxx;
   var
     newkey: keyindex;
     labelkey: keyindex;
+    r: regindex;
 
   begin {indxx}
     if (pseudoinst.oprnds[2] = 0) and
@@ -4382,19 +4377,19 @@ procedure indxx;
 }
       case keytable[left].oprnd.mode of
         labeltarget:
-          begin
-          setvalue(label_offset_oprnd(noreg,
-                   keytable[left].oprnd.labelno,
-                   keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
-          {makeaddressable will issue the adp to a real register when
-           the result of this indx pseudoinst is first used as the operand
-           to an instruction.   This avoids procedure calls from marking the
-           register before it is ever used, leaving a dangling adp instruction
-           behind.
+          {ee would like to index the var with a label offset but one
+           has to scale that by the length of the load or store operation.
+           Need to study clang output.
           }
-
-          keytable[key].regsaved := true;
-          keytable[key].regvalid := false;
+          begin
+          r := getreg;
+          newkey := settemp(long, reg_oprnd(getreg));
+          labelkey := settemp(long,labeltarget_oprnd(keytable[left].oprnd.labelno,
+                              false, keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
+          gen2(buildinst(adrp, true, false), newkey, labelkey);
+          keytable[labelkey].oprnd.lowbits := true;
+          gen3(buildinst(add, true, false), newkey, newkey, labelkey);
+          setvalue(index_oprnd(unsigned_offset, r, 0));
           end;
         reg_offset:
           begin
@@ -4406,7 +4401,6 @@ procedure indxx;
         signed_offset, unsigned_offset:
           begin
           setkeyvalue(left);
-          keytable[key].len := long; {unnecessary?}
           keytable[key].oprnd.index :=
             keytable[key].oprnd.index + pseudoinst.oprnds[2];
           end
