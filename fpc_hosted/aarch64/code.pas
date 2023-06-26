@@ -2203,9 +2203,14 @@ procedure makeaddressable(var k: keyindex);
         else
           oprnd.reg := getreg;
         recall_reg(oprnd.reg, properreg);
-        gen2(buildinst(ldr, true, false),
-             settemp(long, reg_oprnd(reg)),
-             properreg);
+        if mode = label_offset then
+          gen2(buildinst(adrp, true, false),
+               settemp(long, reg_oprnd(reg)),
+               settemp(long, labeltarget_oprnd(labelno, false, labeloffset)))
+        else
+          gen2(buildinst(ldr, true, false),
+               settemp(long, reg_oprnd(reg)),
+               properreg);
         end;
       if restorereg2 then
         begin
@@ -2771,7 +2776,9 @@ procedure enterloop;
             if active then
               begin
               stackcopy := savereg(i);
-              keytable[stackcopy].refcount := keytable[stackcopy].refcount +
+              { DRB: temporary hack }
+              if stackcopy >= stackcounter then
+                keytable[stackcopy].refcount := keytable[stackcopy].refcount +
                                               1;
               end;
             end; {with}
@@ -2831,7 +2838,12 @@ procedure reloadloop;
               begin
               keytable[r].oprnd.reg := i;
               reloadfirst := newnode(instnode);
-              gen2p(reloadfirst, ldrinst(long, true), r, stackcopy);
+              if keytable[stackcopy].oprnd.mode = label_offset then
+                gen2p(reloadfirst,
+                      buildinst(adrp, true, false), r,
+                      settemp(long, labeltarget_oprnd(keytable[stackcopy].oprnd.labelno, false,
+                                                      keytable[stackcopy].oprnd.labeloffset)))
+              else gen2p(reloadfirst, ldrinst(long, true), r, stackcopy);
               reloadlast := lastnode;
               end;
 
@@ -2902,6 +2914,7 @@ procedure copyaccessx;
       keytable[key].properreg := properreg;
       keytable[key].properreg2 := properreg2;
       keytable[key].tempflag := tempflag;
+      keytable[key].validtemp := validtemp;
       keytable[key].packedaccess := packedaccess;
 
       { Point to the properaddress if clearcontext}
@@ -3082,7 +3095,9 @@ procedure restoreloopx;
                   end;
                 end
               else if reloadfirst <> nil then deletenodes(reloadfirst, reloadlast);
-              keytable[stackcopy].refcount := keytable[stackcopy].refcount -
+              { DRB: temporary hack }
+              if stackcopy >= stackcounter then
+                keytable[stackcopy].refcount := keytable[stackcopy].refcount -
                                               1;
               end;
 
@@ -3856,10 +3871,10 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
         compilerabort(inconsistent);
         end
       else if left = 1 then
-        setvalue(index_oprnd(unsigned_offset, fp, 0))
-{ DRB: a lot of work involved here ...
-        setvalue(labeltarget_oprnd(bsslabel, false, 0))
+{
+        setvalue(index_oprnd(unsigned_offset, gp, 0))
 }
+        setvalue(labeltarget_oprnd(bsslabel, false, 0))
       else if left = level then
         setvalue(index_oprnd(unsigned_offset, fp, 0))
       else if left = level - 1 then setvalue(index_oprnd(unsigned_offset, sl, 0))
@@ -4388,8 +4403,10 @@ procedure indxx;
                               false, keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
           gen2(buildinst(adrp, true, false), newkey, labelkey);
           keytable[labelkey].oprnd.lowbits := true;
-          gen3(buildinst(add, true, false), newkey, newkey, labelkey);
-          setvalue(index_oprnd(unsigned_offset, r, 0));
+          setvalue(label_offset_oprnd(r, keytable[labelkey].oprnd.labelno,
+                                      keytable[labelkey].oprnd.labeloffset));
+          keytable[key].regsaved := true;
+          keytable[key].validtemp := true;
           end;
         reg_offset:
           begin
@@ -5224,9 +5241,10 @@ procedure codeone;
     if switcheverplus[test] then
       begin
       dumppseudo(macfile);
-{
+writeln(macfile, registers[14], ' ', registers[15]);
       if keytable[key].first <> nil then
         write_nodes(keytable[key].first, keytable[key].last);
+{
       dumpstack;
 }
       end;
