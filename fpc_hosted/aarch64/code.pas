@@ -2017,7 +2017,7 @@ procedure savedstkey(k: keyindex);
     p: nodeptr;
   begin
     with keytable[k],oprnd do
-      if regvalid and not regsaved and (reg >= firstreg) and
+      if (mode = register) and regvalid and not regsaved and (reg >= firstreg) and
          (reg <= lastreg) and keytable[properreg].validtemp then
         begin
         p := newnode(instnode);
