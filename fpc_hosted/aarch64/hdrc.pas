@@ -469,6 +469,12 @@ type
       last: nodeptr; {set to the last node of the stream which
                       created this value}
       oprnd: oprndtype; {the machine description of the operand}
+      regenoprnd: oprndtype; {if not nomode then this operand can be used
+                              to regenerate oprnd.  For exampke, a label_offset
+                              operand it is far cheaper to regenerate the
+                              index register using an adp <label> instruction
+                              than to reload it from a stored value on the
+                              stack using ldr.}
       brinst: insts; {use this instruction for 'true' branch}
       saves: tempsaveptr; {list of save operations if a stack temp}
     end;

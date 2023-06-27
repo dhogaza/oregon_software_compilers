@@ -503,100 +503,8 @@ begin {regmoveok}
   regmoveok := power2 and (power2value <= 3);
 end; {regmoveok}
 
-procedure setkeyentry(k: keyindex; l:unsigned; o: oprndtype);
-
-{ Set up an arbitrary key entry with the given operand.
-}
-
-  begin {setkeyentry}
-    with keytable[k] do
-      begin
-      len := l;
-      refcount := 0;
-      copycount := 0;
-      copylink := 0;
-      properreg := 0;
-      properreg2 := 0;
-      access := valueaccess;
-      tempflag := false;
-      regsaved := false;
-      reg2saved := false;
-      regvalid := true;
-      reg2valid := true;
-      packedaccess := false;
-      signed := true;
-      signlimit := 0;
-      oprnd := o;
-      end;
-  end {setkeyentry};
-
-function settemp(l: unsigned; o: oprndtype): keyindex;
-
-{ Set up a temporary key entry with the given operand.  This has
-  nothing to do with runtime temp administration.  It strictly sets up a key
-  entry.  Negative key values are used for these temp entries, and they are
-  basically administered as a stack using "tempkey" as the stack pointer.
-}
-
-
-  begin {settemp}
-    if tempkey = lowesttemp then compilerabort(interntemp);
-    tempkey := tempkey - 1;
-    setkeyentry(tempkey, l, o);
-    settemp := tempkey;
-  end {settemp} ;
-
-
-function buildinst(inst: insts; sf: boolean; s: boolean): insttype;
-
-var
-  i: insttype;
-
-begin
-  i.inst := inst;
-  i.sf := sf;
-  i.s := s;
-  buildinst := i;
-end;
-
-function ldrinst(l: addressrange; s: boolean):insttype;
-
-  var
-    inst: insts;
-
-  begin {ldrinst}
-    case l  of
-      byte: if s then inst := ldrsb else inst := ldrb;
-      short: if s then inst := ldrsh else inst := ldrh;
-      word: if s then inst := ldrsw else inst := ldr;
-      long: inst := ldr;
-      otherwise
-        begin
-        write('operand length ', l, ' given to ldrinst');
-        compilerabort(inconsistent)
-        end
-    end;
-    ldrinst := buildinst(inst, l >= word, false);
-  end {ldrinst};
-
-function strinst(l: addressrange):insttype;
-
-  var
-    inst: insts;
-
-  begin {strinst}
-    case l  of
-      1: inst := strb;
-      2: inst := strh;
-      4, 8: inst := str;
-      otherwise
-        begin
-        write('operand length ', l, ' given to strinst');
-        compilerabort(inconsistent)
-        end
-    end;
-    strinst := buildinst(inst, l = long, false);
-  end {loadinst};
+{we handle quite a large number of machine operands and abstract
+ operands}
 
 function nomode_oprnd: oprndtype;
 
@@ -834,6 +742,103 @@ function intconst_oprnd(i: integer): oprndtype;
     intconst_oprnd := o;
   end;
 
+{that's all the operands that are available}
+
+procedure setkeyentry(k: keyindex; l:unsigned; o: oprndtype);
+
+{ Set up an arbitrary key entry with the given operand.
+}
+
+  begin {setkeyentry}
+    with keytable[k] do
+      begin
+      len := l;
+      refcount := 0;
+      copycount := 0;
+      copylink := 0;
+      properreg := 0;
+      properreg2 := 0;
+      access := valueaccess;
+      tempflag := false;
+      regsaved := false;
+      reg2saved := false;
+      regvalid := true;
+      reg2valid := true;
+      packedaccess := false;
+      signed := true;
+      signlimit := 0;
+      oprnd := o;
+      regenoprnd := nomode_oprnd;
+      end;
+  end {setkeyentry};
+
+function settemp(l: unsigned; o: oprndtype): keyindex;
+
+{ Set up a temporary key entry with the given operand.  This has
+  nothing to do with runtime temp administration.  It strictly sets up a key
+  entry.  Negative key values are used for these temp entries, and they are
+  basically administered as a stack using "tempkey" as the stack pointer.
+}
+
+
+  begin {settemp}
+    if tempkey = lowesttemp then compilerabort(interntemp);
+    tempkey := tempkey - 1;
+    setkeyentry(tempkey, l, o);
+    settemp := tempkey;
+  end {settemp} ;
+
+
+function buildinst(inst: insts; sf: boolean; s: boolean): insttype;
+
+var
+  i: insttype;
+
+begin
+  i.inst := inst;
+  i.sf := sf;
+  i.s := s;
+  buildinst := i;
+end;
+
+function ldrinst(l: addressrange; s: boolean):insttype;
+
+  var
+    inst: insts;
+
+  begin {ldrinst}
+    case l  of
+      byte: if s then inst := ldrsb else inst := ldrb;
+      short: if s then inst := ldrsh else inst := ldrh;
+      word: if s then inst := ldrsw else inst := ldr;
+      long: inst := ldr;
+      otherwise
+        begin
+        write('operand length ', l, ' given to ldrinst');
+        compilerabort(inconsistent)
+        end
+    end;
+    ldrinst := buildinst(inst, l >= word, false);
+  end {ldrinst};
+
+function strinst(l: addressrange):insttype;
+
+  var
+    inst: insts;
+
+  begin {strinst}
+    case l  of
+      1: inst := strb;
+      2: inst := strh;
+      4, 8: inst := str;
+      otherwise
+        begin
+        write('operand length ', l, ' given to strinst');
+        compilerabort(inconsistent)
+        end
+    end;
+    strinst := buildinst(inst, l = long, false);
+  end {loadinst};
 function newnode(kind: nodekinds): nodeptr;
 
 { Allocate a new node and link it to list of nodes
@@ -1269,6 +1274,7 @@ procedure setcommonkey;
         regsaved := false;
         properreg := key; {simplifies certain special cases}
         properreg2 := key;
+        regenoprnd := nomode_oprnd;;
         validtemp := false;
         reg2saved := false;
         regvalid := true;
@@ -1280,6 +1286,7 @@ procedure setcommonkey;
         signlimit := 0;
         knownword := false;
         oprnd := nomode_oprnd;
+        regenoprnd := oprnd;
         end
       else if (key <> 0) and (access <> valueaccess) then
         begin
@@ -1367,6 +1374,7 @@ procedure setallfields(k: keyindex);
       keytable[key].properreg := properreg;
       keytable[key].properreg2 := properreg2;
       keytable[key].tempflag := tempflag;
+      keytable[key].regenoprnd := regenoprnd;
       setkeyvalue(k);
       end;
   end {setallfields} ;
@@ -1699,6 +1707,7 @@ function newtemp(size: addressrange {size of temp to allocate} ): keyindex;
         len := size;
         access := valueaccess;
         tempflag := false;
+        regenoprnd := nomode_oprnd;
         validtemp := true;
         regvalid := true;
         reg2valid := true;
@@ -1788,13 +1797,20 @@ function savereg(r: regindex {register to save}) : keyindex;
         begin
         with keytable[i], oprnd do
           if (access = valueaccess) and (refcount > 0) then
-            if (r = reg) and regvalid and keytable[properreg].validtemp and
-               ((properreg >= stackcounter) or (properreg <= lastkey)) then
-              begin
-              found := true;
-              savekey := properreg;
-              saved := regsaved;
-              end
+            if (r = reg) {and regvalid} then
+              if regenoprnd.mode <> nomode then
+                begin
+                found := true;
+                saved := true;
+                savekey := i
+                end
+              else if keytable[properreg].validtemp and
+                ((properreg >= stackcounter) or (properreg <= lastkey)) then
+                begin
+                found := true;
+                savekey := properreg;
+                saved := regsaved;
+                end
             else if (r = reg2) and reg2valid and
                keytable[properreg2].validtemp and
                ((properreg2 >= stackcounter) or (properreg2 <= lastkey)) then
@@ -2014,13 +2030,18 @@ procedure savedstkey(k: keyindex);
 procedure savekey(k: keyindex {operand to save} );
 
 { Save all volatile registers required by given key.
+  unless we can regenerate it from the saved copy of the
+  original operand.  We do this because save/restore to
+  memory is more expensive than regenerated the operand
+  with instructions like adp, add to registers like the
+  frame pointer, mov/movk sequences etc.
 }
 
 
   begin
     if k > 0 then
       with keytable[k] do
-        if access = valueaccess then
+        if (access = valueaccess) and (regenoprnd.mode = nomode) then
           begin
           bumptempcount(k, -refcount);
           with oprnd do
@@ -2206,7 +2227,7 @@ procedure makeaddressable(var k: keyindex);
         if mode = label_offset then
           gen2(buildinst(adrp, true, false),
                settemp(long, reg_oprnd(reg)),
-               settemp(long, labeltarget_oprnd(labelno, false, labeloffset)))
+               settemp(long, regenoprnd))
         else
           gen2(buildinst(ldr, true, false),
                settemp(long, reg_oprnd(reg)),
@@ -2389,6 +2410,7 @@ procedure initblock;
         reg2valid := false;
         regsaved := false;
         reg2saved := false;
+        regenoprnd := nomode_oprnd;
         validtemp := false;
         tempflag := false;
         end;
@@ -2916,6 +2938,7 @@ procedure copyaccessx;
       keytable[key].tempflag := tempflag;
       keytable[key].validtemp := validtemp;
       keytable[key].packedaccess := packedaccess;
+      keytable[key].regenoprnd := regenoprnd;
 
       { Point to the properaddress if clearcontext}
       if useproperaddress then
@@ -4401,12 +4424,14 @@ procedure indxx;
           newkey := settemp(long, reg_oprnd(getreg));
           labelkey := settemp(long,labeltarget_oprnd(keytable[left].oprnd.labelno,
                               false, keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
+          keytable[key].regenoprnd := keytable[labelkey].oprnd;
           gen2(buildinst(adrp, true, false), newkey, labelkey);
           keytable[labelkey].oprnd.lowbits := true;
           setvalue(label_offset_oprnd(r, keytable[labelkey].oprnd.labelno,
                                       keytable[labelkey].oprnd.labeloffset));
+{ DRB: idea is to make this unnecessary 
           keytable[key].regsaved := true;
-          keytable[key].validtemp := true;
+}
           end;
         reg_offset:
           begin
