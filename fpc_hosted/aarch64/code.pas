@@ -2593,6 +2593,7 @@ procedure genmoveaddress(src, dst: keyindex);
 
   var
     labelkey: keyindex; {for label_offset}
+    regkey: keyindex; {same}
 
   begin {genmoveaddress}
 {
@@ -2615,11 +2616,18 @@ procedure genmoveaddress(src, dst: keyindex);
 
     with keytable[src].oprnd do
       case mode of
+      label_offset:
+        begin
+        regkey := settemp(long, reg_oprnd(reg));
+        labelkey := settemp(long, labeltarget_oprnd(labelno, true, labeloffset));
+        gen3(buildinst(add, true, false), dst, regkey, labelkey);
+        end;
       labeltarget:
         begin
-        gen2(buildinst(adrp, true, false), dst, src);
-        keytable[src].oprnd.lowbits := true;
-        gen3(buildinst(add, true, false), dst, dst, src);
+        labelkey := settemp(long, labeltarget_oprnd(labelno, false, labeloffset));
+        gen2(buildinst(adrp, true, false), dst, labelkey);
+        keytable[labelkey].oprnd.lowbits := true;
+        gen3(buildinst(add, true, false), dst, dst, labelkey);
         end;
       signed_offset, unsigned_offset:
         if (keytable[dst].oprnd.reg <> reg) or
