@@ -2410,7 +2410,8 @@ procedure initblock;
         reg2valid := false;
         regsaved := false;
         reg2saved := false;
-        regenoprnd := nomode_oprnd;
+        oprnd := nomode_oprnd;
+        regenoprnd := oprnd;
         validtemp := false;
         tempflag := false;
         end;
@@ -2937,6 +2938,8 @@ procedure copyaccessx;
 
     with keytable[left], oprnd do
       begin
+      keytable[key].signed := signed;
+      keytable[key].signlimit := signlimit;
       keytable[key].regsaved := regsaved;
       keytable[key].reg2saved := reg2saved;
       keytable[key].regvalid := regvalid;
@@ -2947,6 +2950,7 @@ procedure copyaccessx;
       keytable[key].validtemp := validtemp;
       keytable[key].packedaccess := packedaccess;
       keytable[key].regenoprnd := regenoprnd;
+      setvalue(oprnd);
 
       { Point to the properaddress if clearcontext}
       if useproperaddress then
@@ -2955,13 +2959,20 @@ procedure copyaccessx;
         if joinreg2 then keytable[key].reg2valid := false;
         end;
 
+{DRB: some kind of horrible fpc bug causes the above
+ assignedment in the with statement to set signed to
+ 255 packed or not.  Bogus sign extension???
+}
+keytable[key].signed := keytable[left].signed;
+
       with loopstack[loopsp] do
         begin
         with regstate[reg] do
           if active and keytable[key].regvalid and 
              (keytable[key].oprnd.mode in [register, tworeg, shift_reg, extend_reg,
                                            relative, pre_index, post_index, signed_offset,
-                                           unsigned_offset, reg_offset])  then used := true;
+                                           label_offset, unsigned_offset, reg_offset])
+          then used := true;
         with regstate[reg2] do
           if active and keytable[key].reg2valid and
              (keytable[key].oprnd.mode in [tworeg, reg_offset]) then used := true;
@@ -2970,10 +2981,6 @@ procedure copyaccessx;
              (keytable[key].oprnd.mode = fpregister) then used := true;
 
         end; { loopstack[loopsp] }
-
-      setvalue(oprnd);
-      keytable[key].signed := signed;
-      keytable[key].signlimit := signlimit;
       end;
 
     { Now decrement refcounts }
@@ -5274,9 +5281,11 @@ procedure codeone;
     if switcheverplus[test] then
       begin
       dumppseudo(macfile);
-writeln(macfile, registers[14], ' ', registers[15]);
       if keytable[key].first <> nil then
         write_nodes(keytable[key].first, keytable[key].last);
+for key := 0 to ip0-1 do
+write(macfile, registers[key], ' ');
+writeln(macfile);
 {
       dumpstack;
 }
