@@ -3358,6 +3358,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
     i: 1..4; {DRB: induction var limited by 32-bit integers}
     byvalue: unsigned; { BY value (always "1" for Pascal) }
     finalvalue: integer; { if improved }
+    litkey: keyindex;
 
 
   begin {forbottom}
@@ -3367,7 +3368,6 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
     with forstack[forsp] do
       begin
       sgn := keytable[forkey].signed;
-      dereference(forkey);
       if sgn then branch := signedbr
       else branch := unsignedbr;
       with keytable[forkey], oprnd do
@@ -3385,7 +3385,6 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
           end;
         end;
       keytable[forkey].len := savedlen;
-      restoreloopx;
 
       { The following tests determine how we detect the last iteration through
         the loop when the initial and final values are both constant.  We add
@@ -3441,14 +3440,23 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
           branch := blt;
           end;
 
+        lock(keytable[forkey].properreg);
+        litkey := preparelitint(finalvalue, forkey);
+        restoreloopx;
         gen2(buildinst(cmp, keytable[forkey].len = long, false), forkey,
-             preparelitint(finalvalue, forkey));
+             litkey);
+        unlock(keytable[forkey].properreg);
         genbr(branch, pseudoinst.oprnds[1]);
         end {if needcompare}
-      else if sgn then genbr(bvc, pseudoinst.oprnds[1])
-      else if incinst = sub then
-        genbr(bcs, pseudoinst.oprnds[1]) 
-        else genbr(bcc, pseudoinst.oprnds[1])
+      else
+        begin
+        restoreloopx;
+        if sgn then genbr(bvc, pseudoinst.oprnds[1])
+        else if incinst = sub then
+          genbr(bcs, pseudoinst.oprnds[1]) 
+          else genbr(bcc, pseudoinst.oprnds[1]);
+        end;
+      dereference(forkey);
       end; {with forstack[forsp]}
 
     dereference(target);
@@ -3987,7 +3995,7 @@ procedure blockcodex;
     p := newnode(proclabelnode);
     p^.proclabel := blockref;
     codeproctable[blockref].proclabelnode := p;
-
+{
     if (blockref = 0) and (switchcounters[mainbody] > 0) then
       begin
       t1 := settemp(long, reg_oprnd(gp));
@@ -3997,6 +4005,7 @@ procedure blockcodex;
       gen3(buildinst(add, true, false), t1, t1, t2);
       regused[gp] := true;
       end;
+}
   end {blockcodex} ;
 
 procedure putblock;
