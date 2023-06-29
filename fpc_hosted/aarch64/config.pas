@@ -198,7 +198,7 @@ const
   { Define the maximum numbers of scalars and reals to assign to registers }
 
   { DRB: numbers for AARCH64 are a WAG }
-  assignreg = 4;
+  assignreg = 5;
   assignptrreg = 0;
   assignrealreg = 4;
 
@@ -331,8 +331,8 @@ const
   charsetsize = 256; {number of elements in the character set}
   maxsetord = 255; {max ord allowed in a set}
   setvaluebytes = 31; {maximum set size (bytes), for set values}
-  setalign = 2; {alignment requirement for a set}
-  intalign = 2; {alignment for an integer}
+  setalign = 8; {alignment requirement for a set}
+  intalign = 4; {alignment for an integer}
   shortintalign = 2; {alignment for a short integer}
 
   charsize = unitsize; {size of a character}
@@ -343,9 +343,9 @@ const
 
   scalarsize = unitsize; {size of a small scalar}
   scalaralign = unitsize; {alignment for small scalars}
-  realalign = 2; {alignment of real values}
-  doublealign = 2; {alignment of double real values}
-  ptralign = 2; {alignment requirements for a pointer}
+  realalign = 4; {alignment of real values}
+  doublealign = 8; {alignment of double real values}
+  ptralign = 8; {alignment requirements for a pointer}
   defreturnlinksize = 16; {size of a procedure return link in addressing units
                          (includes dynamic link on 68k)}
   defextreturnlinksize = 16; {size of a procedure return link in addressing
