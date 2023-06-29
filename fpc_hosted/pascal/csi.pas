@@ -798,7 +798,7 @@ procedure csi;
     cmdquals := [];
 
     if language <> c then
-      qualsset := [checkq, mainq, walkbackq, framepointerq, librequestq];
+      qualsset := [checkq, mainq, framepointerq, librequestq];
 
     temp_unixtarget := defunixtarget;
     fppspecified := false;
