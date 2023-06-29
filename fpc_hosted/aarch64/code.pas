@@ -16,6 +16,8 @@ implementation
 
 procedure loadreg(var k: keyindex; other: keyindex); forward;
 
+procedure gensimplemove(src: keyindex; dst: keyindex); forward;
+
 procedure dumpstack;
 
   var i: integer;
@@ -2446,9 +2448,11 @@ procedure handle_bitmask(var k: keyindex; other: keyindex);
         k := settemp(len, immbitmask_oprnd(int_value));
         end
       else loadreg(k, other); 
-  end {handle_intconst12};
+  end {handle_bitmask};
 
-procedure handle_intconst12(var k: keyindex; other: keyindex);
+procedure handle_intconst12(var k: keyindex; other: keyindex; r: regindex);
+
+  var newkey: keyindex;
 
   begin {handle_intconst12}
     with keytable[k].oprnd do
@@ -2457,7 +2461,14 @@ procedure handle_intconst12(var k: keyindex; other: keyindex);
           k := settemp(len, imm12_oprnd(int_value, false))
         else if ((int_value and $FFF) = 0) and (int_value <= $FFF000) then
           k := settemp(len, imm12_oprnd(int_value div $1000, true))
-        else loadreg(k, other); 
+        else
+          if r <> noreg then
+            begin
+            newkey := settemp(len, reg_oprnd(r));
+            gensimplemove(k, newkey);
+            k := newkey;
+            end
+          else loadreg(k, other); 
   end {handle_intconst12};
 
 procedure handle_intconst16(var k: keyindex; var movinst: insts; r: regindex);
@@ -2705,7 +2716,7 @@ procedure prepareoprnd(var k: keyindex; { the key we're interested inn }
         loadreg(k, other)
       else if mode = intconst then
         if bitmask then handle_bitmask(k, other)
-        else handle_intconst12(k, other)
+        else handle_intconst12(k, other, noreg)
       else loadreg(k, other)
   end {prepareoprnd};
 
@@ -2719,7 +2730,7 @@ function preparelitint(value: integer; other: keyindex): keyindex;
 
   begin
     newkey := settemp(len, intconst_oprnd(value));
-    handle_intconst12(newkey, other);
+    handle_intconst12(newkey, other, noreg);
     preparelitint := newkey;
   end;
 
@@ -3367,6 +3378,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
 
     with forstack[forsp] do
       begin
+      dereference(forkey); {because cmp will use ip0 if we need a reg}
       sgn := keytable[forkey].signed;
       if sgn then branch := signedbr
       else branch := unsignedbr;
@@ -3420,6 +3432,8 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
       gen3(buildinst(incinst, len = long, not needcompare), forkey, forkey,
            settemp(long, imm12_oprnd(byvalue, false)));
 
+      restoreloopx;
+
       if needcompare then
         begin
 
@@ -3440,23 +3454,16 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
           branch := blt;
           end;
 
-        lock(keytable[forkey].properreg);
-        litkey := preparelitint(finalvalue, forkey);
-        restoreloopx;
+        litkey := settemp(len, intconst_oprnd(finalvalue));
+        handle_intconst12(litkey, 0, ip0);
         gen2(buildinst(cmp, keytable[forkey].len = long, false), forkey,
              litkey);
-        unlock(keytable[forkey].properreg);
         genbr(branch, pseudoinst.oprnds[1]);
         end {if needcompare}
-      else
-        begin
-        restoreloopx;
-        if sgn then genbr(bvc, pseudoinst.oprnds[1])
-        else if incinst = sub then
-          genbr(bcs, pseudoinst.oprnds[1]) 
-          else genbr(bcc, pseudoinst.oprnds[1]);
-        end;
-      dereference(forkey);
+      else if sgn then genbr(bvc, pseudoinst.oprnds[1])
+      else if incinst = sub then
+        genbr(bcs, pseudoinst.oprnds[1]) 
+      else genbr(bcc, pseudoinst.oprnds[1]);
       end; {with forstack[forsp]}
 
     dereference(target);
@@ -4131,7 +4138,6 @@ procedure putblock;
       registers, and shrink stack.
     } 
 
-    {for i := pr + 1 to sl - 1 do}
     for i := pr + 1 to sp do
       if regused[i] then
         begin
@@ -4140,7 +4146,6 @@ procedure putblock;
         p1 := newinsertafter(p1, instnode);
         gen2p(p1, buildinst(str, true, false), saveregtemp, saveregoffsettemp);
         gen2(buildinst(ldr, true, false), saveregtemp, saveregoffsettemp);
-        regoffset[i] := -regcost;
         end;
 
     if prepost then
@@ -4922,7 +4927,7 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
       b := keytable[right].brinst
     else
       begin
-      b := cbz;
+      b := cbnz;
       loadreg(right, 0);
       end;
     if inv then b := invert[b];
@@ -5292,12 +5297,12 @@ procedure codeone;
       dumppseudo(macfile);
       if keytable[key].first <> nil then
         write_nodes(keytable[key].first, keytable[key].last);
+{
 for key := 0 to ip0-1 do
 write(macfile, registers[key], ' ');
 writeln(macfile);
-{
-      dumpstack;
 }
+      dumpstack;
       end;
   end {codeone};
 
