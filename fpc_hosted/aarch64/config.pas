@@ -200,7 +200,7 @@ const
   { DRB: numbers for AARCH64 are a WAG }
   assignreg = 5;
   assignptrreg = 0;
-  assignrealreg = 4;
+  assignrealreg = 7;
 
   maxtrackvar = 64; {maximum number of register candidates for a block}
   regtablelimit = 4095; {last entry in register candidate hash table. MUST be

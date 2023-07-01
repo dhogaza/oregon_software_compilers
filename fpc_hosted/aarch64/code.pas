@@ -1799,7 +1799,8 @@ function savereg(r: regindex {register to save}) : keyindex;
         begin
         with keytable[i], oprnd do
           if (access = valueaccess) and (refcount > 0) then
-            if (r = reg) {and regvalid} then
+            if (r = reg) and regvalid then
+              begin
               if regenoprnd.mode <> nomode then
                 begin
                 found := true;
@@ -1813,6 +1814,7 @@ function savereg(r: regindex {register to save}) : keyindex;
                 savekey := properreg;
                 saved := regsaved;
                 end
+              end
             else if (r = reg2) and reg2valid and
                keytable[properreg2].validtemp and
                ((properreg2 >= stackcounter) or (properreg2 <= lastkey)) then
@@ -2191,6 +2193,7 @@ procedure makeaddressable(var k: keyindex);
     restorereg, restorereg2: boolean;
     i,t: keyindex;
     found: boolean;
+
   procedure recall_reg(regx: regindex; properregx: keyindex);
 
     { Unkill a general reg if possible.
@@ -2200,7 +2203,10 @@ procedure makeaddressable(var k: keyindex);
         if (thecontext = contextsp) and (loopoverflow = 0) and
            (thecontext <> contextdepth - 1) and
            (regstate[regx].stackcopy = properregx) then
+          begin
           regstate[regx].killed := false;
+          context[contextsp].bump[regx] := true;
+          end;
     end;
 
   begin {makeaddressable}
@@ -2574,6 +2580,9 @@ procedure gensimplemove(src: keyindex; dst: keyindex);
 
   begin {gensimplemove}
     i := mov;
+    if (keytable[src].oprnd.mode = intconst) and
+       (keytable[src].oprnd.int_value = 0) then
+      src := settemp(long, reg_oprnd(zero));
     if (keytable[dst].oprnd.mode = register) and
        (keytable[src].oprnd.mode = intconst) then
       handle_intconst16(src, i, keytable[dst].oprnd.reg)
@@ -2730,7 +2739,7 @@ function preparelitint(value: integer; other: keyindex): keyindex;
 
   begin
     newkey := settemp(len, intconst_oprnd(value));
-    handle_intconst12(newkey, other, noreg);
+    handle_intconst12(newkey, other, ip0);
     preparelitint := newkey;
   end;
 
@@ -3225,7 +3234,6 @@ procedure defforindexx(sgn, { true if signed induction var }
   begin {defforindexx}
     saveactivekeys;
     address(right);
-
     lock(right);
     if lit then
       left := settemp(len, intconst_oprnd(pseudoinst.oprnds[1]))

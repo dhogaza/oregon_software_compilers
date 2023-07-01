@@ -445,6 +445,7 @@ procedure writeproclabel(procn: proctableindex);
 procedure write_reg(r: regindex; sf: boolean);
 begin
   if r = sp then write(macfile, 'sp')
+  else if r = zero then write(macfile, reg_prefix[sf], 'zr')
   else if r = noreg then write(macfile, 'NOREG')
   else write(macfile, reg_prefix[sf], r);
 end {write_reg};
