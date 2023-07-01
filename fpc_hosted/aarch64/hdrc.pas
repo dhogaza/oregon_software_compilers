@@ -31,11 +31,8 @@ const
   zero = 31; {sp encodes to this, too, but we'll differentiate}
   link = 30;
   fp = 29;
-  sl = 28;
-{
   gp = 28;
-  sl = 27;
-}
+  sl = 27; {if needed for uplevel refs}
   ip0 = 16; {ip0 and ip1 reserved for linker}
   ip1 = 17;
   pr = 18; {platform register, can't touch}
