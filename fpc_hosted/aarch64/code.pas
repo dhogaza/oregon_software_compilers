@@ -14,6 +14,8 @@ procedure exitcode;
 
 implementation
 
+procedure gensimplemove(src: keyindex; dst: keyindex); forward;
+
 procedure loadreg(var k: keyindex; other: keyindex); forward;
 
 procedure dumpstack;
@@ -1191,6 +1193,41 @@ procedure definelastlabel;
     lastlabel := lastlabel - 1;
   end {definelastlabel} ;
 
+function equivaddr(l, r: keyindex): boolean;
+
+{ True if the addresses accessed for key l and key r are the same.
+}
+
+  var same: boolean;
+
+  begin {equivaddr}
+    same := true;
+    with keytable[l].oprnd, keytable[r] do
+      begin
+      if (access <> valueaccess) or (keytable[l].access <> valueaccess) or
+         (packedaccess <> keytable[l].packedaccess) or
+         (oprnd.mode <> mode) or
+         (oprnd.reg <> reg) or (oprnd.reg2 <> reg2) then
+        same := false;
+      if same then
+        case oprnd.mode of
+        shift_reg: same := (reg_shift = oprnd.reg_shift) and
+                          (shift_amount = oprnd.shift_amount);
+        extend_reg: same := (reg_extend = oprnd.reg_extend) and
+                            (extend_shift = oprnd.extend_shift) and
+                            (extend_signed = oprnd.extend_signed);
+         pre_index, post_index, signed_offset, unsigned_offset:
+           same := (index = oprnd.index);
+         reg_offset: same := (shift = oprnd.shift) and
+                             (extend = oprnd.extend) and
+                             (signed = oprnd.signed);
+         otherwise same := true;
+         end;
+      end;
+    equivaddr := same;
+  end {equivaddr} ;
+
+
 procedure adjustregcount(k: keyindex; {operand to adjust}
                          delta: integer {amount to adjust count by});
 
@@ -2189,6 +2226,8 @@ procedure makeaddressable(var k: keyindex);
     restorereg, restorereg2: boolean;
     i,t: keyindex;
     found: boolean;
+    recallkey: keyindex;
+
   procedure recall_reg(regx: regindex; properregx: keyindex);
 
     { Unkill a general reg if possible.
@@ -2197,8 +2236,11 @@ procedure makeaddressable(var k: keyindex);
       with loopstack[loopsp] do
         if (thecontext = contextsp) and (loopoverflow = 0) and
            (thecontext <> contextdepth - 1) and
-           (regstate[regx].stackcopy = properregx) then
+           equivaddr(regstate[regx].stackcopy, properregx) then
+          begin
           regstate[regx].killed := false;
+          context[contextsp].bump[regx] := true;
+          end;
     end;
 
   begin {makeaddressable}
@@ -2218,20 +2260,25 @@ procedure makeaddressable(var k: keyindex);
         {DRB try to restore a register operand to the current register param
          target if possible.
         }
-        if (oprnd.mode = register) and
+        if (mode = register) and
            (registers[keytable[regparam_target].oprnd.reg] = 1) then
-          oprnd.reg := keytable[regparam_target].oprnd.reg
+          reg := keytable[regparam_target].oprnd.reg
         else
-          oprnd.reg := getreg;
-        recall_reg(oprnd.reg, properreg);
+          reg := getreg;
         if mode = label_offset then
+          begin
+          recall_reg(reg, properreg);
           gen2(buildinst(adrp, true, false),
                settemp(long, reg_oprnd(reg)),
                settemp(long, regenoprnd))
+          end
         else
+          begin
+          recall_reg(reg, properreg);
           gen2(buildinst(ldr, true, false),
                settemp(long, reg_oprnd(reg)),
                properreg);
+          end;
         end;
       if restorereg2 then
         begin
@@ -2445,18 +2492,28 @@ procedure handle_bitmask(var k: keyindex; other: keyindex);
         k := settemp(len, immbitmask_oprnd(int_value));
         end
       else loadreg(k, other); 
-  end {handle_intconst12};
+  end {handle_bitmask};
 
 procedure handle_intconst12(var k: keyindex; other: keyindex);
+
+  var
+    newkey: keyindex;
 
   begin {handle_intconst12}
     with keytable[k].oprnd do
       if mode = intconst then
-        if (int_value >= 0) and (int_value <= $FFF) then
+        if (int_value = 0) then
+          k := settemp(len, reg_oprnd(zero))
+        else if (int_value >= 0) and (int_value <= $FFF) then
           k := settemp(len, imm12_oprnd(int_value, false))
         else if ((int_value and $FFF) = 0) and (int_value <= $FFF000) then
           k := settemp(len, imm12_oprnd(int_value div $1000, true))
-        else loadreg(k, other); 
+        else
+          begin
+          newkey := settemp(len, reg_oprnd(ip0));
+          gensimplemove(k, newkey);
+          k := newkey;
+          end;
   end {handle_intconst12};
 
 procedure handle_intconst16(var k: keyindex; var movinst: insts; r: regindex);
@@ -2515,41 +2572,6 @@ procedure handle_intconst16(var k: keyindex; var movinst: insts; r: regindex);
       end
   end {handle_intconst16};
 
-function equivaddr(l, r: keyindex): boolean;
-
-{ True if the addresses accessed for key l and key r are the same.
-}
-
-  var same: boolean;
-
-  begin {equivaddr}
-    same := true;
-    with keytable[l].oprnd, keytable[r] do
-      begin
-      if (access <> valueaccess) or (keytable[l].access <> valueaccess) or
-         (packedaccess <> keytable[l].packedaccess) or
-         (oprnd.mode <> mode) or
-         (oprnd.reg <> reg) or (oprnd.reg2 <> reg2) then
-        same := false;
-      if same then
-        case oprnd.mode of
-        shift_reg: same := (reg_shift = oprnd.reg_shift) and
-                          (shift_amount = oprnd.shift_amount);
-        extend_reg: same := (reg_extend = oprnd.reg_extend) and
-                            (extend_shift = oprnd.extend_shift) and
-                            (extend_signed = oprnd.extend_signed);
-         pre_index, post_index, signed_offset, unsigned_offset:
-           same := (index = oprnd.index);
-         reg_offset: same := (shift = oprnd.shift) and
-                             (extend = oprnd.extend) and
-                             (signed = oprnd.signed);
-         otherwise same := true;
-         end;
-      end;
-    equivaddr := same;
-  end {equivaddr} ;
-
-
 procedure gensimplemove(src: keyindex; dst: keyindex);
 
   { move a simple item from the src to dst, currently just values that
@@ -2562,6 +2584,9 @@ procedure gensimplemove(src: keyindex; dst: keyindex);
 
   begin {gensimplemove}
     i := mov;
+    if (keytable[src].oprnd.mode = intconst) and
+       (keytable[src].oprnd.int_value = 0) then
+      src := settemp(len, reg_oprnd(zero));
     if (keytable[dst].oprnd.mode = register) and
        (keytable[src].oprnd.mode = intconst) then
       handle_intconst16(src, i, keytable[dst].oprnd.reg)
@@ -3114,7 +3139,11 @@ procedure restoreloopx;
                   begin
                   markreg(i); { tell current user }
                   keytable[tempreg].oprnd.reg := i;
-                  gen2(ldrinst(long, true), tempreg, stackcopy);
+                  if keytable[stackcopy].oprnd.mode = label_offset then
+                    gen2(buildinst(adrp, true, false), tempreg,
+                         settemp(long, keytable[stackcopy].regenoprnd))
+                  else
+                    gen2(ldrinst(long, true), tempreg, stackcopy);
                   end;
                 end
               else if reloadfirst <> nil then deletenodes(reloadfirst, reloadlast);
@@ -3344,7 +3373,6 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
     byvalue: unsigned; { BY value (always "1" for Pascal) }
     finalvalue: integer; { if improved }
 
-
   begin {forbottom}
     byvalue := len;
     context[contextsp].lastbranch := context[contextsp].first;
@@ -3364,6 +3392,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
           begin
           forkey := settemp(long, reg_oprnd(originalreg));
           keytable[properreg].tempflag := true;
+          makeaddressable(properreg);
           gensimplemove(properreg, forkey);
           if loopoverflow = 0 then
             loopstack[loopsp].regstate[originalreg].killed := false;
@@ -4898,7 +4927,7 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
       b := keytable[right].brinst
     else
       begin
-      b := cbz;
+      b := cbnz;
       loadreg(right, 0);
       end;
     if inv then b := invert[b];
