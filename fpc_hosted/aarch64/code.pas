@@ -1835,6 +1835,7 @@ function savereg(r: regindex {register to save}) : keyindex;
         with keytable[i], oprnd do
           if (access = valueaccess) and (refcount > 0) then
             if (r = reg) {and regvalid} then
+              begin
               if regenoprnd.mode <> nomode then
                 begin
                 found := true;
@@ -1848,6 +1849,7 @@ function savereg(r: regindex {register to save}) : keyindex;
                 savekey := properreg;
                 saved := regsaved;
                 end
+              end
             else if (r = reg2) and reg2valid and
                keytable[properreg2].validtemp and
                ((properreg2 >= stackcounter) or (properreg2 <= lastkey)) then
@@ -2265,20 +2267,15 @@ procedure makeaddressable(var k: keyindex);
           reg := keytable[regparam_target].oprnd.reg
         else
           reg := getreg;
+        recall_reg(reg, properreg);
         if mode = label_offset then
-          begin
-          recall_reg(reg, properreg);
           gen2(buildinst(adrp, true, false),
                settemp(long, reg_oprnd(reg)),
                settemp(long, regenoprnd))
-          end
         else
-          begin
-          recall_reg(reg, properreg);
           gen2(buildinst(ldr, true, false),
                settemp(long, reg_oprnd(reg)),
                properreg);
-          end;
         end;
       if restorereg2 then
         begin
