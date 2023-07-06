@@ -16,15 +16,16 @@ program sort(input, output);
         { array of ints }
         arr: intarrtype;
 
+    %include 'testlib';
+
+    function rand:integer; external;
+
     { read in the integers. }
     procedure readarr(var size: integer; var a: intarrtype);
+      var i: integer;
         begin
-            size := 1;
-            while not eof do begin
-                readln(a[size]);
-                if not eof then 
-                    size := size + 1
-            end
+          for i := 1 to size do
+            a[i] := rand mod 256;
         end;
 
     { use quicksort to sort the array of integers. }
@@ -103,5 +104,5 @@ program sort(input, output);
 
         { print. }
         for i := 1 to size do
-            writeln(arr[i])
+          putintln(arr[i]);
     end.

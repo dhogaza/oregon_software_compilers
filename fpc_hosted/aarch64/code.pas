@@ -3982,10 +3982,7 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
         compilerabort(inconsistent);
         end
       else if left = 1 then
-        begin
-        context[contextsp].keymark := key;
         setvalue(labeltarget_oprnd(bsslabel, false, 0))
-        end
       else if left = level then
         setvalue(index_oprnd(unsigned_offset, fp, 0))
       else if left = level - 1 then setvalue(index_oprnd(unsigned_offset, sl, 0))
@@ -4061,15 +4058,6 @@ procedure blockcodex;
     p^.proclabel := blockref;
     codeproctable[blockref].proclabelnode := p;
 
-    if (blockref = 0) and (switchcounters[mainbody] > 0) then
-      begin
-      t1 := settemp(long, reg_oprnd(gp));
-      t2 := settemp(long, labeltarget_oprnd(bsslabel, false, 0));
-      gen2(buildinst(adrp, true, false),t1, t2);
-      keytable[t2].oprnd.lowbits := true;
-      gen3(buildinst(add, true, false), t1, t1, t2);
-      regused[gp] := true;
-      end;
   end {blockcodex} ;
 
 procedure putblock;
@@ -4517,9 +4505,8 @@ procedure indxx;
           keytable[labelkey].oprnd.lowbits := true;
           setvalue(label_offset_oprnd(r, keytable[labelkey].oprnd.labelno,
                                       keytable[labelkey].oprnd.labeloffset));
-{ DRB: idea is to make this unnecessary 
+{DRB: hmmm ... }
           keytable[key].regsaved := true;
-}
           end;
         reg_offset:
           begin
