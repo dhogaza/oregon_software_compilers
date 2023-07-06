@@ -4491,7 +4491,11 @@ procedure build;
                   litflag := true;
                   i := 1
                   end;
-                insertnode(1);
+{
+                if targetmachine = aarch64 then
+                  insertnormal
+                else}
+ insertnode(1);
                 end;
               originop, segop:
                 begin

@@ -1,5 +1,21 @@
 -- next priorities:
 
+*** current bugs
+2. putintln of "prime" in foo doesn't lead to a proper reg
+   restore in the following while loop.
+
+   dolevel 1 is being changed to a register which isn't really the coolest
+   thing in the world.
+
+   can fix this by doing insertnormal in travrs for aarch64 in fact this
+   looks quite reasonable.   Needs more testing.  Works better than 
+   having the dolevel set keymark to the key as it follows the usual
+   copyaccess rules and the like..
+
+   generates excess dolevels so adps but WE COULD HOIST IT later.
+
+---
+
 0.2 improve vs pushfinal which no longer exists (simpleinvar), need
     to add a finalop to replace pushfinal?  This is used to designate
     an invariant final limit ...
@@ -50,6 +66,7 @@
    as frequent use of params in the context of many calls
    to procs leads to horrendous number of spills
 3. what's with cseregions being zero?  bug in the code?
+4. hoist global dolevels if they are inserted normally.
 
 
 Advantages of using negative sp offsets when generating code:

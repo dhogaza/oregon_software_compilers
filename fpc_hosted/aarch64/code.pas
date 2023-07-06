@@ -807,6 +807,7 @@ function ldrinst(l: addressrange; s: boolean):insttype;
 
   var
     inst: insts;
+    sf: boolean;
 
   begin {ldrinst}
     case l  of
@@ -820,7 +821,7 @@ function ldrinst(l: addressrange; s: boolean):insttype;
         compilerabort(inconsistent)
         end
     end;
-    ldrinst := buildinst(inst, l >= word, false);
+    ldrinst := buildinst(inst, (l > word) or (inst = ldrsw), false);
   end {ldrinst};
 
 function strinst(l: addressrange):insttype;
@@ -2220,8 +2221,8 @@ procedure makeaddressable(var k: keyindex);
 { Force addressability of specified key. Also permanently makes the new
   address mode available subject to restrictions of allowmodify. A key
   becomes unaddressed when one of the mark routines clears regvalid or
-  reg2valid. Makeaddressable reloads the missing register(s) and clears
-  the marked reg/reg2 status.
+  reg2valid. Makeaddressable reloads or regenerates the missing register(s)
+  and clears the marked reg/reg2 status.
 }
 
   var
@@ -2268,7 +2269,16 @@ procedure makeaddressable(var k: keyindex);
         else
           reg := getreg;
         recall_reg(reg, properreg);
-        if mode = label_offset then
+        if (mode = register) and (regenoprnd.mode <> nomode) then
+          begin
+          gen2(buildinst(adrp, true, false),
+               settemp(long, reg_oprnd(reg)),
+               settemp(long, regenoprnd));
+          gen2(ldrinst(len, signed),
+               settemp(len, reg_oprnd(reg)),
+               settemp(long, label_offset_oprnd(reg, regenoprnd.labelno, regenoprnd.labeloffset)))
+          end
+        else if mode = label_offset then
           gen2(buildinst(adrp, true, false),
                settemp(long, reg_oprnd(reg)),
                settemp(long, regenoprnd))
@@ -2642,6 +2652,7 @@ procedure genmoveaddress(src, dst: keyindex);
         gen2(buildinst(adrp, true, false), dst, src);
         keytable[src].oprnd.lowbits := true;
         gen3(buildinst(add, true, false), dst, dst, src);
+        keytable[src].oprnd.lowbits := false;
         end;
       signed_offset, unsigned_offset:
         if (keytable[dst].oprnd.reg <> reg) or
@@ -2882,7 +2893,19 @@ procedure reloadloop;
               begin
               keytable[r].oprnd.reg := i;
               reloadfirst := newnode(instnode);
-              if keytable[stackcopy].oprnd.mode = label_offset then
+              if (keytable[stackcopy].oprnd.mode = register) and
+                 (keytable[stackcopy].regenoprnd.mode <> nomode) then
+                begin
+                gen2p(reloadfirst,
+                      buildinst(adrp, true, false), r,
+                      settemp(long, keytable[stackcopy].regenoprnd));
+                gen2(ldrinst(keytable[stackcopy].len, keytable[stackcopy].signed),
+                     r,
+                     settemp(long, label_offset_oprnd(keytable[r].oprnd.reg,
+                             keytable[stackcopy].regenoprnd.labelno,
+                             keytable[stackcopy].regenoprnd.labeloffset)))
+                end
+              else if keytable[stackcopy].oprnd.mode = label_offset then
                 gen2p(reloadfirst,
                       buildinst(adrp, true, false), r,
                       settemp(long, labeltarget_oprnd(keytable[stackcopy].oprnd.labelno, false,
@@ -2989,6 +3012,8 @@ procedure copyaccessx;
       keytable[key].signed := signed;
       keytable[key].signlimit := signlimit;
       end;
+
+keytable[key].signed := keytable[left].signed; {AWFUL Free Pascal bug requires this}
 
     { Now decrement refcounts }
     repeat
@@ -3136,7 +3161,18 @@ procedure restoreloopx;
                   begin
                   markreg(i); { tell current user }
                   keytable[tempreg].oprnd.reg := i;
-                  if keytable[stackcopy].oprnd.mode = label_offset then
+                  if (keytable[stackcopy].oprnd.mode = register) and
+                     (keytable[stackcopy].regenoprnd.mode <> nomode) then
+                    begin
+                    gen2(buildinst(adrp, true, false), tempreg,
+                         settemp(long, keytable[stackcopy].regenoprnd));
+                    gen2(ldrinst(keytable[stackcopy].len, keytable[stackcopy].signed),
+                         tempreg,
+                         settemp(long, label_offset_oprnd(keytable[tempreg].oprnd.reg,
+                                       keytable[stackcopy].regenoprnd.labelno,
+                                       keytable[stackcopy].regenoprnd.labeloffset)))
+                    end
+                  else if keytable[stackcopy].oprnd.mode = label_offset then
                     gen2(buildinst(adrp, true, false), tempreg,
                          settemp(long, keytable[stackcopy].regenoprnd))
                   else
@@ -3224,7 +3260,10 @@ procedure defforindexx(sgn, { true if signed induction var }
 
   begin {defforindexx}
     saveactivekeys;
+{
     address(right);
+}
+    dereference(right);
 
     lock(right);
     if lit then
@@ -3255,28 +3294,21 @@ procedure defforindexx(sgn, { true if signed induction var }
       nonvolatile := target <> 0;
       globalreg := (keytable[right].oprnd.mode = register) and
                    (keytable[right].oprnd.reg >= lastreg);
-    if not globalreg then
+    if globalreg then
+      setkeyvalue(right)
+    else
       begin
       setkeyvalue(settemp(long, reg_oprnd(getreg)));
       keytable[key].regsaved := true;
       if nonvolatile then
-        begin
-        keytable[right].validtemp := true;
-
-        { DRB something similar for long offsets for aarch64 }
-        { if this "nonvolatile" variable is greater than 32KB from the
-          frame base and we're in 68K mode, it will actually be relative
-          to some volatile A register.  In this case, we need to force
-          an extra reference to it so that the stack copy will be preserved
-          and restored via the enter/exitloop mechanism.  It will be
-          dereferenced in fortopx and should be a NOP in other cases.
-        }
-        rereference(right);
-
-        keytable[key].properreg := right;
-        end;
-      end
-    else setkeyvalue(right);
+        if keytable[right].regenoprnd.mode <> nomode then
+          keytable[key].regenoprnd := keytable[right].regenoprnd
+        else
+          begin
+          keytable[right].validtemp := true;
+          keytable[key].properreg := right;
+          end;
+      end;
 
     unlock(left);
     unlock(right);
@@ -3296,7 +3328,7 @@ procedure defforindexx(sgn, { true if signed induction var }
     gensimplemove(left, key);
 
     dontchangevalue := 0;
-
+    rereference(key);
   end {defforindexx} ;
 
 procedure fortopx(signedbr, unsignedbr: insts { proper exit branch });
@@ -3334,7 +3366,19 @@ procedure fortopx(signedbr, unsignedbr: insts { proper exit branch });
         end;
 
       if nonvolatile and not globalreg
-      then gensimplemove(regkey, keytable[forkey].properreg)
+      then
+        if keytable[forkey].regenoprnd.mode <> nomode then
+          begin
+          gen2(buildinst(adrp, true, false),
+               settemp(long, reg_oprnd(ip0)),
+               settemp(long, keytable[forkey].regenoprnd));
+          gen2(strinst(keytable[forkey].len),
+               regkey,
+               settemp(long, label_offset_oprnd(ip0,
+                             keytable[forkey].regenoprnd.labelno,
+                             keytable[forkey].regenoprnd.labeloffset)))
+          end
+        else gensimplemove(regkey, keytable[forkey].properreg)
       else
         begin
         keytable[forkey].regsaved := false;
@@ -3363,12 +3407,14 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
 
   var
     sgn: boolean;
+    l: unsigned;
     needcompare: boolean; {need to generate a comparison at end of loop}
     branch: insts;
     maxvalue: unsigned; {"cmp" instruction works if limit value < maxvalue}
     i: 1..4; {DRB: induction var limited by 32-bit integers}
     byvalue: unsigned; { BY value (always "1" for Pascal) }
     finalvalue: integer; { if improved }
+    k, newkey: keyindex;
 
   begin {forbottom}
     byvalue := len;
@@ -3377,24 +3423,40 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
     with forstack[forsp] do
       begin
       sgn := keytable[forkey].signed;
-      dereference(forkey);
+      l := keytable[forkey].len;
       if sgn then branch := signedbr
       else branch := unsignedbr;
-      with keytable[forkey], oprnd do
+    {  with keytable[forkey], oprnd do
         begin
+}
         maxvalue := 127;
-        for i := 2 to max(word, len) do maxvalue := maxvalue * 256 + 255;
+        for i := 2 to max(word, l) do maxvalue := maxvalue * 256 + 255;
         if not sgn then maxvalue := maxvalue * 2 + 1;
-        if not regvalid or (mode <> register) or (reg <> originalreg) then
+        if not keytable[forkey].regvalid or (keytable[forkey].oprnd.mode <> register) or
+           (keytable[forkey].oprnd.reg <> originalreg) then
           begin
-          forkey := settemp(long, reg_oprnd(originalreg));
+          if keytable[forkey].regenoprnd.mode <> nomode then
+            begin
+            makeaddressable(forkey);
+            k := forkey;
+            end
+          else
+            begin
+            k := keytable[key].properreg;
+            keytable[k].tempflag := true;  
+            makeaddressable(k);
+            end;
+          newkey := settemp(long, reg_oprnd(originalreg));
+          dereference(forkey);
+{
           keytable[properreg].tempflag := true;
           makeaddressable(properreg);
-          gensimplemove(properreg, forkey);
+}
+          gensimplemove(k, newkey);
+          forkey := newkey;
           if loopoverflow = 0 then
             loopstack[loopsp].regstate[originalreg].killed := false;
           end;
-        end;
       keytable[forkey].len := savedlen;
       restoreloopx;
 
@@ -3459,7 +3521,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
       else if sgn then genbr(bvc, pseudoinst.oprnds[1])
       else if incinst = sub then
         genbr(bcs, pseudoinst.oprnds[1]) 
-        else genbr(bcc, pseudoinst.oprnds[1])
+        else genbr(bcc, pseudoinst.oprnds[1]);
       end; {with forstack[forsp]}
 
     dereference(target);
@@ -3920,10 +3982,10 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
         compilerabort(inconsistent);
         end
       else if left = 1 then
-{
-        setvalue(index_oprnd(unsigned_offset, gp, 0))
-}
+        begin
+        context[contextsp].keymark := key;
         setvalue(labeltarget_oprnd(bsslabel, false, 0))
+        end
       else if left = level then
         setvalue(index_oprnd(unsigned_offset, fp, 0))
       else if left = level - 1 then setvalue(index_oprnd(unsigned_offset, sl, 0))
@@ -4465,6 +4527,7 @@ procedure indxx;
           genmoveaddress(left, newkey);
           setvalue(index_oprnd(signed_offset,
                    keytable[newkey].oprnd.reg, pseudoinst.oprnds[2]));
+          keytable[key].regenoprnd.mode := nomode;
           end;
         signed_offset, unsigned_offset:
           begin
