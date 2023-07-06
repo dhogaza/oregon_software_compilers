@@ -2647,6 +2647,11 @@ procedure genmoveaddress(src, dst: keyindex);
 
     with keytable[src].oprnd do
       case mode of
+      label_offset:
+        begin
+        labelkey := settemp(long, labeltarget_oprnd(labelno, true, labeloffset)); 
+        gen3(buildinst(add, true, false), dst, settemp(long, reg_oprnd(reg)), labelkey);
+        end;
       labeltarget:
         begin
         gen2(buildinst(adrp, true, false), dst, src);
@@ -2658,9 +2663,14 @@ procedure genmoveaddress(src, dst: keyindex);
         if (keytable[dst].oprnd.reg <> reg) or
            (index <> 0) then
           begin
-          gen3(buildinst(add, true, false), dst,
-               settemp(long, reg_oprnd(reg)),
-               settemp(long, imm12_oprnd(index, false)));
+          if index < 0 then
+            gen3(buildinst(sub, true, false), dst,
+                 settemp(long, reg_oprnd(reg)),
+                 settemp(long, imm12_oprnd(-index, false)))
+          else
+            gen3(buildinst(add, true, false), dst,
+                 settemp(long, reg_oprnd(reg)),
+                 settemp(long, imm12_oprnd(index, false)));
           end;
       reg_offset:
         begin

@@ -431,8 +431,8 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
     overflowed := false;
     typeptr := @(bigtable[paramptr^.vartype]);
     paramptr^.allocated := true;
-    paramptr^.refparam := paramptr^.namekind in [varparam, varconfparam, confparam];
-    if (paramptr^.namekind = param) and (length > maxparambytes) and
+    if (paramptr^.namekind in [varparam, varconfparam, confparam]) or
+       (paramptr^.namekind = param) and (length > maxparambytes) and
        not (typeptr^.typ in [reals, doubles]) then
       begin
       paramptr^.length := ptrsize;
