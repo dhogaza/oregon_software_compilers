@@ -10,14 +10,12 @@ const
 
 var
   flags : array [0..SIZE] of boolean;
+  i, prime, k, count, iter : integer;
  
 %include 'testlib';
 
-procedure foo; external;
+procedure foo; begin end;
 
-procedure p;
-var
-  i, prime, k, count, iter : integer;
 begin
   for iter := 1 to ITERMAX do begin
     count := 0;
@@ -26,6 +24,9 @@ begin
     for i := 0 to SIZE do
       if flags[i] then begin
         prime := i + i + 3;
+{
+foo;
+}
         k := i + prime;
         while k <= SIZE do begin
           flags[k] := false;
@@ -35,9 +36,5 @@ begin
       end;
   end;
   putintln(count);
-end;
-
-begin
-  p;
-end. { sieve }
+end.
 
