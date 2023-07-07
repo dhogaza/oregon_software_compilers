@@ -306,10 +306,11 @@ var overflowed: boolean;
 
 begin
   with paramptr^ do
-    begin 
-    registercandidate := false;
-    offset := allocparamoffset(display[varlev].blocksize, length, overflowed);
-    end;
+    if registercandidate then
+      begin 
+      registercandidate := false;
+      offset := allocparamoffset(display[varlev].blocksize, length, overflowed);
+      end;
 end;
 
 procedure fixupparamoffsets(endofdefs: boolean {last chance} );
