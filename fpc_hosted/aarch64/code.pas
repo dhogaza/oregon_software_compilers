@@ -4006,7 +4006,7 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
         begin
         address(target);
         reg := getreg;
-        gensimplemove(settemp(long, index_oprnd(unsigned_offset, keytable[target].oprnd.reg, 8)),
+        gensimplemove(settemp(long, index_oprnd(unsigned_offset, keytable[target].oprnd.reg, -long)),
                       settemp(long, reg_oprnd(reg)));
         setvalue(index_oprnd(unsigned_offset, reg, 0));
         end;
@@ -4049,7 +4049,7 @@ procedure blockcodex;
     context[1].keymark := lastkey + 1;
     context[0] := context[1];
     lastfpreg := maxreg - target;
-    lastreg := sl - left - 1;
+    lastreg := sl - left;
     firstreg := 0;
     firstfpreg := 0;
     lineoffset := pseudoinst.len;
@@ -4067,7 +4067,7 @@ procedure blockcodex;
       if intlevelrefs then
         begin
         t1 := settemp(long, reg_oprnd(sl));
-        t2 := settemp(long, index_oprnd(unsigned_offset, sl, 8));
+        t2 := settemp(long, index_oprnd(unsigned_offset, sl, -long));
         for i := 1 to levelspread - 1 do
           gen2(buildinst(ldr, true, false), t1, t2);
         end;
@@ -4126,9 +4126,10 @@ procedure putblock;
 
     { We only save registers x19 ... and we do this indexing
       negatively off the fp to make sure the index is in range.
+      The static link must be the first register saved if used.
      }
     regcost := 0;
-    for i := pr + 1 to sp do
+    for i := sp downto pr + 1 do
       if regused[i] then
         begin
         regcost := regcost + long;
@@ -4201,7 +4202,7 @@ procedure putblock;
       registers, and shrink stack.
     } 
 
-    for i := pr + 1 to sp do
+    for i := sp downto pr + 1 do
       if regused[i] then
         begin
         keytable[saveregtemp].oprnd.reg := i;
@@ -4336,8 +4337,8 @@ procedure regtempx;
 
   begin
     address(left);
-    setvalue(reg_oprnd(sl - pseudoinst.oprnds[3]));
-    regused[sl - pseudoinst.oprnds[3]] := true;
+    setvalue(reg_oprnd(lastreg + pseudoinst.oprnds[3]));
+    regused[lastreg + pseudoinst.oprnds[3]] := true;
   end {regtempx} ;
 
 procedure dovarx(s: boolean {signed variable reference} );
