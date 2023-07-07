@@ -4404,7 +4404,7 @@ procedure build;
                 end;
               levop:
                 case targetmachine of
-                  vax, i80386, mc68000, aarch64:
+                  vax, i80386, mc68000:
                     begin
                     buildintoprnds(2);
                     if (n.oprndlist[1].i <> 0) and
@@ -4414,6 +4414,22 @@ procedure build;
                       sp := sp - 1;
                       end;
                     if (n.oprndlist[1].i = level) then
+                      begin
+                      insertnode(1);
+                      localparamnode := stack[sp].p;
+                      end
+                    else insertnormal;
+                    end;
+                  aarch64:
+                    begin
+                    buildintoprnds(2);
+                    if (n.oprndlist[1].i <> 0) and
+                       (n.oprndlist[1].i <> level) then
+                      begin
+                      n.oprndlist[3] := stack[sp];
+                      sp := sp - 1;
+                      end;
+                    if (n.oprndlist[1].i >= level - 1) then
                       begin
                       insertnode(1);
                       localparamnode := stack[sp].p;

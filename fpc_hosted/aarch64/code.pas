@@ -2663,7 +2663,7 @@ procedure genmoveaddress(src, dst: keyindex);
         if (keytable[dst].oprnd.reg <> reg) or
            (index <> 0) then
           begin
-          if index < 0 then
+          if (reg <> sp) and (index < 0) then
             gen3(buildinst(sub, true, false), dst,
                  settemp(long, reg_oprnd(reg)),
                  settemp(long, imm12_oprnd(-index, false)))
@@ -3338,7 +3338,9 @@ procedure defforindexx(sgn, { true if signed induction var }
     gensimplemove(left, key);
 
     dontchangevalue := 0;
+{
     rereference(key);
+}
   end {defforindexx} ;
 
 procedure fortopx(signedbr, unsignedbr: insts { proper exit branch });
@@ -3399,7 +3401,10 @@ procedure fortopx(signedbr, unsignedbr: insts { proper exit branch });
 
       { see defforindexx for an explaination of this }
       if nonvolatile and not globalreg then
+{
         dereference(keytable[forkey].properreg);
+}
+        dereference(forkey);
       end;
 
   end {fortopx} ;
@@ -3458,10 +3463,6 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
             end;
           newkey := settemp(long, reg_oprnd(originalreg));
           dereference(forkey);
-{
-          keytable[properreg].tempflag := true;
-          makeaddressable(properreg);
-}
           gensimplemove(k, newkey);
           forkey := newkey;
           if loopoverflow = 0 then
@@ -3870,6 +3871,7 @@ procedure dointx;
     keytable[key].len := pseudoinst.len;
     keytable[key].signed := true;
     keytable[key].oprnd := intconst_oprnd(pseudoinst.oprnds[1]);
+    context[contextsp].keymark := key;
   end {dointx} ;
 
 
@@ -3887,6 +3889,7 @@ procedure dofptrx;
     keytable[key].oprnd.m := proccall;
     keytable[key].oprnd.offset := pseudoinst.oprnds[1];
     keytable[key].knowneven := true;
+    context[contextsp].keymark := key;
   end {dofptrx} ;
 }
 
@@ -3961,26 +3964,28 @@ procedure dorealx;
           offset1 := kluge.damn[false];
           end;
         end;        
+    context[contextsp].keymark := key;
   end {dorealx} ;
 }
 
 procedure dolevelx(ownflag: boolean {true says own sect def} );
 
 { Generate a reference to the data area for the level specified in
-  opernds[1].  This is relative to gp for level 1, relative to fp
+  opernds[1].  This is the global base label for level 1, relative to fp
   for the current level, and relative to sl for level-1.  For other
   levels, generate an indirect from the pointer contained in the 
   target operand and offet relative to that.
 }
 
   var
-    reg: regindex; {reg for indirect reference}
-
+    reg: regindex;
 
   begin
     keytable[key].access := valueaccess;
     with keytable[key], oprnd do
       begin
+      if (left <= 1) or (left >= level - 1) then
+        context[contextsp].keymark := key;
       if ownflag then
         begin
         write('own data not yet implemented');
@@ -3995,14 +4000,15 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
         setvalue(labeltarget_oprnd(bsslabel, false, 0))
       else if left = level then
         setvalue(index_oprnd(unsigned_offset, fp, 0))
-      else if left = level - 1 then setvalue(index_oprnd(unsigned_offset, sl, 0))
+      else if left = level - 1 then
+        setvalue(index_oprnd(unsigned_offset, sl, 0))
       else
         begin
         address(target);
-        gensimplemove(settemp(long, index_oprnd(unsigned_offset, keytable[target].oprnd.reg, 0)),
-                      settemp(long, reg_oprnd(getreg)));
-        setvalue(index_oprnd(unsigned_offset, keytable[tempkey].oprnd.reg, 0));
-        tempkey := tempkey + 2;
+        reg := getreg;
+        gensimplemove(settemp(long, index_oprnd(unsigned_offset, keytable[target].oprnd.reg, 8)),
+                      settemp(long, reg_oprnd(reg)));
+        setvalue(index_oprnd(unsigned_offset, reg, 0));
         end;
       len := long;
       end;
@@ -4015,6 +4021,7 @@ procedure dostructx;
 
 begin {dostructx}
   setvalue(labeltarget_oprnd(rodatalabel, false, pseudoinst.oprnds[1]));
+  context[contextsp].keymark := key;
 end {dostructx} ;
 
 { DRB regtemp }
@@ -4053,17 +4060,18 @@ procedure blockcodex;
       p^.bsssize := globalsize;
       end;
 
+    p := newnode(textnode);
+
     with proctable[blockref] do
       begin
       if intlevelrefs then
         begin
         t1 := settemp(long, reg_oprnd(sl));
-        t2 := settemp(long, index_oprnd(unsigned_offset, sl, 0));
+        t2 := settemp(long, index_oprnd(unsigned_offset, sl, 8));
         for i := 1 to levelspread - 1 do
           gen2(buildinst(ldr, true, false), t1, t2);
         end;
       end;
-    p := newnode(textnode);
     p := newnode(proclabelnode);
     p^.proclabel := blockref;
     codeproctable[blockref].proclabelnode := p;
@@ -4193,7 +4201,6 @@ procedure putblock;
       registers, and shrink stack.
     } 
 
-    {for i := pr + 1 to sl - 1 do}
     for i := pr + 1 to sp do
       if regused[i] then
         begin

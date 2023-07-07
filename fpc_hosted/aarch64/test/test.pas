@@ -1,24 +1,36 @@
 program test;
-type ar = array[1..5] of integer;
-const arc = ar(16#10203040,16#22334455,3,4,5);
-var a: ar;
-    i,j: 1..10;
-    k: integer;
-    l: set of char;
 
-procedure phooey;
+%include 'testlib';
+
+procedure phooey(i: integer);
  var j:integer;
+
+ procedure p11;
+ begin
+   putstringln('p11');
+   putintln(j);
+   putintln(i);
+ end;
+
  procedure p1;
 
    procedure p2;
-   begin j := 0; p1  end;
+   begin
+     putstringln('p2');
+     putintln(j);
+     putintln(i);
+     p11;
+    end;
 
  begin p2; end;
 
-begin p1; end;
+begin
+  j := 3;
+  p1;
+  putstringln('phooey');
+  putintln(j);
+end;
 
 begin
-a := arc;
-l := ['a','z','0'];
-writeln('ab');
+  phooey(10);
 end.
