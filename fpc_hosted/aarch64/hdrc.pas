@@ -467,6 +467,7 @@ type
                        created value described in this record}
       last: nodeptr; {set to the last node of the stream which
                       created this value}
+      instmark: nodeptr; {value of global lastnode when this key compiled}
       oprnd: oprndtype; {the machine description of the operand}
       regenoprnd: oprndtype; {if not nomode then this operand can be used
                               to regenerate oprnd.  For exampke, a label_offset

@@ -1338,6 +1338,7 @@ procedure setcommonkey;
       tempflag := false;
       first := nil;
       last := nil;
+      instmark := lastnode;
       saves := nil;
       end;
   end {setcommonkey} ;
@@ -1539,9 +1540,9 @@ function precedeslastbranch(k: keyindex): boolean;
       begin
       p := context[contextsp].lastbranch;
       repeat
-        p := p^.nextnode;
+        p := p^.prevnode;
       until (p = nil) or
-            (p = keytable[k].first);
+            (p = keytable[k].instmark);
       precedeslastbranch := p <> nil;
       end
   end {precedeslastbranch} ;
@@ -5360,11 +5361,11 @@ procedure codeone;
     if switcheverplus[test] then
       begin
       dumppseudo(macfile);
+{
 writeln(macfile, 'lastkey: ', lastkey, ' refcount: ', keytable[lastkey].refcount, ' keymark: ', context[contextsp].keymark);
       if keytable[key].first <> nil then
         write_nodes(keytable[key].first, keytable[key].last);
 
-{
 writeln(macfile, registers[14], ' ', registers[15]);
       dumpstack;
 }

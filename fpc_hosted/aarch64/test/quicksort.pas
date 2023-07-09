@@ -4,7 +4,7 @@
 program sort(input, output);
 
   const
-    maxelts = 10{0000}; { max array size. }
+    maxelts = 100000; { max array size. }
 
   type 
     intarrtype = array [1..maxelts] of integer;
@@ -16,17 +16,12 @@ program sort(input, output);
 
   %include 'testlib';
 
-  function rand:integer; external;
-
   procedure initarray(var a: intarrtype);
     var i: integer;
 
     begin
       for i := 1 to maxelts do
        a[i] := maxelts - i;
-{
-        a[i] := rand mod 256;
-}
     end;
 
     procedure quicksort(var arr: intarrtype);
@@ -49,7 +44,7 @@ program sort(input, output);
             var
               left, right: integer;       { scan pointers. }
               pivot: integer;             { pivot value. }
-t: integer;
+
             procedure swap(var a, b: integer);
 
             { interchange the parameters. }
@@ -76,23 +71,11 @@ t: integer;
                 while (right > start) and (arr[right] >= pivot) do
                   right := right - 1;
                 if left < right then 
-begin
-t := arr[left];
-arr[left] := arr[right];
-arr[right] := t;
-end;
-{
                   swap(arr[left], arr[right]);
-}
               end;
 
               { put the pivot between the halves. }
-t := arr[start];
-arr[start] := arr[right];
-arr[right] := t;
-{
               swap(arr[start], arr[right]);
-}
 
               split := right
             end;
@@ -111,11 +94,10 @@ arr[right] := t;
       end;
 
     begin
-putstringln('init');
+        putstring('sorting ');
+        putintln(maxelts);
         initarray(arr);
-putstringln('sort');
         quicksort(arr);
-putstringln('check');
         sorted := true;
         i := 2;
         while sorted and (i <= maxelts) do
@@ -123,6 +105,6 @@ putstringln('check');
             sorted := arr[i] >= arr[i - 1];
             i := i + 1;
           end;
-       putintln(i);
-       putboolln(sorted);
+        putstring('result is sorted = ');
+        putboolln(sorted);
     end.
