@@ -4,13 +4,14 @@
 program sort(input, output);
 
   const
-    maxelts = 10; { max array size. }
+    maxelts = 10{0000}; { max array size. }
 
   type 
     intarrtype = array [1..maxelts] of integer;
 
   var
-    i, j, tmp, size: integer;
+    i: integer;
+    sorted: boolean;
     arr: intarrtype;
 
   %include 'testlib';
@@ -22,7 +23,10 @@ program sort(input, output);
 
     begin
       for i := 1 to maxelts do
+       a[i] := maxelts - i;
+{
         a[i] := rand mod 256;
+}
     end;
 
     procedure quicksort(var arr: intarrtype);
@@ -111,9 +115,14 @@ putstringln('init');
         initarray(arr);
 putstringln('sort');
         quicksort(arr);
-{
-putstringln('print');
-}
-        for i := 1 to maxelts do
-          putintln(arr[i]);
+putstringln('check');
+        sorted := true;
+        i := 2;
+        while sorted and (i <= maxelts) do
+          begin
+            sorted := arr[i] >= arr[i - 1];
+            i := i + 1;
+          end;
+       putintln(i);
+       putboolln(sorted);
     end.

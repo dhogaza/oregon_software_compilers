@@ -1312,7 +1312,7 @@ procedure setcommonkey;
         regsaved := false;
         properreg := key; {simplifies certain special cases}
         properreg2 := key;
-        regenoprnd := nomode_oprnd;;
+        regenoprnd := nomode_oprnd;
         validtemp := false;
         reg2saved := false;
         regvalid := true;
@@ -2301,8 +2301,10 @@ procedure makeaddressable(var k: keyindex);
       reg2valid := true;
       joinreg := false;
       joinreg2 := false;
+{
       regsaved := regsaved and keytable[properreg].validtemp;
       reg2saved := reg2saved and keytable[properreg2].validtemp;
+}
       adjustregcount(k, refcount);
       end;
   end {makeaddressable} ;
@@ -4021,7 +4023,6 @@ procedure dostructx;
 
 begin {dostructx}
   setvalue(labeltarget_oprnd(rodatalabel, false, pseudoinst.oprnds[1]));
-  context[contextsp].keymark := key;
 end {dostructx} ;
 
 { DRB regtemp }
@@ -5130,7 +5131,6 @@ procedure codeone;
       regtarget: regtargetx;
       regtemp: regtempx;
 {
-      ptrtemp: ptrtempx;
       realregparam: realregparamx;
       realtemp: realtempx;
 }
@@ -5141,8 +5141,8 @@ procedure codeone;
       pindx: pindxx;
       paindx: paindxx;
 }
-      condf: cond(false);
-      condt: cond(true);
+      condf: cond(true);
+      condt: cond(false);
       createfalse: createfalsex;
       createtrue: createtruex;
 {
@@ -5360,10 +5360,12 @@ procedure codeone;
     if switcheverplus[test] then
       begin
       dumppseudo(macfile);
-writeln(macfile, registers[14], ' ', registers[15]);
+writeln(macfile, 'lastkey: ', lastkey, ' refcount: ', keytable[lastkey].refcount, ' keymark: ', context[contextsp].keymark);
       if keytable[key].first <> nil then
         write_nodes(keytable[key].first, keytable[key].last);
+
 {
+writeln(macfile, registers[14], ' ', registers[15]);
       dumpstack;
 }
       end;
