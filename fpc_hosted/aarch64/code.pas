@@ -4353,10 +4353,7 @@ procedure dovarx(s: boolean {signed variable reference} );
 
 
   begin
-address(left);
-{
-dereference(left);
-}
+    dereference(left);
     setallfields(left);
     with keytable[key] do
       begin
@@ -5363,9 +5360,10 @@ procedure codeone;
       dumppseudo(macfile);
 {
 writeln(macfile, 'lastkey: ', lastkey, ' refcount: ', keytable[lastkey].refcount, ' keymark: ', context[contextsp].keymark);
+}
       if keytable[key].first <> nil then
         write_nodes(keytable[key].first, keytable[key].last);
-
+{
 writeln(macfile, registers[14], ' ', registers[15]);
       dumpstack;
 }
