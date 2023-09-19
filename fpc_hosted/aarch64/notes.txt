@@ -1,6 +1,7 @@
 -- next priorities:
 
 get back to work on this!
+testing.
 
 *** current bugs
 
