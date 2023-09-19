@@ -1,5 +1,7 @@
 -- next priorities:
 
+get back to work on this!
+
 *** current bugs
 
 quicksort correctness check generates the following, which misuses
