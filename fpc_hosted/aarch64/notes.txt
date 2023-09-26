@@ -1,23 +1,6 @@
 -- next priorities:
 
-get back to work on this!
-testing.
-
 *** current bugs
-
-quicksort correctness check generates the following, which misuses
-register 13 if the loop exists with the boolean false:
-
-        ldrsb   w13,[x15,:lo12:.L32766+36]
-        cbz     w13,.L52
-        ldrsw   x13,[x14,:lo12:.L32766+32]
-        cmp     w13,10
-        b.gt    .L52
-        ...
-.L52:
-        mov     x0,x13
-        bl      putintln
-
 
 ---
 

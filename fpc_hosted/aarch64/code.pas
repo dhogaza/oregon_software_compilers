@@ -1312,7 +1312,6 @@ procedure setcommonkey;
         regsaved := false;
         properreg := key; {simplifies certain special cases}
         properreg2 := key;
-        regenoprnd := nomode_oprnd;
         validtemp := false;
         reg2saved := false;
         regvalid := true;
@@ -1324,7 +1323,7 @@ procedure setcommonkey;
         signlimit := 0;
         knownword := false;
         oprnd := nomode_oprnd;
-        regenoprnd := oprnd;
+        regenoprnd := nomode_oprnd;
         end
       else if (key <> 0) and (access <> valueaccess) then
         begin
@@ -4533,11 +4532,21 @@ procedure indxx;
                    keytable[newkey].oprnd.reg, pseudoinst.oprnds[2]));
           keytable[key].regenoprnd.mode := nomode;
           end;
-        signed_offset, unsigned_offset:
+        signed_offset:
           begin
           setkeyvalue(left);
           keytable[key].oprnd.index :=
             keytable[key].oprnd.index + pseudoinst.oprnds[2];
+          if keytable[key].oprnd.reg in [sl, fp] then
+            keytable[key].regenoprnd := keytable[key].oprnd;
+          end;
+        unsigned_offset:
+          begin
+          setkeyvalue(left);
+          keytable[key].oprnd.index :=
+            keytable[key].oprnd.index + pseudoinst.oprnds[2];
+          if keytable[key].oprnd.reg in [sl, fp] then
+            keytable[key].regenoprnd := keytable[key].oprnd;
           end
       end
 {

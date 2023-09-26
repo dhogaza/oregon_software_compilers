@@ -24,9 +24,6 @@ begin
     for i := 0 to SIZE do
       if flags[i] then begin
         prime := i + i + 3;
-{
-foo;
-}
         k := i + prime;
         while k <= SIZE do begin
           flags[k] := false;
