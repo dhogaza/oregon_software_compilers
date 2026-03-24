@@ -1507,7 +1507,11 @@ procedure adjuststackoffsets(firstnode: nodeptr; lastnode: nodeptr;
                              amount: integer);
 
 { Adjust references to stack temps (but not procedure parameters passed
-  on the stack) for instructions in the given range  }
+  on the stack) for instructions in the given range.
+
+  Not being used and probably broken.
+
+}
 
   var
     stopnode: nodeptr;
@@ -1760,6 +1764,45 @@ function newtemp(size: addressrange {size of temp to allocate} ): keyindex;
       end;
     newtemp := stackcounter;
   end {newtemp} ;
+
+
+function newparamtemp(size: addressrange {size of temp to allocate} ): keyindex;
+
+{ Create a new stack parameter temp. Temps are allocated from the top of the keys,
+  while expressions are allocated from the bottom.
+
+}
+
+  begin {newparamtemp}
+    size := (size + (stackalign - 1)) and - stackalign;
+    stackoffset := stackoffset + size;
+    if stackoffset > maxstackoffset then
+      maxstackoffset := stackoffset;
+    stackcounter := stackcounter - 1;
+    if stackcounter <= lastkey then compilerabort(manykeys)
+    else
+      begin
+      with keytable[stackcounter] do
+        begin
+        len := size;
+        access := valueaccess;
+        tempflag := false;
+        regenoprnd := nomode_oprnd;
+        validtemp := true;
+        regvalid := true;
+        reg2valid := true;
+        regsaved := false;
+        reg2saved := false;
+        packedaccess := false;
+        refcount := 0;
+        first := nil;
+        last := nil;
+        oprnd := index_oprnd(unsigned_offset, sp, paramoffset);
+        end;
+      end;
+    paramoffset := paramoffset + size;
+    newparamtemp := stackcounter;
+  end {newparamtemp} ;
 
 function stacktemp(size: addressrange): keyindex;
   var
@@ -2049,7 +2092,7 @@ function getreg: regindex;
     getreg := r;
   end {getreg} ;
 
-{various keytable manipulation routes}
+{various keytable manipulation routines}
 
 procedure savedstkey(k: keyindex);
 
@@ -4121,7 +4164,8 @@ procedure putblock;
       stackcounter := stackcounter + 1;
       end;
     if stackcounter < stackbase then
-      compilerabort(undeltemps);
+writeln('undeleted temps');
+     { compilerabort(undeltemps);}
 
     { eventually peephole optimizations happen now }
 
@@ -4390,16 +4434,24 @@ procedure movlitintx;
     setallfields(left);
   end;
 
+procedure pshlitintptrx;
+
+  begin
+    gensimplemove(settemp(len, intconst_oprnd(pseudoinst.oprnds[1])), key);
+    dontchangevalue := dontchangevalue - 1;
+  end;
+
 procedure pshintptrx;
 
   begin {pshintptrx}
     address(left);
-    gensimplemove(settemp(len, intconst_oprnd(0)), left);
+    gensimplemove(left, key);
+    dontchangevalue := dontchangevalue - 1;
   end {pshintptrx};
 
 procedure movemultiple;
 
-{ most handle very long operands as this craps out at
+{ must handle very long operands as this craps out at
   65535 bytes at the moment.  Not that we really want
   to encourage moving such large structures.
 }
@@ -4665,6 +4717,7 @@ procedure loopholefnx;
 
 procedure makestacktarget;
 
+{DRB: obsolete?}
 { Create a slot on the stack for the current key
 
   Code checks length of the temp, if it is longer than
@@ -4709,8 +4762,12 @@ procedure stacktargetx;
 
   begin
     if not paramlist_started then
+      begin
       saveactivekeys; {since no makeroom was called for this parameter list}
-    makestacktarget;
+      paramoffset := 0;
+      end;
+{    makestacktarget;}
+    setkeyvalue(newparamtemp(len));
     paramlist_started := true;
     dontchangevalue := dontchangevalue + 1;
   end {stacktargetx} ;
@@ -4806,10 +4863,13 @@ procedure callroutinex(s: boolean {signed function value} );
 
     { later need to deal with x0/x1 pairs.
     }
-     if proctable[pseudoinst.oprnds[1]].realfunction then
-       setvalue(fpreg_oprnd(0))
+    if proctable[pseudoinst.oprnds[1]].realfunction then
+      setvalue(fpreg_oprnd(0))
     else if (len <= long) then
       setvalue(reg_oprnd(0));
+
+    stackcounter := stackcounter + pseudoinst.oprnds[2];
+    stackoffset := -keytable[stackcounter].oprnd.index;
 
   end {callroutinex} ;
 
@@ -5225,10 +5285,9 @@ procedure codeone;
       flt: fltx;
 }
       pshint, pshptr: pshintptrx;
+      pshlitint, pshlitptr, pshlitfptr: pshlitintptrx;
 {
       pshfptr: pshfptrx;
-      pshlitint: pshlitintx;
-      pshlitptr, pshlitfptr: pshlitptrx;
       pshlitreal: pshlitrealx;
       pshreal: pshx;
       pshaddr: pshaddrx;
@@ -5372,10 +5431,10 @@ writeln(macfile, 'lastkey: ', lastkey, ' refcount: ', keytable[lastkey].refcount
 }
       if keytable[key].first <> nil then
         write_nodes(keytable[key].first, keytable[key].last);
-{
+
 writeln(macfile, registers[14], ' ', registers[15]);
       dumpstack;
-}
+
       end;
   end {codeone};
 

@@ -35,7 +35,7 @@ const
   ip0 = 16; {ip0 and ip1 reserved for linker}
   ip1 = 17;
   pr = 18; {platform register, can't touch}
-  sr = 8; {structred return register}
+  sr = 8; {structured return register}
 
   {possible data length values}
 
@@ -577,7 +577,7 @@ var
 
   stackcounter: keyindex; {key describing top of runtime stack}
   stackbase: keyindex; {key describing the base of the runtime stack}
-  stackoffset, maxstackoffset: integer;
+  stackoffset, maxstackoffset, paramoffset: integer;
 
   registers: array [regindex] of integer;
   fpregisters: array [regindex] of integer;

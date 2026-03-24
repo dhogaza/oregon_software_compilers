@@ -1,5 +1,10 @@
 -- next priorities:
 
+Sets:
+
+"in" operator.   Load 64-bit set snipped with scalar value div 8
+(some bit shift?) into Xreg. Shift Xreg by scalar value mod 8
+
 *** current bugs
 
 ---
@@ -14,7 +19,7 @@
 
     align variables, too.
 
-    This makes using 2, 4, 8 byte moves possible for structs.
+    This makes using 2, 4, 8, 16 byte moves possible for structs.
 
 0.4 fix up lastlabel/newlabel/definelastlabel bullshit
 
@@ -30,7 +35,7 @@
    regtemp by improve?  Or is this really a viable
    idea if param 0 is being used?
 7. long address index values, consider alignment
-8. REVERSE STACK PARAM PUSHES
+8. REVERSE STACK PARAM PUSHES <- No?
 9. lots of sign extension and the like issues?
 10.targeting logic sucks on this machine, too many instances
    of ld xn, mem/op xm,xn/mov xn,xm/ when xm is no longer useful.
@@ -64,7 +69,7 @@ Advantages of using negative sp offsets when generating code:
 2  can simplify by only deleting unnecessary saves to the stack
    and ignoring space reclamation (this doesn't depend on 
    stack offsets being negative).
-3. parameter offsets can be kept positive.
+3. parameter offsets can be kept positive. <- MUST BE?
 4. at the end, adjust all negative stack offsets by the maximum
    depth.  not adjusting param positive offsets keeps them at
    the top of the stack where they need to be for function

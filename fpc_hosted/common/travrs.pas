@@ -3789,11 +3789,13 @@ procedure build;
               reverseparms := false;
               with stack[sp - 2] do
                 if litflag and (language <> c) then
-                { reverse parameters if calling c on some machines }
+                { reverse parameters if aarch64 or calling c on some machines }
                   if newtravrsinterface then
                     begin
                     with new_proctable[i div (pts + 1)]^[i mod (pts + 1)] do
-                      if (calllinkage = nonpascalcall) and (stack[sp].i > 1) and
+                      if (stack[sp].i > 1) and
+                         {(targetmachine = aarch64) or}
+                         (calllinkage = nonpascalcall) and
                          ((targetmachine = iAPX86) or
                          (targetmachine = i80386) or
                          (targetmachine = mc68000) or (targetopsys = vms) or
@@ -3807,7 +3809,9 @@ procedure build;
                   else
                     begin
                     with proctable[i] do
-                      if (calllinkage = nonpascalcall) and (stack[sp].i > 1) and
+                      if (stack[sp].i > 1) and
+                         {(targetmachine = aarch64) or}
+                         (calllinkage = nonpascalcall) and
                          ((targetmachine = iAPX86) or
                          (targetmachine = i80386) or
                          (targetmachine = mc68000) or (targetopsys = vms) or

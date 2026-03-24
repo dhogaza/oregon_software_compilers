@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 {$case}
 program foo;
 var a: integer;

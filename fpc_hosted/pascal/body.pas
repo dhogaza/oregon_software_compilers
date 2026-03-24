@@ -1862,23 +1862,28 @@ procedure genregtargetop(p: entryptr; form: types);
    oprndstk[sp].operandkind := exproperand;
   end; {genregtargetop}
 
-procedure genparamvalue(p: entryptr; form: types);
+procedure genparamvalue(p: entryptr; form: types; var stackparamcount: integer);
 
 { Generate pseudoop to push a parameter or move it to the proper
-  register class.  
+  register.  Stackparamcount is used to track how many parameters are allocated
+  to the stack rather than registers.
 }
 
   begin {genparamvalue}
    if p^.varalloc = normalalloc then
-     genunary(pushvalue, form)
+     begin
+     genunary(pushvalue, form);
+     stackparamcount := stackparamcount + 1;
+     end
    else
      genregtargetop(p, form);
   end {genparamvalue};
 
-procedure genparamaddr(p: entryptr; form: types);
+procedure genparamaddr(p: entryptr; form: types; var stackparamcount: integer);
 
-{ Generate pseudoop to push a parameter or move it to the proper
-  register class.  
+{ Generate the address of the param and either push it or move it to the proper
+  register.  Stackparamcount is used to track how many parameters are allocated
+  to the stack rather than registers.
 }
 
   var
@@ -1886,7 +1891,10 @@ procedure genparamaddr(p: entryptr; form: types);
 
   begin {genparamaddr}
    if p^.varalloc = normalalloc then
-     genunary(pushaddr, form)
+     begin
+     genunary(pushaddr, form);
+     stackparamcount := stackparamcount + 1;
+     end
    else
      begin
      genunary(addrop, ptrs);
@@ -4147,7 +4155,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 }
 
     var
-      paramcount: integer; {parameters found}
+      stackparamcount: integer; {parameters found}
       paramindex: integer; {next formal parameter index}
       maxparams: integer; {max param (end of param index)}
       alreadywarned: boolean; {message already issued, don't duplicate}
@@ -4394,7 +4402,7 @@ procedure statement(follow: tokenset {legal following symbols} );
           else if valueparam then genunary(pushcvalue, resultform);
 
           oprndstk[sp].oprndlen := ptrsize;
-          genparamaddr(p, resultform);
+          genparamaddr(p, resultform, stackparamcount);
 
           if not identical(resulttype, lastconfactual) then
             warnbefore(confinconsistent);
@@ -4413,7 +4421,6 @@ procedure statement(follow: tokenset {legal following symbols} );
               while (actualtypeptr^.typ in [arrays, conformantarrays, strings]) and
                     (paramtypeptr^.typ = conformantarrays) do
                 begin
-                paramcount := paramcount + 2;
                 pt1 := paramtypeptr^.elementtype;
                 at1 := actualtypeptr^.elementtype;
 
@@ -4431,7 +4438,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                 else pushint(lower(indexptr));
                 oprndstk[sp].typeindex := boundidtype;
                 oprndstk[sp].oprndlen := boundidsize;
-                genparamvalue(boundidptr, getform(indexptr));
+                genparamvalue(boundidptr, getform(indexptr), stackparamcount);
                 genoprnd;
 
                 if bigcompilerversion then
@@ -4440,7 +4447,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                 else pushint(upper(indexptr));
                 oprndstk[sp].typeindex := boundidtype;
                 oprndstk[sp].oprndlen := boundidsize;
-                genparamvalue(boundidptr, getform(indexptr));
+                genparamvalue(boundidptr, getform(indexptr), stackparamcount);
                 genoprnd;
 
                 if bigcompilerversion then paramtypeptr := @(bigtable[pt1]);
@@ -4456,7 +4463,6 @@ procedure statement(follow: tokenset {legal following symbols} );
 
 
       begin {oneactualparam}
-        paramcount := paramcount + 1;
         newresulttype(noneindex);
         if (paramindex > maxparams) then
           begin
@@ -4530,12 +4536,12 @@ procedure statement(follow: tokenset {legal following symbols} );
                    (oprndstk[sp].operandkind <> exproperand) then
                   genunary(pushcvalue, resultform);
                 oprndstk[sp].oprndlen := ptrsize;
-                genparamaddr(p, resultform);
+                genparamaddr(p, resultform, stackparamcount);
                 end
               else
                 begin
                 oprndstk[sp].oprndlen := formallen;
-                genparamvalue(p, resultform);
+                genparamvalue(p, resultform, stackparamcount);
                 end
             else conformantparam(p, true);
             end;
@@ -4555,7 +4561,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                 if not (p^.univparam or identical(p^.vartype, resulttype)) then
                   warnbefore(paramtypeerr);
                 oprndstk[sp].oprndlen := ptrsize;
-                genparamaddr(p, resultform);
+                genparamaddr(p, resultform, stackparamcount);
                 if token in begexprset then warn(varparamerr);
                 end;
               procparam:
@@ -4616,7 +4622,7 @@ procedure statement(follow: tokenset {legal following symbols} );
         else if (namekind in [funcparam, procparam]) then
           maxparams := nextparamlink
         else maxparams := paramlist;
-      paramcount := 0;
+      stackparamcount := 0;
       paramindex := procindex + 1;
       if token = lpar then
         begin
@@ -4631,7 +4637,7 @@ procedure statement(follow: tokenset {legal following symbols} );
         end;
       if (paramindex <= maxparams) and not alreadywarned then
         warnbefore(toofewargs);
-      genlit(paramcount);
+      genlit(stackparamcount);
     end {parameterlist} ;
 
 
