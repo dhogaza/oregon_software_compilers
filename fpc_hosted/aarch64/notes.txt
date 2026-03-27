@@ -35,7 +35,7 @@ Sets:
    regtemp by improve?  Or is this really a viable
    idea if param 0 is being used?
 7. long address index values, consider alignment
-8. REVERSE STACK PARAM PUSHES <- No?
+8. REVERSE STACK PARAM PUSHES <- No? NO
 9. lots of sign extension and the like issues?
 10.targeting logic sucks on this machine, too many instances
    of ld xn, mem/op xm,xn/mov xn,xm/ when xm is no longer useful.
@@ -93,10 +93,20 @@ Advantages of using negative sp offsets when generating code:
    spills only and short parameters when there are more than 8 of them
    makes the odds of neading more than 4K elements very, very unlikely.
    Does the same for long function return values.  Again, not a bad
-   idea.
+   idea.  Except that the ABI calls for the [fp, link pc] to be pushed
+   before stack is allocated and locals are generally accessed using sp.
 
 9. use positive stack offsets for param pushes?  negative only for 
-   register spills?
+   register spills?  Yes so far.
+
+10. consolidating of temp slots is not done.   Can't consolidate temps
+    with a non-nil regsaves list.  Not sure it is worth it as we don't
+    process regsaves often.  Could consolidate after routine calls in
+    order to merge value array/struct params pushed to be passed by
+    addr.  CAN NOT POP STACK ENTRIES EVER within a context block.  Or
+    is that actually true?
+
+11. STACK PARAMETERS MUST NOT BE ADDED TO BLOCK'S SIZE FOR SP ADJUST
 
 Big integer issues:
 

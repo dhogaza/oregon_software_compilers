@@ -6,7 +6,7 @@
 program sieve;
 const
   SIZE = 100000;
-  ITERMAX = 10000;
+  ITERMAX = 1;
 
 var
   flags : array [0..SIZE] of boolean;

@@ -1504,6 +1504,10 @@ with target = 0.
         genpseudo(map[op, form], len, key, refcount, copycount, rkey, 0, 0);
       end {linkednode} ;
 
+{ The first operand of stacktarget is set to 1 for actual parameters being
+  pushed on the stack, vs. other things such as a stack entry to hold a struct
+  or array being passed by value.  Useful for aarch64.
+}
 
     procedure pushfinalnode;
 
@@ -1535,7 +1539,7 @@ with target = 0.
         third := rootp^.oprnds[3];
         walknode(l, lkey, 0, true);
         mapkey;
-        genpseudo(stacktarget, len, key, refcount, copycount, 0, 0, 0);
+        genpseudo(stacktarget, len, key, refcount, copycount, 1, 0, 0);
         walknode(r, rkey, 0, true);
         genpseudo(pshproc, len, key, 0, 0, rkey, third, 0);
         if newtravrsinterface then
@@ -1647,7 +1651,7 @@ with target = 0.
       begin {stacknode}
         walknode(l, lkey, 0, true);
         mapkey;
-        genpseudo(stacktarget, len, key, refcount, copycount, 0, 0, 0);
+        genpseudo(stacktarget, len, key, refcount, copycount, 1, 0, 0);
         if op in [pushlitvalue, pushfptr] then
           genpseudo(map[op, form], len, key, 0, 0, r, 0, 0)
         else
@@ -1682,7 +1686,7 @@ with target = 0.
                      (form = strings);
         if walkfirst then walkvalue(r, rkey, key);
         mapkey;
-        genpseudo(stacktarget, len, key, refcount, copycount, 0, 0, 0);
+        genpseudo(stacktarget, len, key, refcount, copycount, 1, 0, 0);
         if not walkfirst then walkvalue(r, rkey, key);
         genpseudo(map[op, form], len, key, 0, 0, rkey, 0, 0);
         if language <> c then clearkeys;

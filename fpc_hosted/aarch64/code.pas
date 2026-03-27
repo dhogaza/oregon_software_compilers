@@ -1486,11 +1486,14 @@ procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
       begin
       with firstnode^ do
         if (kind = instnode) then
-          {DRB: this is going to fail with large offsets that are already
-           set up as address registers}
           if (inst.inst = add) and (oprnds[2].mode = register) and
              (oprnds[2].reg = sp) and (oprnds[3].mode = imm12) then
-            oprnds[3].imm12_value := oprnds[3].imm12_value + amount  
+            begin
+              if oprnds[3].imm12_value < 0 then
+                oprnds[3].imm12_value := oprnds[3].imm12_value + amount  
+              {if value > 12 bits then generate constant into temp register,
+               add oprnds[1], sp, temp_reg}
+              end
           else
             for i := 1 to oprnd_cnt do
               if (oprnds[i].mode = signed_offset) and
@@ -1498,6 +1501,9 @@ procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
                 begin
                 oprnds[i].mode := unsigned_offset;
                 oprnds[i].index := oprnds[i].index + amount;
+                {if unsigned offset too large then generate constant-limit into temp
+                 register, add temp_reg, sp, temp_reg (?), mode becomes
+                 [tempreg, limit]?}
                 end;
       firstnode := firstnode^.nextnode;
       end;
@@ -1611,14 +1617,6 @@ begin {processregsaves}
       begin
       if uselesstemp(k) and not keytable[k].tempflag then
         deleteregsave(k);
-      p := keytable[k].saves;
-      while p <> nil do
-        begin
-        p1 := p^.nextsave;
-        dispose(p);
-        p := p1;
-        end;
-      keytable[k].saves := nil;
       k := k + 1;
       end;
   end;
@@ -1638,7 +1636,7 @@ var
   i: integer;
 
 begin
-  K := stackcounter;
+  k := stackcounter;
   while activetemp(k) do
     begin
     while activetemp(k) and not uselesstemp(k) do
@@ -2610,12 +2608,9 @@ procedure handle_intconst16(var k: keyindex; var movinst: insts; r: regindex);
                    settemp(len, immbitmask_oprnd(val)))
             else
               begin
-              { Done in this order because peepholing might be able
-                reuse high bits for successive constants.
-              }
+              if (val and $FFFF) <> 0 then
               gen2(buildinst(movz, true, false), k,
                    settemp(len, imm16_oprnd((val shr 16) and $FFFF, 16)));
-              if (val and $FFFF) <> 0 then
                 gen2(buildinst(movk, true, false), k,
                      settemp(len, imm16_oprnd(val and $FFFF, 0)));
               end
@@ -2768,7 +2763,7 @@ procedure prepareoprnd(var k: keyindex; { the key we're interested inn }
                        other: keyindex; { protect this key }
                        modes: oprnd_mode_set; { often only register }
                        bitmask: boolean { if true, allowed intconst must be a bitmask,
-                                          otherwise allowed intonst must be an imm12,
+                                          otherwise allowed intconst must be an imm12,
                                           otherwise we load it into a register });
 
   { If the key isn't of one of the given modes, load it into a register.
@@ -4153,7 +4148,6 @@ procedure putblock;
 
     processregsaves;
 
-    finalizestackoffsets(firstnode, lastnode, maxstackoffset);
     while stackcounter < stackbase do
       begin
       if keytable[stackcounter].refcount > 0 then
@@ -4164,8 +4158,7 @@ procedure putblock;
       stackcounter := stackcounter + 1;
       end;
     if stackcounter < stackbase then
-writeln('undeleted temps');
-     { compilerabort(undeltemps);}
+     compilerabort(undeltemps);
 
     { eventually peephole optimizations happen now }
 
@@ -4212,8 +4205,14 @@ writeln('undeleted temps');
     linktemp := settemp(long, reg_oprnd(link));
     sptemp := settemp(long, reg_oprnd(sp));
     fptemp := settemp(long, reg_oprnd(fp));
+{
     blockcost := blksize + regcost + maxstackoffset + long * 2;
+}
+    blockcost := blksize + regcost + maxstackoffset;
     blockcost := (blockcost + (2 * long - 1)) and - (2 * long);
+
+    finalizestackoffsets(firstnode, lastnode, maxstackoffset);
+
     spadjusttemp := settemp(long, imm16_oprnd(blockcost, 0));
     spoffset := regcost + maxstackoffset;
     spoffsettemp := settemp(long, index_oprnd(unsigned_offset, sp, spoffset));
@@ -4559,7 +4558,7 @@ procedure indxx;
 }
       case keytable[left].oprnd.mode of
         labeltarget:
-          {ee would like to index the var with a label offset but one
+          {We would like to index the var with a label offset but one
            has to scale that by the length of the load or store operation.
            Need to study clang output.
           }
@@ -4729,16 +4728,8 @@ procedure makestacktarget;
   
 }
 
- var
-   stackkey: keyindex;
 
   begin {makestacktarget}
-    if paramlist_started then stackkey := newtemp(len)
-    else stackkey := stacktemp(len);
-    keytable[stackkey].tempflag := true;
-    keytable[key].regsaved := true;
-    keytable[key].properreg := stackkey;
-    setkeyvalue(stackkey);
   end {makestackstarget} ;
 
 procedure stacktargetx;
@@ -4753,29 +4744,35 @@ procedure stacktargetx;
         expression code
         push            skey
 
-  Long value parameter pushes are yanked from the parameter list, so the
-  kludge that assumes we're in a parameter list is faulty.  However, a
-  parameter list or routine call is coming up soon, so this is harmless.
+  If the target is for a parameter being pushed to the stack, oprnds[1] is 1,
+  otherwise 0.  On this architecture, we are treating actual param pushes
+  differently than targets pushed for other reasons.
+
+  One example is long value parameter pushes which are yanked from the parameter
+  list and pushed, with a pointer being passed to the routine.  The copy is
+  necessary in case the routine modified the parameter value.
 
 }
 
+  var
+    stackkey: keyindex;
 
   begin
-    if not paramlist_started then
-      begin
-      saveactivekeys; {since no makeroom was called for this parameter list}
-      paramoffset := 0;
-      end;
-{    makestacktarget;}
-    setkeyvalue(newparamtemp(len));
-    paramlist_started := true;
-    dontchangevalue := dontchangevalue + 1;
+    if pseudoinst.oprnds[1] = 1
+      then stackkey := newparamtemp(len)
+      else stackkey := newtemp(len);
+    keytable[stackkey].tempflag := true;
+    keytable[key].regsaved := true;
+    keytable[key].properreg := stackkey;
+    setkeyvalue(stackkey);
   end {stacktargetx} ;
 
 procedure makeroomx;
 
 begin {makeroomx}
   saveactivekeys;
+  paramoffset := 0;
+  dontchangevalue := dontchangevalue + 1;
 end {makeroomx};
 
 procedure callroutinex(s: boolean {signed function value} );

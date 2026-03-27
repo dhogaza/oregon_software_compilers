@@ -589,14 +589,16 @@ begin
     cond: write(macfile, conds_text[o.condition]);
     literal: write(macfile, o.literal);
     proccall:
-      if proctable[o.proclabelno].externallinkage then
+      begin
+        if not proctable[o.proclabelno].externallinkage then
+          begin
+            write(macfile, '.P', o.proclabelno);
+            if o.entry_offset <> 0 then
+              write(macfile, -o.entry_offset * word);
+            write(macfile, '  // ');
+          end;
         writeprocname(o.proclabelno)
-      else
-        begin
-        write(macfile, '.P', o.proclabelno);
-        if o.entry_offset <> 0 then
-          write(macfile, -o.entry_offset * word);
-        end;
+      end;
     libcall: writelibname(o.libroutine);
     labeltarget:
       begin
