@@ -842,9 +842,10 @@ function strinst(l: addressrange):insttype;
     end;
     strinst := buildinst(inst, l = long, false);
   end {loadinst};
-function newnode(kind: nodekinds): nodeptr;
 
-{ Allocate a new node and link it to list of nodes
+function newnode(after: nodeptr; kind: nodekinds): nodeptr;
+
+{ Allocate a new node after the given nodeptr and link it to list of nodes.
 }
 
   var
@@ -852,32 +853,45 @@ function newnode(kind: nodekinds): nodeptr;
 
   begin {newnode}
     new(p);
-    if lastnode = nil then
-      firstnode := p
-    else
-      lastnode^.nextnode := p;
     p^.kind := kind;
-    p^.nextnode := nil;
-    p^.prevnode := lastnode;
+    if after = lastnode then
+      begin
+        if lastnode = nil then
+          firstnode := p
+        else
+          lastnode^.nextnode := p;
+        p^.nextnode := nil;
+        p^.prevnode := lastnode;
 
-    { strategy here is that the nodes from first to last are
-      those that created the current key value once we move to the next key,
-      while the prevnode field allows us to more easily delete nodes
-      attached to a key.
-    }
+        { strategy here is that the nodes from first to last are
+          those that created the current key value once we move to the next key,
+          while the prevnode field allows us to more easily delete nodes
+          attached to a key.
+        }
+    
+        if key > 0 then
+          with keytable[key] do
+            begin
+            last := p;
+            if first = nil then
+              first := p;
+            end;
+      end
+    else
+      begin
+      p^.nextnode := after^.nextnode;
+      after^.nextnode := p;
+      p^.prevnode := after^.prevnode;
+      after^.prevnode := p;
+      end;
 
-    if key > 0 then
-      with keytable[key] do
-        begin
-        last := p;
-        if first = nil then
-          first := p;
-        end;
-
-    lastnode := p;
+    if after = lastnode then
+      lastnode := p;
     newnode := p;
       
   end {newnode};
+
+{ newinsertbefore/after not used but kept around just in case }
 
 function newinsertbefore(before: nodeptr; kind: nodekinds): nodeptr;
 
@@ -933,7 +947,7 @@ var n: 1..max_oprnds;
 
 begin
   if p = nil then
-    p := newnode(instnode);
+    p := newnode(lastnode, instnode);
   with p^ do
   begin
     tempcount := 0;
@@ -978,12 +992,18 @@ dependent on the stack, tempcount is set appropriately.
     end;
   end {genoprnd} ;
 
+{ Generate instructions.  Comes in two forms, one takes a pointer to the node the
+  new instruction should follow, the other takes a pointer to the node to fill.  The
+  latter simplifies code related to loop register reloads and possibly elsewhere.
+
+  Might be able to simplify this later.
+}
+
 Procedure gen1p(p: nodeptr;
                 i: insttype;
                 o1: keyindex);
 
-{ Generate a single operand instruction, using keytable[dst] as
-  the destination.
+{ Generate a single operand instruction
 }
 
   begin {gen1p}
@@ -991,24 +1011,25 @@ Procedure gen1p(p: nodeptr;
     genoprnd(p, 1, keytable[o1].oprnd);
   end {gen1p} ;
 
-Procedure gen1(i: insttype;
+procedure gen1(var after: nodeptr;
+               i: insttype;
                o1: keyindex);
 
-{ Generate a single operand instruction, using keytable[dst] as
-  the destination.
+{ Generate a single operand instruction
 }
 
+
   begin {gen1}
-    gen1p(newnode(instnode),i, o1);
-  end {gen1} ;
+    after := newnode(after, instnode);
+    gen1p(after, i, o1);
+  end {gen2} ;
 
 
 procedure gen2p(p: nodeptr;
                 i: insttype;
                 o1, o2: keyindex);
 
-{ Generate a double operand instruction, using keytable[src/dst] as
-  the two operands.
+{ Generate a double operand instruction.
 }
 
 
@@ -1019,24 +1040,25 @@ procedure gen2p(p: nodeptr;
   end {gen2p} ;
 
 
-procedure gen2(i: insttype;
+procedure gen2(var after: nodeptr;
+               i: insttype;
                o1, o2: keyindex);
 
-{ Generate a double operand instruction, using keytable[src/dst] as
-  the two operands.
+{ Generate a double operand instruction.
 }
 
 
   begin {gen2}
-    gen2p(newnode(instnode), i, o1, o2);
+    after := newnode(after, instnode);
+    gen2p(after, i, o1, o2);
   end {gen2} ;
-
 
 procedure gen3p(p: nodeptr;
                 i: insttype;
                 o1, o2, o3: keyindex);
 
-{ Generate a triple operand instruction.
+{ Generate a triple operand instruction, using keytable[src/dst] as
+  the two operands.
 }
 
 
@@ -1048,15 +1070,17 @@ procedure gen3p(p: nodeptr;
   end {gen3p} ;
 
 
-procedure gen3(i: insttype;
+
+procedure gen3(var after: nodeptr;
+               i: insttype;
                o1, o2, o3: keyindex);
 
 { Generate a triple operand instruction.
 }
 
-
   begin {gen3}
-    gen3p(newnode(instnode), i, o1, o2, o3);
+    after := newnode(after, instnode);
+    gen3p(after, i, o1, o2, o3);
   end {gen3} ;
 
 
@@ -1077,7 +1101,7 @@ procedure gen4p(p: nodeptr;
   end {gen4p} ;
 
 
-procedure gen4(i: insttype;
+procedure gen4(var after: nodeptr; i: insttype;
                o1, o2, o3, o4: keyindex);
 
 { Generate a longruple operand instruction.
@@ -1085,13 +1109,14 @@ procedure gen4(i: insttype;
 
 
   begin {gen4}
-    gen4p(newnode(instnode), i, o1, o2, o3, o4);
+    after := newnode(after, instnode);
+    gen4p(after, i, o1, o2, o3, o4);
   end {gen4} ;
 
 procedure genbr(inst: insts; labelno: integer);
 
   begin {genbr}
-    gen1(buildinst(inst, false, false),
+    gen1(lastnode, buildinst(inst, false, false),
          settemp(long, labeltarget_oprnd(labelno, false, 0)));
     context[contextsp].lastbranch := lastnode;
   end {genbr};
@@ -1102,7 +1127,7 @@ procedure genlabeldelta(tablebase, targetlabel: integer);
     p: nodeptr;
 
   begin {genlabeldelta}
-    p := newnode(labeldeltanode);
+    p := newnode(lastnode, labeldeltanode);
     p^.tablebase := tablebase;
     p^.targetlabel := targetlabel;
   end; {genlabeldelta}
@@ -1152,7 +1177,7 @@ procedure definelabel(l: integer {label number to define} );
   begin {definelabel}
     if l <> 0 then
       begin
-      p := newnode(labelnode);
+      p := newnode(lastnode, labelnode);
       p^.labelno := l;
       p^.stackdepth := 0;
       p^.brnodelink := nil;
@@ -1863,7 +1888,6 @@ function savereg(r: regindex {register to save}) : keyindex;
     found: boolean; {set true when we find an existing saved copy}
     saved: boolean; {true if we don't need to save it}
     savekey: keyindex; {where we will save it if we must}
-    p: nodeptr;
     tempsave: tempsaveptr;
 
   begin {savereg}
@@ -1907,11 +1931,10 @@ function savereg(r: regindex {register to save}) : keyindex;
       begin
       if not found then
         savekey := stacktemp(long);
-      p := newnode(instnode);
-      gen2p(p, buildinst(str, true, false),
+      gen2(lastnode, buildinst(str, true, false),
                settemp(long, reg_oprnd(r)),
                savekey);
-      addtempsave(savekey, p, lastnode);
+      addtempsave(savekey, lastnode, lastnode);
 {
 if switcheverplus[test] and (keytable[key].first <> nil) then
 begin
@@ -2101,9 +2124,8 @@ procedure savedstkey(k: keyindex);
       if (mode = register) and regvalid and not regsaved and (reg >= firstreg) and
          (reg <= lastreg) and keytable[properreg].validtemp then
         begin
-        p := newnode(instnode);
-        gen2p(p, buildinst(str, true, false), k, properreg);
-        addtempsave(properreg, p, lastnode);
+        gen2(lastnode, buildinst(str, true, false), k, properreg);
+        addtempsave(properreg, lastnode, lastnode);
         regsaved := true;
         end;
   end;
@@ -2113,7 +2135,7 @@ procedure savekey(k: keyindex {operand to save} );
 { Save all volatile registers required by given key.
   unless we can regenerate it from the saved copy of the
   original operand.  We do this because save/restore to
-  memory is more expensive than regenerated the operand
+  memory is more expensive than regenerating the operand
   with instructions like adp, add to registers like the
   frame pointer, mov/movk sequences etc.
 }
@@ -2312,19 +2334,19 @@ procedure makeaddressable(var k: keyindex);
         recall_reg(reg, properreg);
         if (mode = register) and (regenoprnd.mode <> nomode) then
           begin
-          gen2(buildinst(adrp, true, false),
+          gen2(lastnode, buildinst(adrp, true, false),
                settemp(long, reg_oprnd(reg)),
                settemp(long, regenoprnd));
-          gen2(ldrinst(len, signed),
+          gen2(lastnode, ldrinst(len, signed),
                settemp(len, reg_oprnd(reg)),
                settemp(long, label_offset_oprnd(reg, regenoprnd.labelno, regenoprnd.labeloffset)))
           end
         else if mode = label_offset then
-          gen2(buildinst(adrp, true, false),
+          gen2(lastnode, buildinst(adrp, true, false),
                settemp(long, reg_oprnd(reg)),
                settemp(long, regenoprnd))
         else
-          gen2(buildinst(ldr, true, false),
+          gen2(lastnode, buildinst(ldr, true, false),
                settemp(long, reg_oprnd(reg)),
                properreg);
         end;
@@ -2334,7 +2356,7 @@ procedure makeaddressable(var k: keyindex);
         oprnd.reg2 := getreg;
         registers[reg] := registers[reg] - maxrefcount;
         recall_reg(oprnd.reg2, properreg2);
-        gen2(buildinst(ldr, true, false),
+        gen2(lastnode, buildinst(ldr, true, false),
              settemp(long, reg_oprnd(reg2)),
              properreg2);
         end;
@@ -2594,24 +2616,25 @@ procedure handle_intconst16(var k: keyindex; var movinst: insts; r: regindex);
             movinst := movz;
             k := settemp(len, imm16_oprnd(val, 0));
             end;
-          {16-bit negative value}
+          {16-bit negative value doesn't really work}
           $FFFF0000..$FFFFFFFF:
             begin
             movinst := movn;
-            k := settemp(len, imm16_oprnd((not val) and $FFFF, 0));
+            { two's complement of value }
+            k := settemp(len, imm16_oprnd((not val + 1) and $FFFF, 0));
             end;
           otherwise
             begin
             k := settemp(len, reg_oprnd(r));
             if ((val and $FFFF) <> 0) and is_bitmask(val, 32) then
-              gen2(buildinst(mov, false, false), k, 
+              gen2(lastnode, buildinst(mov, false, false), k, 
                    settemp(len, immbitmask_oprnd(val)))
             else
               begin
-              if (val and $FFFF) <> 0 then
-              gen2(buildinst(movz, true, false), k,
+              gen2(lastnode, buildinst(movz, true, false), k,
                    settemp(len, imm16_oprnd((val shr 16) and $FFFF, 16)));
-                gen2(buildinst(movk, true, false), k,
+              if (val and $FFFF) <> 0 then
+                gen2(lastnode, buildinst(movk, true, false), k,
                      settemp(len, imm16_oprnd(val and $FFFF, 0)));
               end
             end
@@ -2642,19 +2665,19 @@ procedure gensimplemove(src: keyindex; dst: keyindex);
       if (keytable[dst].oprnd.mode = register) and
          ((keytable[src].oprnd.mode = register) or
           (keytable[src].oprnd.mode = imm16)) then
-        gen2(buildinst(i, true, false), dst, src)
+        gen2(lastnode, buildinst(i, true, false), dst, src)
     else if keytable[dst].oprnd.mode = register then
-      gen2(ldrinst(keytable[src].len, keytable[src].signed), dst, src)
+      gen2(lastnode, ldrinst(keytable[src].len, keytable[src].signed), dst, src)
     else if keytable[src].oprnd.mode <> register then
       begin
       ip0temp := settemp(keytable[dst].len, reg_oprnd(ip0));
       if keytable[src].oprnd.mode = imm16 then
-        gen2(buildinst(i, keytable[dst].len = long, false), ip0temp, src)
+        gen2(lastnode, buildinst(i, keytable[dst].len = long, false), ip0temp, src)
       else
-        gen2(ldrinst(keytable[src].len, keytable[src].signed), ip0temp, src);
-      gen2(strinst(keytable[dst].len), ip0temp, dst);
+        gen2(lastnode, ldrinst(keytable[src].len, keytable[src].signed), ip0temp, src);
+      gen2(lastnode, strinst(keytable[dst].len), ip0temp, dst);
       end
-    else gen2(strinst(keytable[dst].len), src, dst);
+    else gen2(lastnode, strinst(keytable[dst].len), src, dst);
   end {gensimplemove} ;
 
 procedure genmoveaddress(src, dst: keyindex);
@@ -2667,18 +2690,6 @@ procedure genmoveaddress(src, dst: keyindex);
     labelkey: keyindex; {for label_offset}
 
   begin {genmoveaddress}
-{
-    if keytable[src].oprnd.mode = register then
-      begin
-      keytable[keytable[src].properreg].tempflag := true;
-      if not keytable[src].regsaved then
-        begin
-        write('fix_effective_addr screw-up ');
-        compilerabort(inconsistent);
-        end;
-      src := keytable[src].properreg;
-      end;
-}
     if keytable[dst].oprnd.mode <> register then
       begin
       write('destination is not a register in genmoveaddress ');
@@ -2690,13 +2701,13 @@ procedure genmoveaddress(src, dst: keyindex);
       label_offset:
         begin
         labelkey := settemp(long, labeltarget_oprnd(labelno, true, labeloffset)); 
-        gen3(buildinst(add, true, false), dst, settemp(long, reg_oprnd(reg)), labelkey);
+        gen3(lastnode, buildinst(add, true, false), dst, settemp(long, reg_oprnd(reg)), labelkey);
         end;
       labeltarget:
         begin
-        gen2(buildinst(adrp, true, false), dst, src);
+        gen2(lastnode, buildinst(adrp, true, false), dst, src);
         keytable[src].oprnd.lowbits := true;
-        gen3(buildinst(add, true, false), dst, dst, src);
+        gen3(lastnode, buildinst(add, true, false), dst, dst, src);
         keytable[src].oprnd.lowbits := false;
         end;
       signed_offset, unsigned_offset:
@@ -2704,17 +2715,17 @@ procedure genmoveaddress(src, dst: keyindex);
            (index <> 0) then
           begin
           if (reg <> sp) and (index < 0) then
-            gen3(buildinst(sub, true, false), dst,
+            gen3(lastnode, buildinst(sub, true, false), dst,
                  settemp(long, reg_oprnd(reg)),
                  settemp(long, imm12_oprnd(-index, false)))
           else
-            gen3(buildinst(add, true, false), dst,
+            gen3(lastnode, buildinst(add, true, false), dst,
                  settemp(long, reg_oprnd(reg)),
                  settemp(long, imm12_oprnd(index, false)));
           end;
       reg_offset:
         begin
-        gen3(buildinst(add, true, false), dst,
+        gen3(lastnode, buildinst(add, true, false), dst,
              settemp(long, reg_oprnd(reg)),
              settemp(long, extend_reg_oprnd(reg2, extend, shift, signed)));
         end;
@@ -2725,6 +2736,7 @@ procedure genmoveaddress(src, dst: keyindex);
         end;
       end;
   end; {genmoveaddress}
+
 
 function signedoprnds : boolean;
 
@@ -2768,7 +2780,7 @@ procedure prepareoprnd(var k: keyindex; { the key we're interested inn }
 
   { If the key isn't of one of the given modes, load it into a register.
 
-    This vien key is often (but not always) the right operand of
+    This key is often (but not always) the right operand of
     a pseudo instruction, such as addint, andint, mulint, which have differing
     ideas as to what they'll allow as their second source operand.
   }
@@ -2796,6 +2808,29 @@ function preparelitint(value: integer; other: keyindex): keyindex;
     handle_intconst12(newkey, other);
     preparelitint := newkey;
   end;
+
+procedure makeoffsetptr(var p: nodeptr; offset: integer; reg: regindex);
+
+  var
+    offsettemp, regtemp, sptemp, savetempkey: keyindex;
+    i: insts;
+
+  begin {makeoffsetptr}
+    if offset < 0 then
+      begin
+      i := sub;
+      offset := -offset;
+      end
+    else i := add;
+    savetempkey := tempkey;
+    offsettemp := settemp(long, intconst_oprnd(offset));
+    regtemp := settemp(long, reg_oprnd(reg));
+    sptemp := settemp(long, reg_oprnd(sp));
+{ Need versio that takes a nodeptr }
+    handle_intconst12(offsettemp, regtemp);
+    gen3(p, buildinst(sub, true, false), regtemp, sptemp, offsettemp);
+    tempkey := savetempkey;
+  end {makeoffsetptr};
 
 procedure clearcontext;
 
@@ -2942,25 +2977,32 @@ procedure reloadloop;
             if active then
               begin
               keytable[r].oprnd.reg := i;
-              reloadfirst := newnode(instnode);
               if (keytable[stackcopy].oprnd.mode = register) and
                  (keytable[stackcopy].regenoprnd.mode <> nomode) then
                 begin
-                gen2p(reloadfirst,
+                gen2(lastnode,
                       buildinst(adrp, true, false), r,
                       settemp(long, keytable[stackcopy].regenoprnd));
-                gen2(ldrinst(keytable[stackcopy].len, keytable[stackcopy].signed),
+                reloadfirst := lastnode;
+                gen2(lastnode, ldrinst(keytable[stackcopy].len, keytable[stackcopy].signed),
                      r,
                      settemp(long, label_offset_oprnd(keytable[r].oprnd.reg,
                              keytable[stackcopy].regenoprnd.labelno,
                              keytable[stackcopy].regenoprnd.labeloffset)))
                 end
               else if keytable[stackcopy].oprnd.mode = label_offset then
-                gen2p(reloadfirst,
+                begin
+                gen2(lastnode,
                       buildinst(adrp, true, false), r,
                       settemp(long, labeltarget_oprnd(keytable[stackcopy].oprnd.labelno, false,
-                                                      keytable[stackcopy].oprnd.labeloffset)))
-              else gen2p(reloadfirst, ldrinst(long, true), r, stackcopy);
+                                                      keytable[stackcopy].oprnd.labeloffset)));
+                reloadfirst := lastnode;
+                end
+              else
+                begin
+                gen2(lastnode, ldrinst(long, true), r, stackcopy);
+                reloadfirst := lastnode;
+                end;
               reloadlast := lastnode;
               end;
 
@@ -3214,19 +3256,19 @@ procedure restoreloopx;
                   if (keytable[stackcopy].oprnd.mode = register) and
                      (keytable[stackcopy].regenoprnd.mode <> nomode) then
                     begin
-                    gen2(buildinst(adrp, true, false), tempreg,
+                    gen2(lastnode, buildinst(adrp, true, false), tempreg,
                          settemp(long, keytable[stackcopy].regenoprnd));
-                    gen2(ldrinst(keytable[stackcopy].len, keytable[stackcopy].signed),
+                    gen2(lastnode, ldrinst(keytable[stackcopy].len, keytable[stackcopy].signed),
                          tempreg,
                          settemp(long, label_offset_oprnd(keytable[tempreg].oprnd.reg,
                                        keytable[stackcopy].regenoprnd.labelno,
                                        keytable[stackcopy].regenoprnd.labeloffset)))
                     end
                   else if keytable[stackcopy].oprnd.mode = label_offset then
-                    gen2(buildinst(adrp, true, false), tempreg,
+                    gen2(lastnode, buildinst(adrp, true, false), tempreg,
                          settemp(long, keytable[stackcopy].regenoprnd))
                   else
-                    gen2(ldrinst(long, true), tempreg, stackcopy);
+                    gen2(lastnode, ldrinst(long, true), tempreg, stackcopy);
                   end;
                 end
               else if reloadfirst <> nil then deletenodes(reloadfirst, reloadlast);
@@ -3413,7 +3455,7 @@ procedure fortopx(signedbr, unsignedbr: insts { proper exit branch });
         shrink(target, keytable[forkey].len);
 }
         loadreg(target, regkey);
-        gen2(buildinst(cmp, savedlen = long, false), regkey, target);
+        gen2(lastnode, buildinst(cmp, savedlen = long, false), regkey, target);
         genbr(branch, pseudoinst.oprnds[2]);
         end;
 
@@ -3421,10 +3463,10 @@ procedure fortopx(signedbr, unsignedbr: insts { proper exit branch });
       then
         if keytable[forkey].regenoprnd.mode <> nomode then
           begin
-          gen2(buildinst(adrp, true, false),
+          gen2(lastnode, buildinst(adrp, true, false),
                settemp(long, reg_oprnd(ip0)),
                settemp(long, keytable[forkey].regenoprnd));
-          gen2(strinst(keytable[forkey].len),
+          gen2(lastnode, strinst(keytable[forkey].len),
                regkey,
                settemp(long, label_offset_oprnd(ip0,
                              keytable[forkey].regenoprnd.labelno,
@@ -3542,7 +3584,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
       else needcompare := false;
 
         { DRB: for pascal always 1 }
-      gen3(buildinst(incinst, len = long, not needcompare), forkey, forkey,
+      gen3(lastnode, buildinst(incinst, len = long, not needcompare), forkey, forkey,
            settemp(long, imm12_oprnd(byvalue, false)));
 
       if needcompare then
@@ -3565,7 +3607,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
           branch := blt;
           end;
 
-        gen2(buildinst(cmp, keytable[forkey].len = long, false), forkey,
+        gen2(lastnode, buildinst(cmp, keytable[forkey].len = long, false), forkey,
              preparelitint(finalvalue, forkey));
         genbr(branch, pseudoinst.oprnds[1]);
         end {if needcompare}
@@ -3624,7 +3666,7 @@ procedure shiftintx(backwards: boolean);
     if backwards then
       if keytable[left].signed then shiftinst := asrinst
       else shiftinst := lsrinst;
-    gen3(buildinst(shiftinst, len = long, false), key, left, right);
+    gen3(lastnode, buildinst(shiftinst, len = long, false), key, left, right);
     keytable[key].signed := keytable[left].signed;
   end {shiftintx} ;
 
@@ -3643,7 +3685,7 @@ procedure integerarithmetic(inst: insts; {simple integer inst}
     loadreg(left, right);
     prepareoprnd(right, left, modes, bitmask);
     unlock(key);
-    gen3(buildinst(inst, len = long, false), key, left, right);
+    gen3(lastnode, buildinst(inst, len = long, false), key, left, right);
     keytable[key].signed := signedoprnds;
   end {integerarithmetic} ;
 
@@ -3663,7 +3705,7 @@ procedure unaryint(inst: insts);
     address(left);
     loadreg(left, 0);
     unlock(key);
-    gen2(buildinst(inst, len = long, false), key, left);
+    gen2(lastnode, buildinst(inst, len = long, false), key, left);
     keytable[key].signed := keytable[left].signed;
   end {incdec} ;
 
@@ -3674,7 +3716,7 @@ procedure compintx;
     address(left);
     loadreg(left, 0);
     settargetorreg; 
-    gen2(buildinst(mvn, len = long, false), key, left);
+    gen2(lastnode, buildinst(mvn, len = long, false), key, left);
     keytable[key].signed := keytable[left].signed;
   end {compintx};
 
@@ -3683,10 +3725,10 @@ procedure compboolx;
   begin {compboolx}
     address(left);
     loadreg(left, 0);
-    gen2(buildinst(cmp, false, false), left,
+    gen2(lastnode, buildinst(cmp, false, false), left,
          settemp(long, imm12_oprnd(0, false)));
     settargetorreg; 
-    gen2(buildinst(cset, false, false), key,
+    gen2(lastnode, buildinst(cset, false, false), key,
                    settemp(0, cond_oprnd(eq)));
   end {compboolx};
 
@@ -3703,7 +3745,7 @@ procedure incdec(inst: insts {add, sub} );
     address(left);
     loadreg(left, 0);
     unlock(key);
-    gen3(buildinst(inst, len = long, false), key, left,
+    gen3(lastnode, buildinst(inst, len = long, false), key, left,
          settemp(len, imm12_oprnd(1, false)));
     keytable[key].signed := keytable[left].signed;
   end {incdec} ;
@@ -3731,7 +3773,7 @@ procedure cmpintptrx(signedbr, unsignedbr: insts {branch on result});
 
     loadreg(left, right);
     loadreg(right, left);
-    gen2(buildinst(cmp, len = 4, false), left, right);
+    gen2(lastnode, buildinst(cmp, len = 4, false), left, right);
     setbr(brinst, nomode_oprnd);
   end {cmpintptrx} ;
 
@@ -3771,7 +3813,7 @@ procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
         pseudoinst.oprnds[2]:= -pseudoinst.oprnds[2];
         end;
       litkey := preparelitint(pseudoinst.oprnds[2], left);
-      gen2(buildinst(i, len = long, false), left, litkey);
+      gen2(lastnode, buildinst(i, len = long, false), left, litkey);
       if keytable[left].signed then
         setbr(signedbr, nomode_oprnd)
       else
@@ -3810,16 +3852,16 @@ procedure divintx;
       end;
     settargetorreg;
     if signedoprnds then
-      gen3(buildinst(sdiv, len = long, false), key, left, right)
+      gen3(lastnode, buildinst(sdiv, len = long, false), key, left, right)
     else
-      gen3(buildinst(udiv, len = long, false), key, left, right);
+      gen3(lastnode, buildinst(udiv, len = long, false), key, left, right);
     keytable[key].signed := signedoprnds;
     if (pseudobuff.op = getrem) or (pseudoinst.refcount = 2) then
       begin
       if pseudoinst.refcount = 2 then
         begin
         lock(key);
-        gen4(buildinst(msub, len = long, false),
+        gen4(lastnode, buildinst(msub, len = long, false),
              settemp(len, reg_oprnd(getreg)),
              key, right, left); 
         unlock(key);
@@ -3836,7 +3878,7 @@ procedure divintx;
 }
         end
       else
-        gen4(buildinst(msub, len = long, false), key, key, right, left); 
+        gen4(lastnode, buildinst(msub, len = long, false), key, key, right, left); 
       unlock(right);
       unlock(left);
       end;
@@ -3888,7 +3930,7 @@ procedure stmtbrkx;
 
   begin
     if firststmt = 0 then firststmt := pseudoinst.oprnds[1];
-    p := newnode(stmtnode);
+    p := newnode(lastnode, stmtnode);
     with p^ do
       begin
       stmtno := pseudoinst.oprnds[1];
@@ -4095,11 +4137,11 @@ procedure blockcodex;
 
     if (blockref = 0) and (switchcounters[mainbody] > 0) then
       begin
-      p := newnode(bssnode);
+      p := newnode(lastnode, bssnode);
       p^.bsssize := globalsize;
       end;
 
-    p := newnode(textnode);
+    p := newnode(lastnode, textnode);
 
     with proctable[blockref] do
       begin
@@ -4108,10 +4150,10 @@ procedure blockcodex;
         t1 := settemp(long, reg_oprnd(sl));
         t2 := settemp(long, index_oprnd(unsigned_offset, sl, -long));
         for i := 1 to levelspread - 1 do
-          gen2(buildinst(ldr, true, false), t1, t2);
+          gen2(lastnode, buildinst(ldr, true, false), t1, t2);
         end;
       end;
-    p := newnode(proclabelnode);
+    p := newnode(lastnode, proclabelnode);
     p^.proclabel := blockref;
     codeproctable[blockref].proclabelnode := p;
 
@@ -4157,8 +4199,10 @@ procedure putblock;
         end;
       stackcounter := stackcounter + 1;
       end;
+{
     if stackcounter < stackbase then
      compilerabort(undeltemps);
+}
 
     { eventually peephole optimizations happen now }
 
@@ -4231,15 +4275,16 @@ procedure putblock;
       end
     else
       begin
-      p1 := newinsertafter(p1, instnode);
-      gen3p(p1, buildinst(sub, true, false), sptemp, sptemp, spadjusttemp);
+{      p1 := newinsertafter(p1, instnode);}
+      makeoffsetptr(p1, -blockcost, sp);
       end;
 
-    p1 := newinsertafter(p1, instnode);
-    gen3p(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
+{    p1 := newinsertafter(p1, instnode);}
+{    p1 := newnode(p1, instnode);}
+    gen3(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
 
-    p1 := newinsertafter(p1, instnode);
-    gen3p(p1, buildinst(add, true, false), fptemp, sptemp,
+{    p1 := newinsertafter(p1, instnode);}
+    gen3(p1, buildinst(add, true, false), fptemp, sptemp,
           settemp(long, imm16_oprnd(spoffset, 0)));
 
     { procedure exit code. Restore callee-saved registers, link and frame pointer
@@ -4251,9 +4296,8 @@ procedure putblock;
         begin
         keytable[saveregtemp].oprnd.reg := i;
         keytable[saveregoffsettemp].oprnd.index := regoffset[i];
-        p1 := newinsertafter(p1, instnode);
-        gen2p(p1, buildinst(str, true, false), saveregtemp, saveregoffsettemp);
-        gen2(buildinst(ldr, true, false), saveregtemp, saveregoffsettemp);
+        gen2(p1, buildinst(str, true, false), saveregtemp, saveregoffsettemp);
+        gen2(lastnode, buildinst(ldr, true, false), saveregtemp, saveregoffsettemp);
         regoffset[i] := -regcost;
         end;
 
@@ -4263,10 +4307,10 @@ procedure putblock;
       keytable[spoffsettemp].oprnd.index := blockcost;
       end;
 
-    gen3(buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
+    gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
 
     if not prepost then
-      gen3(buildinst(add, true, false), sptemp, sptemp, spadjusttemp);
+      gen3(lastnode, buildinst(add, true, false), sptemp, sptemp, spadjusttemp);
 
     geninst(nil, buildinst(ret, false, false), 0);
 
@@ -4475,7 +4519,7 @@ begin {movemultiple}
     keytable[regkey].oprnd.reg := 1;
     genmoveaddress(right, regkey);
     markscratchregs;
-    gen1(buildinst(bl, false, false),
+    gen1(lastnode, buildinst(bl, false, false),
          settemp(long, libcall_oprnd(libcmemcpy)));
     firstreg := 0;
     unlockboth;
@@ -4504,7 +4548,7 @@ begin {pushmultiple}
     keytable[regkey].oprnd.reg := 1;
     genmoveaddress(left, regkey);
     markscratchregs;
-    gen1(buildinst(bl, false, false),
+    gen1(lastnode, buildinst(bl, false, false),
          settemp(long, libcall_oprnd(libcmemcpy)));
     firstreg := 0;
     unlock(left);
@@ -4568,7 +4612,7 @@ procedure indxx;
           labelkey := settemp(long,labeltarget_oprnd(keytable[left].oprnd.labelno,
                               false, keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
           keytable[key].regenoprnd := keytable[labelkey].oprnd;
-          gen2(buildinst(adrp, true, false), newkey, labelkey);
+          gen2(lastnode, buildinst(adrp, true, false), newkey, labelkey);
           keytable[labelkey].oprnd.lowbits := true;
           setvalue(label_offset_oprnd(r, keytable[labelkey].oprnd.labelno,
                                       keytable[labelkey].oprnd.labeloffset));
@@ -4725,7 +4769,7 @@ procedure makestacktarget;
   if one is available.
 
   A true kludge.
-  
+
 }
 
 
@@ -4841,7 +4885,7 @@ procedure callroutinex(s: boolean {signed function value} );
         if levelhack < 0 then
           gensimplemove(framekey, slkey);
         end;
-      gen1(buildinst(bl, false, false),
+      gen1(lastnode, buildinst(bl, false, false),
            settemp(long, proccall_oprnd(pseudoinst.oprnds[1], max(0, levelhack))));
       end
     else
@@ -4883,7 +4927,7 @@ procedure caseerrx;
   {we have one and only one job to do, and we do it well }
 
   begin {caseerrx}
-    gen1(buildinst(bl, false, false), settemp(long, libcall_oprnd(libcasetrap)));
+    gen1(lastnode, buildinst(bl, false, false), settemp(long, libcall_oprnd(libcasetrap)));
   end {caseerrx};
 
 procedure casebranchx;
@@ -4943,9 +4987,9 @@ begin {casebranchx}
   lock(scratch);
   gensimplemove(target, scratch);
   t1 := preparelitint(pseudoinst.oprnds[1], scratch);
-  gen3(buildinst(sub, false, false), scratch, scratch, t1);
+  gen3(lastnode, buildinst(sub, false, false), scratch, scratch, t1);
   t1 := preparelitint(pseudoinst.oprnds[2] - pseudoinst.oprnds[1], scratch);
-  gen2(buildinst(cmp, false, false), scratch, t1);
+  gen2(lastnode, buildinst(cmp, false, false), scratch, t1);
   if errordefault then
     begin
     genbr(bls, newlabel);
@@ -4959,23 +5003,23 @@ begin {casebranchx}
   addressreg := getreg;
   addresskey := settemp(long, reg_oprnd(addressreg));
   t1 := settemp(long, labeltarget_oprnd(tablelabel, false, 0));
-  gen2(buildinst(adrp, true, false), addresskey, t1);
+  gen2(lastnode, buildinst(adrp, true, false), addresskey, t1);
   keytable[t1].oprnd.lowbits := true;
-  gen3(buildinst(add, true, false), addresskey, addresskey, t1);
+  gen3(lastnode, buildinst(add, true, false), addresskey, addresskey, t1);
 
   baselabel := newlabel; {must be last temp label for caseeltx}
-  gen2(buildinst(ldr, false, false), scratch,
+  gen2(lastnode, buildinst(ldr, false, false), scratch,
        settemp(word, reg_offset_oprnd(addressreg, scratchreg, 2, xtw, false)));
-  gen2(buildinst(adr, true, false), addresskey,
+  gen2(lastnode, buildinst(adr, true, false), addresskey,
        settemp(long, labeltarget_oprnd(baselabel, false, 0)));
-  gen3(buildinst(add, true, false), scratch, addresskey,
+  gen3(lastnode, buildinst(add, true, false), scratch, addresskey,
        settemp(long, extend_reg_oprnd(scratchreg, xtw, 2, true)));
-  gen1(buildinst(br, true, false), scratch);
+  gen1(lastnode, buildinst(br, true, false), scratch);
   definelabel(baselabel);
   unlock(scratch);
 
   { now initiate the case element table }
-  p := newnode(rodatanode);
+  p := newnode(lastnode, rodatanode);
   p^.labelno := tablelabel;
 
 end {casebranchx} ;
@@ -4995,7 +5039,7 @@ procedure caseeltx;
     for i := 1 to pseudoinst.oprnds[2] do
       genlabeldelta(lastlabel + 1, pseudoinst.oprnds[1]);
     if pseudobuff.op <> caseelt then
-      p := newnode(textnode);
+      p := newnode(lastnode, textnode);
   end; {caseeltx}
 
 procedure jumpx(lab: integer {label to jump to});
@@ -5062,8 +5106,8 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
       end;
     if inv then b := invert[b];
     if (b = cbz) or (b = cbnz) then
-      gen2(buildinst(b, keytable[right].len = long, false), right, labeltarget)
-    else gen1(buildinst(b, false, false), labeltarget);
+      gen2(lastnode, buildinst(b, keytable[right].len = long, false), right, labeltarget)
+    else gen1(lastnode, buildinst(b, false, false), labeltarget);
     context[contextsp].lastbranch := lastnode;
   end {jumpcond} ;
 
@@ -5085,7 +5129,7 @@ begin {cond}
       if inv then c := condmap[invert[brinst]]
       else c := condmap[brinst];
 
-  gen2(buildinst(cset, false, false), key,
+  gen2(lastnode, buildinst(cset, false, false), key,
                  settemp(0, cond_oprnd(c)));
 
 end {cond};

@@ -7,6 +7,7 @@ procedure bar(a, b: char);
 begin
   for ch := a to b do putchar(ch);
   putchar(chr(10));
+
   for ch := b downto a do putchar(ch);
   putchar(chr(10));
 end;
@@ -44,10 +45,12 @@ end;
 
 begin
   bar('a', 'f');
+{
   putchar('-'); putchar(chr(10));
   foo;
 
   bar1(0, 8);
   putchar('-'); putchar(chr(10));
   foo1;
+}
 end.

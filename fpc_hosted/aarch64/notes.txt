@@ -1,3 +1,9 @@
+-- current
+
+handle long constants for non-bitmask arithmetic
+handle long index amounts
+handle long aindex+index????
+fixing stack offsets: >= -256 off fp, otherwise off sp.   
 -- next priorities:
 
 Sets:
@@ -180,3 +186,10 @@ FAILS (for now at least)
     Minor is that globals should be indexed before aindx with the variable
     base for this scheme, 'way back in body.pas.  Conditionalized for aarch64
     if course.
+
+Code hacks:
+
+integer arithmetic operands that don't fit in 12 bits (not bitmask):
+
+1. If operand & F000 (hex) = 0 then mov top 16 bits to register, then add
+   lower 16 bits (which has the leftmost 4 bits 0) as a 12-bit immediate.
