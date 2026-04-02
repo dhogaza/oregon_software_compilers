@@ -45,12 +45,12 @@ end;
 
 begin
   bar('a', 'f');
-{
+
   putchar('-'); putchar(chr(10));
   foo;
 
   bar1(0, 8);
   putchar('-'); putchar(chr(10));
   foo1;
-}
+
 end.

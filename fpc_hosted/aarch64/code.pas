@@ -3482,11 +3482,11 @@ procedure fortopx(signedbr, unsignedbr: insts { proper exit branch });
       enterloop;
 
       { see defforindexx for an explaination of this }
-      if nonvolatile and not globalreg then
+{      if nonvolatile and not globalreg then}
 {
         dereference(keytable[forkey].properreg);
 }
-        dereference(forkey);
+{        dereference(forkey); }
       end;
 
   end {fortopx} ;
@@ -3520,6 +3520,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
     with forstack[forsp] do
       begin
       sgn := keytable[forkey].signed;
+      dereference(forkey);
       l := keytable[forkey].len;
       if sgn then branch := signedbr
       else branch := unsignedbr;
@@ -3543,8 +3544,8 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
             keytable[k].tempflag := true;  
             makeaddressable(k);
             end;
+{ was dereference(forkey) here rather than above }
           newkey := settemp(long, reg_oprnd(originalreg));
-          dereference(forkey);
           gensimplemove(k, newkey);
           forkey := newkey;
           if loopoverflow = 0 then
@@ -5473,8 +5474,8 @@ writeln(macfile, 'lastkey: ', lastkey, ' refcount: ', keytable[lastkey].refcount
       if keytable[key].first <> nil then
         write_nodes(keytable[key].first, keytable[key].last);
 
-writeln(macfile, registers[14], ' ', registers[15]);
-      dumpstack;
+writeln(macfile, 'x0: ', registers[0]);
+{      dumpstack;}
 
       end;
   end {codeone};
