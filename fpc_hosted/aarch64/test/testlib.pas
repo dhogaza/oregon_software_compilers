@@ -2,11 +2,15 @@
 procedure exit(code: integer); external;
 procedure putchar(ch: char); external;
 
+type lib_unsigned = 0..16#FFFFFFFF;
+
 {defined here}
 procedure putstring(a:packed array [l..h: integer] of char); external;
 procedure putstringln(a:packed array [l..h: integer] of char); external;
 procedure putint(i: integer); external;
 procedure putintln(i: integer); external;
+procedure puthex(i: lib_unsigned); external;
+procedure puthexln(i: lib_unsigned); external;
 procedure putbool(b: boolean); external;
 procedure putboolln(b: boolean); external;
 procedure putcharln(ch: char); external;
@@ -31,6 +35,39 @@ procedure putstringln;
     for i := l to h do putchar(a[i]);
     putln;
   end;
+
+procedure puthex;
+
+  var
+    digits: packed array [0..16] of char;
+    j: integer;
+
+  begin
+
+    j := 0;
+    repeat
+      if i mod 16 > 9 then
+        digits[j] := chr(i mod 16 - 10 + ord('A'))
+      else
+        digits[j] := chr(i mod 16 + ord('0'));
+      j := j + 1;
+      i := i div 16;
+    until i = 0;
+
+    repeat
+      j := j - 1;
+      putchar(digits[j]);
+    until j = 0;
+
+  end;
+
+procedure puthexln;
+
+  begin
+    puthex(i);
+    putln;
+  end;
+
 
 procedure putint;
 

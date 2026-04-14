@@ -1,12 +1,58 @@
 -- current
 
 figure out why main blocksize is so weird (historical P2 shit)
-handle long constants for non-bitmask arithmetic
+
+handle long constants for non-bitmask arithmetic (partly done)
   -- pseudo "immediate" mode and something like an "imm_resolved_p" flag (?)
 handle long index amounts
+
   -- pseudo signed "index" mode and something like an "index_resolved_p" flag (?)
 handle long aindex+index????
-fixing stack offsets: [-long, -256] off fp, otherwise off sp.   
+
+  -- out-of-range index value.
+
+     stack temps first.
+
+     Range is up to 32760 bytes for unsigned offset.
+
+     For any offset <= 24 bits:
+
+     So we can't do this 12 bit trickery.  Check FPC and GCC.  Yes we can.   15 bits (12 plus log2(8)=3)
+     from the index offset.  9 bits (giving us 24) multiplied by 8 the imm12 << 12 to form the index base
+     added to sp will cover the same 24 bit addressing we cover now.
+
+     For indexing of other sizes we get fewer bits from the index and more bits from the offset
+     constant, which of course does not happen on the stack.  We better make sure it does not happen!
+
+     Change the load/store check in finalizstackoffsets to just ldr/str period until we
+     add stp/ldp optimization..
+
+     std/ldp index limited to -512..504 bytes (9 bit offset * 2).
+     if > 504 but less 4096+504
+       add ip0, sp, #(4096-504)
+       ldp/stp r1, r2, [ip0, 504]
+     else if <= $FFFFFF and masked with $E00 = 0
+       add ip0, sp, #(index div $1000) shift 12
+       ldp/stp r1, r2, [ip0, (index mask $1FF)]
+     else
+       mov ip0, (index div $FFFF) shift 16
+       if index and $FFFF <> 0 then
+         movk ip0, index and $FFFF
+       ldp/stp r1, r2, [sp, ip0]
+
+     to avoid mov/movk situations ... for positive values <= 2^24 can add top 12 lsl 12
+     then use bottom 12 bits in the unsigned offset field.  Just like add/sub.  If the
+     value is larger and masked #FFFF0FFF move top 16 bits lsl 16 then index by the value
+     masked by 0FFF.  Otherwise must do mov/movk then index[0]
+
+     For negative indexes can subtrace the negated top 12 bits + 4096 then unsigned index
+     with 4095 - negatated value's bottm 12 bits (check that arithmetic!).  Something
+     similar for the #FFFF0FFF case.
+
+     Restricted to 32 bit structure limitation of course.
+
+  -- improve kludges to adjust and delete nodes fixed up after code gen.
+     use newinsertbefore
 
 -- next priorities:
 

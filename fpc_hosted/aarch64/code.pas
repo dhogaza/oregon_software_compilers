@@ -881,8 +881,7 @@ function newnode(after: nodeptr; kind: nodekinds): nodeptr;
       begin
       p^.nextnode := after^.nextnode;
       after^.nextnode := p;
-      p^.prevnode := after^.prevnode;
-      after^.prevnode := p;
+      p^.prevnode := after;
       end;
 
     if after = lastnode then
@@ -891,7 +890,6 @@ function newnode(after: nodeptr; kind: nodekinds): nodeptr;
       
   end {newnode};
 
-{ newinsertbefore/after not used but kept around just in case }
 
 function newinsertbefore(before: nodeptr; kind: nodekinds): nodeptr;
 
@@ -918,6 +916,8 @@ function newinsertbefore(before: nodeptr; kind: nodekinds): nodeptr;
       end;
     newinsertbefore := p;
   end {newinsertbefore};
+
+{ newinsertfter not used but kept around just in case }
 
 function newinsertafter(after: nodeptr; kind: nodekinds): nodeptr;
 
@@ -1514,85 +1514,6 @@ procedure derefboth;
     dereference(left);
     dereference(right);
   end {derefboth} ;
-
-{ stack offset adjustment procedures }
-
-procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
-                               amount: integer);
-
-{ Flip the dummy negative offsets to the stack to positive offsets. }
-
-  var
-    stopnode: nodeptr;
-    i: integer;
-
-  begin {finalizestackoffsets}
-    stopnode := lastnode^.nextnode;
-    while firstnode <> stopnode do
-      begin
-      with firstnode^ do
-        if (kind = instnode) then
-          if (inst.inst = add) and (oprnds[2].mode = register) and
-             (oprnds[2].reg = sp) and (oprnds[3].mode = imm12) then
-            begin
-              if oprnds[3].imm12_value >= -4095 then
-                begin
-                inst.inst := sub;
-                oprnds[3].reg := fp;
-                oprnds[3].imm12_value := -oprnds[3].imm12_value; 
-                end
-              else
-                begin 
-                oprnds[3].imm12_value := oprnds[3].imm12_value + amount  
-              {if value > 12 bits then generate constant into temp register,
-               add oprnds[1], sp, temp_reg}
-                end
-            end
-          else
-            for i := 1 to oprnd_cnt do
-              if (oprnds[i].mode = signed_offset) and
-                 (oprnds[i].reg = sp) then
-                if oprnds[i].index >= -256 then
-                  oprnds[i].reg := fp
-                else
-                  begin
-                  oprnds[i].mode := unsigned_offset;
-                  oprnds[i].index := oprnds[i].index + amount;
-                {if unsigned offset too large then generate constant-limit into temp
-                 register, add temp_reg, sp, temp_reg (?), mode becomes
-                 [tempreg, limit]?}
-                  end;
-      firstnode := firstnode^.nextnode;
-      end;
-  end {finalizestackoffsets};
-
-procedure adjuststackoffsets(firstnode: nodeptr; lastnode: nodeptr;
-                             amount: integer);
-
-{ Adjust references to stack temps (but not procedure parameters passed
-  on the stack) for instructions in the given range.
-
-  Not being used and probably broken.
-
-}
-
-  var
-    stopnode: nodeptr;
-    i: integer;
-
-  begin {adjuststackoffsets}
-    stopnode := lastnode^.nextnode;
-    while firstnode <> stopnode do
-      begin
-      with firstnode^ do
-        if (kind = instnode) then
-        for i := 1 to oprnd_cnt do
-          if (oprnds[i].mode = signed_offset) and
-             (oprnds[i].reg = sp) then
-              oprnds[i].index := oprnds[i].index + amount;
-      firstnode := firstnode^.nextnode;
-      end;
-  end {adjuststackoffsets};
 
 { Stack temp allocation procedures }
 
@@ -2611,7 +2532,7 @@ procedure handle_intconst12(var after: nodeptr; var k: keyindex; other: keyindex
   begin {handle_intconst12}
     with keytable[k].oprnd do
       if mode = intconst then
-        if (int_value = 0) then
+        if int_value = 0 then
           k := settemp(len, reg_oprnd(zero))
         else if (int_value >= 0) and (int_value <= $FFF) then
           k := settemp(len, imm12_oprnd(int_value, false))
@@ -2727,64 +2648,6 @@ procedure gensimplemove(var after: nodeptr; src: keyindex; dst: keyindex);
     else gen2(after, strinst(keytable[dst].len), src, dst);
   end {gensimplemove} ;
 
-procedure genmoveaddress(src, dst: keyindex);
-
-{ Move the address of the src value to the destination value,
-  which must be a general register.
-}
-
-  var
-    labelkey: keyindex; {for label_offset}
-
-  begin {genmoveaddress}
-    if keytable[dst].oprnd.mode <> register then
-      begin
-      write('destination is not a register in genmoveaddress ');
-      compilerabort(inconsistent);
-      end;
-
-    with keytable[src].oprnd do
-      case mode of
-      label_offset:
-        begin
-        labelkey := settemp(long, labeltarget_oprnd(labelno, true, labeloffset)); 
-        gen3(lastnode, buildinst(add, true, false), dst, settemp(long, reg_oprnd(reg)), labelkey);
-        end;
-      labeltarget:
-        begin
-        gen2(lastnode, buildinst(adrp, true, false), dst, src);
-        keytable[src].oprnd.lowbits := true;
-        gen3(lastnode, buildinst(add, true, false), dst, dst, src);
-        keytable[src].oprnd.lowbits := false;
-        end;
-      signed_offset, unsigned_offset:
-        if (keytable[dst].oprnd.reg <> reg) or
-           (index <> 0) then
-          begin
-          if (reg <> sp) and (index < 0) then
-            gen3(lastnode, buildinst(sub, true, false), dst,
-                 settemp(long, reg_oprnd(reg)),
-                 settemp(long, imm12_oprnd(-index, false)))
-          else
-            gen3(lastnode, buildinst(add, true, false), dst,
-                 settemp(long, reg_oprnd(reg)),
-                 settemp(long, imm12_oprnd(index, false)));
-          end;
-      reg_offset:
-        begin
-        gen3(lastnode, buildinst(add, true, false), dst,
-             settemp(long, reg_oprnd(reg)),
-             settemp(long, extend_reg_oprnd(reg2, extend, shift, signed)));
-        end;
-      otherwise
-        begin
-        write('bad operand in genmoveaddress ');
-        compilerabort(inconsistent);
-        end;
-      end;
-  end; {genmoveaddress}
-
-
 function signedoprnds : boolean;
 
 { True if both left and right operands of the current operation are
@@ -2857,10 +2720,10 @@ function preparelitint(value: integer; other: keyindex): keyindex;
     preparelitint := newkey;
   end;
 
-procedure makeoffsetptr(var after: nodeptr; offset: integer; reg: regindex);
+procedure makeoffsetptr(var after: nodeptr; offset: integer; src,dst: regindex);
 
   var
-    offsettemp, regtemp, sptemp, savetempkey: keyindex;
+    offsettemp, srctemp, dsttemp, savetempkey: keyindex;
     i: insts;
 
   begin {makeoffsetptr}
@@ -2872,13 +2735,197 @@ procedure makeoffsetptr(var after: nodeptr; offset: integer; reg: regindex);
     else i := add;
     savetempkey := tempkey;
     offsettemp := settemp(long, intconst_oprnd(offset));
-    regtemp := settemp(long, reg_oprnd(reg));
-    sptemp := settemp(long, reg_oprnd(sp));
+    srctemp := settemp(long, reg_oprnd(src));
+    dsttemp := settemp(long, reg_oprnd(dst));
 { Need versio that takes a nodeptr }
-    handle_intconst12(after, offsettemp, regtemp);
-    gen3(after, buildinst(i, true, false), regtemp, sptemp, offsettemp);
+    handle_intconst12(after, offsettemp, srctemp);
+    gen3(after, buildinst(i, true, false), dsttemp, srctemp, offsettemp);
     tempkey := savetempkey;
   end {makeoffsetptr};
+
+procedure genmoveaddress(src, dst: keyindex);
+
+{ Move the address of the src value to the destination value,
+  which must be a general register.
+}
+
+  var
+    labelkey: keyindex; {for label_offset}
+
+  begin {genmoveaddress}
+    if keytable[dst].oprnd.mode <> register then
+      begin
+      write('destination is not a register in genmoveaddress ');
+      compilerabort(inconsistent);
+      end;
+
+    with keytable[src].oprnd do
+      case mode of
+      label_offset:
+        begin
+        labelkey := settemp(long, labeltarget_oprnd(labelno, true, labeloffset)); 
+        gen3(lastnode, buildinst(add, true, false), dst, settemp(long, reg_oprnd(reg)), labelkey);
+        end;
+      labeltarget:
+        begin
+        gen2(lastnode, buildinst(adrp, true, false), dst, src);
+        keytable[src].oprnd.lowbits := true;
+        gen3(lastnode, buildinst(add, true, false), dst, dst, src);
+        keytable[src].oprnd.lowbits := false;
+        end;
+      signed_offset, unsigned_offset:
+        if index <> 0 then
+{should all register adjustments be made after generation?  This isn't working for
+ sp which needs to be delayed. First peephole-though-not-quite-optimization?}
+          if reg <> sp then
+            makeoffsetptr(lastnode, index, reg, keytable[dst].oprnd.reg)
+{
+          if (reg <> sp) and (index < 0) then
+            gen3(lastnode, buildinst(sub, true, false), dst,
+                 settemp(long, reg_oprnd(reg)),
+                 settemp(long, imm12_oprnd(-index, false)))
+}
+          else
+            gen3(lastnode, buildinst(add, true, false), dst,
+                 settemp(long, reg_oprnd(sp)),
+                 settemp(long, imm12_oprnd(index, false)));
+      reg_offset:
+        begin
+        gen3(lastnode, buildinst(add, true, false), dst,
+             settemp(long, reg_oprnd(reg)),
+             settemp(long, extend_reg_oprnd(reg2, extend, shift, signed)));
+        end;
+      otherwise
+        begin
+        write('bad operand in genmoveaddress ');
+        compilerabort(inconsistent);
+        end;
+      end;
+  end; {genmoveaddress}
+
+procedure fix_unsigned_offset(var after: nodeptr; tempreg: regindex; var o: oprndtype);
+
+  begin
+    if o.index > 4095 then
+      begin
+      gen3(after, buildinst(add, true, false), settemp(long, reg_oprnd(tempreg)),
+           settemp(long, reg_oprnd(o.reg)),
+           settemp(long, imm12_oprnd(o.index div $1000, true)));
+      tempkey := tempkey + 3;
+      o.reg := ip0;
+      o.index := o.index and $FFF;
+      end
+  end;
+
+
+{ stack offset adjustment procedures }
+
+procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
+                               amount, savedregspace: integer);
+
+{ Flip the dummy negative offsets to the stack to positive offsets.  If a stack
+  slot is close enough to fp we'll use it as the base register.  Since callee-saved
+  registers aren't handled until after code for the block has been generated, we
+  must take this into account using the savedregspace parameter.
+}
+
+  var
+    stopnode, after, p: nodeptr;
+    i: integer;
+
+  begin {finalizestackoffsets}
+    stopnode := lastnode^.nextnode;
+    while firstnode <> stopnode do
+      begin
+      with firstnode^ do
+        if (kind = instnode) then
+          if (inst.inst = add) and (oprnds[2].mode = register) and
+             (oprnds[2].reg = sp) and (oprnds[3].mode = imm12) then
+            begin
+              if oprnds[3].imm12_value - savedregspace >= -4095 then
+                begin
+                inst.inst := sub;
+                oprnds[2].reg := fp;
+                oprnds[3].imm12_value := -(oprnds[3].imm12_value - savedregspace); 
+                end
+              else if oprnds[3].imm12_value + amount <= 4095 then
+                oprnds[3].imm12_value := oprnds[3].imm12_value + amount
+              else
+                begin 
+                after := firstnode;
+                makeoffsetptr(after, oprnds[3].imm12_value + amount, sp,
+                              oprnds[1].reg);
+                deletenodes(firstnode, firstnode);
+                firstnode := after;
+                end
+            end
+          else
+            begin
+            i := oprnd_cnt;
+            if (oprnds[i].mode = signed_offset) and
+               (oprnds[i].reg = sp) then
+              begin
+              if not (inst.inst in [first_ls..last_ls]) then
+                begin
+                write(macfile, 'finalizestackoffset load or store expected ');
+                write_inst(inst);
+                writeln(macfile);
+                compilerabort(inconsistent);
+                end;
+              if oprnds[i].index - savedregspace >= -256 then
+                  begin
+                  oprnds[i].reg := fp;
+                  oprnds[i].index := oprnds[i].index - savedregspace;
+                  end
+              else
+                begin
+                oprnds[i].mode := unsigned_offset;
+                oprnds[i].index := oprnds[i].index + amount;
+                if oprnds[i].index > 4095 then
+                  begin
+                  p := newinsertbefore(firstnode, instnode);
+                  gen3p(p, buildinst(add, true, false),
+                        settemp(long, reg_oprnd(ip0)),
+                        settemp(long, reg_oprnd(sp)),
+                        settemp(long, imm12_oprnd(oprnds[i].index div $1000, true)));
+                  tempkey := tempkey + 3;
+                  oprnds[i].reg := ip0;
+                  oprnds[i].index := oprnds[i].index and $FFF;
+                  end
+                end
+              end
+            end;
+      firstnode := firstnode^.nextnode;
+      end;
+  end {finalizestackoffsets};
+
+procedure adjuststackoffsets(firstnode: nodeptr; lastnode: nodeptr;
+                             amount: integer);
+
+{ Adjust references to stack temps (but not procedure parameters passed
+  on the stack) for instructions in the given range.
+
+  Not being used and probably broken.
+
+}
+
+  var
+    stopnode: nodeptr;
+    i: integer;
+
+  begin {adjuststackoffsets}
+    stopnode := lastnode^.nextnode;
+    while firstnode <> stopnode do
+      begin
+      with firstnode^ do
+        if (kind = instnode) then
+        for i := 1 to oprnd_cnt do
+          if (oprnds[i].mode = signed_offset) and
+             (oprnds[i].reg = sp) then
+              oprnds[i].index := oprnds[i].index + amount;
+      firstnode := firstnode^.nextnode;
+      end;
+  end {adjuststackoffsets};
 
 procedure clearcontext;
 
@@ -3850,7 +3897,7 @@ procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
       if signedbr = beq then
         setbr(cbz, keytable[left].oprnd)
       else
-        setbr(cbz, keytable[left].oprnd)
+        setbr(cbnz, keytable[left].oprnd)
     else
       begin
       if not keytable[left].signed or
@@ -4221,7 +4268,7 @@ procedure putblock;
     blockcost: integer; {max bytes allocated on the stack}
     spoffset: integer; {size of stack save area}
     p, p1: nodeptr;
-    savetempkey, fptemp, sptemp, linktemp, spoffsettemp,
+    savetempkey, fptemp, sptemp, linktemp, ip0temp, spoffsettemp,
     saveregtemp, saveregoffsettemp: keyindex;
     regcost, fpregcost: integer; {bytes allocated to save registers on stack}
     regoffset, fpregoffset: array [regindex] of integer; {offset for each reg}
@@ -4300,13 +4347,14 @@ procedure putblock;
     linktemp := settemp(long, reg_oprnd(link));
     sptemp := settemp(long, reg_oprnd(sp));
     fptemp := settemp(long, reg_oprnd(fp));
+    ip0temp := settemp(long, reg_oprnd(ip0));
 {
     blockcost := blksize + regcost + maxstackoffset + long * 2;
 }
     blockcost := blksize + regcost + maxstackoffset;
     blockcost := (blockcost + (2 * long - 1)) and - (2 * long);
 
-    finalizestackoffsets(firstnode, lastnode, maxstackoffset);
+    finalizestackoffsets(firstnode, lastnode, maxstackoffset, regcost);
 
     spoffset := regcost + maxstackoffset;
     spoffsettemp := settemp(long, index_oprnd(unsigned_offset, sp, spoffset));
@@ -4326,16 +4374,25 @@ procedure putblock;
     else
       begin
 {      p1 := newinsertafter(p1, instnode);}
-      makeoffsetptr(p1, -blockcost, sp);
+      makeoffsetptr(p1, -blockcost, sp, sp);
       end;
 
 {    p1 := newinsertafter(p1, instnode);}
 {    p1 := newnode(p1, instnode);}
-    gen3(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
+    if spoffset <= 504 then
+      gen3(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp)
+    else
+      begin
+      gen3(p1, buildinst(add, true, false), ip0temp, sptemp,
+           settemp(long, imm12_oprnd(spoffset div $1000, true)));
+      gen3(p1, buildinst(add, true, false), ip0temp, ip0temp,
+           settemp(long, imm12_oprnd(spoffset and $FFF, false)));
+      gen3(p1, buildinst(stp, true, false), linktemp, fptemp,
+           settemp(long, index_oprnd(unsigned_offset, ip0, 0)));
+      end;
 
 {    p1 := newinsertafter(p1, instnode);}
-    gen3(p1, buildinst(add, true, false), fptemp, sptemp,
-          settemp(long, imm16_oprnd(spoffset, 0)));
+    makeoffsetptr(p1, spoffset, sp, fp);
 
     { procedure exit code. Restore callee-saved registers, link and frame pointer
       registers, and shrink stack.
@@ -4357,10 +4414,18 @@ procedure putblock;
       keytable[spoffsettemp].oprnd.index := blockcost;
       end;
 
-    gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
+    if spoffset <= 4095 then
+      gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp)
+    else
+      begin
+      gen3(lastnode, buildinst(add, true, false), ip0temp, sptemp,
+           settemp(long, imm12_oprnd(spoffset div $1000, true)));
+      gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp,
+           settemp(long, index_oprnd(unsigned_offset, ip0, spoffset and $FFF)));
+      end;
 
     if not prepost then
-      makeoffsetptr(lastnode, blockcost, sp);
+      makeoffsetptr(lastnode, blockcost, sp, sp);
 
     gen0(lastnode, buildinst(ret, false, false));
 
@@ -4588,7 +4653,7 @@ begin {pushmultiple}
     lock(left);
     firstreg := 3;
     regkey := settemp(long, reg_oprnd(2));
-    gensimplemove(lastnode, settemp(long, imm16_oprnd(len, 0)), regkey);
+    gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), regkey);
     keytable[regkey].oprnd.reg := 0;
     genmoveaddress(key, regkey);
     keytable[regkey].oprnd.reg := 1;

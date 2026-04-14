@@ -12,6 +12,8 @@ procedure openc;
 
 procedure closec;
 
+procedure write_inst(i: insttype);
+
 procedure write_nodes(firstnode, lastnode: nodeptr);
 
 implementation
