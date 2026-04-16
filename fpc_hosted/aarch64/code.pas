@@ -1155,20 +1155,27 @@ procedure genlabeldelta(tablebase, targetlabel: integer);
     p^.targetlabel := targetlabel;
   end; {genlabeldelta}
 
-procedure genlongint(after: nodeptr; value: unsigned; dst: regindex);
+procedure genlongint(var after: nodeptr; value: unsigned; dst: regindex);
 
   var savedtempkey, regkey: keyindex;
 
   begin
     savedtempkey := tempkey;
     regkey := settemp(long, reg_oprnd(dst));
-    gen2(after, buildinst(movz, true, false),
-         regkey,
-         settemp(long, imm16_oprnd((value div $10000) and $FFFF, 16)));
-    if (value and $FFFF) <> 0 then
-      gen2(after, buildinst(movk, true, false),
+    if value and $FFFF0000 = 0 then
+      gen2(after, buildinst(movz, true, false),
            regkey,
-           settemp(long, imm16_oprnd(value and $FFFF, 0)));
+           settemp(long, imm16_oprnd(value and $FFFF, 0)))
+    else
+      begin
+      gen2(after, buildinst(movz, true, false),
+           regkey,
+           settemp(long, imm16_oprnd((value div $10000) and $FFFF, 16)));
+      if (value and $FFFF) <> 0 then
+        gen2(after, buildinst(movk, true, false),
+             regkey,
+             settemp(long, imm16_oprnd(value and $FFFF, 0)));
+      end;
     tempkey := savedtempkey;
   end;
 
@@ -1774,7 +1781,6 @@ function newparamtemp(size: addressrange {size of temp to allocate} ): keyindex;
     if stackoffset > maxstackoffset then
       maxstackoffset := stackoffset;
     stackcounter := stackcounter - 1;
-writeln('newparamtemp stackcounter: ', stackcounter);
     if stackcounter <= lastkey then compilerabort(manykeys)
     else
       begin
@@ -2541,11 +2547,11 @@ procedure handle_offset9(var after: nodeptr; tempreg: regindex;
   routine's prologue/epilogue preindex/postindex modes.
 }
 
-var offset, maxoffset: unsignedint;
+var offset: unsignedint;
   len: 0..16; {define this somewhere in hdrc}
   savetempkey, tempregkey, originalregkey, imm12key: keyindex;
 
-begin {handle_offset12}
+begin {handle_offset9}
 
   len := keytable[k].len;
   offset := keytable[k].oprnd.index;
@@ -2555,19 +2561,20 @@ begin {handle_offset12}
     begin
     savetempkey := tempkey;
     tempregkey := settemp(long, reg_oprnd(tempreg));
-    originalregkey := settemp(long, reg_oprnd(keytable[key].oprnd.reg));
+    originalregkey := settemp(long, reg_oprnd(keytable[k].oprnd.reg));
     imm12key := settemp(long, imm12_oprnd(0, false));
-    if offset - maxoffset <= 4095 then
+    if offset - 504 <= 4095 then
       begin
       keytable[k].oprnd.reg := tempreg; { key will index the tempreg } 
       keytable[imm12key].oprnd.index := offset - 504;
+      keytable[k].oprnd.index := 504;
       gen3(after, buildinst(add, true, false), tempregkey, originalregkey,
            imm12key);
       end
     else if (offset and $FF000E00 = 0) then
       begin
       keytable[k].oprnd.reg := tempreg; { key will index the tempreg } 
-      keytable[k].oprnd.index := ($FFF000 and offset) div $1000;
+      keytable[imm12key].oprnd.index := ($FFF000 and offset) div $1000;
       keytable[imm12key].oprnd.imm12_shift := true;
       gen3(after, buildinst(add, true, false), tempregkey, originalregkey,
            imm12key);
@@ -2576,19 +2583,18 @@ begin {handle_offset12}
     else
       begin
       genlongint(after, offset, tempreg);
+      gen3(after, buildinst(add, true, false), tempregkey, originalregkey, tempregkey);
       with keytable[k].oprnd do
         begin
-        mode := reg_offset;
-        reg2 := tempreg;
-        shift := 0;
-        extend := xtx;
-        signed := false;
+        mode := unsigned_offset;
+        index := 0;
+        reg := tempreg;
         end;
       end;
     tempkey := savetempkey;
     end;
 
-end {handle_offset12};
+end {handle_offset9};
 
 procedure handle_offset12(var after: nodeptr; tempreg: regindex;
                           var k: keyindex);
@@ -2739,7 +2745,7 @@ procedure handle_intconst16(var after: nodeptr; var k: keyindex; var movinst: in
             else
               begin
               gen2(after, buildinst(movz, true, false), k,
-                   settemp(len, imm16_oprnd((val shr 16) and $FFFF, 16)));
+                   settemp(len, imm16_oprnd((val div $1000) and $FFFF, 16)));
               if (val and $FFFF) <> 0 then
                 gen2(after, buildinst(movk, true, false), k,
                      settemp(len, imm16_oprnd(val and $FFFF, 0)));
@@ -4526,7 +4532,14 @@ procedure putblock;
       end;
 
     gen3(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
-    makeoffsetptr(p1, spoffset, sp, fp);
+
+    if (keytable[spoffsettemp].oprnd.reg <> sp) and
+       (keytable[spoffsettemp].oprnd.index = 0) then
+{ can this possibly work in all cases? }
+      gen2(p1, buildinst(mov, true, false), fptemp,
+           settemp(long, reg_oprnd(keytable[spoffsettemp].oprnd.reg)))
+    else
+      makeoffsetptr(p1, spoffset, sp, fp);
 {    p1 := newinsertafter(p1, instnode);}
 {    p1 := newnode(p1, instnode);}
 {
@@ -4568,7 +4581,7 @@ procedure putblock;
       keytable[spoffsettemp].oprnd.mode := unsigned_offset;
       keytable[spoffsettemp].oprnd.reg := sp;
       keytable[spoffsettemp].oprnd.index := spoffset;
-      handle_offset12(lastnode, ip0, spoffsettemp);
+      handle_offset9(lastnode, ip0, spoffsettemp);
       end;
 
     gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
@@ -5730,12 +5743,12 @@ procedure codeone;
 {
 writeln(macfile, 'lastkey: ', lastkey, ' refcount: ', keytable[lastkey].refcount, ' keymark: ', context[contextsp].keymark);
 }
-
       if keytable[key].first <> nil then
         write_nodes(keytable[key].first, keytable[key].last);
-
+{
       dumpstack;
 
+}
       end;
   end {codeone};
 

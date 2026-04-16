@@ -7,9 +7,6 @@ figure out why main blocksize is so weird (historical P2 shit)
 
   -- regenoprnd stuff all messed up? adrp and makeaddressable not only for global level?
 
-  -- regparam not being saved just the dovar which might come after a procedure call
-     destroys it.
-
 ---
 
   -- refactor a bit ...
@@ -70,6 +67,12 @@ figure out why main blocksize is so weird (historical P2 shit)
      similar for the #FFFF0FFF case.
 
      Restricted to 32 bit structure limitation of course.
+
+    use a bitmask to generate add in constant when possible
+
+    [reg, reg] take advantage of shifting when possible, i.e. load 16 bit
+    constant then shift a bit to the left (by the length of the data being
+    referenced?) to save an instruction.
 
   -- improve kludges to adjust and delete nodes fixed up after code gen.
      use newinsertbefore
