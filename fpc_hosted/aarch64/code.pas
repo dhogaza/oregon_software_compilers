@@ -14,6 +14,8 @@ procedure exitcode;
 
 implementation
 
+var regparamindex: integer;
+
 procedure gensimplemove(var after: nodeptr; src: keyindex; dst: keyindex); forward;
 
 procedure loadreg(var k: keyindex; other: keyindex); forward;
@@ -1153,6 +1155,23 @@ procedure genlabeldelta(tablebase, targetlabel: integer);
     p^.targetlabel := targetlabel;
   end; {genlabeldelta}
 
+procedure genlongint(after: nodeptr; value: unsigned; dst: regindex);
+
+  var savedtempkey, regkey: keyindex;
+
+  begin
+    savedtempkey := tempkey;
+    regkey := settemp(long, reg_oprnd(dst));
+    gen2(after, buildinst(movz, true, false),
+         regkey,
+         settemp(long, imm16_oprnd((value div $10000) and $FFFF, 16)));
+    if (value and $FFFF) <> 0 then
+      gen2(after, buildinst(movk, true, false),
+           regkey,
+           settemp(long, imm16_oprnd(value and $FFFF, 0)));
+    tempkey := savedtempkey;
+  end;
+
 procedure deletenodes(first, last: nodeptr);
 
   var
@@ -1755,6 +1774,7 @@ function newparamtemp(size: addressrange {size of temp to allocate} ): keyindex;
     if stackoffset > maxstackoffset then
       maxstackoffset := stackoffset;
     stackcounter := stackcounter - 1;
+writeln('newparamtemp stackcounter: ', stackcounter);
     if stackcounter <= lastkey then compilerabort(manykeys)
     else
       begin
@@ -1977,9 +1997,10 @@ procedure markreg(r: regindex {register to clobber} );
       end;
   end {markreg} ;
 
+
 procedure markscratchregs;
 
-{procedure calls walk on all of the callee-saved general registers}
+{procedure calls walk on all of the caller-saved general registers}
 
   var
     r: regindex;
@@ -2507,6 +2528,124 @@ procedure initblock;
   end {initblock} ;
 
 { code gen utilities }
+
+
+procedure handle_offset9(var after: nodeptr; tempreg: regindex;
+                          var k: keyindex);
+
+{ Handle 9-bit offsets  It assumes that the key passed in is set up for the case
+  where the offset already fits.
+
+  NOTE: currently does not handle negative 9 bit offsets as we only use stp/ldp
+  with a positive offset (stack/fp/sl) or when saving/restoring registers in a
+  routine's prologue/epilogue preindex/postindex modes.
+}
+
+var offset, maxoffset: unsignedint;
+  len: 0..16; {define this somewhere in hdrc}
+  savetempkey, tempregkey, originalregkey, imm12key: keyindex;
+
+begin {handle_offset12}
+
+  len := keytable[k].len;
+  offset := keytable[k].oprnd.index;
+
+  { see if we have to do anything kinky here }
+  if offset > 504 then
+    begin
+    savetempkey := tempkey;
+    tempregkey := settemp(long, reg_oprnd(tempreg));
+    originalregkey := settemp(long, reg_oprnd(keytable[key].oprnd.reg));
+    imm12key := settemp(long, imm12_oprnd(0, false));
+    if offset - maxoffset <= 4095 then
+      begin
+      keytable[k].oprnd.reg := tempreg; { key will index the tempreg } 
+      keytable[imm12key].oprnd.index := offset - 504;
+      gen3(after, buildinst(add, true, false), tempregkey, originalregkey,
+           imm12key);
+      end
+    else if (offset and $FF000E00 = 0) then
+      begin
+      keytable[k].oprnd.reg := tempreg; { key will index the tempreg } 
+      keytable[k].oprnd.index := ($FFF000 and offset) div $1000;
+      keytable[imm12key].oprnd.imm12_shift := true;
+      gen3(after, buildinst(add, true, false), tempregkey, originalregkey,
+           imm12key);
+      keytable[k].oprnd.index := offset and $1FF;
+      end
+    else
+      begin
+      genlongint(after, offset, tempreg);
+      with keytable[k].oprnd do
+        begin
+        mode := reg_offset;
+        reg2 := tempreg;
+        shift := 0;
+        extend := xtx;
+        signed := false;
+        end;
+      end;
+    tempkey := savetempkey;
+    end;
+
+end {handle_offset12};
+
+procedure handle_offset12(var after: nodeptr; tempreg: regindex;
+                          var k: keyindex);
+
+{ Handle scaled 12-bit offsets  It assumes that the key passed in
+  is set up for the case where the offset already fits.
+}
+
+var offset, maxoffset: unsignedint;
+  len: 0..16; {define this somewhere in hdrc}
+  savetempkey, tempregkey, originalregkey, imm12key: keyindex;
+
+begin {handle_offset12}
+
+  len := keytable[k].len;
+  offset := keytable[k].oprnd.index;
+  maxoffset := 4095 * len;
+
+  { see if we have to do anything kinky here }
+  if offset > maxoffset then
+    begin
+    savetempkey := tempkey;
+    tempregkey := settemp(long, reg_oprnd(tempreg));
+    originalregkey := settemp(long, reg_oprnd(keytable[key].oprnd.reg));
+    imm12key := settemp(long, imm12_oprnd(0, false));
+    if offset - maxoffset <= 4095 then
+      begin
+      keytable[k].oprnd.reg := tempreg; { key will index the tempreg } 
+      keytable[imm12key].oprnd.index := offset - maxoffset;
+      gen3(after, buildinst(add, true, false), tempregkey, originalregkey,
+           imm12key);
+      end
+    else if (offset and $FF000000 = 0) then
+      begin
+      keytable[k].oprnd.reg := tempreg; { key will index the tempreg } 
+      keytable[k].oprnd.index := (($FFFFFF - maxoffset) and offset) div $1000;
+      keytable[imm12key].oprnd.imm12_shift := true;
+      gen3(after, buildinst(add, true, false), tempregkey, originalregkey,
+           imm12key);
+      keytable[k].oprnd.index := offset and maxoffset;
+      end
+    else
+      begin
+      genlongint(after, offset, tempreg);
+      with keytable[k].oprnd do
+        begin
+        mode := reg_offset;
+        reg2 := tempreg;
+        shift := 0;
+        extend := xtx;
+        signed := false;
+        end;
+      end;
+    tempkey := savetempkey;
+    end;
+
+end {handle_offset12};
 
 procedure handle_bitmask(var k: keyindex; other: keyindex);
 
@@ -4049,7 +4188,9 @@ procedure dointx;
     keytable[key].len := pseudoinst.len;
     keytable[key].signed := true;
     keytable[key].oprnd := intconst_oprnd(pseudoinst.oprnds[1]);
+{
     context[contextsp].keymark := key;
+}
   end {dointx} ;
 
 
@@ -4067,7 +4208,9 @@ procedure dofptrx;
     keytable[key].oprnd.m := proccall;
     keytable[key].oprnd.offset := pseudoinst.oprnds[1];
     keytable[key].knowneven := true;
+{
     context[contextsp].keymark := key;
+}
   end {dofptrx} ;
 }
 
@@ -4142,7 +4285,9 @@ procedure dorealx;
           offset1 := kluge.damn[false];
           end;
         end;        
+{
     context[contextsp].keymark := key;
+}
   end {dorealx} ;
 }
 
@@ -4162,8 +4307,10 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
     keytable[key].access := valueaccess;
     with keytable[key], oprnd do
       begin
+{
       if (left <= 1) or (left >= level - 1) then
         context[contextsp].keymark := key;
+}
       if ownflag then
         begin
         write('own data not yet implemented');
@@ -4269,13 +4416,14 @@ procedure putblock;
     spoffset: integer; {size of stack save area}
     p, p1: nodeptr;
     savetempkey, fptemp, sptemp, linktemp, ip0temp, spoffsettemp,
-    saveregtemp, saveregoffsettemp: keyindex;
+    saveregtemp, saveregoffsettemp, spadjusttemp: keyindex;
     regcost, fpregcost: integer; {bytes allocated to save registers on stack}
     regoffset, fpregoffset: array [regindex] of integer; {offset for each reg}
     fpregssaved : array [regindex] of boolean;
     regssaved : array [regindex] of boolean;
     reg: regindex; { temp for dummy register }
     prepost: boolean; {if pre/post index modes can be used}
+    fplroprnd: oprndtype;
 
   begin {putblock}
 
@@ -4373,14 +4521,16 @@ procedure putblock;
       end
     else
       begin
-{      p1 := newinsertafter(p1, instnode);}
       makeoffsetptr(p1, -blockcost, sp, sp);
+      handle_offset9(p1, ip0, spoffsettemp);
       end;
 
+    gen3(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
+    makeoffsetptr(p1, spoffset, sp, fp);
 {    p1 := newinsertafter(p1, instnode);}
 {    p1 := newnode(p1, instnode);}
+{
     if spoffset <= 504 then
-      gen3(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp)
     else
       begin
       gen3(p1, buildinst(add, true, false), ip0temp, sptemp,
@@ -4391,8 +4541,8 @@ procedure putblock;
            settemp(long, index_oprnd(unsigned_offset, ip0, 0)));
       end;
 
-{    p1 := newinsertafter(p1, instnode);}
     makeoffsetptr(p1, spoffset, sp, fp);
+}
 
     { procedure exit code. Restore callee-saved registers, link and frame pointer
       registers, and shrink stack.
@@ -4412,23 +4562,21 @@ procedure putblock;
       begin
       keytable[spoffsettemp].oprnd.mode := post_index;
       keytable[spoffsettemp].oprnd.index := blockcost;
-      end;
-
-    if spoffset <= 4095 then
-      gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp)
+      end
     else
       begin
-      gen3(lastnode, buildinst(add, true, false), ip0temp, sptemp,
-           settemp(long, imm12_oprnd(spoffset div $1000, true)));
-      gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp,
-           settemp(long, index_oprnd(unsigned_offset, ip0, spoffset and $FFF)));
+      keytable[spoffsettemp].oprnd.mode := unsigned_offset;
+      keytable[spoffsettemp].oprnd.reg := sp;
+      keytable[spoffsettemp].oprnd.index := spoffset;
+      handle_offset12(lastnode, ip0, spoffsettemp);
       end;
+
+    gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
 
     if not prepost then
       makeoffsetptr(lastnode, blockcost, sp, sp);
 
     gen0(lastnode, buildinst(ret, false, false));
-
     tempkey := savetempkey;
 
     { write output code }
@@ -4670,19 +4818,20 @@ procedure regparamx;
 
 var
   o: oprndtype;
-  savekey: keyindex;
+  saveparam: keyindex;
 
 begin {regparamx}
+if pseudoinst.oprnds[3] = 1 then regparamindex := key;
   setvalue(reg_oprnd(pseudoinst.oprnds[3]));
   regused[pseudoinst.oprnds[3]] := true;
   if left <> 0 then
     begin
     address(left);
     with keytable[left].oprnd do
-      savekey := settemp(long, index_oprnd(unsigned_offset, reg,
+      saveparam := settemp(long, index_oprnd(unsigned_offset, reg,
                          index + pseudoinst.oprnds[2]));
-    gensimplemove(lastnode, key, savekey);
-    setkeyvalue(savekey);
+    gensimplemove(lastnode, key, saveparam);
+    setkeyvalue(saveparam);
     end;
 end {regparamx};
 
@@ -5581,11 +5730,11 @@ procedure codeone;
 {
 writeln(macfile, 'lastkey: ', lastkey, ' refcount: ', keytable[lastkey].refcount, ' keymark: ', context[contextsp].keymark);
 }
+
       if keytable[key].first <> nil then
         write_nodes(keytable[key].first, keytable[key].last);
 
-writeln(macfile, 'x0: ', registers[0]);
-{      dumpstack;}
+      dumpstack;
 
       end;
   end {codeone};

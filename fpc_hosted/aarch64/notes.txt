@@ -1,13 +1,33 @@
--- current
-
+-- random stuff
 figure out why main blocksize is so weird (historical P2 shit)
 
-handle long constants for non-bitmask arithmetic (partly done)
+---
+
+*** current bugs
+
+  -- regenoprnd stuff all messed up? adrp and makeaddressable not only for global level?
+
+  -- regparam not being saved just the dovar which might come after a procedure call
+     destroys it.
+
+---
+
+  -- refactor a bit ...
+
+  -- handle long constants for non-bitmask arithmetic (partly done)
   -- pseudo "immediate" mode and something like an "imm_resolved_p" flag (?)
-handle long index amounts
 
   -- pseudo signed "index" mode and something like an "index_resolved_p" flag (?)
-handle long aindex+index????
+
+     make handling of large constants a new proc that takes a dst register
+     generalize index handling as in indexing.pas
+     whatever else falls out of all this.
+
+     not all that practical to bundle ldp/stp indexing in the general indexing
+     stuff because it will complicate the code which is somewhat straightforward
+     at the moment.  Write a simple procedure to handle all ldp/stp indexing as
+     eventually we'll look for pairs of registers to spill and of course they can be restored
+     individually.
 
   -- out-of-range index value.
 
@@ -61,10 +81,6 @@ Sets:
 "in" operator.   Load 64-bit set snipped with scalar value div 8
 (some bit shift?) into Xreg. Shift Xreg by scalar value mod 8
 
-*** current bugs
-
----
-
 0.2 improve vs pushfinal which no longer exists (simpleinvar), need
     to add a finalop to replace pushfinal?  This is used to designate
     an invariant final limit ...
@@ -105,7 +121,7 @@ Sets:
 -- more general
 
 1. if current block makes no calls allocate regtemps to
-   callee-saved registers.  Better, track calls to procs
+   caller-saved registers.  Better, track calls to procs
    including intrinsics and determine which scratch registers
    are never used by called procedures in a block and 
    allocate those first so we can avoid saving them.  Track
