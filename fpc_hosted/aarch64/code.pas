@@ -1162,7 +1162,10 @@ procedure genlongint(var after: nodeptr; value: unsigned; dst: regindex);
   begin
     savedtempkey := tempkey;
     regkey := settemp(long, reg_oprnd(dst));
-    if value and $FFFF0000 = 0 then
+    if is_bitmask(value, 32) then
+      gen2(after, buildinst(mov, true, false), regkey,
+           settemp(len, immbitmask_oprnd(value)))
+    else if value and $FFFF0000 = 0 then
       gen2(after, buildinst(movz, true, false),
            regkey,
            settemp(long, imm16_oprnd(value and $FFFF, 0)))
@@ -4579,9 +4582,14 @@ procedure putblock;
     else
       begin
       keytable[spoffsettemp].oprnd.mode := unsigned_offset;
+      keytable[spoffsettemp].oprnd.reg := fp;
+      keytable[spoffsettemp].oprnd.index := 0;
+{
+      keytable[spoffsettemp].oprnd.mode := unsigned_offset;
       keytable[spoffsettemp].oprnd.reg := sp;
       keytable[spoffsettemp].oprnd.index := spoffset;
       handle_offset9(lastnode, ip0, spoffsettemp);
+}
       end;
 
     gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
