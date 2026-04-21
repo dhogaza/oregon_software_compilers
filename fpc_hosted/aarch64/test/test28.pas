@@ -27,7 +27,7 @@ begin
     begin
     a[k] := ch;
     ch := chr(ord(ch) + 1);
-    k := K + 1;
+    k := k + 1;
     end;
 end;
 
