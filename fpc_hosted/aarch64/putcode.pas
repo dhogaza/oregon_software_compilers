@@ -507,6 +507,7 @@ begin
     mul: write(macfile, 'mul');
     mvn: write(macfile, 'mvn');
     neg: write(macfile, 'neg');
+    nop: write(macfile, 'nop');
     orinst: write(macfile, 'orr');
     orn: write(macfile, 'orn');
     ret: write(macfile, 'ret');
