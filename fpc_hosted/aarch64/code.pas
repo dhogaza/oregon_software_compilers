@@ -871,13 +871,12 @@ function newnode(after: nodeptr; kind: nodekinds): nodeptr;
           attached to a key.
         }
     
-        if key > 0 then
-          with keytable[key] do
-            begin
-            last := p;
-            if first = nil then
-              first := p;
-            end;
+        with keytable[key] do
+          begin
+          last := p;
+          if first = nil then
+            first := p;
+          end;
       end
     else
       begin
@@ -2762,7 +2761,7 @@ procedure handle_intconst16(var after: nodeptr; var k: keyindex; var movinst: in
             else
               begin
               gen2(after, buildinst(movz, true, false), k,
-                   settemp(len, imm16_oprnd((val div $1000) and $FFFF, 16)));
+                   settemp(len, imm16_oprnd((val div $10000) and $FFFF, 16)));
               if (val and $FFFF) <> 0 then
                 gen2(after, buildinst(movk, true, false), k,
                      settemp(len, imm16_oprnd(val and $FFFF, 0)));
@@ -3773,7 +3772,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
     finalvalue: integer; { if improved }
     k, newkey: keyindex;
 
-  begin {forbottom}
+  begin {forbottomx}
     byvalue := len;
     context[contextsp].lastbranch := context[contextsp].first;
 
@@ -3845,8 +3844,8 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
       else needcompare := false;
 
         { DRB: for pascal always 1 }
-      gen3(lastnode, buildinst(incinst, len = long, not needcompare), forkey, forkey,
-           settemp(long, imm12_oprnd(byvalue, false)));
+      gen3(lastnode, buildinst(incinst, keytable[forkey].len = long, not needcompare),
+           forkey, forkey, settemp(long, imm12_oprnd(byvalue, false)));
 
       if needcompare then
         begin
@@ -4585,9 +4584,10 @@ procedure putblock;
         begin
         keytable[savereg2temp].oprnd.reg := reglist[i + 1].r;
         keytable[saveregoffsettemp].oprnd.index := reglist[i + 1].index;;
-        gen3(p1, buildinst(stp, true, false), saveregtemp, savereg2temp,
+        { ordering important to make sure sl is in the right place if needed }
+        gen3(p1, buildinst(stp, true, false), savereg2temp, saveregtemp,
              saveregoffsettemp);
-        gen3(lastnode, buildinst(ldp, true, false), saveregtemp, savereg2temp,
+        gen3(lastnode, buildinst(ldp, true, false), savereg2temp, saveregtemp,
              saveregoffsettemp);
         i := i + 2;
         end;
