@@ -1,0 +1,197 @@
+	.text
+	.align 2
+#
+#	bar
+#
+.P2:
+	sub	sp,sp,48
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
+	str	x28,[x29,-8]
+	str	x1,[x29,-16]
+	str	x0,[x29,-24]
+# Line: 5, Stmt: 1
+# Line: 6, Stmt: 2
+	mov	x28,x0
+.L4:
+	cmp	w28,w1
+	b.hi	.L3
+	mov	x0,x28
+	bl	putchar
+	ldr	x0,[x29,-24]
+	ldr	x1,[x29,-16]
+	adds	w28,w28,1
+	b.cc	.L4
+.L3:
+	movz	x0,10
+	bl	putchar
+	ldr	x15,[x29,-16]
+	mov	x28,x15
+.L6:
+	ldr	x15,[x29,-24]
+	cmp	w28,w15
+	b.lo	.L5
+	mov	x0,x28
+	bl	putchar
+	ldr	x15,[x29,-24]
+	subs	w28,w28,1
+	b.cs	.L6
+.L5:
+	movz	x0,10
+	bl	putchar
+.L2:
+	ldr	x28,[x29,-8]
+	ldp	x30,x29,[sp,24]
+	add	sp,sp,48
+	ret
+	.text
+	.align 2
+#
+#	foo
+#
+.P3:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
+	str	x28,[x29,-8]
+# Line: 17, Stmt: 1
+	movz	x28,97
+.L8:
+	mov	x0,x28
+	bl	putchar
+	add	w28,w28,1
+	cmp	w28,122
+	b.ls	.L8
+.L9:
+	movz	x0,10
+	bl	putchar
+	movz	x28,122
+.L10:
+	mov	x0,x28
+	bl	putchar
+	sub	w28,w28,1
+	cmp	w28,97
+	b.hs	.L10
+.L11:
+	movz	x0,10
+	bl	putchar
+.L7:
+	ldr	x28,[x29,-8]
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
+	ret
+	.text
+	.align 2
+#
+#	bar1
+#
+.P4:
+	sub	sp,sp,48
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
+	str	x28,[x29,-8]
+	str	x1,[x29,-16]
+	str	x0,[x29,-24]
+# Line: 27, Stmt: 1
+# Line: 28, Stmt: 2
+	mov	x28,x0
+.L14:
+	cmp	w28,w1
+	b.gt	.L13
+	add	w0,w28,48
+	bl	putchar
+	ldr	x0,[x29,-24]
+	ldr	x1,[x29,-16]
+	adds	w28,w28,1
+	b.vc	.L14
+.L13:
+	movz	x0,10
+	bl	putchar
+	ldr	x15,[x29,-16]
+	mov	x28,x15
+.L16:
+	ldr	x15,[x29,-24]
+	cmp	w28,w15
+	b.lt	.L15
+	add	w0,w28,48
+	bl	putchar
+	ldr	x15,[x29,-24]
+	subs	w28,w28,1
+	b.vc	.L16
+.L15:
+	movz	x0,10
+	bl	putchar
+.L12:
+	ldr	x28,[x29,-8]
+	ldp	x30,x29,[sp,24]
+	add	sp,sp,48
+	ret
+	.text
+	.align 2
+#
+#	foo1
+#
+.P5:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
+	str	x28,[x29,-8]
+# Line: 37, Stmt: 1
+	movz	x28,2
+.L18:
+	add	w0,w28,48
+	bl	putchar
+	add	w28,w28,1
+	cmp	w28,9
+	b.le	.L18
+.L19:
+	movz	x0,10
+	bl	putchar
+	movz	x28,9
+.L20:
+	add	w0,w28,48
+	bl	putchar
+	sub	w28,w28,1
+	cmp	w28,2
+	b.ge	.L20
+.L21:
+	movz	x0,10
+	bl	putchar
+.L17:
+	ldr	x28,[x29,-8]
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
+	ret
+	.bss
+	.align 3
+.L32766:
+	.space 32
+	.text
+	.align 2
+#
+#	 (main)
+#
+	.global main
+main:
+	stp	x30,x29,[sp,-32]!
+	add	x29,sp,xzr
+# Line: 44, Stmt: 1
+	movz	x0,97
+	movz	x1,102
+	bl	.P2  // bar
+	movz	x0,45
+	bl	putchar
+	movz	x0,10
+	bl	putchar
+	bl	.P3  // foo
+	mov	x0,xzr
+	movz	x1,8
+	bl	.P4  // bar1
+	movz	x0,45
+	bl	putchar
+	movz	x0,10
+	bl	putchar
+	bl	.P5  // foo1
+.L22:
+	ldp	x30,x29,[sp],32
+	ret

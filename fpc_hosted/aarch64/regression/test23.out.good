@@ -1,0 +1,31 @@
+test integer const generation and putint
+0? 0
+1234? 1234
+65535? 65535
+65536? 65536
+65537? 65537
+655359 65539
+-1? -1
+-65536? -65536
+-65537? -65537
+-65539? -65539
+2004318071? 2004318071
+end of integer const generation and putint tests
+
+testing with otherwise
+a
+q
+e
+d
+z
+?c
+?0
+1
+8
+can't compile with checking enabled yet
+testing without otherwise, should throw case error
+a
+q
+e
+d
+z

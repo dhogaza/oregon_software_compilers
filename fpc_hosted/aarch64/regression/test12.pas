@@ -1,5 +1,3 @@
-program foo;
-
 procedure putchar(ch: char); external;
 
 procedure bar(a, b: char);

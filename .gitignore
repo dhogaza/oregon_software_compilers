@@ -13,4 +13,7 @@
 *.s
 *.ppu
 *.res
+*.out
+*.tmp
+*.diff
 cross/fpc_sources/main
