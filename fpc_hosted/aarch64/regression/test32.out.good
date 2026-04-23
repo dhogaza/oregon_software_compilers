@@ -1,0 +1,32 @@
+three pairs: 1,2 2,2 3,2
+
+less than
+true
+false
+false
+
+greater than
+false
+false
+true
+
+less or equal than
+true
+true
+false
+
+greater or equal than
+false
+true
+true
+
+equal to
+false
+true
+false
+
+not equal to
+true
+false
+true
+
