@@ -676,7 +676,7 @@ procedure walknode(root: nodeindex; {root of tree to walk}
         mapkey;
         genpseudo(p, len, key, refcount, copycount, lkey, rootp^.oprnds[2],
                   rootp^.oprnds[3]);
-      end {indxnode} ;
+      end {regparamnode} ;
 
 
     procedure indxnode(p: pseudoop {operator for root node} );

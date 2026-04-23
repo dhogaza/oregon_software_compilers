@@ -355,7 +355,8 @@ type
 
   nodeptr = ^node; {used to reference the node contents}
   nodekinds = (instnode, oprndnode, labelnode, labeldeltanode, errornode, stmtnode,
-               datanode, labelrefnode, proclabelnode, textnode, rodatanode, bssnode);
+               datanode, labelrefnode, proclabelnode, textnode, rodatanode, bssnode,
+               commentnode);
 
   operandrange = 0..4; {number of possible operands per inst}
   datarange = 0..63; {number of bytes or bits in possible operands}
@@ -391,6 +392,7 @@ type
            sourceline: unsigned; {line number (for walkback)}
            filename: stringtableindex; {stringfile index of file name} );
         bssnode: (bsssize: addressrange; {for globals} );
+        commentnode: (comment: string);
     end;
 
 

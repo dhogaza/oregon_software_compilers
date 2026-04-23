@@ -7,6 +7,8 @@ figure out why main blocksize is so weird (historical P2 shit)
 
   -- regenoprnd stuff all messed up? adrp and makeaddressable not only for global level?
 
+  -- movn usage is wrong
+
 --- current work
 
   -- add "comment" output node for well just that.

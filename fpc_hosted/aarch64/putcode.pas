@@ -684,6 +684,7 @@ begin {write_node}
   labelnode: writeln(macfile, '.L', p^.labelno, ':');
   labeldeltanode: writeln(macfile, chr(9), '.word', chr(9), '(.L', p^.targetlabel,
                           '-.L', p^.tablebase, ')/4');
+  commentnode: writeln(macfile, '# ', p^.comment);
   otherwise writeln('bad node');
   end;
 end {write_node};

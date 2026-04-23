@@ -1143,13 +1143,23 @@ procedure genbr(inst: insts; labelno: integer);
     context[contextsp].lastbranch := lastnode;
   end {genbr};
 
-procedure genlabeldelta(tablebase, targetlabel: integer);
+procedure gencomment(var after: nodeptr; comment: string);
+
+  var
+    p: nodeptr;
+
+  begin {gencomment}
+    p := newnode(after, commentnode);
+    p^.comment := comment;
+  end; {gencomment}
+
+procedure genlabeldelta(var after: nodeptr; tablebase, targetlabel: integer);
 
   var
     p: nodeptr;
 
   begin {genlabeldelta}
-    p := newnode(lastnode, labeldeltanode);
+    p := newnode(after, labeldeltanode);
     p^.tablebase := tablebase;
     p^.targetlabel := targetlabel;
   end; {genlabeldelta}
@@ -1164,19 +1174,16 @@ procedure genlongint(var after: nodeptr; value: unsigned; dst: regindex);
     if is_bitmask(value, 32) then
       gen2(after, buildinst(mov, true, false), regkey,
            settemp(len, immbitmask_oprnd(value)))
-    else if value and $FFFF0000 = 0 then
-      gen2(after, buildinst(movz, true, false),
-           regkey,
-           settemp(long, imm16_oprnd(value and $FFFF, 0)))
     else
       begin
       gen2(after, buildinst(movz, true, false),
            regkey,
-           settemp(long, imm16_oprnd((value div $10000) and $FFFF, 16)));
-      if (value and $FFFF) <> 0 then
+           settemp(long, imm16_oprnd(value and $FFFF, 0)));
+      { mask it because eventually we'll handle 64 bit constants }
+      if (value div $10000) and $FFFF <> 0 then
         gen2(after, buildinst(movk, true, false),
              regkey,
-             settemp(long, imm16_oprnd(value and $FFFF, 0)));
+             settemp(long, imm16_oprnd((value div $10000) and $FFFF, 16)));
       end;
     tempkey := savedtempkey;
   end;
@@ -2537,6 +2544,30 @@ procedure initblock;
 
 { code gen utilities }
 
+{ The pattern for the handle oprnd procedures when used to modify 
+  previously generated code that needs modification, which is currently
+  used to fix up stack offets once the maximum size of the stack is
+  known looks something like:
+
+  (looping from a block's first node to last node)
+  after := firstnode^.prevnode;
+  oprnds[3].index := oprnds[3].index + amount;
+  handle_offset9_oprnd(after, ip0, quad, oprnds[3]);
+  firstnode := after^.nextnode;
+
+  Thise pattern will work in post-generation peephole optimization and
+  is currently used to fix up stack offsets at the end of a procedure/function
+  block, modifying the previously generated negative stack values.
+
+  The pattern for simply generated correct constants and offsets while
+  generating code for pseudoinstructions looks like:
+
+  gen3(lastnode, buildinst(ldp, true, false), savereg2temp, saveregtemp,
+       settemp(long, index_oprnd(signed_offset, sp, -32)));
+  handle_offset9_oprnd(lastnode^.prevnode, 0, quad, lastnode^.oprnds[3]);
+}
+
+
 procedure handle_offset9_oprnd(var after: nodeptr; tempreg: regindex;
                                len: unsigned; var o: oprndtype);
 
@@ -2572,12 +2603,20 @@ begin {handle_offset9_oprnd}
       o.reg := tempreg; { key will index the tempreg } 
       o.index := 504;
       end
-    else if (offset and $FF000E00 = 0) then
+    else if (offset and $FF000E00) = 0 then
       begin
-      keytable[imm12key].oprnd.index := ($FFF000 and offset) div $1000;
+      keytable[imm12key].oprnd.imm12_value := ($FFF000 and offset) div $1000;
       keytable[imm12key].oprnd.imm12_shift := true;
       gen3(after, buildinst(add, true, false), tempregkey, originalregkey,
            imm12key);
+      o.reg := tempreg; { key will index the tempreg } 
+      o.index := offset and $1FF;
+      end
+    else if (offset and $FE00) = 0 then
+      begin
+      gen2(after, buildinst(movz, true, false), tempregkey,
+           settemp(long, imm16_oprnd(offset div $10000, 16)));
+      gen3(after, buildinst(add, true, false), tempregkey, originalregkey, tempregkey);
       o.reg := tempreg; { key will index the tempreg } 
       o.index := offset and $1FF;
       end
@@ -2745,13 +2784,6 @@ procedure handle_intconst16(var after: nodeptr; var k: keyindex; var movinst: in
             movinst := movz;
             k := settemp(len, imm16_oprnd(val, 0));
             end;
-          {16-bit negative value doesn't really work}
-          $FFFF0000..$FFFFFFFF:
-            begin
-            movinst := movn;
-            { two's complement of value }
-            k := settemp(len, imm16_oprnd(((not val) + 1) and $FFFF, 0));
-            end
           otherwise
             begin
             k := settemp(len, reg_oprnd(r));
@@ -4460,7 +4492,6 @@ procedure putblock;
 
     { todo save procedure symbol table index }
 
-
     processregsaves;
 
     while stackcounter < stackbase do
@@ -5334,7 +5365,7 @@ procedure caseeltx;
 
   begin {caseeltx}
     for i := 1 to pseudoinst.oprnds[2] do
-      genlabeldelta(lastlabel + 1, pseudoinst.oprnds[1]);
+      genlabeldelta(lastnode, lastlabel + 1, pseudoinst.oprnds[1]);
     if pseudobuff.op <> caseelt then
       p := newnode(lastnode, textnode);
   end; {caseeltx}

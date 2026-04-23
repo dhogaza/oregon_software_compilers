@@ -1,7 +1,8 @@
 #include <stdio.h>
 
 #define  SIZE 1000000
-#define  ITERMAX 1
+
+#define  ITERMAX 100
 
 int flags[SIZE + 1];
 
