@@ -362,8 +362,8 @@ _p_caseerr:
 	sub	w14,w13,w28
 	str	w14,[x15,-4]
 	add	w28,w28,1
-	movz	x16,1,lsl 16
-	movk	x16,34464
+	movz	x16,34464
+	movk	x16,1,lsl 16
 	cmp	w28,w16
 	b.le	.L39
 .L40:
@@ -550,8 +550,8 @@ _p_caseerr:
 #
 	.global main
 main:
-	movz	x16,6,lsl 16
-	movk	x16,6864
+	movz	x16,6864
+	movk	x16,6,lsl 16
 	sub	sp,sp,x16
 	stp	x30,x29,[sp,32]
 	add	x29,sp,32
@@ -586,8 +586,8 @@ main:
 	ldrsb	w13,[x15,:lo12:.L32766+36]
 	cbz	w13,.L62
 	ldrsw	x13,[x14,:lo12:.L32766+32]
-	movz	x16,1,lsl 16
-	movk	x16,34464
+	movz	x16,34464
+	movk	x16,1,lsl 16
 	cmp	w13,w16
 	b.gt	.L62
 .L63:
@@ -619,7 +619,7 @@ main:
 	bl	putboolln
 .L60:
 	ldp	x30,x29,[sp,32]
-	movz	x16,6,lsl 16
-	movk	x16,6864
+	movz	x16,6864
+	movk	x16,6,lsl 16
 	add	sp,sp,x16
 	ret

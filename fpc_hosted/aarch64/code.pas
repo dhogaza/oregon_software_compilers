@@ -1167,6 +1167,7 @@ procedure genlabeldelta(var after: nodeptr; tablebase, targetlabel: integer);
 procedure genlongint(var after: nodeptr; value: unsigned; dst: regindex);
 
   var savedtempkey, regkey: keyindex;
+    movinst: insts;
 
   begin
     savedtempkey := tempkey;
@@ -1176,12 +1177,17 @@ procedure genlongint(var after: nodeptr; value: unsigned; dst: regindex);
            settemp(len, immbitmask_oprnd(value)))
     else
       begin
-      gen2(after, buildinst(movz, true, false),
-           regkey,
-           settemp(long, imm16_oprnd(value and $FFFF, 0)));
+      movinst := movz;
+      if (value and $FFFF) <> 0 then
+        begin
+        gen2(after, buildinst(movz, true, false),
+             regkey,
+             settemp(long, imm16_oprnd(value and $FFFF, 0)));
+        movinst := movk;
+        end;
       { mask it because eventually we'll handle 64 bit constants }
       if (value div $10000) and $FFFF <> 0 then
-        gen2(after, buildinst(movk, true, false),
+        gen2(after, buildinst(movinst, true, false),
              regkey,
              settemp(long, imm16_oprnd((value div $10000) and $FFFF, 16)));
       end;
@@ -2749,9 +2755,10 @@ procedure handle_intconst12(var after: nodeptr; var k: keyindex; other: keyindex
 }
         else
           begin
-          newkey := settemp(len, reg_oprnd(ip0));
-          gensimplemove(after, k, newkey);
-          k := newkey;
+          genlongint(after, int_value, ip0);
+{
+          gensimplemove(after, k, newkey)}
+          k := settemp(len, reg_oprnd(ip0));
           end;
   end {handle_intconst12};
 
