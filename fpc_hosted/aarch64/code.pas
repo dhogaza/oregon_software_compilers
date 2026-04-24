@@ -2714,16 +2714,15 @@ begin {handle_offset12}
   handle_offset12_oprnd(after, tempreg, keytable[k].len, keytable[k].oprnd);
 end {handle_offset12};
 
-procedure handle_bitmask(var k: keyindex; other: keyindex);
+procedure handle_bitmask_oprnd(var after: nodeptr; tempreg: regindex; var o: oprndtype);
 
-  begin {handle_bitmask}
-    with keytable[k].oprnd do
-      if is_bitmask(int_value, 32) then
-        begin
-        k := settemp(len, immbitmask_oprnd(int_value));
-        end
-      else loadreg(k, other); 
-  end {handle_bitmask};
+{ materializes an intconst into either a bitmask immediate or register }
+
+  begin {handle_bitmask_oprnd}
+    if is_bitmask(o.int_value, 32) then
+      o := immbitmask_oprnd(o.int_value)
+    else genlongint(lastnode, o.int_value, tempreg);
+  end {handle_bitmask_oprnd};
 
 procedure handle_intconst12(var after: nodeptr; var k: keyindex; other: keyindex);
 
@@ -2901,8 +2900,7 @@ procedure prepareoprnd(var k: keyindex; { the key we're interested inn }
         loadreg(k, other)
       else if mode = intconst then
 {DRB?}
-        if bitmask then handle_bitmask(k, other)
-        else handle_intconst12(lastnode, k, other)
+        handle_intconst12(lastnode, k, other)
       else loadreg(k, other)
   end {prepareoprnd};
 
@@ -3968,6 +3966,29 @@ procedure shiftintx(backwards: boolean);
     gen3(lastnode, buildinst(shiftinst, len = long, false), key, left, right);
     keytable[key].signed := keytable[left].signed;
   end {shiftintx} ;
+
+procedure logicalarithmetic(inst: insts);
+
+{ Generate code for a simple binary, logical integer operation (and, or, xor)
+}
+
+  begin {logicalarithmetic}
+    {unpkshkboth(len);}
+    addressboth;
+    settargetorreg;
+    lock(key);
+    loadreg(left, right);
+    if keytable[right].oprnd.mode = intconst then
+      begin
+      right := settemp(long, intconst_oprnd(keytable[right].oprnd.int_value));
+      handle_bitmask_oprnd(lastnode, ip0, keytable[right].oprnd);
+      end
+    else if not (keytable[right].oprnd.mode in [register, shift_reg]) then
+      loadreg(right, left);
+    unlock(key);
+    gen3(lastnode, buildinst(inst, len = long, false), key, left, right);
+    keytable[key].signed := signedoprnds;
+  end {logicalarithmetic} ;
 
 procedure integerarithmetic(inst: insts; {simple integer inst}
                             modes: oprnd_mode_set; {what is allowed}
@@ -5624,9 +5645,9 @@ procedure codeone;
       negint: unaryint(neg);
       incint: incdec(add);
       decint: incdec(sub);
-      orint: integerarithmetic(orinst, [intconst, register, shift_reg], true);
-      andint: integerarithmetic(andinst, [intconst, register, shift_reg], true);
-      xorint: integerarithmetic(eor, [intconst, register, shift_reg], true);
+      orint: logicalarithmetic(orinst);
+      andint: logicalarithmetic(andinst);
+      xorint: logicalarithmetic(eor);
       compint: compintx;
       compbool: compboolx;
 {
