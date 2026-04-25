@@ -168,9 +168,9 @@ puthexln:
 #
 	.global putint
 putint:
-	sub	sp,sp,80
-	stp	x30,x29,[sp,32]
-	add	x29,sp,32
+	sub	sp,sp,64
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
 	str	x28,[x29,-8]
 	str	x0,[x29,-16]
 # Line: 78, Stmt: 1
@@ -209,8 +209,8 @@ putint:
 .L21:
 .L28:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,32]
-	add	sp,sp,80
+	ldp	x30,x29,[sp,24]
+	add	sp,sp,64
 	ret
 	.text
 	.align 2

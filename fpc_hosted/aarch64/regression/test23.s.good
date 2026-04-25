@@ -185,9 +185,9 @@ puthexln:
 #
 	.global putint
 putint:
-	sub	sp,sp,80
-	stp	x30,x29,[sp,32]
-	add	x29,sp,32
+	sub	sp,sp,64
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
 	str	x28,[x29,-8]
 	str	x0,[x29,-16]
 # Line: 78, Stmt: 1
@@ -226,8 +226,8 @@ putint:
 .L21:
 .L28:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,32]
-	add	sp,sp,80
+	ldp	x30,x29,[sp,24]
+	add	sp,sp,64
 	ret
 	.text
 	.align 2
@@ -782,7 +782,7 @@ main:
 	movz	x1,1
 	movz	x2,7
 	bl	putstring
-	movz	x0,1,lsl 16
+	mov	x0,65536
 	bl	putintln
 	movz	x2,7
 	sub	x0,x29,80
@@ -804,8 +804,8 @@ main:
 	movz	x1,1
 	movz	x2,7
 	bl	putstring
-	movz	x0,1,lsl 16
-	movk	x0,3
+	movz	x0,3
+	movk	x0,1,lsl 16
 	bl	putintln
 	movz	x2,4
 	sub	x0,x29,96
@@ -816,8 +816,8 @@ main:
 	movz	x1,1
 	movz	x2,4
 	bl	putstring
-	movz	x0,65535,lsl 16
-	movk	x0,65535
+	movz	x0,65535
+	movk	x0,65535,lsl 16
 	bl	putintln
 	movz	x2,8
 	sub	x0,x29,104
@@ -828,7 +828,7 @@ main:
 	movz	x1,1
 	movz	x2,8
 	bl	putstring
-	movz	x0,65535,lsl 16
+	mov	x0,4294901760
 	bl	putintln
 	movz	x2,8
 	sub	x0,x29,112
@@ -850,8 +850,8 @@ main:
 	movz	x1,1
 	movz	x2,8
 	bl	putstring
-	movz	x0,65534,lsl 16
-	movk	x0,65533
+	movz	x0,65533
+	movk	x0,65534,lsl 16
 	bl	putintln
 	movz	x2,12
 	sub	x0,x29,136
