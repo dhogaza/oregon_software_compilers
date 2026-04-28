@@ -35,7 +35,7 @@ putln:
 	add	x29,sp,xzr
 # Line: 22, Stmt: 1
 # Line: 23, Stmt: 2
-	movz	x0,10
+	mov	x0,10
 	bl	putchar
 .L2:
 	ldp	x30,x29,[sp],16
@@ -195,7 +195,7 @@ putint:
 	cmp	w0,wzr
 	b.ge	.L26
 .L27:
-	movz	x0,45
+	mov	x0,45
 	bl	putchar
 	ldr	x14,[x29,-16]
 	neg	w15,w14
@@ -207,7 +207,7 @@ putint:
 .L25:
 	add	x15,x29,x28, sxtw 0
 	ldr	x14,[x29,-16]
-	movz	x13,10
+	mov	x13,10
 	sdiv	w12,w14,w13
 	msub	w11,w12,w13,w14
 	add	w14,w11,48
@@ -264,25 +264,25 @@ putbool:
 # Line: 109, Stmt: 2
 	cbz	w0,.L31
 .L32:
-	movz	x2,4
+	mov	x2,4
 	sub	x0,x29,16
 	adrp	x1,.L32765+1
 	add	x1,x1,:lo12:.L32765+1
 	bl	memcpy 
 	sub	x0,x29,16
-	movz	x1,1
-	movz	x2,4
+	mov	x1,1
+	mov	x2,4
 	bl	putstring
 	b	.L33
 .L31:
-	movz	x2,5
+	mov	x2,5
 	sub	x0,x29,16
 	adrp	x1,.L32765+6
 	add	x1,x1,:lo12:.L32765+6
 	bl	memcpy 
 	sub	x0,x29,16
-	movz	x1,1
-	movz	x2,5
+	mov	x1,1
+	mov	x2,5
 	bl	putstring
 .L30:
 .L33:
@@ -305,7 +305,7 @@ putboolln:
 	ldr	x15,[x29,-8]
 	mov	x0,x15
 	bl	putbool
-	movz	x0,10
+	mov	x0,10
 	bl	putchar
 .L34:
 	ldp	x30,x29,[sp,8]
@@ -343,16 +343,16 @@ _p_caseerr:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 128, Stmt: 1
-	movz	x2,10
+	mov	x2,10
 	sub	x0,x29,16
 	adrp	x1,.L32765+12
 	add	x1,x1,:lo12:.L32765+12
 	bl	memcpy 
 	sub	x0,x29,16
-	movz	x1,1
-	movz	x2,10
+	mov	x1,1
+	mov	x2,10
 	bl	putstringln
-	movz	x0,1
+	mov	x0,1
 	bl	exit
 .L36:
 	ldp	x30,x29,[sp,16]
@@ -418,115 +418,115 @@ _p_caseerr:
 	b.eq	.L38
 	b	.L65
 .L38:
-	movz	x0,49
+	mov	x0,49
 	bl	putchar
 	b	.L65
 .L39:
-	movz	x0,97
+	mov	x0,97
 	bl	putchar
 	b	.L65
 .L40:
-	movz	x0,98
+	mov	x0,98
 	bl	putchar
 	b	.L65
 .L41:
-	movz	x0,99
+	mov	x0,99
 	bl	putchar
 	b	.L65
 .L42:
-	movz	x0,100
+	mov	x0,100
 	bl	putchar
 	b	.L65
 .L43:
-	movz	x0,101
+	mov	x0,101
 	bl	putchar
 	b	.L65
 .L44:
-	movz	x0,102
+	mov	x0,102
 	bl	putchar
 	b	.L65
 .L45:
-	movz	x0,103
+	mov	x0,103
 	bl	putchar
 	b	.L65
 .L46:
-	movz	x0,104
+	mov	x0,104
 	bl	putchar
 	b	.L65
 .L47:
-	movz	x0,105
+	mov	x0,105
 	bl	putchar
 	b	.L65
 .L48:
-	movz	x0,106
+	mov	x0,106
 	bl	putchar
 	b	.L65
 .L49:
-	movz	x0,107
+	mov	x0,107
 	bl	putchar
 	b	.L65
 .L50:
-	movz	x0,108
+	mov	x0,108
 	bl	putchar
 	b	.L65
 .L51:
-	movz	x0,109
+	mov	x0,109
 	bl	putchar
 	b	.L65
 .L52:
-	movz	x0,110
+	mov	x0,110
 	bl	putchar
 	b	.L65
 .L53:
-	movz	x0,111
+	mov	x0,111
 	bl	putchar
 	b	.L65
 .L54:
-	movz	x0,112
+	mov	x0,112
 	bl	putchar
 	b	.L65
 .L55:
-	movz	x0,113
+	mov	x0,113
 	bl	putchar
 	b	.L65
 .L56:
-	movz	x0,114
+	mov	x0,114
 	bl	putchar
 	b	.L65
 .L57:
-	movz	x0,115
+	mov	x0,115
 	bl	putchar
 	b	.L65
 .L58:
-	movz	x0,116
+	mov	x0,116
 	bl	putchar
 	b	.L65
 .L59:
-	movz	x0,117
+	mov	x0,117
 	bl	putchar
 	b	.L65
 .L60:
-	movz	x0,118
+	mov	x0,118
 	bl	putchar
 	b	.L65
 .L61:
-	movz	x0,119
+	mov	x0,119
 	bl	putchar
 	b	.L65
 .L62:
-	movz	x0,120
+	mov	x0,120
 	bl	putchar
 	b	.L65
 .L63:
-	movz	x0,121
+	mov	x0,121
 	bl	putchar
 	b	.L65
 .L64:
-	movz	x0,122
+	mov	x0,122
 	bl	putchar
 	b	.L65
 .L65:
-	movz	x0,10
+	mov	x0,10
 	bl	putchar
 .L37:
 	ldp	x30,x29,[sp,8]
@@ -595,122 +595,122 @@ _p_caseerr:
 	b.eq	.L69
 	b	.L95
 .L68:
-	movz	x0,49
+	mov	x0,49
 	bl	putchar
 	b	.L97
 .L69:
-	movz	x0,56
+	mov	x0,56
 	bl	putchar
 	b	.L97
 .L70:
-	movz	x0,97
+	mov	x0,97
 	bl	putchar
 	b	.L97
 .L71:
-	movz	x0,98
+	mov	x0,98
 	bl	putchar
 	b	.L97
 .L72:
-	movz	x0,100
+	mov	x0,100
 	bl	putchar
 	b	.L97
 .L73:
-	movz	x0,101
+	mov	x0,101
 	bl	putchar
 	b	.L97
 .L74:
-	movz	x0,102
+	mov	x0,102
 	bl	putchar
 	b	.L97
 .L75:
-	movz	x0,103
+	mov	x0,103
 	bl	putchar
 	b	.L97
 .L76:
-	movz	x0,104
+	mov	x0,104
 	bl	putchar
 	b	.L97
 .L77:
-	movz	x0,105
+	mov	x0,105
 	bl	putchar
 	b	.L97
 .L78:
-	movz	x0,106
+	mov	x0,106
 	bl	putchar
 	b	.L97
 .L79:
-	movz	x0,107
+	mov	x0,107
 	bl	putchar
 	b	.L97
 .L80:
-	movz	x0,108
+	mov	x0,108
 	bl	putchar
 	b	.L97
 .L81:
-	movz	x0,109
+	mov	x0,109
 	bl	putchar
 	b	.L97
 .L82:
-	movz	x0,110
+	mov	x0,110
 	bl	putchar
 	b	.L97
 .L83:
-	movz	x0,111
+	mov	x0,111
 	bl	putchar
 	b	.L97
 .L84:
-	movz	x0,112
+	mov	x0,112
 	bl	putchar
 	b	.L97
 .L85:
-	movz	x0,113
+	mov	x0,113
 	bl	putchar
 	b	.L97
 .L86:
-	movz	x0,114
+	mov	x0,114
 	bl	putchar
 	b	.L97
 .L87:
-	movz	x0,115
+	mov	x0,115
 	bl	putchar
 	b	.L97
 .L88:
-	movz	x0,116
+	mov	x0,116
 	bl	putchar
 	b	.L97
 .L89:
-	movz	x0,117
+	mov	x0,117
 	bl	putchar
 	b	.L97
 .L90:
-	movz	x0,118
+	mov	x0,118
 	bl	putchar
 	b	.L97
 .L91:
-	movz	x0,119
+	mov	x0,119
 	bl	putchar
 	b	.L97
 .L92:
-	movz	x0,120
+	mov	x0,120
 	bl	putchar
 	b	.L97
 .L93:
-	movz	x0,121
+	mov	x0,121
 	bl	putchar
 	b	.L97
 .L94:
-	movz	x0,122
+	mov	x0,122
 	bl	putchar
 	b	.L97
 .L95:
-	movz	x0,63
+	mov	x0,63
 	bl	putchar
 	ldr	x15,[x29,-8]
 	mov	x0,x15
 	bl	putchar
 	b	.L97
 .L97:
-	movz	x0,10
+	mov	x0,10
 	bl	putchar
 .L67:
 	ldp	x30,x29,[sp,8]
@@ -731,203 +731,203 @@ main:
 	stp	x30,x29,[sp,304]
 	add	x29,sp,304
 # Line: 80, Stmt: 1
-	movz	x2,40
+	mov	x2,40
 	sub	x0,x29,40
 	adrp	x1,.L32765+23
 	add	x1,x1,:lo12:.L32765+23
 	bl	memcpy 
 	sub	x0,x29,40
-	movz	x1,1
-	movz	x2,40
+	mov	x1,1
+	mov	x2,40
 	bl	putstringln
-	movz	x2,3
+	mov	x2,3
 	sub	x0,x29,48
 	adrp	x1,.L32765+64
 	add	x1,x1,:lo12:.L32765+64
 	bl	memcpy 
 	sub	x0,x29,48
-	movz	x1,1
-	movz	x2,3
+	mov	x1,1
+	mov	x2,3
 	bl	putstring
 	mov	x0,xzr
 	bl	putintln
-	movz	x2,6
+	mov	x2,6
 	sub	x0,x29,56
 	adrp	x1,.L32765+68
 	add	x1,x1,:lo12:.L32765+68
 	bl	memcpy 
 	sub	x0,x29,56
-	movz	x1,1
-	movz	x2,6
+	mov	x1,1
+	mov	x2,6
 	bl	putstring
-	movz	x0,1234
+	mov	x0,1234
 	bl	putintln
-	movz	x2,7
+	mov	x2,7
 	sub	x0,x29,64
 	adrp	x1,.L32765+75
 	add	x1,x1,:lo12:.L32765+75
 	bl	memcpy 
 	sub	x0,x29,64
-	movz	x1,1
-	movz	x2,7
+	mov	x1,1
+	mov	x2,7
 	bl	putstring
-	movz	x0,65535
+	mov	x0,65535
 	bl	putintln
-	movz	x2,7
+	mov	x2,7
 	sub	x0,x29,72
 	adrp	x1,.L32765+83
 	add	x1,x1,:lo12:.L32765+83
 	bl	memcpy 
 	sub	x0,x29,72
-	movz	x1,1
-	movz	x2,7
+	mov	x1,1
+	mov	x2,7
 	bl	putstring
-	mov	x0,65536
+	mov	w0,65536
 	bl	putintln
-	movz	x2,7
+	mov	x2,7
 	sub	x0,x29,80
 	adrp	x1,.L32765+91
 	add	x1,x1,:lo12:.L32765+91
 	bl	memcpy 
 	sub	x0,x29,80
-	movz	x1,1
-	movz	x2,7
+	mov	x1,1
+	mov	x2,7
 	bl	putstring
 	mov	w0,65537
 	bl	putintln
-	movz	x2,7
+	mov	x2,7
 	sub	x0,x29,88
 	adrp	x1,.L32765+99
 	add	x1,x1,:lo12:.L32765+99
 	bl	memcpy 
 	sub	x0,x29,88
-	movz	x1,1
-	movz	x2,7
+	mov	x1,1
+	mov	x2,7
 	bl	putstring
 	movz	x0,3
 	movk	x0,1,lsl 16
 	bl	putintln
-	movz	x2,4
+	mov	x2,4
 	sub	x0,x29,96
 	adrp	x1,.L32765+107
 	add	x1,x1,:lo12:.L32765+107
 	bl	memcpy 
 	sub	x0,x29,96
-	movz	x1,1
-	movz	x2,4
+	mov	x1,1
+	mov	x2,4
 	bl	putstring
 	movz	x0,65535
 	movk	x0,65535,lsl 16
 	bl	putintln
-	movz	x2,8
+	mov	x2,8
 	sub	x0,x29,104
 	adrp	x1,.L32765+112
 	add	x1,x1,:lo12:.L32765+112
 	bl	memcpy 
 	sub	x0,x29,104
-	movz	x1,1
-	movz	x2,8
+	mov	x1,1
+	mov	x2,8
 	bl	putstring
-	mov	x0,4294901760
+	mov	w0,4294901760
 	bl	putintln
-	movz	x2,8
+	mov	x2,8
 	sub	x0,x29,112
 	adrp	x1,.L32765+121
 	add	x1,x1,:lo12:.L32765+121
 	bl	memcpy 
 	sub	x0,x29,112
-	movz	x1,1
-	movz	x2,8
+	mov	x1,1
+	mov	x2,8
 	bl	putstring
 	mov	w0,4294901759
 	bl	putintln
-	movz	x2,8
+	mov	x2,8
 	sub	x0,x29,120
 	adrp	x1,.L32765+130
 	add	x1,x1,:lo12:.L32765+130
 	bl	memcpy 
 	sub	x0,x29,120
-	movz	x1,1
-	movz	x2,8
+	mov	x1,1
+	mov	x2,8
 	bl	putstring
 	movz	x0,65533
 	movk	x0,65534,lsl 16
 	bl	putintln
-	movz	x2,12
+	mov	x2,12
 	sub	x0,x29,136
 	adrp	x1,.L32765+139
 	add	x1,x1,:lo12:.L32765+139
 	bl	memcpy 
 	sub	x0,x29,136
-	movz	x1,1
-	movz	x2,12
+	mov	x1,1
+	mov	x2,12
 	bl	putstring
 	mov	w0,2004318071
 	bl	putintln
-	movz	x2,48
+	mov	x2,48
 	sub	x0,x29,184
 	adrp	x1,.L32765+152
 	add	x1,x1,:lo12:.L32765+152
 	bl	memcpy 
 	sub	x0,x29,184
-	movz	x1,1
-	movz	x2,48
+	mov	x1,1
+	mov	x2,48
 	bl	putstringln
 	bl	putln
-	movz	x2,22
+	mov	x2,22
 	sub	x0,x29,208
 	adrp	x1,.L32765+201
 	add	x1,x1,:lo12:.L32765+201
 	bl	memcpy 
 	sub	x0,x29,208
-	movz	x1,1
-	movz	x2,22
+	mov	x1,1
+	mov	x2,22
 	bl	putstringln
-	movz	x0,97
+	mov	x0,97
 	bl	.P15  // p1
-	movz	x0,113
+	mov	x0,113
 	bl	.P15  // p1
-	movz	x0,101
+	mov	x0,101
 	bl	.P15  // p1
-	movz	x0,100
+	mov	x0,100
 	bl	.P15  // p1
-	movz	x0,122
+	mov	x0,122
 	bl	.P15  // p1
-	movz	x0,99
+	mov	x0,99
 	bl	.P15  // p1
-	movz	x0,48
+	mov	x0,48
 	bl	.P15  // p1
-	movz	x0,49
+	mov	x0,49
 	bl	.P15  // p1
-	movz	x0,56
+	mov	x0,56
 	bl	.P15  // p1
-	movz	x2,39
+	mov	x2,39
 	sub	x0,x29,248
 	adrp	x1,.L32765+224
 	add	x1,x1,:lo12:.L32765+224
 	bl	memcpy 
 	sub	x0,x29,248
-	movz	x1,1
-	movz	x2,39
+	mov	x1,1
+	mov	x2,39
 	bl	putstringln
-	movz	x2,50
+	mov	x2,50
 	sub	x0,x29,304
 	adrp	x1,.L32765+264
 	add	x1,x1,:lo12:.L32765+264
 	bl	memcpy 
 	sub	x0,x29,304
-	movz	x1,1
-	movz	x2,50
+	mov	x1,1
+	mov	x2,50
 	bl	putstringln
-	movz	x0,97
+	mov	x0,97
 	bl	.P14  // p
-	movz	x0,113
+	mov	x0,113
 	bl	.P14  // p
-	movz	x0,101
+	mov	x0,101
 	bl	.P14  // p
-	movz	x0,100
+	mov	x0,100
 	bl	.P14  // p
-	movz	x0,122
+	mov	x0,122
 	bl	.P14  // p
 .L98:
 	ldp	x30,x29,[sp,304]

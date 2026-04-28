@@ -1,0 +1,312 @@
+	.text
+	.align 2
+#
+#	fill
+#
+.P2:
+	sub	sp,sp,64
+	stp	x30,x29,[sp,40]
+	add	x29,sp,40
+	stp	x27,x28,[x29,-16]
+# Line: 25, Stmt: 1
+# Line: 26, Stmt: 2
+	mov	x28,97
+	mov	x27,x1
+.L3:
+	cmp	x27,x2
+	b.gt	.L4
+.L5:
+	sub	w15,w27,w1
+	strb	w28,[x0, w15, sxtw]
+	add	w28,w28,1
+	add	w27,w27,1
+	b	.L3
+.L2:
+.L4:
+	ldp	x27,x28,[x29,-16]
+	ldp	x30,x29,[sp,40]
+	add	sp,sp,64
+	ret
+	.text
+	.align 2
+#
+#	p
+#
+.P3:
+	sub	sp,sp,64
+	stp	x30,x29,[sp,32]
+	add	x29,sp,32
+	str	x28,[x29,-8]
+	str	x1,[x29,-16]
+# Line: 42, Stmt: 1
+# Line: 43, Stmt: 2
+	mov	x28,x1
+	str	x0,[x29,-24]
+	str	x2,[x29,-32]
+.L7:
+	ldr	x0,[x29,-24]
+	ldr	x1,[x29,-16]
+	ldr	x2,[x29,-32]
+	cmp	x28,x2
+	b.gt	.L8
+.L9:
+	sub	w15,w28,w1
+	ldr	x14,[x29,-24]
+	ldrb	w0,[x14, w15, sxtw]
+	bl	putchar
+	add	w28,w28,1
+	b	.L7
+.L8:
+	mov	x0,10
+	bl	putchar
+.L6:
+	ldr	x28,[x29,-8]
+	ldp	x30,x29,[sp,32]
+	add	sp,sp,64
+	ret
+	.text
+	.align 2
+#
+#	p1
+#
+.P4:
+	sub	sp,sp,64
+	stp	x30,x29,[sp,32]
+	add	x29,sp,32
+	str	x28,[x29,-8]
+	str	x1,[x29,-16]
+# Line: 57, Stmt: 1
+# Line: 58, Stmt: 2
+	mov	x28,x1
+	str	x0,[x29,-24]
+	str	x2,[x29,-32]
+.L11:
+	ldr	x0,[x29,-24]
+	ldr	x1,[x29,-16]
+	ldr	x2,[x29,-32]
+	cmp	x28,x2
+	b.gt	.L12
+.L13:
+	sub	w15,w28,w1
+	ldr	x14,[x29,-24]
+	ldrb	w0,[x14, w15, sxtw]
+	bl	putchar
+	add	w28,w28,1
+	b	.L11
+.L12:
+	mov	x0,10
+	bl	putchar
+.L10:
+	ldr	x28,[x29,-8]
+	ldp	x30,x29,[sp,32]
+	add	sp,sp,64
+	ret
+	.bss
+	.align 3
+.L32766:
+	.space 96
+	.text
+	.align 2
+#
+#	main (main)
+#
+	.global main
+main:
+	sub	sp,sp,192
+	stp	x30,x29,[sp,96]
+	add	x29,sp,96
+# Line: 67, Stmt: 1
+	adrp	x15,.L32766+32
+	add	x0,x15,:lo12:.L32766+32
+	mov	x1,xzr
+	mov	x2,xzr
+	bl	.P2  // fill
+	adrp	x15,.L32766+32
+	add	x0,x15,:lo12:.L32766+32
+	mov	x1,xzr
+	mov	x2,xzr
+	bl	.P3  // p
+	adrp	x15,.L32766+32
+	mov	x2,1
+	sub	x0,x29,8
+	add	x1,x15,:lo12:.L32766+32
+	bl	memcpy 
+	sub	x0,x29,8
+	mov	x1,xzr
+	mov	x2,xzr
+	bl	.P4  // p1
+	adrp	x15,.L32766+34
+	add	x0,x15,:lo12:.L32766+34
+	mov	x1,xzr
+	mov	x2,1
+	bl	.P2  // fill
+	adrp	x15,.L32766+34
+	add	x0,x15,:lo12:.L32766+34
+	mov	x1,xzr
+	mov	x2,1
+	bl	.P3  // p
+	adrp	x15,.L32766+34
+	mov	x2,2
+	sub	x0,x29,16
+	add	x1,x15,:lo12:.L32766+34
+	bl	memcpy 
+	sub	x0,x29,16
+	mov	x1,xzr
+	mov	x2,1
+	bl	.P4  // p1
+	adrp	x15,.L32766+36
+	add	x0,x15,:lo12:.L32766+36
+	mov	x1,xzr
+	mov	x2,2
+	bl	.P2  // fill
+	adrp	x15,.L32766+36
+	add	x0,x15,:lo12:.L32766+36
+	mov	x1,xzr
+	mov	x2,2
+	bl	.P3  // p
+	adrp	x15,.L32766+36
+	mov	x2,3
+	sub	x0,x29,24
+	add	x1,x15,:lo12:.L32766+36
+	bl	memcpy 
+	sub	x0,x29,24
+	mov	x1,xzr
+	mov	x2,2
+	bl	.P4  // p1
+	adrp	x15,.L32766+40
+	add	x0,x15,:lo12:.L32766+40
+	mov	x1,xzr
+	mov	x2,3
+	bl	.P2  // fill
+	adrp	x15,.L32766+40
+	add	x0,x15,:lo12:.L32766+40
+	mov	x1,xzr
+	mov	x2,3
+	bl	.P3  // p
+	adrp	x15,.L32766+40
+	mov	x2,4
+	sub	x0,x29,32
+	add	x1,x15,:lo12:.L32766+40
+	bl	memcpy 
+	sub	x0,x29,32
+	mov	x1,xzr
+	mov	x2,3
+	bl	.P4  // p1
+	adrp	x15,.L32766+44
+	add	x0,x15,:lo12:.L32766+44
+	mov	x1,xzr
+	mov	x2,4
+	bl	.P2  // fill
+	adrp	x15,.L32766+44
+	add	x0,x15,:lo12:.L32766+44
+	mov	x1,xzr
+	mov	x2,4
+	bl	.P3  // p
+	adrp	x15,.L32766+44
+	mov	x2,5
+	sub	x0,x29,40
+	add	x1,x15,:lo12:.L32766+44
+	bl	memcpy 
+	sub	x0,x29,40
+	mov	x1,xzr
+	mov	x2,4
+	bl	.P4  // p1
+	adrp	x15,.L32766+50
+	add	x0,x15,:lo12:.L32766+50
+	mov	x1,xzr
+	mov	x2,5
+	bl	.P2  // fill
+	adrp	x15,.L32766+50
+	add	x0,x15,:lo12:.L32766+50
+	mov	x1,xzr
+	mov	x2,5
+	bl	.P3  // p
+	adrp	x15,.L32766+50
+	mov	x2,6
+	sub	x0,x29,48
+	add	x1,x15,:lo12:.L32766+50
+	bl	memcpy 
+	sub	x0,x29,48
+	mov	x1,xzr
+	mov	x2,5
+	bl	.P4  // p1
+	adrp	x15,.L32766+56
+	add	x0,x15,:lo12:.L32766+56
+	mov	x1,xzr
+	mov	x2,6
+	bl	.P2  // fill
+	adrp	x15,.L32766+56
+	add	x0,x15,:lo12:.L32766+56
+	mov	x1,xzr
+	mov	x2,6
+	bl	.P3  // p
+	adrp	x15,.L32766+56
+	mov	x2,7
+	sub	x0,x29,56
+	add	x1,x15,:lo12:.L32766+56
+	bl	memcpy 
+	sub	x0,x29,56
+	mov	x1,xzr
+	mov	x2,6
+	bl	.P4  // p1
+	adrp	x15,.L32766+64
+	add	x0,x15,:lo12:.L32766+64
+	mov	x1,xzr
+	mov	x2,7
+	bl	.P2  // fill
+	adrp	x15,.L32766+64
+	add	x0,x15,:lo12:.L32766+64
+	mov	x1,xzr
+	mov	x2,7
+	bl	.P3  // p
+	adrp	x15,.L32766+64
+	mov	x2,8
+	sub	x0,x29,64
+	add	x1,x15,:lo12:.L32766+64
+	bl	memcpy 
+	sub	x0,x29,64
+	mov	x1,xzr
+	mov	x2,7
+	bl	.P4  // p1
+	adrp	x15,.L32766+72
+	add	x0,x15,:lo12:.L32766+72
+	mov	x1,xzr
+	mov	x2,8
+	bl	.P2  // fill
+	adrp	x15,.L32766+72
+	add	x0,x15,:lo12:.L32766+72
+	mov	x1,xzr
+	mov	x2,8
+	bl	.P3  // p
+	adrp	x15,.L32766+72
+	mov	x2,9
+	sub	x0,x29,80
+	add	x1,x15,:lo12:.L32766+72
+	bl	memcpy 
+	sub	x0,x29,80
+	mov	x1,xzr
+	mov	x2,8
+	bl	.P4  // p1
+	adrp	x15,.L32766+82
+	add	x0,x15,:lo12:.L32766+82
+	mov	x1,xzr
+	mov	x2,9
+	bl	.P2  // fill
+	adrp	x15,.L32766+82
+	add	x0,x15,:lo12:.L32766+82
+	mov	x1,xzr
+	mov	x2,9
+	bl	.P3  // p
+	adrp	x15,.L32766+82
+	mov	x2,10
+	sub	x0,x29,96
+	add	x1,x15,:lo12:.L32766+82
+	bl	memcpy 
+	sub	x0,x29,96
+	mov	x1,xzr
+	mov	x2,9
+	bl	.P4  // p1
+.L14:
+	ldp	x30,x29,[sp,96]
+	add	sp,sp,192
+	ret

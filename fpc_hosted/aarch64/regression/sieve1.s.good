@@ -17,7 +17,7 @@ putln:
 	add	x29,sp,xzr
 # Line: 22, Stmt: 1
 # Line: 23, Stmt: 2
-	movz	x0,10
+	mov	x0,10
 	bl	putchar
 .L2:
 	ldp	x30,x29,[sp],16
@@ -177,7 +177,7 @@ putint:
 	cmp	w0,wzr
 	b.ge	.L26
 .L27:
-	movz	x0,45
+	mov	x0,45
 	bl	putchar
 	ldr	x14,[x29,-16]
 	neg	w15,w14
@@ -189,7 +189,7 @@ putint:
 .L25:
 	add	x15,x29,x28, sxtw 0
 	ldr	x14,[x29,-16]
-	movz	x13,10
+	mov	x13,10
 	sdiv	w12,w14,w13
 	msub	w11,w12,w13,w14
 	add	w14,w11,48
@@ -246,25 +246,25 @@ putbool:
 # Line: 109, Stmt: 2
 	cbz	w0,.L31
 .L32:
-	movz	x2,4
+	mov	x2,4
 	sub	x0,x29,16
 	adrp	x1,.L32765+1
 	add	x1,x1,:lo12:.L32765+1
 	bl	memcpy 
 	sub	x0,x29,16
-	movz	x1,1
-	movz	x2,4
+	mov	x1,1
+	mov	x2,4
 	bl	putstring
 	b	.L33
 .L31:
-	movz	x2,5
+	mov	x2,5
 	sub	x0,x29,16
 	adrp	x1,.L32765+6
 	add	x1,x1,:lo12:.L32765+6
 	bl	memcpy 
 	sub	x0,x29,16
-	movz	x1,1
-	movz	x2,5
+	mov	x1,1
+	mov	x2,5
 	bl	putstring
 .L30:
 .L33:
@@ -287,7 +287,7 @@ putboolln:
 	ldr	x15,[x29,-8]
 	mov	x0,x15
 	bl	putbool
-	movz	x0,10
+	mov	x0,10
 	bl	putchar
 .L34:
 	ldp	x30,x29,[sp,8]
@@ -325,16 +325,16 @@ _p_caseerr:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 128, Stmt: 1
-	movz	x2,10
+	mov	x2,10
 	sub	x0,x29,16
 	adrp	x1,.L32765+12
 	add	x1,x1,:lo12:.L32765+12
 	bl	memcpy 
 	sub	x0,x29,16
-	movz	x1,1
-	movz	x2,10
+	mov	x1,1
+	mov	x2,10
 	bl	putstringln
-	movz	x0,1
+	mov	x0,1
 	bl	exit
 .L36:
 	ldp	x30,x29,[sp,16]
@@ -362,7 +362,7 @@ main:
 	adrp	x13,.L32766+1000048
 # Line: 18, Stmt: 2
 	adrp	x12,.L32766+1000052
-	movz	x11,1
+	mov	x11,1
 .L41:
 	adrp	x16,.L32766+1000052
 	str	w11,[x16,:lo12:.L32766+1000052]
@@ -375,7 +375,7 @@ main:
 	adrp	x12,.L32766
 	add	x12,x12,:lo12:.L32766
 	add	x12,x12,x10, sxtw 0
-	movz	w16,1
+	mov	w16,1
 	strb	w16,[x12,32]
 	add	w10,w10,1
 	movz	x16,16960
