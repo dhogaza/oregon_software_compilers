@@ -41,7 +41,7 @@ const
 
   bitsperbyte = 8; {packing factor}
   byte = 1; 
-  short = 2;
+  half = 2;
   word = 4;
   long = 8;
   quad = 16;

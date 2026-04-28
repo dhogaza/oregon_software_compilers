@@ -7,28 +7,21 @@ figure out why main blocksize is so weird (historical P2 shit)
 
   -- regenoprnd stuff all messed up? adrp and makeaddressable not only for global level?
 
-  -- movn usage is wrong
-
 --- current work
 
   -- add "comment" output node for well just that.
 
-  -- refactor a bit ...
 
-  -- handle long constants for non-bitmask arithmetic (partly done)
-  -- pseudo "immediate" mode and something like an "imm_resolved_p" flag (?)
+  -- implement an abstract "index" operand with a signed offset.  "indxx" can probably
+     just set this and it can be resolved when used, and this abstract operand can
+     be the regen operand.  Creating resolved indexes is often zero cost.  ldrxx/strxx
+     often just turns into an unsigned offset as the span is 4096 units (but not pre/post
+     index).  .  ldp/stp only has imm9.  Reg allocation has to get away from allocating 
+     essentially exclusively to caller-saved regs but everything should be tested
+     thoroughly before increasing use of callee-saved because it hammers register
+     spilling, operand regeneration without using saved registers, etc.
 
-  -- pseudo signed "index" mode and something like an "index_resolved_p" flag (?)
-
-     make handling of large constants a new proc that takes a dst register
-     generalize index handling as in indexing.pas
-     whatever else falls out of all this.
-
-     not all that practical to bundle ldp/stp indexing in the general indexing
-     stuff because it will complicate the code which is somewhat straightforward
-     at the moment.  Write a simple procedure to handle all ldp/stp indexing as
-     eventually we'll look for pairs of registers to spill and of course they can be restored
-     individually.
+     Does this make any sense at all?
 
   -- out-of-range index value.
 
@@ -141,50 +134,6 @@ Sets:
 4. hoist global dolevels if they are inserted normally.
 
 
-Advantages of using negative sp offsets when generating code:
-
-1. no need to adjust offsets when growing the stacks, just
-   track the maximum depth of the stack.
-2  can simplify by only deleting unnecessary saves to the stack
-   and ignoring space reclamation (this doesn't depend on 
-   stack offsets being negative).
-3. parameter offsets can be kept positive. <- MUST BE?
-4. at the end, adjust all negative stack offsets by the maximum
-   depth.  not adjusting param positive offsets keeps them at
-   the top of the stack where they need to be for function
-   calls.
-5. restore stackoffset at restorelabel but keep maxstackoffset
-   untouched of course.
-6. haven't figured out how to reclaim space and don't care much
-   at the moment.
-
-7. Note that FPC seems to simply keep adding stuff to the stack
-   along two branches of an if etc.  Does no reusing.  GCC? CLANG?
-
-   The FPC approach is memory wasteful but means stack access can
-   be generated without any need to adjust offsets and all that
-   which is a major problem with the negative offset approach which
-   is corrected later, greatly complicating generating stack offsets
-   greater than 4096 longs above the sp.
-   
-8. gcc allocates a local variable for the copy destination of a long
-   value parameter.  Not a bad idea.  Reserving the stack for register
-   spills only and short parameters when there are more than 8 of them
-   makes the odds of neading more than 4K elements very, very unlikely.
-   Does the same for long function return values.  Again, not a bad
-   idea.  Except that the ABI calls for the [fp, link pc] to be pushed
-   before stack is allocated and locals are generally accessed using sp.
-
-9. use positive stack offsets for param pushes?  negative only for 
-   register spills?  Yes so far.
-
-10. consolidating of temp slots is not done.   Can't consolidate temps
-    with a non-nil regsaves list.  Not sure it is worth it as we don't
-    process regsaves often.  Could consolidate after routine calls in
-    order to merge value array/struct params pushed to be passed by
-    addr.  CAN NOT POP STACK ENTRIES EVER within a context block.  Or
-    is that actually true?
-
 11. STACK PARAMETERS MUST NOT BE ADDED TO BLOCK'S SIZE FOR SP ADJUST
 
 Big integer issues:
@@ -210,6 +159,7 @@ Future enhancements to improve:
    a) combine multiply followed by add or subtract into MADD/MSUB
    b) combine multiply followed by aindx with length of 1 (no scaling)
       into addrop+MADD/MSUB.
+   c) don't forget the MNEG instruction!
 2. flatten expressions with comparisions
 n-1: find uses for all sorts of weird instructions
 n. vectorization because that was something I always wanted to do ...

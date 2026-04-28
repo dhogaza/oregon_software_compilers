@@ -354,9 +354,9 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
                               
       t := p^.paramlist;
 
-      { aarch64 requires stack parameters be pushed in reverse order }
       { DRB gcc assigns addresses on the stack in left-right order but
-        does evaluate the parameter list in reverse order }
+        evaluates the parameter list in reverse order.  This makes sense
+        when you consider that C has variable-length parameter lists. }
       runningparamsize := blocksize + paramsize;
       i := bn + 1;
       while i <= t do
