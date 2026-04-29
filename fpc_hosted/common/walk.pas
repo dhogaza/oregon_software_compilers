@@ -1443,9 +1443,6 @@ with target = 0.
 
 
       begin
-{
-        shortvisit(r, false);
-}
         shortvisit(r, false);
         if targetmachine = aarch64 then unnestparams(r);
         walknode(r, rkey, 0, true);
