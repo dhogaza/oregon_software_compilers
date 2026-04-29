@@ -16,6 +16,8 @@ procedure write_inst(i: insttype);
 
 procedure write_nodes(firstnode, lastnode: nodeptr);
 
+procedure writeprocname(procn: proctableindex {number of procedure to copy});
+
 implementation
 
 var
@@ -767,7 +769,7 @@ procedure openc;
 
   begin {openc}
     getoutputname;
-    if switcheverplus[outputmacro] then
+    if switcheverplus[outputmacro] or switcheverplus[test] then
       begin
       getfilename(macname, false, false, filename, filename_length);
       assign(macfile, trim(string(filename)) + '.s');
@@ -782,7 +784,7 @@ procedure closec;
 
 
   begin {closec}
-    if switcheverplus[outputmacro] then close(macfile);
+    if switcheverplus[outputmacro] or switcheverplus[test] then close(macfile);
   end {closec} ;
 
 

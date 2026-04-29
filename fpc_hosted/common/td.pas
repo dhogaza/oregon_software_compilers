@@ -23,6 +23,11 @@
 Update release version for PC-VV0-GS0 at 2.3.0.1
 }
 
+program td;
+
+
+uses config, hdr, t_c;
+
 var
   highestkey: integer;
   nm: packed array [1..255] of char;

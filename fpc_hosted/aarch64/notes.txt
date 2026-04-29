@@ -7,6 +7,9 @@ figure out why main blocksize is so weird (historical P2 shit)
 
   -- regenoprnd stuff all messed up? adrp and makeaddressable not only for global level?
 
+  -- bigarray test blows things up not unexpectedly.  Fixation on ip0 is going to
+     possibly lead to trouble.  We will see.
+
 --- current work
 
   -- add "comment" output node for well just that.

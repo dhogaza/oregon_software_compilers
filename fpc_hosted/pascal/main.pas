@@ -171,16 +171,18 @@ begin {main}
   if switcheverplus[timing] and switcheverplus[details] then
     printtime('analys');
 }
-  if (lasterror = 0) and (switcheverplus[outputmacro] or
-     switcheverplus[outputobj]) then
+  {DRB hack to avoid generating pseudocode output file for test
+   output.
+  }
+  if (lasterror = 0) and ((travcode and switcheverplus[test]) or
+     (switcheverplus[outputmacro] or
+     switcheverplus[outputobj])) then
     begin
     resetswitches;
     openc;
     {DRB settime;}
     if travcode then
-      begin
       initcode;
-      end;
     travrs.travrs;
     if travcode then exitcode;
     closec;

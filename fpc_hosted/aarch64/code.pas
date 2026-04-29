@@ -963,32 +963,15 @@ procedure genoprnd(p: nodeptr;
                    i: oprnd_range; {which operand to generate}
                    o: oprndtype {operand to generate} );
 
-{ Generates the given operand in lastptr.  If the operand contains an offset
-dependent on the stack, tempcount is set appropriately.
-}
+{ Generates the given operand in lastptr.
 
-  var tc: keyindex;
+  Does nothing essentially so will probably disappear ...
+}
 
   begin {genoprnd}
 
     with p^ do
-      begin
-{
-      if o.reg = fp then
-        begin
-        end 
-      else if (o.mode = unsigned_offset) and (o.reg = sp) then
-          begin
-          tc := keysize;
-          while (o.index < keytable[tc].oprnd.index) and
-                (tc > stackcounter) do
-            tc := tc - 1;
-          tempcount := tc - stackcounter;
-          o.index := o.index + keytable[tc].oprnd.index;
-          end;
-}
       oprnds[i] := o;
-    end;
   end {genoprnd} ;
 
 { Generate instructions.  Comes in two forms, one takes a pointer to the node the
@@ -1030,7 +1013,7 @@ Procedure gen1p(p: nodeptr;
 
   begin {gen1p}
     geninst(p, i, 1);
-    genoprnd(p, 1, keytable[o1].oprnd);
+    p^.oprnds[1] := keytable[o1].oprnd;
   end {gen1p} ;
 
 procedure gen1(var after: nodeptr;
@@ -1057,8 +1040,8 @@ procedure gen2p(p: nodeptr;
 
   begin {gen2p}
     geninst(p, i, 2);
-    genoprnd(p, 1, keytable[o1].oprnd);
-    genoprnd(p, 2, keytable[o2].oprnd);
+    p^.oprnds[1] := keytable[o1].oprnd;
+    p^.oprnds[2] := keytable[o2].oprnd;
   end {gen2p} ;
 
 
@@ -1086,9 +1069,9 @@ procedure gen3p(p: nodeptr;
 
   begin {gen3p}
     geninst(p, i, 3);
-    genoprnd(p, 1, keytable[o1].oprnd);
-    genoprnd(p, 2, keytable[o2].oprnd);
-    genoprnd(p, 3, keytable[o3].oprnd);
+    p^.oprnds[1] := keytable[o1].oprnd;
+    p^.oprnds[2] := keytable[o2].oprnd;
+    p^.oprnds[3] := keytable[o3].oprnd;
   end {gen3p} ;
 
 
@@ -1110,23 +1093,23 @@ procedure gen4p(p: nodeptr;
                 i: insttype;
                 o1, o2, o3, o4: keyindex);
 
-{ Generate a longruple operand instruction.
+{ Generate a quadruple operand instruction.
 }
 
 
   begin {gen4p}
     geninst(p, i, 4);
-    genoprnd(p, 1, keytable[o1].oprnd);
-    genoprnd(p, 2, keytable[o2].oprnd);
-    genoprnd(p, 3, keytable[o3].oprnd);
-    genoprnd(p, 4, keytable[o4].oprnd);
+    p^.oprnds[1] := keytable[o1].oprnd;
+    p^.oprnds[2] := keytable[o2].oprnd;
+    p^.oprnds[3] := keytable[o3].oprnd;
+    p^.oprnds[4] := keytable[o4].oprnd;
   end {gen4p} ;
 
 
 procedure gen4(var after: nodeptr; i: insttype;
                o1, o2, o3, o4: keyindex);
 
-{ Generate a longruple operand instruction.
+{ Generate a quadruple operand instruction.
 }
 
 
@@ -2976,12 +2959,6 @@ procedure genmoveaddress(src, dst: keyindex);
  sp which needs to be delayed. First peephole-though-not-quite-optimization?}
           if reg <> sp then
             makeoffsetptr(lastnode, index, reg, keytable[dst].oprnd.reg)
-{
-          if (reg <> sp) and (index < 0) then
-            gen3(lastnode, buildinst(sub, true, false), dst,
-                 settemp(long, reg_oprnd(reg)),
-                 settemp(long, imm12_oprnd(-index, false)))
-}
           else
             gen3(lastnode, buildinst(add, true, false), dst,
                  settemp(long, reg_oprnd(sp)),
@@ -4711,6 +4688,7 @@ procedure blockentryx;
       paramsize := oprnds[2];
       blksize := oprnds[3];
       end;
+
     level := proctable[blockref].level;
     blockusesframe := switcheverplus[framepointer]
 	or ((language = modula2) and proctable[blockref].needsframeptr);
@@ -4943,6 +4921,7 @@ procedure indxx;
           begin
           newkey := settemp(long, reg_oprnd(getreg));
           genmoveaddress(left, newkey);
+{DRB: handle long offsets }
           setvalue(index_oprnd(signed_offset,
                    keytable[newkey].oprnd.reg, pseudoinst.oprnds[2]));
           keytable[key].regenoprnd.mode := nomode;
@@ -5154,7 +5133,6 @@ procedure callroutinex(s: boolean {signed function value} );
   routine.  This causes the generated routine's address to be offset by
   - (offset1 * word).
 
-  We might have to reverse parameters on the stack ...
 }
 
   var
@@ -5502,6 +5480,22 @@ procedure codeone;
     tempkey := loopcount - 1;
     setcommonkey;
     use_preferred_key := false; {code generator flag}
+
+    { Dump pseudocode into macfile but don't gen code.
+    }
+
+    if switcheverplus[test] and not switcheverplus[outputmacro] then
+      begin
+      if pseudoinst.op = blockentry then
+        begin
+        writeln(macfile, '#');
+        write(macfile, '# '); writeprocname(blockref); writeln(macfile);
+        write(macfile, '#');
+        end;
+      dumppseudo(macfile);
+      exit;
+      end;
+
     case pseudoinst.op of
       doint, doptr: dointx;
       dolevel:  dolevelx(false);
