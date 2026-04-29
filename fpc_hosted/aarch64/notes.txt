@@ -10,6 +10,9 @@ figure out why main blocksize is so weird (historical P2 shit)
   -- bigarray test blows things up not unexpectedly.  Fixation on ip0 is going to
      possibly lead to trouble.  We will see.
 
+  -- var params generate regparam with 0 refcount
+
+
 --- current work
 
   -- add "comment" output node for well just that.

@@ -282,11 +282,11 @@ function paramalloc(paramptr, typeptr: entryptr): allockind;
   if any.
 }
 
-  begin {paramclass}
+  begin {paramalloc}
     if typeptr^.typ in [reals, doubles] then paramalloc := realregparam
     else if paramptr^.length <= ptrsize then paramalloc := regparam
     else paramalloc := normalalloc;
-  end; {paramclass}
+  end; {paramalloc}
 
 function  allocparamoffset(var blocksize, length: addressrange; overflowed: boolean): addressrange;
   begin {allocparamoffset}
@@ -433,7 +433,8 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
     typeptr := @(bigtable[paramptr^.vartype]);
     paramptr^.allocated := true;
     if (paramptr^.namekind in [varparam, varconfparam, confparam]) or
-       (paramptr^.namekind = param) and (length > maxparambytes) and
+       (paramptr^.namekind = param) and ((length > maxparambytes) or
+       (typeptr^.typ in [sets, fields, arrays, strings])) and
        not (typeptr^.typ in [reals, doubles]) then
       begin
       paramptr^.length := ptrsize;
@@ -461,12 +462,13 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       { If we allow structured types and sets to be left in registers, then
         the code generator must be prepared to access register bits when they
         are operands to indx, aindx, etc.  Eventually we'll do so for structs,
-        at least, as that's part of the calling standard.
-      }
+        at least, as that's part of the calling standard.  This code doesn't do
+        it correctly anyway though.
 
       if (typeptr^.typ in [sets, fields, arrays, strings, conformantarrays]) and
          not paramptr^.refparam  then
         paramptr^.registercandidate := false;
+      }
       end
     else
       begin
