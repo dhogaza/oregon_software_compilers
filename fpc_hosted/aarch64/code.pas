@@ -5748,8 +5748,12 @@ procedure codeone;
       saveactkeys: saveactivekeys;
       otherwise
         begin
-        {writeln('Not yet implemented: ', ord(pseudoinst.op): 1);
-        compilerabort(inconsistent);}
+        dumppseudo(macfile);
+        if switcheverplus[test] or switcheverplus[outputmacro] then
+          closec;
+        write('Not yet implemented');
+        compilerabort(inconsistent);
+        halt(); { compilerabort doesn't abort if test is enabled }
         end;
       end;
 
