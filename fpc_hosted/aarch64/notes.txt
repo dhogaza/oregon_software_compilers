@@ -1,6 +1,11 @@
 -- random stuff
 figure out why main blocksize is so weird (historical P2 shit)
 
+unnesting of param expressions is too agressive in walk.  Really
+only expressions with function calls need to be pulled out. Calculations
+should be able to stay in and use the regtarget set up for register
+parameters.
+
 ---
 
 *** current bugs
@@ -9,9 +14,6 @@ figure out why main blocksize is so weird (historical P2 shit)
 
   -- bigarray test blows things up not unexpectedly.  Fixation on ip0 is going to
      possibly lead to trouble.  We will see.
-
-  -- var params generate regparam with 0 refcount
-
 
 --- current work
 
