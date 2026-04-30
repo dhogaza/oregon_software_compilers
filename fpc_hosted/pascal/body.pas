@@ -3026,6 +3026,7 @@ begin {regparams}
           genlit(0);
           end;
         genlit(p^.regid);
+        oprndstk[sp].oprndlen := p^.length;
         case p^.varalloc of
           regparam: genunary(regparamop, none);
           ptrregparam: genunary(ptrregparamop, none);
@@ -3770,6 +3771,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                     pushdummy;
                     genlit(0);
                     genlit(regid);
+                    oprndstk[sp].oprndlen := length;
                     case varalloc of
                       regparam: genunary(regparamop, none);
                       ptrregparam: genunary(ptrregparamop, none);
@@ -3842,6 +3844,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                   pushdummy;
                   genlit(0);
                   genlit(regid);
+                  oprndstk[sp].oprndlen := length;
                   case varalloc of
                     regparam: genunary(regparamop, none);
                     ptrregparam: genunary(ptrregparamop, none);
