@@ -1759,7 +1759,7 @@ function newtemp(size: addressrange {size of temp to allocate} ): keyindex;
         refcount := 0;
         first := nil;
         last := nil;
-        oprnd := index_oprnd(signed_offset, sp, -stackoffset);
+        oprnd := index_oprnd(abstract_offset, sp, -stackoffset);
         end;
       end;
     newtemp := stackcounter;
@@ -1797,7 +1797,7 @@ function newparamtemp(size: addressrange {size of temp to allocate} ): keyindex;
         refcount := 0;
         first := nil;
         last := nil;
-        oprnd := index_oprnd(unsigned_offset, sp, paramoffset);
+        oprnd := index_oprnd(abstract_offset, sp, paramoffset);
         end;
       end;
     paramoffset := paramoffset + size;
@@ -2447,11 +2447,6 @@ procedure initblock;
         end;
 
     { initialize stack temp allocation vars
-
-      Pascal-2 code generators traditionally use keysize as the
-      base of the stack, but on this machine we might want to
-      spill to registers or the like so we're using a variable
-      for the stack base to make things more flexible.
     }
 
     stackbase := keysize;
@@ -2562,8 +2557,8 @@ procedure handle_offset9_oprnd(var after: nodeptr; ldpstp: boolean; tempreg: reg
 { Handle 9-bit offsets  It assumes that the operand passed in is set up
   for the case where the offset already fits.
 
-  THIS IS ONLY NECESSARY FOR SCALE = 1 AND OFFSET < 0 OTHERWISE UNSIGNED
-  12-BIT OFFSET SHOULD BE USED.
+  Should always be a negative offset unless ldpstp is true, but it will take
+  awhile to fix everything up ...
 
   Further argument for an abstract index operand ala intconst that always has
   to be fixed up at some point, immdiately or after stack offset finalization.
@@ -2588,6 +2583,7 @@ begin {handle_offset9_oprnd}
     mask := $FF;
     end;
 
+  o.mode := signed_offset;
   offset := o.index;
 
   { see if we have to do anything kinky here }
@@ -2670,8 +2666,11 @@ var offset, maxoffset: unsignedint;
 
 begin {handle_offset12_oprnd}
 
+  { assert mode = abstract_offset }
+
   offset := o.index;
   maxoffset := 4095 * len;
+  o.mode := unsigned_offset;
 
   { see if we have to do anything kinky here }
   if offset > maxoffset then
@@ -2686,8 +2685,8 @@ begin {handle_offset12_oprnd}
       keytable[imm12key].oprnd.imm12_shift := true;
       gen3(after, buildinst(add, true, false), tempregkey, originalregkey,
            imm12key);
-      o.index := offset and maxoffset;
       o.reg := tempreg; { operand will index tempreg }
+      o.index := offset and maxoffset;
       end
     else
       begin
@@ -2703,6 +2702,43 @@ begin {handle_offset12_oprnd}
 
 end {handle_offset12_oprnd};
 
+
+procedure genldr(var after: nodeptr;
+                 len: addressrange;
+                 signed: boolean;
+                 dst, src: keyindex);
+
+  { gen a ldr instruction and fix offset field if necessary and possible.
+    sp offsets are finalized after a routine has finished compilation.
+  }
+
+  begin {genldr}
+    gen2(after, ldrinst(len, signed), dst, src);
+    if (after^.oprnds[2].mode = abstract_offset) and
+       (after^.oprnds[2].reg <> sp)  then
+      if after^.oprnds[2].index > 0 then
+        handle_offset12_oprnd(after^.prevnode, ip1, len, after^.oprnds[2])
+      else
+        handle_offset9_oprnd(after^.prevnode, false, ip1, after^.oprnds[2]);
+  end {genldr};
+
+procedure genstr(var after: nodeptr;
+                 len: addressrange;
+                 dst, src: keyindex);
+
+  { gen a ldr instruction and fix offset field if necessary and possible.
+    sp offsets are finalized after a routine has finished compilation.
+  }
+
+  begin {genstr}
+    gen2(after, strinst(len), dst, src);
+    if (after^.oprnds[2].mode = abstract_offset) and
+       (after^.oprnds[2].reg <> sp)  then
+      if after^.oprnds[2].index > 0 then
+        handle_offset12_oprnd(after^.prevnode, ip1, len, after^.oprnds[2])
+      else
+        handle_offset9_oprnd(after^.prevnode, false, ip1, after^.oprnds[2]);
+  end {genstr} ;
 
 { These procedures work on keytable entries, useful when generating code
   only.  The keytable entry that is returned must be used immediately because
@@ -2817,17 +2853,17 @@ procedure gensimplemove(var after: nodeptr; src: keyindex; dst: keyindex);
           (keytable[src].oprnd.mode = imm16)) then
       gen2(after, buildinst(mov, true, false), dst, src)
     else if keytable[dst].oprnd.mode = register then
-      gen2(after, ldrinst(keytable[src].len, keytable[src].signed), dst, src)
+      genldr(after, keytable[src].len, keytable[src].signed, dst, src)
     else if keytable[src].oprnd.mode <> register then
       begin
       ip0temp := settemp(keytable[dst].len, reg_oprnd(ip0));
       if keytable[src].oprnd.mode = imm16 then
         gen2(after, buildinst(mov, keytable[dst].len = long, false), ip0temp, src)
       else
-        gen2(after, ldrinst(keytable[src].len, keytable[src].signed), ip0temp, src);
-      gen2(after, strinst(keytable[dst].len), ip0temp, dst);
+        genldr(after, keytable[src].len, keytable[src].signed, ip0temp, src);
+      genstr(after, keytable[dst].len, ip0temp, dst);
       end
-    else gen2(after, strinst(keytable[dst].len), src, dst);
+    else genstr(after, keytable[dst].len, src, dst);
   end {gensimplemove} ;
 
 function signedoprnds : boolean;
@@ -2953,7 +2989,7 @@ procedure genmoveaddress(src, dst: keyindex);
         gen3(lastnode, buildinst(add, true, false), dst, dst, src);
         keytable[src].oprnd.lowbits := false;
         end;
-      signed_offset, unsigned_offset:
+      abstract_offset:
         if index <> 0 then
 {should all register adjustments be made after generation?  This isn't working for
  sp which needs to be delayed. First peephole-though-not-quite-optimization?}
@@ -2971,7 +3007,7 @@ procedure genmoveaddress(src, dst: keyindex);
         end;
       otherwise
         begin
-        write('bad operand in genmoveaddress ');
+        write('bad operand in genmoveaddress key: ', src, ' mode: ', ord(mode));
         compilerabort(inconsistent);
         end;
       end;
@@ -3021,11 +3057,12 @@ procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
             end
           else
             begin
-            if (oprnds[oprnd_cnt].mode = signed_offset) and
+            if (oprnds[oprnd_cnt].mode = abstract_offset) and
                (oprnds[oprnd_cnt].reg = sp) then
               if inst.inst in [ldp, stp] then
                 if oprnds[3].index - savedregspace >= -512 then
                   begin
+                  oprnds[3].mode := signed_offset;
                   oprnds[3].reg := fp;
                   oprnds[3].index := oprnds[3].index - savedregspace;
                   end
@@ -3037,8 +3074,11 @@ procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
                   firstnode := after^.nextnode;
                   end
               else if inst.inst in [first_ls..last_ls] then
-                if oprnds[2].index - savedregspace >= -256 then
+                if oprnds[2].index >= 0 then
+                  oprnds[2].mode := unsigned_offset { assume < 4095 params }
+                else if oprnds[2].index - savedregspace >= -256 then
                   begin
+                  oprnds[2].mode := signed_offset;
                   oprnds[2].reg := fp;
                   oprnds[2].index := oprnds[2].index - savedregspace;
                   end
@@ -3046,7 +3086,7 @@ procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
                   begin
                   after := firstnode^.prevnode;
                   oprnds[2].index := oprnds[2].index + amount;
-                  handle_offset12_oprnd(after, ip0, quad, oprnds[2]);
+                  handle_offset12_oprnd(after, ip0, long, oprnds[2]);
                   firstnode := after^.nextnode;
                   end
                 else
@@ -3924,7 +3964,7 @@ procedure integermultiply;
 { Generate code for a simple binary, integer operation (add, sub, etc.)
 }
 
-  begin {integerarithmetic}
+  begin {integermultiply}
     {unpkshkboth(len);}
     addressboth;
     settargetorreg;
@@ -3934,7 +3974,7 @@ procedure integermultiply;
     unlock(key);
     gen3(lastnode, buildinst(mul, len = long, false), key, left, right);
     keytable[key].signed := signedoprnds;
-  end {integerarithmetic} ;
+  end {integermultiply} ;
 
 procedure integerarithmetic(inst: insts);
 
@@ -3965,7 +4005,7 @@ procedure unaryint(inst: insts);
 }
 
 
-  begin {incdec}
+  begin {unaryint}
 {    unpackshrink(left, len);}
     settargetorreg; 
     lock(key);
@@ -3974,7 +4014,7 @@ procedure unaryint(inst: insts);
     unlock(key);
     gen2(lastnode, buildinst(inst, len = long, false), key, left);
     keytable[key].signed := keytable[left].signed;
-  end {incdec} ;
+  end {unaryint} ;
 
 procedure compintx;
 
@@ -3983,7 +4023,7 @@ procedure compintx;
     address(left);
     loadreg(left, 0);
     settargetorreg; 
-    gen2(lastnode, buildinst(mvn, len = long, false), key, left);
+    gen2(lastnode, buildinst(movn, len = long, false), key, left);
     keytable[key].signed := keytable[left].signed;
   end {compintx};
 
@@ -4354,17 +4394,17 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
       else if left = 1 then
         setvalue(labeltarget_oprnd(bsslabel, false, 0))
       else if left = level then
-        setvalue(index_oprnd(unsigned_offset, fp, 0))
+        setvalue(index_oprnd(abstract_offset, fp, 0))
       else if left = level - 1 then
-        setvalue(index_oprnd(unsigned_offset, sl, 0))
+        setvalue(index_oprnd(abstract_offset, sl, 0))
       else
         begin
         address(target);
         reg := getreg;
-        gensimplemove(lastnode, settemp(long, index_oprnd(unsigned_offset,
+        gensimplemove(lastnode, settemp(long, index_oprnd(abstract_offset,
                       keytable[target].oprnd.reg, -long)),
                       settemp(long, reg_oprnd(reg)));
-        setvalue(index_oprnd(unsigned_offset, reg, 0));
+        setvalue(index_oprnd(abstract_offset, reg, 0));
         end;
       len := long;
       end;
@@ -4422,7 +4462,7 @@ procedure blockcodex;
       if intlevelrefs then
         begin
         t1 := settemp(long, reg_oprnd(sl));
-        t2 := settemp(long, index_oprnd(unsigned_offset, sl, -long));
+        t2 := settemp(long, index_oprnd(signed_offset, sl, -long));
         for i := 1 to levelspread - 1 do
           gen2(lastnode, buildinst(ldr, true, false), t1, t2);
         end;
@@ -4577,7 +4617,7 @@ procedure putblock;
       keytable[saveregtemp].oprnd.reg := reglist[i].r;
       if i = regcount then
         begin
-        keytable[saveregoffsettemp].oprnd.index := reglist[i].index;;
+        keytable[saveregoffsettemp].oprnd.index := reglist[i].index;
         gen2(p1, buildinst(str, true, false), saveregtemp, saveregoffsettemp);
         gen2(lastnode, buildinst(ldr, true, false), saveregtemp, saveregoffsettemp);
         i := i + 1;
@@ -4866,7 +4906,7 @@ if pseudoinst.oprnds[3] = 1 then regparamindex := key;
     begin
     address(left);
     with keytable[left].oprnd do
-      saveparam := settemp(long, index_oprnd(unsigned_offset, reg,
+      saveparam := settemp(long, index_oprnd(abstract_offset, reg,
                          index + pseudoinst.oprnds[2]));
     gensimplemove(lastnode, key, saveparam);
     setkeyvalue(saveparam);
@@ -4922,11 +4962,11 @@ procedure indxx;
           newkey := settemp(long, reg_oprnd(getreg));
           genmoveaddress(left, newkey);
 {DRB: handle long offsets }
-          setvalue(index_oprnd(signed_offset,
+          setvalue(index_oprnd(abstract_offset,
                    keytable[newkey].oprnd.reg, pseudoinst.oprnds[2]));
           keytable[key].regenoprnd.mode := nomode;
           end;
-        signed_offset:
+        abstract_offset:
           begin
           setkeyvalue(left);
           keytable[key].oprnd.index :=
@@ -4934,14 +4974,6 @@ procedure indxx;
           if keytable[key].oprnd.reg in [sl, fp] then
             keytable[key].regenoprnd := keytable[key].oprnd;
           end;
-        unsigned_offset:
-          begin
-          setkeyvalue(left);
-          keytable[key].oprnd.index :=
-            keytable[key].oprnd.index + pseudoinst.oprnds[2];
-          if keytable[key].oprnd.reg in [sl, fp] then
-            keytable[key].regenoprnd := keytable[key].oprnd;
-          end
       end
 {
     eventually needs to work with the results of aindx and also register
@@ -4961,7 +4993,7 @@ procedure indxindrx;
   begin {indxindrx}
     address(left);
     loadreg(left, 0);
-    setvalue(index_oprnd(unsigned_offset, keytable[left].oprnd.reg, 0));
+    setvalue(index_oprnd(abstract_offset, keytable[left].oprnd.reg, 0));
   end {indxindrx};
 
 procedure aindxx;
@@ -4996,7 +5028,7 @@ procedure aindxx;
     { A register indexed by zero will happen whenever an array is passed
       by reference.
     }
-    if (keytable[left].oprnd.mode in [signed_offset, unsigned_offset]) and
+    if (keytable[left].oprnd.mode = abstract_offset) and
       (keytable[left].oprnd.index = 0) then
       lefttemp := settemp(long, reg_oprnd(keytable[left].oprnd.reg))
     else
@@ -5004,7 +5036,7 @@ procedure aindxx;
       lock(right);
       regkey := settemp(long, reg_oprnd(getreg));
       genmoveaddress(left, regkey);
-      lefttemp := settemp(long, index_oprnd(unsigned_offset, keytable[regkey].oprnd.reg, 0));
+      lefttemp := settemp(long, index_oprnd(abstract_offset, keytable[regkey].oprnd.reg, 0));
       changevalue(left, lefttemp);
       unlock(right);
       end;

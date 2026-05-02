@@ -16,6 +16,8 @@ procedure write_inst(i: insttype);
 
 procedure write_nodes(firstnode, lastnode: nodeptr);
 
+procedure write_oprnd(o: oprndtype; sf: boolean);
+
 procedure writeprocname(procn: proctableindex {number of procedure to copy});
 
 implementation
@@ -567,6 +569,12 @@ begin
       write(macfile, '[');
       write_reg(o.reg, true);
       write(macfile, '],', o.index);
+      end;
+    abstract_offset:
+      begin
+      write(macfile, 'ABSTRACT OFFSET ERROR [');
+      write_reg(o.reg, true);
+      write(macfile, ',', o.index, ']');
       end;
     signed_offset, unsigned_offset:
       begin
