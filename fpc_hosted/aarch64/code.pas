@@ -1287,7 +1287,7 @@ function equivaddr(l, r: keyindex): boolean;
         extend_reg: same := (reg_extend = oprnd.reg_extend) and
                             (extend_shift = oprnd.extend_shift) and
                             (extend_signed = oprnd.extend_signed);
-         pre_index, post_index, signed_offset, unsigned_offset:
+         pre_index, post_index, abstract_offset, signed_offset, unsigned_offset:
            same := (index = oprnd.index);
          reg_offset: same := (shift = oprnd.shift) and
                              (extend = oprnd.extend) and
@@ -1313,7 +1313,7 @@ procedure adjustregcount(k: keyindex; {operand to adjust}
       if access = valueaccess then
         case mode of
           register, shift_reg, extend_reg, pre_index, post_index,
-          signed_offset, unsigned_offset, label_offset:
+          abstract_offset, signed_offset, unsigned_offset, label_offset:
             if regvalid then
               registers[reg] := registers[reg] + delta;
           reg_offset, tworeg:
@@ -2453,7 +2453,7 @@ procedure initblock;
     stackcounter := stackbase;
     stackoffset := 0;
     maxstackoffset := 0;
-    keytable[stackcounter].oprnd := index_oprnd(unsigned_offset, sp, 0);
+    keytable[stackcounter].oprnd := index_oprnd(abstract_offset, sp, 0);
 
     openarray_base := nil; { Modula2 only, but initialization needed for all }
     firstbr := nil;

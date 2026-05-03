@@ -1,11 +1,6 @@
 -- random stuff
 figure out why main blocksize is so weird (historical P2 shit)
 
-unnesting of param expressions is too agressive in walk.  Really
-only expressions with function calls need to be pulled out. Calculations
-should be able to stay in and use the regtarget set up for register
-parameters.
-
 ---
 
 *** current bugs
@@ -15,14 +10,34 @@ parameters.
   -- bigarray test blows things up not unexpectedly.  Fixation on ip0 is going to
      possibly lead to trouble.  We will see.
 
+  -- varop nodes for reg parameters all have level 0, offset 0 and has got to screw
+     up some stuff???  Certainly makes it harder to assign to regtemp.
+
 --- current work
 
   -- add "comment" output node for well just that.
 
 
-  -- implement an abstract "index" operand with a signed offset.  "indxx" can probably
-     just set this and it can be resolved when used, and this abstract operand can
-     be the regen operand.  Creating resolved indexes is often zero cost.  ldrxx/strxx
+  -- implement an abstract "index" operand with a signed offset.
+
+     Next step do register save/restore using abstract_offset, and finalize stack
+     offsets based on this.
+
+     Then track down other load/store usage.
+
+     immediate materialization uses ip0, long index materialization ip1 for now.
+
+     break handle_offset9_oprnd into two again?  The idea is that we want a general 
+     handle_abstract_offset_oprnd procedure that will handle neg offsets as signed_offset
+     and positive as unsigned_offset.
+
+     LDP/STP just handle as special case and is always a signed_offset.
+
+     Treat post/preindex as aborts if they are out of the signed range.
+
+     "indxx" can probably just set this and it can be resolved when used, and this
+     abstract operand can be the regen operand.  Creating resolved indexes is often
+     zero cost.  ldrxx/strxx
      often just turns into an unsigned offset as the span is 4096 units (but not pre/post
      index).  .  ldp/stp only has imm9.  Reg allocation has to get away from allocating 
      essentially exclusively to caller-saved regs but everything should be tested
@@ -46,41 +61,9 @@ parameters.
      For indexing of other sizes we get fewer bits from the index and more bits from the offset
      constant, which of course does not happen on the stack.  We better make sure it does not happen!
 
-     Change the load/store check in finalizstackoffsets to just ldr/str period until we
-     add stp/ldp optimization..
-
-     std/ldp index limited to -512..504 bytes (9 bit offset * 2).
-     if > 504 but less 4096+504
-       add ip0, sp, #(4096-504)
-       ldp/stp r1, r2, [ip0, 504]
-     else if <= $FFFFFF and masked with $E00 = 0
-       add ip0, sp, #(index div $1000) shift 12
-       ldp/stp r1, r2, [ip0, (index mask $1FF)]
-     else
-       mov ip0, (index div $FFFF) shift 16
-       if index and $FFFF <> 0 then
-         movk ip0, index and $FFFF
-       ldp/stp r1, r2, [sp, ip0]
-
-     to avoid mov/movk situations ... for positive values <= 2^24 can add top 12 lsl 12
-     then use bottom 12 bits in the unsigned offset field.  Just like add/sub.  If the
-     value is larger and masked #FFFF0FFF move top 16 bits lsl 16 then index by the value
-     masked by 0FFF.  Otherwise must do mov/movk then index[0]
-
-     For negative indexes can subtrace the negated top 12 bits + 4096 then unsigned index
-     with 4095 - negatated value's bottm 12 bits (check that arithmetic!).  Something
-     similar for the #FFFF0FFF case.
-
-     Restricted to 32 bit structure limitation of course.
-
-    use a bitmask to generate add in constant when possible
-
     [reg, reg] take advantage of shifting when possible, i.e. load 16 bit
     constant then shift a bit to the left (by the length of the data being
     referenced?) to save an instruction.
-
-  -- improve kludges to adjust and delete nodes fixed up after code gen.
-     use newinsertbefore
 
 -- next priorities:
 
@@ -224,3 +207,7 @@ integer arithmetic operands that don't fit in 12 bits (not bitmask):
 
 1. If operand & F000 (hex) = 0 then mov top 16 bits to register, then add
    lower 16 bits (which has the leftmost 4 bits 0) as a 12-bit immediate.
+
+-- minor optimization reminders
+
+1. var +/- intconst +/- intconst doesn't fold

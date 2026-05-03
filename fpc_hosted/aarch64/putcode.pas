@@ -572,9 +572,10 @@ begin
       end;
     abstract_offset:
       begin
-      write(macfile, 'ABSTRACT OFFSET ERROR [');
+      write(macfile, '[');
       write_reg(o.reg, true);
       write(macfile, ',', o.index, ']');
+      write(macfile, ' //ABSTRACT OFFSET');
       end;
     signed_offset, unsigned_offset:
       begin
