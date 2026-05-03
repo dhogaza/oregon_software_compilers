@@ -351,9 +351,7 @@ _p_caseerr:
 #
 	.global main
 main:
-	movz	x16,17072
-	movk	x16,15,lsl 16
-	sub	sp,sp,x16
+	sub	sp,sp,64
 	stp	x30,x29,[sp,48]
 	add	x29,sp,48
 # Line: 17, Stmt: 1
@@ -438,7 +436,5 @@ main:
 	bl	putintln
 .L37:
 	ldp	x30,x29,[sp,48]
-	movz	x16,17072
-	movk	x16,15,lsl 16
-	add	sp,sp,x16
+	add	sp,sp,64
 	ret

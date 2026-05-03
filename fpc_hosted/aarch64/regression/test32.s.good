@@ -460,7 +460,7 @@ _p_caseerr:
 #
 	.global main
 main:
-	sub	sp,sp,192
+	sub	sp,sp,144
 	stp	x30,x29,[sp,128]
 	add	x29,sp,128
 # Line: 43, Stmt: 1
@@ -644,5 +644,5 @@ main:
 	bl	putln
 .L43:
 	ldp	x30,x29,[sp,128]
-	add	sp,sp,192
+	add	sp,sp,144
 	ret

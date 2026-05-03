@@ -418,7 +418,7 @@ _p_caseerr:
 #
 	.global main
 main:
-	sub	sp,sp,80
+	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
 	add	x29,sp,32
 # Line: 16, Stmt: 1
@@ -520,5 +520,5 @@ main:
 	bl	.P14  // foo
 .L39:
 	ldp	x30,x29,[sp,32]
-	add	sp,sp,80
+	add	sp,sp,48
 	ret

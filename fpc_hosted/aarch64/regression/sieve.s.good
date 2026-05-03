@@ -426,16 +426,10 @@ _p_caseerr:
 #
 	.global main
 main:
-	movz	x16,17008
-	movk	x16,15,lsl 16
-	sub	sp,sp,x16
-	stp	x30,x29,[sp]
+	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
 # Line: 40, Stmt: 1
 	bl	.P15  // p
 .L51:
-	ldp	x30,x29,[sp]
-	movz	x16,17008
-	movk	x16,15,lsl 16
-	add	sp,sp,x16
+	ldp	x30,x29,[sp],16
 	ret

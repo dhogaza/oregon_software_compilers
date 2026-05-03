@@ -4568,7 +4568,12 @@ procedure putblock;
     fptemp := settemp(long, reg_oprnd(fp));
     ip0temp := settemp(long, reg_oprnd(ip0));
 
-    blockcost := blksize + regcost + maxstackoffset;
+    { fix this better }
+    if level = 1 then
+      blockcost := quad + regcost + maxstackoffset
+    else
+      blockcost := blksize + regcost + maxstackoffset;
+
     blockcost := (blockcost + (2 * long - 1)) and - (2 * long);
 
     finalizestackoffsets(firstnode, lastnode, maxstackoffset, regcost);

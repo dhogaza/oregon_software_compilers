@@ -112,7 +112,7 @@
 #
 	.global main
 main:
-	sub	sp,sp,192
+	sub	sp,sp,112
 	stp	x30,x29,[sp,96]
 	add	x29,sp,96
 # Line: 67, Stmt: 1
@@ -308,5 +308,5 @@ main:
 	bl	.P4  // p1
 .L14:
 	ldp	x30,x29,[sp,96]
-	add	sp,sp,192
+	add	sp,sp,112
 	ret

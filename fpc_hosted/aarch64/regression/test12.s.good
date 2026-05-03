@@ -173,7 +173,7 @@
 #
 	.global main
 main:
-	stp	x30,x29,[sp,-32]!
+	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
 # Line: 44, Stmt: 1
 	mov	x0,97
@@ -193,5 +193,5 @@ main:
 	bl	putchar
 	bl	.P5  // foo1
 .L22:
-	ldp	x30,x29,[sp],32
+	ldp	x30,x29,[sp],16
 	ret
