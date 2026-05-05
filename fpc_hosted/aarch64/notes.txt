@@ -5,6 +5,9 @@ figure out why main blocksize is so weird (historical P2 shit)
 
 *** current bugs
 
+  -- pascallabelx needs to adjust stack by the amount computed in putblock, after
+     the block has been compiled.  Magic operand value? -1?
+
   -- regenoprnd stuff all messed up? adrp and makeaddressable not only for global level?
 
   -- bigarray test blows things up not unexpectedly.  Fixation on ip0 is going to
