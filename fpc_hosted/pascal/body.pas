@@ -4686,7 +4686,7 @@ procedure statement(follow: tokenset {legal following symbols} );
       with proctable[pref] do
         begin
         if (l - lev > levelspread) and (lev <> 1) then levelspread := l - lev;
-        if (lev <> 1) and (not bodydefined or intlevelrefs) and (l > 1) then
+        if (lev > 2) and (not bodydefined or intlevelrefs) and (l > 1) then
           proctable[bref].intlevelrefs := true;
         if globaldeath or not bodydefined then
           begin
@@ -7893,6 +7893,7 @@ procedure statement(follow: tokenset {legal following symbols} );
       gotoline: integer; {line on which goto appeared}
       gotofilepos: integer; {file position of goto token}
       gotofileindex: integer; {fileindex of goto token}
+i: levelindex;
 
 
     begin {gotostatement}
@@ -7920,8 +7921,12 @@ procedure statement(follow: tokenset {legal following symbols} );
               maxlegalnest := 1;
               end;
             end;
-          if ((targetmachine = aarch64) or (lev > 1)) and (lev <> level) then
-            proctable[display[level].blockref].intlevelrefs := true;
+          if lev <> level then
+            if lev > 1 then
+              proctable[display[level].blockref].intlevelrefs := true
+          else if targetmachine = aarch64 then
+           for i := level downto lev + 1 do
+              proctable[display[i].blockref].intlevelrefs := true;
           debugstmt(gotolab, gotoline, gotofilepos, gotofileindex);
           genint(internalvalue);
           genint(lev);
