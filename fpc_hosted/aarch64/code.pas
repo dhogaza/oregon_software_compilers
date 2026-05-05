@@ -3035,7 +3035,22 @@ procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
       begin
       with firstnode^ do
         if (kind = instnode) then
-          if (inst.inst = add) and (oprnds[2].mode = register) and
+          { we begin with an ultra-kludge to reset stack at pascal labels
+            referenced by nested procedures, which is very rare but sometimes
+            used to abort a program.  We aren't going to bother to be clever
+            about this at all.
+          }
+          if (inst.inst = sub) and
+             (oprnds[1].mode = register) and (oprnds[1].reg = sp) and
+             (oprnds[2].mode = register) and (oprnds[2].reg = sl) and
+             (oprnds[3].imm12_value = -1) then
+            begin
+            after := firstnode;
+            makeoffsetptr(after, -amount - savedregspace, oprnds[2].reg, sp);
+            deletenodes(firstnode, firstnode);
+            firstnode := after;
+            end
+          else if (inst.inst = add) and (oprnds[2].mode = register) and
              (oprnds[2].reg = sp) and (oprnds[3].mode = imm12) then
             begin
               if oprnds[3].imm12_value - savedregspace >= -4095 then
@@ -5210,8 +5225,11 @@ procedure callroutinex(s: boolean {signed function value} );
       begin
 
       { direct call }
-      linkreg := proctable[pseudoinst.oprnds[1]].intlevelrefs and
-                 (proctable[pseudoinst.oprnds[1]].level > 2);
+      linkreg := proctable[pseudoinst.oprnds[1]].intlevelrefs;
+{we use static link when calling top level procs in aarch64 for
+ gotos to the global level ...
+and
+                 (proctable[pseudoinst.oprnds[1]].level > 2);}
 
       if linkreg then
         begin
@@ -5392,7 +5410,7 @@ procedure jumpx(lab: integer {label to jump to});
 
 
   begin
-    genbr(b, pseudoinst.oprnds[1]);
+    genbr(b, lab);
 
     { DRB:stuff for later tail merging which we might not even
       want to do for arm64 
@@ -5500,7 +5518,140 @@ procedure createtruex;
     gensimplemove(lastnode, settemp(len, intconst_oprnd(1)), key);
   end {createtruex} ;
 
-
+
+procedure pascallabelx;
+
+{ Generate a pascal label.  The complication arises from the need to reset
+  the stack pointer and static link to the current block.  If the current
+  block is the main program (level=1), then there is no static link, and
+  sp is reset to a value which was saved at initialization.
+
+  If the current block is not global, we use the static link to restore
+  the stack pointer, so we always have intlevelrefs true.  In this case
+  we adjust the sp by the difference between the current stackoffset and
+  the static link. Inline code jumps around this stack adjustment stuff.
+
+  In addition, all registers are marked as used in this routine if the
+  label is the target of a non-local goto.  This is necessary since the
+  come-from routine might have trashed registers not actually used in the
+  gone-to routine.  Our solution, while gross, does work.
+
+  The goto location is responsible for setting the static link and/or
+  sp properly.
+}
+
+  var
+    t: integer; {amount to fudge sp (no static link at level 2)}
+    stackoffsetkey, spkey, slkey, fpkey: keyindex;
+
+  begin {pascallabelx}
+    clearcontext;
+    if pseudoinst.oprnds[2] <> 0 then
+      begin
+      oktostuff := false;
+      for t := 0 to sl - ord(level <> 1)  do regused[t] := true;
+      jumpx(pseudoinst.oprnds[1]);
+      definelabel(pseudoinst.oprnds[1] - 1);
+      { magic value to be fixed up in finalizestackoffsets }
+      stackoffsetkey := settemp(long, imm12_oprnd(-1, false));
+      spkey := settemp(long, reg_oprnd(sp));
+      slkey := settemp(long, reg_oprnd(sl));
+      fpkey := settemp(long, reg_oprnd(fp));
+      gen3(lastnode, buildinst(sub, true, false), spkey, slkey, stackoffsetkey);
+write_nodes(lastnode, lastnode);
+      gensimplemove(lastnode, slkey, fpkey);
+
+{
+        if level = 2 then t := 0
+        else t := long;
+        settempareg(sp);
+
+        case targetopsys of
+          unix, apollo:
+            settemp(long, relative, sl, 0, false, t - stackoffset, 0,
+                    1, unknown);
+          vdos:
+            settemp(long, relative, sl, 0, false, - stackoffset, 0, 1,
+                    unknown);
+          end {case} ;
+
+        gen2(lea, long, tempkey, tempkey + 1);
+
+        if bigcompilerversion then p := @(bignodetable[lastnode - 1]);
+
+        p^.tempcount := stackcounter - keysize; {note: negative tempcount!}
+
+        if blockusesframe then
+          begin
+          settemp(long, relative, sl, 0, false, blksize + t, 0, 1, unknown);
+          settempareg(fp);
+          gen2(lea, long, tempkey + 1, tempkey);
+          end;
+
+        if level > 2 then
+          begin
+          settempreg(long, indr, sl);
+          settempareg(sl);
+          gen2(move, long, tempkey + 1, tempkey);
+          end;
+}
+      end;
+    definelabel(pseudoinst.oprnds[1]);
+  end {pascallabelx} ;
+
+
+procedure pascalgotox;
+
+{ Generate a pascal goto.  This requires tracing down the static chain to 
+  the proper level, and restoring frame and stack pointer from the
+  target frame.
+}
+
+  var
+    i: integer; {induction var for tracing static chain}
+    slregkey, slindrkey: keyindex;
+
+  procedure closerange;
+    begin
+{
+    if proctable[blockref].opensfile then
+      begin
+      settemp(long, relative, fp, 0, false, - blksize, 0, 1, unknown);
+      gen1(pea, long, tempkey);
+      tempkey := tempkey + 1;
+      settempimmediate(long, blksize);
+      settempreg(long, autod, sp);
+      gen2(move, long, tempkey + 1, tempkey);
+      tempkey := tempkey + 2;
+      callsupport(libcloseinrange);
+      settempimmediate(word, 8);  { Clean up stack }
+      settempareg(sp);
+      gen2(adda, word, tempkey + 1, tempkey);
+      end;
+}
+    end;
+
+  begin
+    clearcontext;
+    if pseudoinst.oprnds[2] = level then jumpx(pseudoinst.oprnds[1])
+    else
+      begin
+{
+        if (switchcounters[profiling] > 0) or (switchcounters[debugging] > 0)
+           then
+          callsupport(libdebugger_goto);
+}
+      { This call is a profiler/debugger entry point for a non-local goto. }
+
+
+      slregkey := settemp(long, reg_oprnd(sl));
+      slindrkey := settemp(long, index_oprnd(abstract_offset, sl, -long));
+      for i := level downto pseudoinst.oprnds[2] + 2 do
+        gensimplemove(lastnode, slindrkey, slregkey);
+      closerange;
+      jumpx(pseudoinst.oprnds[1] - 1);
+      end;
+  end {pascalgotox} ;
 
 procedure codeone;
 
@@ -5551,10 +5702,8 @@ procedure codeone;
       restorelabel: restorelabelx;
       joinlabel: joinlabelx;
       pseudolabel: pseudolabelx;
-{
       pascallabel: pascallabelx;
       pascalgoto: pascalgotox;
-}
       defforlitindex: defforindexx(true, true);
       defforindex: defforindexx(true, false);
       defunsforlitindex: defforindexx(false, true);
@@ -5576,7 +5725,6 @@ procedure codeone;
       dostruct: dostructx;
 {
       doset: dosetx;
-      dolevel: dolevelx;
 }
       dovar: dovarx(true);
       dounsvar, doptrvar, dofptrvar: dovarx(false);

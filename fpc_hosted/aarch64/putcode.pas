@@ -556,6 +556,11 @@ begin
         write(macfile, ',lsl 12');
     end;
     immbitmask: write(macfile, o.bitmask_value);
+    intconst:
+      begin
+      write(macfile, o.int_value);
+      write(macfile, ' // INTCONST');
+      end;
     fpregister: write(macfile, 's', o.reg);
     register: write_reg(o.reg, sf);
     pre_index:
@@ -575,7 +580,7 @@ begin
       write(macfile, '[');
       write_reg(o.reg, true);
       write(macfile, ',', o.index, ']');
-      write(macfile, ' //ABSTRACT OFFSET');
+      write(macfile, ' // ABSTRACT OFFSET');
       end;
     signed_offset, unsigned_offset:
       begin
