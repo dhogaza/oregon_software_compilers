@@ -7920,7 +7920,7 @@ procedure statement(follow: tokenset {legal following symbols} );
               maxlegalnest := 1;
               end;
             end;
-          if (lev > 1) and (lev <> level) then
+          if ((targetmachine = aarch64) or (lev > 1)) and (lev <> level) then
             proctable[display[level].blockref].intlevelrefs := true;
           debugstmt(gotolab, gotoline, gotofilepos, gotofileindex);
           genint(internalvalue);
