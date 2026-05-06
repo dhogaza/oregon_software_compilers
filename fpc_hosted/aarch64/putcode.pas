@@ -278,27 +278,7 @@ procedure writeint(v: integer);
     until bufptr = 0;
   end; {writeint}
 
-
-procedure writehexbyte(v: unsigned);
-
-{ Write an unsigned value to the macro file as a hexadecimal byte.
-}
-
-  procedure writehexchar(v: unsigned);
-  begin
-    if v <= 9 then
-      write(macfile, chr(ord('0') + v))
-    else write(macfile, chr(ord('A') + v - 10));
-  end;
-
-  begin {writehexbyte}
-    write(macfile, '0x');
-    writehexchar(v div 16);
-    writehexchar(v mod 16);
-    column := column + 4;
-  end {writehexbyte} ;
-
-procedure writehex(v: unsigned {value to write} );
+procedure writehex(v: unsigned; n: unsigned {nibbles to write} );
   
 { Write an unsigned value to the macro file as a hexadecimal number.
   16 bit values only.
@@ -313,15 +293,16 @@ procedure writehex(v: unsigned {value to write} );
   
   begin
     write(macfile, '0x');
-    for i := maxhex downto 1 do begin
+    for i := n downto 1 do begin
       j  := v mod 16;
       v := v div 16;
       if j <= 9 then
         hexbuf[i] := chr(ord('0') + j)
       else hexbuf[i] := chr(ord('A') + j - 10);
       end; { for i }
-    write(MacFile, hexbuf);
-    column := column + 4;
+    for i := 1 to n do
+      write(MacFile, hexbuf[i]);
+    column := column + n + 2;
   end {writehex} ; 
 
 procedure copysfile;
@@ -368,7 +349,7 @@ procedure copysfile;
           m := m * 256;
           i := i - 1;
         end;
-        writehexbyte(v);
+        writehex(v, 2);
         k := k + 1;
       until (k > bytesperline) or (i = 0);
       writeln(macfile);
