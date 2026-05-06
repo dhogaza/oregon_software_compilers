@@ -279,11 +279,30 @@ procedure writeint(v: integer);
   end; {writeint}
 
 
-procedure writehex(v: unsigned {value to write} );
+procedure writehexbyte(v: unsigned);
 
+{ Write an unsigned value to the macro file as a hexadecimal byte.
+}
+
+  procedure writehexchar(v: unsigned);
+  begin
+    if v <= 9 then
+      write(macfile, chr(ord('0') + v))
+    else write(macfile, chr(ord('A') + v - 10));
+  end;
+
+  begin {writehexbyte}
+    write(macfile, '0x');
+    writehexchar(v div 16);
+    writehexchar(v mod 16);
+    column := column + 4;
+  end {writehexbyte} ;
+
+procedure writehex(v: unsigned {value to write} );
+  
 { Write an unsigned value to the macro file as a hexadecimal number.
   16 bit values only.
-}
+} 
   const
     maxhex = 8;
 
@@ -291,7 +310,7 @@ procedure writehex(v: unsigned {value to write} );
     hexbuf: packed array [1..maxhex] of char;
     i: 1..maxhex;    { induction var for filling hexbuf }
     j: 0..15;        { numeric value of one hex digit }
-
+  
   begin
     write(macfile, '0x');
     for i := maxhex downto 1 do begin
@@ -303,7 +322,7 @@ procedure writehex(v: unsigned {value to write} );
       end; { for i }
     write(MacFile, hexbuf);
     column := column + 4;
-  end {writehex} ;
+  end {writehex} ; 
 
 procedure copysfile;
 
@@ -325,7 +344,7 @@ procedure copysfile;
   procedure write_constants(i: integer);
 
     const
-      wordsperline = 4;  { number of constant structure values (hex) per line }
+      bytesperline = 12;  { number of constant structure values (hex) per line }
 
     var
       k, l: integer;
@@ -334,7 +353,8 @@ procedure copysfile;
     begin {write_constants}
     while i > 0 do
       begin
-      write(macfile, chr(9),'.word', chr(9));
+
+      write(macfile, chr(9),'.byte', chr(9));
 
       k := 1;
       repeat
@@ -342,15 +362,15 @@ procedure copysfile;
           write(macfile, ',');
         v := 0;
         m := 1;
-        while (m and maxaddr <> 0) and (i > 0) do
+        while (m and {maxaddr} $FF <> 0) and (i > 0) do
         begin
           v := v + getstringfile * m;
           m := m * 256;
           i := i - 1;
         end;
-        writehex(v);
+        writehexbyte(v);
         k := k + 1;
-      until (k > wordsperline) or (i = 0);
+      until (k > bytesperline) or (i = 0);
       writeln(macfile);
       end;
     end; {write_constants}
