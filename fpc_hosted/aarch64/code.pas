@@ -4434,6 +4434,139 @@ begin {dostructx}
   setvalue(labeltarget_oprnd(rodatalabel, false, pseudoinst.oprnds[1]));
 end {dostructx} ;
 
+procedure dosetx;
+
+{ Define the set base for a set insertion.  This is the constant part of
+  a set constructor, which may be followed by zero or more setinsert
+  pseudo-operations.  Sets "settarget" to the desired target of the
+  set insertion operators.  Some special things:  If "settarget" has
+  "packedaccess" set, or represents a data register, we create a stack
+  temp.  Otherwise we just copy the operand information stored in
+  keytable[left].
+}
+
+
+  begin {dosetx}
+    firstsetinsert := true;
+    address(left);
+{
+    if (keytable[left].oprnd.m = dreg) or keytable[left].packedaccess then
+      begin
+      makestacktarget;
+      settarget := key;
+      end
+    else
+      begin
+}
+      setkeyvalue(left);
+      settarget := target;
+{
+      end;
+}
+  end {dosetx} ;
+
+procedure setinsertx;
+
+{ Insert an element (or range) into a set.  The constant part of any
+  such insertion is set up by "dosetx".  This attempts to do the
+  insertion in place if possible.
+
+  "Target" will be the constant part of the set constructor, oprnds[1]
+  is the element to insert or the first element if oprnds[2] is non-
+  zero.  "Settarget" is assumed to be the target of the whole operation.
+
+  The bit is inserted with a "btst" using information computed
+  by "accessbit".  The range specification is implemented as a loop.
+}
+
+
+  var
+    temp: integer; { holds refcount temporarily }
+    bitkey: keyindex; {Result of accessbit}
+
+  begin {setinsertx}
+{
+    with keytable[target] do
+      if firstsetinsert then
+        if (settarget <> 0) and not equivaccess(settarget, left) and
+           not equivaccess(settarget, right) then {We can do it in place}
+          begin
+          genblockmove(target, settarget, min(len, word));
+          adjustregcount(target, - keytable[target].refcount);
+          keytable[target].oprnd := keytable[settarget].oprnd;
+          adjustregcount(target, keytable[target].refcount);
+          target := settarget;
+          end
+        else
+          begin {do it in a temporary location}
+          with keytable[target] do
+            if regsaved then { kill off this temp first }
+              begin
+              keytable[properreg].refcount := 0;
+              regsaved := false;
+              end;
+
+          newtemp(len);
+          keytable[stackcounter].tempflag := true;
+          dereference(target);
+          genblockmove(target, stackcounter, min(len, word));
+          rereference(target);
+          keytable[target].oprnd := keytable[stackcounter].oprnd;
+          keytable[target].properreg := stackcounter;
+          keytable[target].regsaved := true;
+          keytable[target].knowneven := true;
+          keytable[target].regvalid := true;
+          bumptempcount(target, keytable[target].refcount);
+          end;
+
+    firstsetinsert := false;
+
+    if right <> 0 then
+      begin
+      unpack(left, word);
+      lock(left);
+      settempdreg(keytable[left].len, getdreg);
+      unlock(left);
+      gensimplemove(left, tempkey);
+}
+{      adjustregcount(left, - keytable[left].refcount);}
+{
+      keytable[tempkey].len := keytable[left].len;
+      left := tempkey;
+}
+{      keytable[left].oprnd := keytable[tempkey].oprnd;}
+{      rereference(left);}
+{      unpack(right, byte);
+
+      lock(right);
+      genbr(bra, lastlabel - 1);
+      definelastlabel;
+      end
+    else
+      begin
+      lock(target);
+      unpackshrink(left, word);
+      unlock(target);
+      end;
+
+    bitkey := accessbit(target, false);
+
+    fix_set_addressing(target, bitkey);
+
+    gendouble(bset, left, bitkey);
+
+    if right <> 0 then
+      begin
+      settempimmediate(keytable[left].len, 1);
+      gendouble(add, tempkey, left);
+      definelastlabel;
+      gendouble(cmp, right, left);
+      genbr(ble, lastlabel + 2);
+      unlock(right);
+      end;
+}
+  end {setinsertx} ;
+
 { DRB regtemp }
 procedure blockcodex;
 
@@ -5723,9 +5856,7 @@ procedure codeone;
       caseelt: caseeltx;
       caseerr: caseerrx;
       dostruct: dostructx;
-{
       doset: dosetx;
-}
       dovar: dovarx(true);
       dounsvar, doptrvar, dofptrvar: dovarx(false);
 {
@@ -5757,8 +5888,8 @@ procedure codeone;
       jointemp: jointempx;
 }
       addr: addrx;
-{
       setinsert: setinsertx;
+{
       inset: insetx;
 }
       movint, returnint, movptr, returnptr, returnfptr: movintptrx;
