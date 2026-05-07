@@ -48,7 +48,7 @@ const
 
   maxblockslow = lowcodeblocks; {number of blocks allocated in global area}
 
-  undefinedaddr = 1; {impossible address flag}
+  undefinedaddr = -1; {impossible address flag}
   loopdepth = 10; { maximum number of nested loops optimized }
 
   {special keys for building internal loops}

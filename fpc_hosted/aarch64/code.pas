@@ -3058,7 +3058,7 @@ procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
           if (inst.inst = sub) and
              (oprnds[1].mode = register) and (oprnds[1].reg = sp) and
              (oprnds[2].mode = register) and (oprnds[2].reg = sl) and
-             (oprnds[3].imm12_value = -1) then
+             (oprnds[3].imm12_value = undefinedaddr) then
             begin
             after := firstnode;
             makeoffsetptr(after, -amount - savedregspace, oprnds[2].reg, sp);
@@ -5709,7 +5709,7 @@ procedure pascallabelx;
       jumpx(pseudoinst.oprnds[1]);
       definelabel(pseudoinst.oprnds[1] - 1);
       { magic value to be fixed up in finalizestackoffsets }
-      stackoffsetkey := settemp(long, imm12_oprnd(-1, false));
+      stackoffsetkey := settemp(long, imm12_oprnd(undefinedaddr, false));
       spkey := settemp(long, reg_oprnd(sp));
       slkey := settemp(long, reg_oprnd(sl));
       fpkey := settemp(long, reg_oprnd(fp));
