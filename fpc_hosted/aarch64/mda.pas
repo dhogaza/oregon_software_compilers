@@ -236,9 +236,9 @@ function alignmentof(f: entryptr; {form to check}
  alignmentrange;
 
 { Compute the alignment requirement of a type.  This function is needed
-  strictly because the alignment of a subrange is kluged to the parent
+  strictly because the alignment of a subrange is kludged to the parent
   type to give better code generation on certain types of machines.  This
-  kluge causes trouble with packed types, so is deleted if the result
+  kludge causes trouble with packed types, so is deleted if the result
   is to be used in a packed structure.
 }
 
