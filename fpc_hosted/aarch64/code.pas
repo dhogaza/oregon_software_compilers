@@ -4161,6 +4161,7 @@ procedure divintx;
 
   var
     r: regindex;
+    divtarget: keyindex;
 
   begin {divintx}
     {unpkshkboth(len);}
@@ -4173,23 +4174,30 @@ procedure divintx;
       lock(left);
       end;
     settargetorreg;
-    if signedoprnds then
-      gen3(lastnode, buildinst(sdiv, len = long, false), key, left, right)
+    if pseudobuff.op = getrem then
+      divtarget := settemp(len, reg_oprnd(getreg))
     else
-      gen3(lastnode, buildinst(udiv, len = long, false), key, left, right);
+      divtarget := key;
+    if signedoprnds then
+      gen3(lastnode, buildinst(sdiv, len = long, false), divtarget, left, right)
+    else
+      gen3(lastnode, buildinst(udiv, len = long, false), divtarget, left, right);
     keytable[key].signed := signedoprnds;
     if (pseudobuff.op = getrem) or (pseudoinst.refcount = 2) then
       begin
       if pseudoinst.refcount = 2 then
         begin
         lock(key);
+        lock(divtarget);
         gen4(lastnode, buildinst(msub, len = long, false),
              settemp(len, reg_oprnd(getreg)),
-             key, right, left); 
+             divtarget, right, left); 
+        unlock(divtarget);
         unlock(key);
         adjustregcount(key, -pseudoinst.refcount);
         keytable[key].oprnd.mode := tworeg;
         keytable[key].oprnd.reg2 := keytable[tempkey].oprnd.reg;
+        keytable[key].oprnd.reg := keytable[divtarget].oprnd.reg;
         adjustregcount(key, pseudoinst.refcount);
         { we only need to save the register which contains the result
           we need later, not for the following pseudoop
@@ -4198,7 +4206,7 @@ procedure divintx;
         else keytable[key].reg2saved := true;
         end
       else
-        gen4(lastnode, buildinst(msub, len = long, false), key, key, right, left); 
+        gen4(lastnode, buildinst(msub, len = long, false), key, divtarget, right, left); 
       unlock(right);
       unlock(left);
       end;
