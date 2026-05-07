@@ -357,6 +357,21 @@ begin {bits}
   bits := b;
 end {bits};
 
+function alignment(i: integer): alignmentrange;
+
+  var a: alignmentrange;
+
+  begin
+    a := 1;
+    while (a < long) and not odd(i)  do
+      begin
+      a := a * 2;
+      i := i div 2;
+      end;
+    alignment := a;
+  end;
+
+
 { Weird bitmask patters for aarch64 are handled by the following
   two functions shamelessly lifted from Free Pascal.  
 }
@@ -1391,7 +1406,7 @@ procedure setcommonkey;
         joinreg2 := false;
         signed := true;
         signlimit := 0;
-        knownword := false;
+        alignment := byte;
         oprnd := nomode_oprnd;
         regenoprnd := nomode_oprnd;
         end

@@ -46,7 +46,6 @@ const
   long = 8;
   quad = 16;
 
-
   maxblockslow = lowcodeblocks; {number of blocks allocated in global area}
 
   undefinedaddr = 1; {impossible address flag}
@@ -77,6 +76,8 @@ const
 type
 
   regtypes = (general, floating);
+
+  alignmentrange = byte .. long;
 
   oprnd_range = 0 .. max_oprnds;
 
@@ -464,8 +465,7 @@ type
                          joinlabel pseudoop}
       signed: boolean; {true if operand contains signed data}
       signlimit: addressrange; {size for which this key is still signed}
-      knownword: boolean; {true if word or long instruction will work
-                           here}
+      alignment: alignmentrange; {if known, if not assumes byte}
       first: nodeptr; {set to first node of stream which
                        created value described in this record}
       last: nodeptr; {set to the last node of the stream which
