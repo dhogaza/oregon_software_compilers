@@ -11,13 +11,9 @@
 
 *** current bugs
 
-  -- sets with > 8 elements and < 17 elements are allocated 64 bits.  No 16 or 32
-     bits probably because of copying allocation stuff from mc68000 mda. More curious
-     than crucial.
-
-  -- since we're handling sets in registers we can pass short ones as regparams,
-     function return register, etc.  And it would be the easiest to implement doing
-     so as register pairs for sets up to 128 bits (compared to structs).
+   -- sets with > 8 elements and < 17 elements are allocated 64 bits.  No 16 or 32
+      bits probably because of copying allocation stuff from mc68000 mda. More curious
+      than crucial.
 
   -- regenoprnd stuff all messed up? adrp and makeaddressable not only for global level?
 
@@ -29,10 +25,24 @@
 
 --- current work
 
-     -- sets test for case where short set variables are assigned regtemps due
-        to frequent use.  Might generate some lousy code with extra moves?
+     -- sets
+
+     long sets write the code for looping and test with loop of two long operations
+     and when that works unroll four operations which means that all current sets
+     which are limited to 256 elements will not be implemented by a loop.  Set up
+     for implementing the type:[set const] extension.
+
+     Make special empty set integer constant and make movsetx deal with it rather
+     than generate it in the string file.  This will be needed when type:[set const]
+     extension. Conditionalize it as aarch64.
+
+     Make short set constant parts be passed as integers for aarch64 only.
+
+     test for case where short set variables are assigned regtemps due
+     to frequent use.  Might generate some lousy code with extra moves?
 
      -- do for simplicity and clarity 
+
      break handle_offset9_oprnd into two again?  The idea is that we want a general 
      handle_abstract_offset_oprnd procedure that will handle neg offsets as signed_offset
      and positive as unsigned_offset.
@@ -41,11 +51,7 @@
 
      Treat post/preindex as aborts if they are out of the signed range.
 
-     "indxx" can probably just set this and it can be resolved when used, and this
-     abstract operand can be the regen operand.  Creating resolved indexes is often
-     zero cost.  ldrxx/strxx
-     often just turns into an unsigned offset as the span is 4096 units (but not pre/post
-     index).  .  ldp/stp only has imm9.  Reg allocation has to get away from allocating 
+     Reg allocation has to get away from allocating 
      essentially exclusively to caller-saved regs but everything should be tested
      thoroughly before increasing use of callee-saved because it hammers register
      spilling, operand regeneration without using saved registers, etc.
@@ -55,11 +61,6 @@
     referenced?) to save an instruction.
 
 -- next priorities:
-
-0.0 Sets:
-
-"in" operator.   Load 64-bit set snipped with scalar value div 8
-(some bit shift?) into Xreg. Shift Xreg by scalar value mod 8
 
 0.1 Alignment and think about unaligned addressing which appears to work 
     except another thread can walk on you in between two parts being read
