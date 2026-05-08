@@ -4530,6 +4530,10 @@ procedure setarithmetic(inst: insts);
 begin {setarithmetic}
 end {setarithmetic};
 
+{ ignoring range checking for now for setinsertion and inset, both are
+  coded defensively, or so I tell myself
+}
+
 procedure setinsertx;
 
 { Insert an element (or range) into a set.  The constant part of any
@@ -4545,8 +4549,9 @@ procedure setinsertx;
 
   var
     temp: integer; { holds refcount temporarily }
-    bitkey, insertkey: keyindex; {Result of accessbit}
+    bitkey, insertkey, startkey, limitkey: keyindex; {Result of accessbit}
     setlen: addressrange;
+    looplabel, skiplabel: labelrange;
 
   begin {setinsertx}
     address(left);
@@ -4565,9 +4570,39 @@ procedure setinsertx;
         insertkey := settemp(long, reg_oprnd(getreg));
         gensimplemove(lastnode, left, insertkey);
         end;
+      { range insert?}
+      if right <> 0 then 
+        begin
+        lock(insertkey);
+        address(right);
+        if keytable[right].oprnd.mode = intconst then
+          begin
+          handle_intconst12(lastnode, right);
+          limitkey := right;
+          end
+        else if keytable[right].oprnd.mode = register then
+          limitkey := right
+        else
+          begin
+          limitkey := settemp(long, reg_oprnd(getreg));
+          gensimplemove(lastnode, right, limitkey);
+          end;
+        definelastlabel;
+        gen2(lastnode, buildinst(cmp, keytable[left].len = long, false),
+             insertkey, limitkey);
+        genbr(bhi, lastlabel);
+        end;
       gensimplemove(lastnode, settemp(long, intconst_oprnd(1)), bitkey);
       gen3(lastnode, buildinst(lslinst, setlen = long, false), bitkey, bitkey, insertkey);
       gen3(lastnode, buildinst(orinst, setlen = long, false), settarget, settarget, bitkey);
+      if (right <> 0) then
+        begin
+        gen3(lastnode, buildinst(add, keytable[left].len = long, false), insertkey, insertkey,
+             settemp(keytable[left].len, imm12_oprnd(1, false)));
+        genbr(b, lastlabel + 1);
+        definelastlabel;
+        unlock(insertkey);
+        end; 
       unlock(bitkey);
       unlock(settarget);
       unlock(left); 
