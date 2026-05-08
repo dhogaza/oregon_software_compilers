@@ -4475,7 +4475,7 @@ procedure dosetx;
     firstsetinsert := true;
     address(left);
 
-    {kludge for nil until we get smart short set literals}
+    {kludge for empty set until we get smart short set literals}
 
     if (pseudobuff.len < len) then
       begin
@@ -4483,28 +4483,29 @@ procedure dosetx;
       keytable[left].len := len; {naughty goes away with smart nil}
       end;
     
+    tempreg := getreg;
+    tempregkey := settemp(len, reg_oprnd(tempreg));
+    labelkey := settemp(long,labeltarget_oprnd(keytable[left].oprnd.labelno,
+                        false, keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
+    gen2(lastnode, buildinst(adrp, true, false), tempregkey, labelkey);
+    structkey := settemp(len,
+                         label_offset_oprnd(tempreg, keytable[labelkey].oprnd.labelno,
+                                              keytable[labelkey].oprnd.labeloffset));
     {drag short sets into a register}
+
     if len <= long then
       begin
+      lock(tempregkey);
       settargetorreg;
-      lock(key);
-      tempreg := getreg;
-      tempregkey := settemp(len, reg_oprnd(tempreg));
-      labelkey := settemp(long,labeltarget_oprnd(keytable[left].oprnd.labelno,
-                          false, keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
-      gen2(lastnode, buildinst(adrp, true, false), tempregkey, labelkey);
-      structkey := settemp(len,
-                           label_offset_oprnd(tempreg, keytable[labelkey].oprnd.labelno,
-                                              keytable[labelkey].oprnd.labeloffset));
+      unlock(tempregkey);
       genldr(lastnode, len, false, key, structkey);
-      unlock(key);
-      settarget := key;
       end
     else
       begin
-      setkeyvalue(left);
-      settarget := target; {???? taken from mc68000}
+      setkeyvalue(target);
+      settarget := target;
       end;
+   settarget := key;
 {
     if keytable[left].packedaccess then
       ??
