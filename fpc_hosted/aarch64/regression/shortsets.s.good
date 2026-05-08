@@ -379,64 +379,64 @@ _p_caseerr:
 	add	x29,sp,xzr
 # Line: 17, Stmt: 1
 	adrp	x15,.L32766+40
-	adrp	x13,.L32765+24
-	ldrb	w14,[x13,:lo12:.L32765+24]
-	adrp	x13,.L32766+36
-	ldrb	w11,[x13,:lo12:.L32766+36]
+	adrp	x14,.L32765+24
+	ldrb	w13,[x14,:lo12:.L32765+24]
+	adrp	x14,.L32766+36
+	ldrb	w11,[x14,:lo12:.L32766+36]
 	mov	x12,1
 	lsl	x12,x12,x11
-	orr	x14,x14,x12
-	str	x14,[x15,:lo12:.L32766+40]
+	orr	x13,x13,x12
+	str	x13,[x15,:lo12:.L32766+40]
 	adrp	x15,.L32766+48
-	adrp	x13,.L32765+32
-	ldrb	w14,[x13,:lo12:.L32765+32]
-	adrp	x13,.L32766+37
-	ldrb	w11,[x13,:lo12:.L32766+37]
+	adrp	x14,.L32765+32
+	ldrb	w13,[x14,:lo12:.L32765+32]
+	adrp	x14,.L32766+37
+	ldrb	w11,[x14,:lo12:.L32766+37]
 .L32764:
 	cmp	w11,9
 	b.hi	.L32763
 	mov	x12,1
 	lsl	x12,x12,x11
-	orr	x14,x14,x12
+	orr	x13,x13,x12
 	add	w11,w11,1
 	b	.L32764
 .L32763:
-	str	x14,[x15,:lo12:.L32766+48]
+	str	x13,[x15,:lo12:.L32766+48]
 	adrp	x15,.L32766+32
 	mov	x0,3
 	bl	.P14  // func
-	adrp	x14,.L32765+64
-	ldrb	w15,[x14,:lo12:.L32765+64]
-	adrp	x14,.L32766+34
-	ldrb	w12,[x14,:lo12:.L32766+34]
+	adrp	x15,.L32765+64
+	ldrb	w14,[x15,:lo12:.L32765+64]
+	adrp	x15,.L32766+34
+	ldrb	w12,[x15,:lo12:.L32766+34]
 	mov	x13,1
 	lsl	w13,w13,w12
-	orr	w15,w15,w13
+	orr	w14,w14,w13
 	adrp	x13,.L32766+35
 	ldrb	w11,[x13,:lo12:.L32766+35]
 	mov	x12,1
 	lsl	w12,w12,w11
-	orr	w15,w15,w12
+	orr	w14,w14,w12
 	mov	x12,1
 	lsl	w12,w12,w0
-	orr	w15,w15,w12
+	orr	w14,w14,w12
 	adrp	x12,.L32766+32
-	strb	w15,[x12,:lo12:.L32766+32]
-	adrp	x15,.L32766+33
-	adrp	x11,.L32765+72
-	ldrb	w12,[x11,:lo12:.L32765+72]
-	ldrb	w10,[x14,:lo12:.L32766+34]
+	strb	w14,[x12,:lo12:.L32766+32]
+	adrp	x14,.L32766+33
+	adrp	x12,.L32765+72
+	ldrb	w11,[x12,:lo12:.L32765+72]
+	ldrb	w10,[x15,:lo12:.L32766+34]
 	ldrb	w13,[x13,:lo12:.L32766+35]
 .L32762:
 	cmp	w10,w13
 	b.hi	.L32761
-	mov	x11,1
-	lsl	w11,w11,w10
-	orr	w12,w12,w11
+	mov	x12,1
+	lsl	w12,w12,w10
+	orr	w11,w11,w12
 	add	w10,w10,1
 	b	.L32762
 .L32761:
-	strb	w12,[x15,:lo12:.L32766+33]
+	strb	w11,[x14,:lo12:.L32766+33]
 .L38:
 	ldp	x30,x29,[sp],16
 	ret
