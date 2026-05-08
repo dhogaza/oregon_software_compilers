@@ -363,7 +363,7 @@ const
   stringalign = 2; {alignment for a string}
 
   max_bitfield = 64; {max size of a bitfield (C)}
-  unsignedprefered = false; {prefer to unpack unsigned fields}
+  unsignedprefered = true; {prefer to unpack unsigned fields}
   freemodwithdiv = true; {true if some flavor of div returns a remainder}
 
 { Virtual memory sizing constants }
