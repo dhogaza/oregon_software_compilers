@@ -1,12 +1,19 @@
 -- random stuff
-figure out why main blocksize is so weird (historical P2 shit)
 
+  -- one day hack on walk to get rid of createfalse/true on aarch64 and use
+     cset instead.  Speed improvement is significant due to removal of the
+     cmp/branch paradigm.
 ---
 
 *** current bugs
 
-  -- pascallabelx needs to adjust stack by the amount computed in putblock, after
-     the block has been compiled.  Magic operand value? -1?
+  -- sets with > 8 elements and < 17 elements are allocated 64 bits.  No 16 or 32
+     bits probably because of copying allocation stuff from mc68000 mda. More curious
+     than crucial.
+
+  -- since we're handling sets in registers we can pass short ones as regparams,
+     function return register, etc.  And it would be the easiest to implement doing
+     so as register pairs for sets up to 128 bits (compared to structs).
 
   -- regenoprnd stuff all messed up? adrp and makeaddressable not only for global level?
 
