@@ -236,9 +236,9 @@ function alignmentof(f: entryptr; {form to check}
  alignmentrange;
 
 { Compute the alignment requirement of a type.  This function is needed
-  strictly because the alignment of a subrange is kluged to the parent
+  strictly because the alignment of a subrange is kludged to the parent
   type to give better code generation on certain types of machines.  This
-  kluge causes trouble with packed types, so is deleted if the result
+  kludge causes trouble with packed types, so is deleted if the result
   is to be used in a packed structure.
 }
 
@@ -434,7 +434,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
     paramptr^.allocated := true;
     if (paramptr^.namekind in [varparam, varconfparam, confparam]) or
        (paramptr^.namekind = param) and ((length > maxparambytes) or
-       (typeptr^.typ in [sets, fields, arrays, strings])) and
+       (typeptr^.typ in [fields, arrays, strings])) and
        not (typeptr^.typ in [reals, doubles]) then
       begin
       paramptr^.length := ptrsize;
@@ -459,13 +459,13 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.offset := maxlong - paramptr^.regid;
       regparams.regparams := regparams.regparams + 1;
 
-      { If we allow structured types and sets to be left in registers, then
+      { If we allow structured types to be left in registers, then
         the code generator must be prepared to access register bits when they
         are operands to indx, aindx, etc.  Eventually we'll do so for structs,
         at least, as that's part of the calling standard.  This code doesn't do
         it correctly anyway though.
 
-      if (typeptr^.typ in [sets, fields, arrays, strings, conformantarrays]) and
+      if (typeptr^.typ in [fields, arrays, strings, conformantarrays]) and
          not paramptr^.refparam  then
         paramptr^.registercandidate := false;
       }
@@ -524,7 +524,8 @@ procedure allocfunction(procptr: entryptr;
     procptr^.allocated := true;
     {if not (typeptr^.typ in [reals, doubles]) and
        procptr^,length >= 2 * ptrsize) then}
-    if (typeptr^.typ in [sets, fields, arrays, strings, conformantarrays]) then
+    if (typeptr^.typ = sets) and (typeptr^.size > ptrsize) or
+        (typeptr^.typ in [fields, arrays, strings, conformantarrays]) then
       begin
       procptr^.varalloc := regparam;
       procptr^.regid := 8;

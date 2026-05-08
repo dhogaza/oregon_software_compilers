@@ -13,7 +13,7 @@
 	mov	x28,97
 	mov	x27,x1
 .L3:
-	cmp	x27,x2
+	cmp	w27,w2
 	b.gt	.L4
 .L5:
 	sub	w15,w27,w1
@@ -47,7 +47,7 @@
 	ldr	x0,[x29,-24]
 	ldr	x1,[x29,-16]
 	ldr	x2,[x29,-32]
-	cmp	x28,x2
+	cmp	w28,w2
 	b.gt	.L8
 .L9:
 	sub	w15,w28,w1
@@ -84,7 +84,7 @@
 	ldr	x0,[x29,-24]
 	ldr	x1,[x29,-16]
 	ldr	x2,[x29,-32]
-	cmp	x28,x2
+	cmp	w28,w2
 	b.gt	.L12
 .L13:
 	sub	w15,w28,w1

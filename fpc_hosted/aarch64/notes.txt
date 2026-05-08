@@ -1,12 +1,23 @@
 -- random stuff
-figure out why main blocksize is so weird (historical P2 shit)
 
+  -- one day hack on walk to get rid of createfalse/true on aarch64 and use
+     cset instead.  Speed improvement is significant due to removal of the
+     cmp/branch paradigm.
+
+  -- maybe index shouldn't materialize globaladdresses that can be regened
+     immediately.  Can we set to nomode then just regen adrp on the
+     spot?  Does this generate better or worse code?
 ---
 
 *** current bugs
 
-  -- pascallabelx needs to adjust stack by the amount computed in putblock, after
-     the block has been compiled.  Magic operand value? -1?
+  -- sets with > 8 elements and < 17 elements are allocated 64 bits.  No 16 or 32
+     bits probably because of copying allocation stuff from mc68000 mda. More curious
+     than crucial.
+
+  -- since we're handling sets in registers we can pass short ones as regparams,
+     function return register, etc.  And it would be the easiest to implement doing
+     so as register pairs for sets up to 128 bits (compared to structs).
 
   -- regenoprnd stuff all messed up? adrp and makeaddressable not only for global level?
 
@@ -18,18 +29,10 @@ figure out why main blocksize is so weird (historical P2 shit)
 
 --- current work
 
-  -- add "comment" output node for well just that.
+     -- sets test for case where short set variables are assigned regtemps due
+        to frequent use.  Might generate some lousy code with extra moves?
 
-
-  -- implement an abstract "index" operand with a signed offset.
-
-     Next step do register save/restore using abstract_offset, and finalize stack
-     offsets based on this.
-
-     Then track down other load/store usage.
-
-     immediate materialization uses ip0, long index materialization ip1 for now.
-
+     -- do for simplicity and clarity 
      break handle_offset9_oprnd into two again?  The idea is that we want a general 
      handle_abstract_offset_oprnd procedure that will handle neg offsets as signed_offset
      and positive as unsigned_offset.
@@ -47,33 +50,21 @@ figure out why main blocksize is so weird (historical P2 shit)
      thoroughly before increasing use of callee-saved because it hammers register
      spilling, operand regeneration without using saved registers, etc.
 
-     Does this make any sense at all?
-
-  -- out-of-range index value.
-
-     stack temps first.
-
-     Range is up to 32760 bytes for unsigned offset.
-
-     For any offset <= 24 bits:
-
-     So we can't do this 12 bit trickery.  Check FPC and GCC.  Yes we can.   15 bits (12 plus log2(8)=3)
-     from the index offset.  9 bits (giving us 24) multiplied by 8 the imm12 << 12 to form the index base
-     added to sp will cover the same 24 bit addressing we cover now.
-
-     For indexing of other sizes we get fewer bits from the index and more bits from the offset
-     constant, which of course does not happen on the stack.  We better make sure it does not happen!
-
     [reg, reg] take advantage of shifting when possible, i.e. load 16 bit
     constant then shift a bit to the left (by the length of the data being
     referenced?) to save an instruction.
 
 -- next priorities:
 
-Sets:
+0.0 Sets:
 
 "in" operator.   Load 64-bit set snipped with scalar value div 8
 (some bit shift?) into Xreg. Shift Xreg by scalar value mod 8
+
+0.1 Alignment and think about unaligned addressing which appears to work 
+    except another thread can walk on you in between two parts being read
+    or written if you cross a long boundary.  Investigate.  Track basic
+    alignment in code generator much as "knowneven" in the mc68K codegen.
 
 0.2 improve vs pushfinal which no longer exists (simpleinvar), need
     to add a finalop to replace pushfinal?  This is used to designate
@@ -85,10 +76,11 @@ Sets:
 
     align variables, too.
 
+    unless in packed structure of course.
+
     This makes using 2, 4, 8, 16 byte moves possible for structs.
 
 0.4 fix up lastlabel/newlabel/definelastlabel bullshit
-
 
 2. improve for loops/fix
 
@@ -101,7 +93,8 @@ Sets:
    regtemp by improve?  Or is this really a viable
    idea if param 0 is being used?
 7. long address index values, consider alignment
-8. REVERSE STACK PARAM PUSHES <- No? NO
+8. REVERSE STACK PARAM PUSHES <- No? NO ABSOLUTNELY KNOW UNLESS WE ADD VARIBALE
+   LENGTH PARAMS ALA C WHICH IS SILLY.
 9. lots of sign extension and the like issues?
 10.targeting logic sucks on this machine, too many instances
    of ld xn, mem/op xm,xn/mov xn,xm/ when xm is no longer useful.
@@ -110,7 +103,6 @@ Sets:
     very low on the priority list.
 
 0. change registers to a enum to make sets of them more reasonable?
-
 
 -- more general
 

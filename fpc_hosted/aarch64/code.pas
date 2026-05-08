@@ -357,6 +357,21 @@ begin {bits}
   bits := b;
 end {bits};
 
+function alignment(i: integer): alignmentrange;
+
+  var a: alignmentrange;
+
+  begin
+    a := 1;
+    while (a < long) and not odd(i)  do
+      begin
+      a := a * 2;
+      i := i div 2;
+      end;
+    alignment := a;
+  end;
+
+
 { Weird bitmask patters for aarch64 are handled by the following
   two functions shamelessly lifted from Free Pascal.  
 }
@@ -1391,7 +1406,7 @@ procedure setcommonkey;
         joinreg2 := false;
         signed := true;
         signlimit := 0;
-        knownword := false;
+        alignment := byte;
         oprnd := nomode_oprnd;
         regenoprnd := nomode_oprnd;
         end
@@ -3043,7 +3058,7 @@ procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
           if (inst.inst = sub) and
              (oprnds[1].mode = register) and (oprnds[1].reg = sp) and
              (oprnds[2].mode = register) and (oprnds[2].reg = sl) and
-             (oprnds[3].imm12_value = -1) then
+             (oprnds[3].imm12_value = undefinedaddr) then
             begin
             after := firstnode;
             makeoffsetptr(after, -amount - savedregspace, oprnds[2].reg, sp);
@@ -4095,7 +4110,7 @@ procedure cmpintptrx(signedbr, unsignedbr: insts {branch on result});
 
     loadreg(left, right);
     loadreg(right, left);
-    gen2(lastnode, buildinst(cmp, len = 4, false), left, right);
+    gen2(lastnode, buildinst(cmp, len = long, false), left, right);
     setbr(brinst, nomode_oprnd);
   end {cmpintptrx} ;
 
@@ -4441,6 +4456,255 @@ procedure dostructx;
 begin {dostructx}
   setvalue(labeltarget_oprnd(rodatalabel, false, pseudoinst.oprnds[1]));
 end {dostructx} ;
+
+{ set operations }
+
+procedure dosetx;
+
+{ Define the set base for a set insertion.  This is the constant part of
+  a set constructor, which may be followed by zero or more setinsert
+  pseudo-operations.  Sets "settarget" to the desired target of the
+  set insertion operators.  Some special things:  If "settarget" has
+  "packedaccess" set.
+}
+
+  var structkey, labelkey, tempregkey: keyindex;
+  tempreg: regindex;
+
+  begin {dosetx}
+    firstsetinsert := true;
+    address(left);
+
+    {kludge for nil until we get smart short set literals}
+
+    if (pseudobuff.len < len) then
+      begin
+      len := pseudobuff.len;
+      keytable[left].len := len; {naughty goes away with smart nil}
+      end;
+    
+    {drag short sets into a register}
+    if len <= long then
+      begin
+      settargetorreg;
+      lock(key);
+      tempreg := getreg;
+      tempregkey := settemp(len, reg_oprnd(tempreg));
+      labelkey := settemp(long,labeltarget_oprnd(keytable[left].oprnd.labelno,
+                          false, keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
+      gen2(lastnode, buildinst(adrp, true, false), tempregkey, labelkey);
+      structkey := settemp(len,
+                           label_offset_oprnd(tempreg, keytable[labelkey].oprnd.labelno,
+                                              keytable[labelkey].oprnd.labeloffset));
+      genldr(lastnode, len, false, key, structkey);
+      unlock(key);
+      settarget := key;
+      end
+    else
+      begin
+      setkeyvalue(left);
+      settarget := target; {???? taken from mc68000}
+      end;
+{
+    if keytable[left].packedaccess then
+      ??
+}
+  end {dosetx} ;
+
+procedure movsetx;
+
+begin {movsetx}
+  addressboth;
+  if not equivaddr(left, right) then
+    if len <= long then
+      gensimplemove(lastnode, right, left)
+    else;
+end {movsetx};
+
+procedure setarithmetic(inst: insts);
+
+{ Aarch64 has a rich set of logical operators which makes implementation
+  of these relatively simple.
+}
+
+begin {setarithmetic}
+  if len <= long then
+    integerarithmetic(inst)
+  else;
+end {setarithmetic};
+
+{ ignoring range checking for now for setinsertion and inset, both are
+  coded defensively, or so I tell myself
+}
+
+procedure setinsertx;
+
+{ Insert an element (or range) into a set.  The constant part of any
+  such insertion is set up by "dosetx".  This attempts to do the
+  insertion in place if possible.
+
+  "Target" will be the constant part of the set constructor, oprnds[1]
+  is the element to insert or the first element if oprnds[2] is non-
+  zero.  "Settarget" is assumed to be the target of the whole operation.
+
+}
+
+
+  var
+    temp: integer; { holds refcount temporarily }
+    bitkey, insertkey, startkey, limitkey: keyindex; {Result of accessbit}
+    setlen: addressrange;
+    looplabel, skiplabel: labelrange;
+
+  begin {setinsertx}
+    address(left);
+    setlen := keytable[settarget].len;
+    if setlen <= long then
+      begin
+      lock(left);
+      makeaddressable(settarget);
+      lock(settarget);
+      bitkey := settemp(long, reg_oprnd(getreg));
+      lock(bitkey);
+      if keytable[left].oprnd.mode = register then
+        insertkey := left
+      else
+        begin
+        insertkey := settemp(long, reg_oprnd(getreg));
+        gensimplemove(lastnode, left, insertkey);
+        end;
+      { range insert?}
+      if right <> 0 then 
+        begin
+        lock(insertkey);
+        address(right);
+        if keytable[right].oprnd.mode = intconst then
+          begin
+          handle_intconst12(lastnode, right);
+          limitkey := right;
+          end
+        else if keytable[right].oprnd.mode = register then
+          limitkey := right
+        else
+          begin
+          limitkey := settemp(long, reg_oprnd(getreg));
+          gensimplemove(lastnode, right, limitkey);
+          end;
+        definelastlabel;
+        gen2(lastnode, buildinst(cmp, keytable[left].len = long, false),
+             insertkey, limitkey);
+        genbr(bhi, lastlabel);
+        end;
+      gensimplemove(lastnode, settemp(long, intconst_oprnd(1)), bitkey);
+      gen3(lastnode, buildinst(lslinst, setlen = long, false), bitkey, bitkey, insertkey);
+      gen3(lastnode, buildinst(orinst, setlen = long, false), settarget, settarget, bitkey);
+      if (right <> 0) then
+        begin
+        gen3(lastnode, buildinst(add, keytable[left].len = long, false), insertkey, insertkey,
+             settemp(keytable[left].len, imm12_oprnd(1, false)));
+        genbr(b, lastlabel + 1);
+        definelastlabel;
+        unlock(insertkey);
+        end; 
+      unlock(bitkey);
+      unlock(settarget);
+      unlock(left); 
+      end
+    else;
+{
+    with keytable[target] do
+      if firstsetinsert then
+        if (settarget <> 0) and not equivaccess(settarget, left) and
+           not equivaccess(settarget, right) then {We can do it in place}
+          begin
+          genblockmove(target, settarget, min(len, word));
+          adjustregcount(target, - keytable[target].refcount);
+          keytable[target].oprnd := keytable[settarget].oprnd;
+          adjustregcount(target, keytable[target].refcount);
+          target := settarget;
+          end
+        else
+          begin {do it in a temporary location}
+          with keytable[target] do
+            if regsaved then { kill off this temp first }
+              begin
+              keytable[properreg].refcount := 0;
+              regsaved := false;
+              end;
+
+          newtemp(len);
+          keytable[stackcounter].tempflag := true;
+          dereference(target);
+          genblockmove(target, stackcounter, min(len, word));
+          rereference(target);
+          keytable[target].oprnd := keytable[stackcounter].oprnd;
+          keytable[target].properreg := stackcounter;
+          keytable[target].regsaved := true;
+          keytable[target].knowneven := true;
+          keytable[target].regvalid := true;
+          bumptempcount(target, keytable[target].refcount);
+          end;
+
+    firstsetinsert := false;
+
+    if right <> 0 then
+      begin
+      unpack(left, word);
+      lock(left);
+      settempdreg(keytable[left].len, getdreg);
+      unlock(left);
+      gensimplemove(left, tempkey);
+}
+{      adjustregcount(left, - keytable[left].refcount);}
+{
+      keytable[tempkey].len := keytable[left].len;
+      left := tempkey;
+}
+{      keytable[left].oprnd := keytable[tempkey].oprnd;}
+{      rereference(left);}
+{      unpack(right, byte);
+
+      lock(right);
+      genbr(bra, lastlabel - 1);
+      definelastlabel;
+      end
+    else
+      begin
+      lock(target);
+      unpackshrink(left, word);
+      unlock(target);
+      end;
+
+    bitkey := accessbit(target, false);
+
+    fix_set_addressing(target, bitkey);
+
+    gendouble(bset, left, bitkey);
+
+    if right <> 0 then
+      begin
+      settempimmediate(keytable[left].len, 1);
+      gendouble(add, tempkey, left);
+      definelastlabel;
+      gendouble(cmp, right, left);
+      genbr(ble, lastlabel + 2);
+      unlock(right);
+      end;
+}
+  end {setinsertx} ;
+
+  procedure insetx;
+
+  begin {insetx}
+    addressboth;
+    loadreg(left, right);
+    loadreg(right, left);
+    gen3(lastnode, buildinst(lsrinst, len = long, false), right, right, left);
+    gen3(lastnode, buildinst(ands, len = long, false), right, right,
+         settemp(long, imm12_oprnd(1, false)));
+    setbr(bne, nomode_oprnd);
+  end {insertx};
+
 
 { DRB regtemp }
 procedure blockcodex;
@@ -5561,7 +5825,7 @@ procedure pascallabelx;
       jumpx(pseudoinst.oprnds[1]);
       definelabel(pseudoinst.oprnds[1] - 1);
       { magic value to be fixed up in finalizestackoffsets }
-      stackoffsetkey := settemp(long, imm12_oprnd(-1, false));
+      stackoffsetkey := settemp(long, imm12_oprnd(undefinedaddr, false));
       spkey := settemp(long, reg_oprnd(sp));
       slkey := settemp(long, reg_oprnd(sl));
       fpkey := settemp(long, reg_oprnd(fp));
@@ -5731,9 +5995,7 @@ procedure codeone;
       caseelt: caseeltx;
       caseerr: caseerrx;
       dostruct: dostructx;
-{
       doset: dosetx;
-}
       dovar: dovarx(true);
       dounsvar, doptrvar, dofptrvar: dovarx(false);
 {
@@ -5765,10 +6027,8 @@ procedure codeone;
       jointemp: jointempx;
 }
       addr: addrx;
-{
       setinsert: setinsertx;
       inset: insetx;
-}
       movint, returnint, movptr, returnptr, returnfptr: movintptrx;
       movlitint, movlitptr: movlitintx;
 {
@@ -5776,7 +6036,7 @@ procedure codeone;
       movlitreal: movlitrealx;
 }
       movstruct, returnstruct: movemultiple;
-      movset: movemultiple;
+      movset: movsetx;
 {
       movstr: movstrx;
       movcstruct: movcstructx;
@@ -5807,11 +6067,11 @@ procedure codeone;
       mulreal: realarithmeticx(true, libfmult, libdmult, fmul);
       divreal: realarithmeticx(false, libfdiv, libddiv, fdiv);
       negreal: negrealx;
-      addset: setarithmetic(orinst, false);
-      subset: setarithmetic(andinst, true);
-      mulset: setarithmetic(andinst, false);
-      divset: setarithmetic(eor, false);
 }
+      addset: setarithmetic(orinst);
+      subset: setarithmetic(bic);
+      mulset: setarithmetic(andinst);
+      divset: setarithmetic(eor);
       stacktarget: stacktargetx;
       makeroom: makeroomx;
       callroutine: callroutinex(true);

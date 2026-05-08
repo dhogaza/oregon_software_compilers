@@ -278,12 +278,11 @@ procedure writeint(v: integer);
     until bufptr = 0;
   end; {writeint}
 
-
-procedure writehex(v: unsigned {value to write} );
-
+procedure writehex(v: unsigned; n: unsigned {nibbles to write} );
+  
 { Write an unsigned value to the macro file as a hexadecimal number.
   16 bit values only.
-}
+} 
   const
     maxhex = 8;
 
@@ -291,19 +290,20 @@ procedure writehex(v: unsigned {value to write} );
     hexbuf: packed array [1..maxhex] of char;
     i: 1..maxhex;    { induction var for filling hexbuf }
     j: 0..15;        { numeric value of one hex digit }
-
+  
   begin
     write(macfile, '0x');
-    for i := maxhex downto 1 do begin
+    for i := n downto 1 do begin
       j  := v mod 16;
       v := v div 16;
       if j <= 9 then
         hexbuf[i] := chr(ord('0') + j)
       else hexbuf[i] := chr(ord('A') + j - 10);
       end; { for i }
-    write(MacFile, hexbuf);
-    column := column + 4;
-  end {writehex} ;
+    for i := 1 to n do
+      write(MacFile, hexbuf[i]);
+    column := column + n + 2;
+  end {writehex} ; 
 
 procedure copysfile;
 
@@ -325,7 +325,7 @@ procedure copysfile;
   procedure write_constants(i: integer);
 
     const
-      wordsperline = 4;  { number of constant structure values (hex) per line }
+      bytesperline = 12;  { number of constant structure values (hex) per line }
 
     var
       k, l: integer;
@@ -334,7 +334,8 @@ procedure copysfile;
     begin {write_constants}
     while i > 0 do
       begin
-      write(macfile, chr(9),'.word', chr(9));
+
+      write(macfile, chr(9),'.byte', chr(9));
 
       k := 1;
       repeat
@@ -342,15 +343,15 @@ procedure copysfile;
           write(macfile, ',');
         v := 0;
         m := 1;
-        while (m and maxaddr <> 0) and (i > 0) do
+        while (m and {maxaddr} $FF <> 0) and (i > 0) do
         begin
           v := v + getstringfile * m;
           m := m * 256;
           i := i - 1;
         end;
-        writehex(v);
+        writehex(v, 2);
         k := k + 1;
-      until (k > wordsperline) or (i = 0);
+      until (k > bytesperline) or (i = 0);
       writeln(macfile);
       end;
     end; {write_constants}
@@ -467,7 +468,9 @@ begin
     andinst: write(macfile, 'and');
     ands: write(macfile, 'ands');
     asrinst: write(macfile, 'asr');
+    bic: write(macfile, 'bic');
     b: write(macfile, 'b');
+    {change these to b+cond_oprnd}
     bcc: write(macfile, 'b.cc');
     bcs: write(macfile, 'b.cs');
     beq: write(macfile, 'b.eq');

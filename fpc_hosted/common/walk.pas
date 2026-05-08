@@ -1751,6 +1751,8 @@ with target = 0.
 
 
       begin
+        if targetmachine = aarch64 then
+          unnestparams(l);
         unnestsets(l);
         walknode(r, rkey, 0, true);
         mapkey;
