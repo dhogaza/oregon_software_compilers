@@ -4110,7 +4110,7 @@ procedure cmpintptrx(signedbr, unsignedbr: insts {branch on result});
 
     loadreg(left, right);
     loadreg(right, left);
-    gen2(lastnode, buildinst(cmp, len = 4, false), left, right);
+    gen2(lastnode, buildinst(cmp, len = long, false), left, right);
     setbr(brinst, nomode_oprnd);
   end {cmpintptrx} ;
 
@@ -4654,6 +4654,19 @@ procedure setinsertx;
       end;
 }
   end {setinsertx} ;
+
+  procedure insetx;
+
+  begin {insetx}
+    addressboth;
+    loadreg(left, right);
+    loadreg(right, left);
+    gen3(lastnode, buildinst(lsrinst, len = long, false), right, right, left);
+    gen3(lastnode, buildinst(ands, len = long, false), right, right,
+         settemp(long, imm12_oprnd(1, false)));
+    setbr(bne, nomode_oprnd);
+  end {insertx};
+
 
 { DRB regtemp }
 procedure blockcodex;
@@ -5977,9 +5990,7 @@ procedure codeone;
 }
       addr: addrx;
       setinsert: setinsertx;
-{
       inset: insetx;
-}
       movint, returnint, movptr, returnptr, returnfptr: movintptrx;
       movlitint, movlitptr: movlitintx;
 {

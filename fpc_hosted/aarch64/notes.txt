@@ -3,9 +3,16 @@
   -- one day hack on walk to get rid of createfalse/true on aarch64 and use
      cset instead.  Speed improvement is significant due to removal of the
      cmp/branch paradigm.
+
+  -- maybe index shouldn't materialize globaladdresses that can be regened
+     immediately.  Can we set to nomode then just regen adrp on the
+     spot?  Does this generate better or worse code?
 ---
 
 *** current bugs
+
+  -- bldset walk of functions FOLLOWS the putting out of the target dovar for
+     doset or whatever it is.  For globals leaves a hanging adrp instruction.
 
   -- sets with > 8 elements and < 17 elements are allocated 64 bits.  No 16 or 32
      bits probably because of copying allocation stuff from mc68000 mda. More curious
