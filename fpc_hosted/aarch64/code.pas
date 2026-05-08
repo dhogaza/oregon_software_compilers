@@ -4528,6 +4528,9 @@ procedure setarithmetic(inst: insts);
 }
 
 begin {setarithmetic}
+  if len <= long then
+    integerarithmetic(inst)
+  else;
 end {setarithmetic};
 
 { ignoring range checking for now for setinsertion and inset, both are
@@ -6066,7 +6069,7 @@ procedure codeone;
       negreal: negrealx;
 }
       addset: setarithmetic(orinst);
-      subset: setarithmetic(andinst);
+      subset: setarithmetic(bic);
       mulset: setarithmetic(andinst);
       divset: setarithmetic(eor);
       stacktarget: stacktargetx;

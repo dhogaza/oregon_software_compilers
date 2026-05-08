@@ -468,7 +468,9 @@ begin
     andinst: write(macfile, 'and');
     ands: write(macfile, 'ands');
     asrinst: write(macfile, 'asr');
+    bic: write(macfile, 'bic');
     b: write(macfile, 'b');
+    {change these to b+cond_oprnd}
     bcc: write(macfile, 'b.cc');
     bcs: write(macfile, 'b.cs');
     beq: write(macfile, 'b.eq');

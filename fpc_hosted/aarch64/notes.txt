@@ -11,9 +11,6 @@
 
 *** current bugs
 
-  -- bldset walk of functions FOLLOWS the putting out of the target dovar for
-     doset or whatever it is.  For globals leaves a hanging adrp instruction.
-
   -- sets with > 8 elements and < 17 elements are allocated 64 bits.  No 16 or 32
      bits probably because of copying allocation stuff from mc68000 mda. More curious
      than crucial.
@@ -32,14 +29,8 @@
 
 --- current work
 
-     -- done?
-
-     Next step do register save/restore using abstract_offset, and finalize stack
-     offsets based on this.
-
-     Then track down other load/store usage.
-
-     immediate materialization uses ip0, long index materialization ip1 for now.
+     -- sets test for case where short set variables are assigned regtemps due
+        to frequent use.  Might generate some lousy code with extra moves?
 
      -- do for simplicity and clarity 
      break handle_offset9_oprnd into two again?  The idea is that we want a general 
