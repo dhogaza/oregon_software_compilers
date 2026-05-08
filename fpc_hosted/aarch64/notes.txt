@@ -6,7 +6,8 @@
 
   -- maybe index shouldn't materialize globaladdresses that can be regened
      immediately.  Can we set to nomode then just regen adrp on the
-     spot?  Does this generate better or worse code?
+     spot?  Does this generate better or worse code?  adrp optimiztion can
+     be optimized by peephole regstuffing.
 ---
 
 *** current bugs
@@ -31,6 +32,8 @@
      and when that works unroll four operations which means that all current sets
      which are limited to 256 elements will not be implemented by a loop.  Set up
      for implementing the type:[set const] extension.
+
+     need to implement bounds checking on sets!
 
      Make special empty set integer constant and make movsetx deal with it rather
      than generate it in the string file.  This will be needed when type:[set const]
