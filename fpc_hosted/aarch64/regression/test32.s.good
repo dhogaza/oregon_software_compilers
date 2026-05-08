@@ -360,10 +360,10 @@ _p_caseerr:
 	add	x29,sp,xzr
 # Line: 9, Stmt: 1
 # Line: 10, Stmt: 2
-	cmp	x0,x1
+	cmp	w0,w1
 	cset	w15,eq
 	strb	w15,[x29,16]
-	ldrsb	w0,[x29,16]
+	ldrb	w0,[x29,16]
 .L37:
 	ldp	x30,x29,[sp],32
 	ret
@@ -377,10 +377,10 @@ _p_caseerr:
 	add	x29,sp,xzr
 # Line: 15, Stmt: 1
 # Line: 16, Stmt: 2
-	cmp	x0,x1
+	cmp	w0,w1
 	cset	w15,ne
 	strb	w15,[x29,16]
-	ldrsb	w0,[x29,16]
+	ldrb	w0,[x29,16]
 .L38:
 	ldp	x30,x29,[sp],32
 	ret
@@ -394,10 +394,10 @@ _p_caseerr:
 	add	x29,sp,xzr
 # Line: 21, Stmt: 1
 # Line: 22, Stmt: 2
-	cmp	x0,x1
+	cmp	w0,w1
 	cset	w15,lt
 	strb	w15,[x29,16]
-	ldrsb	w0,[x29,16]
+	ldrb	w0,[x29,16]
 .L39:
 	ldp	x30,x29,[sp],32
 	ret
@@ -411,10 +411,10 @@ _p_caseerr:
 	add	x29,sp,xzr
 # Line: 27, Stmt: 1
 # Line: 28, Stmt: 2
-	cmp	x0,x1
+	cmp	w0,w1
 	cset	w15,gt
 	strb	w15,[x29,16]
-	ldrsb	w0,[x29,16]
+	ldrb	w0,[x29,16]
 .L40:
 	ldp	x30,x29,[sp],32
 	ret
@@ -428,10 +428,10 @@ _p_caseerr:
 	add	x29,sp,xzr
 # Line: 33, Stmt: 1
 # Line: 34, Stmt: 2
-	cmp	x0,x1
+	cmp	w0,w1
 	cset	w15,le
 	strb	w15,[x29,16]
-	ldrsb	w0,[x29,16]
+	ldrb	w0,[x29,16]
 .L41:
 	ldp	x30,x29,[sp],32
 	ret
@@ -445,10 +445,10 @@ _p_caseerr:
 	add	x29,sp,xzr
 # Line: 39, Stmt: 1
 # Line: 40, Stmt: 2
-	cmp	x0,x1
+	cmp	w0,w1
 	cset	w15,ge
 	strb	w15,[x29,16]
-	ldrsb	w0,[x29,16]
+	ldrb	w0,[x29,16]
 .L42:
 	ldp	x30,x29,[sp],32
 	ret

@@ -411,7 +411,7 @@ _p_caseerr:
 	sub	x17,x13,144
 	ldrsw	x11,[x17,-256]
 	str	x11,[x29,-64]
-	cmp	x11,x12
+	cmp	w11,w12
 	b.eq	.L49
 .L50:
 	add	w27,w27,1

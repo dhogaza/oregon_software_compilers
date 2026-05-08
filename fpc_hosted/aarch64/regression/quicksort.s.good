@@ -426,15 +426,15 @@ _p_caseerr:
 	ldr	x1,[x29,-32]
 	ldr	x14,[x29,-56]
 	ldr	x15,[x29,-48]
-	cmp	x26,x25
+	cmp	w26,w25
 	b.gt	.L46
 .L47:
 .L44:
-	cmp	x26,x1
+	cmp	w26,w1
 	b.gt	.L48
 	add	x13,x14,x26, sxtw 2
 	ldrsw	x13,[x13,-4]
-	cmp	x13,x27
+	cmp	w13,w27
 	b.ge	.L48
 .L49:
 	add	w26,w26,1
@@ -442,16 +442,16 @@ _p_caseerr:
 .L48:
 .L43:
 	add	x13,x15,x25, sxtw 2
-	cmp	x25,x0
+	cmp	w25,w0
 	b.le	.L51
 	ldrsw	x12,[x13,-4]
-	cmp	x12,x27
+	cmp	w12,w27
 	b.lt	.L51
 .L52:
 	sub	w25,w25,1
 	b	.L43
 .L51:
-	cmp	x26,x25
+	cmp	w26,w25
 	b.ge	.L54
 .L55:
 	add	x12,x15,x26, sxtw 2
@@ -492,7 +492,7 @@ _p_caseerr:
 # Line: 85, Stmt: 2
 	str	x0,[x29,-24]
 	str	x1,[x29,-32]
-	cmp	x0,x1
+	cmp	w0,w1
 	b.ge	.L57
 .L58:
 	ldr	x15,[x29,-24]
@@ -597,7 +597,7 @@ main:
 	add	x12,x12,x13, sxtw 2
 	ldrsw	x11,[x11,36]
 	ldrsw	x12,[x12,32]
-	cmp	x11,x12
+	cmp	w11,w12
 	cset	w12,ge
 	strb	w12,[x15,:lo12:.L32766+36]
 	add	w12,w13,1
@@ -614,7 +614,7 @@ main:
 	mov	x2,19
 	bl	putstring
 	adrp	x15,.L32766+36
-	ldrsb	w0,[x15,:lo12:.L32766+36]
+	ldrb	w0,[x15,:lo12:.L32766+36]
 	bl	putboolln
 .L60:
 	ldp	x30,x29,[sp,32]
