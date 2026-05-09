@@ -457,8 +457,8 @@ _p_caseerr:
 .L41:
 	mov	x0,xzr
 	ldr	x15,[x29,-16]
-	lsr	w15,w15,w28
-	ands	w15,w15,1
+	lsr	w16,w15,w28
+	ands	w16,w16,1
 	b.eq	.L43
 	mov	x0,1
 .L43:
@@ -493,8 +493,8 @@ _p_caseerr:
 .L47:
 	mov	x0,xzr
 	ldr	x15,[x29,-16]
-	lsr	x15,x15,x28
-	ands	x15,x15,1
+	lsr	x16,x15,x28
+	ands	x16,x16,1
 	b.eq	.L49
 	mov	x0,1
 .L49:
