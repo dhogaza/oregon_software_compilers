@@ -375,7 +375,7 @@ _p_caseerr:
 	adrp	x15,.L32766
 	add	x15,x15,:lo12:.L32766
 	add	x15,x15,x25, sxtw 0
-	ldrsb	w15,[x15,32]
+	ldrb	w15,[x15,32]
 	cbz	w15,.L45
 .L46:
 	add	w26,w25,w25

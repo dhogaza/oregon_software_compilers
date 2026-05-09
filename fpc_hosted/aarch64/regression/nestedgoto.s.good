@@ -395,8 +395,6 @@ _p_caseerr:
 .L39:
 	ldp	x30,x29,[sp],16
 	ret
-	sub	sp,x28,-1
-	sub	sp,x28,-1
 	.text
 	.align 2
 #

@@ -582,7 +582,7 @@ main:
 	adrp	x15,.L32766+36
 	adrp	x14,.L32766+32
 .L61:
-	ldrsb	w13,[x15,:lo12:.L32766+36]
+	ldrb	w13,[x15,:lo12:.L32766+36]
 	cbz	w13,.L62
 	ldrsw	x13,[x14,:lo12:.L32766+32]
 	movz	x16,34464

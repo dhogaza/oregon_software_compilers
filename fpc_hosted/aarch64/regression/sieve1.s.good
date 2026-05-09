@@ -389,7 +389,7 @@ main:
 	adrp	x12,.L32766
 	add	x12,x12,:lo12:.L32766
 	add	x12,x12,x10, sxtw 0
-	ldrsb	w12,[x12,32]
+	ldrb	w12,[x12,32]
 	cbz	w12,.L45
 .L46:
 	add	w12,w10,w10
