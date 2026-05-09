@@ -380,7 +380,7 @@ _p_caseerr:
 # Line: 17, Stmt: 1
 	adrp	x15,.L32766+40
 	adrp	x14,.L32765+24
-	ldrb	w13,[x14,:lo12:.L32765+24]
+	ldr	x13,[x14,:lo12:.L32765+24]
 	adrp	x14,.L32766+36
 	ldrb	w11,[x14,:lo12:.L32766+36]
 	mov	x12,1
@@ -389,7 +389,7 @@ _p_caseerr:
 	str	x13,[x15,:lo12:.L32766+40]
 	adrp	x15,.L32766+48
 	adrp	x14,.L32765+32
-	ldrb	w13,[x14,:lo12:.L32765+32]
+	ldr	x13,[x14,:lo12:.L32765+32]
 	adrp	x14,.L32766+37
 	ldrb	w11,[x14,:lo12:.L32766+37]
 .L32764:
