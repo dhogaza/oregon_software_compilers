@@ -2265,6 +2265,7 @@ procedure changevalue(var key1: keyindex; {key to be changed}
       properreg := keytable[key2].properreg;
       properreg2 := keytable[key2].properreg2;
       packedaccess := keytable[key2].packedaccess;
+      signed := keytable[key2].signed;
       oprnd := keytable[key2].oprnd;
       bumptempcount(key1, refcount);
       adjustregcount(key1, refcount);
@@ -2925,8 +2926,7 @@ procedure loadreg(var k: keyindex; other: keyindex);
       begin
       lock(other);
       newkey := settemp(keytable[k].len, reg_oprnd(getreg));
-      gensimplemove(lastnode, settemp(keytable[k].len, keytable[k].oprnd),
-                    newkey);
+      gensimplemove(lastnode, k, newkey);
       unlock(other);
       changevalue(k, newkey);
       end;
