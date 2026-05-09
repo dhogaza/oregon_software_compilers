@@ -575,8 +575,8 @@ main:
 	bl	putstring
 	adrp	x15,.L32766+33
 	adrp	x14,.L32766+32
-	ldrsb	w14,[x14,:lo12:.L32766+32]
-	ldrsb	w15,[x15,:lo12:.L32766+33]
+	ldrb	w14,[x14,:lo12:.L32766+32]
+	ldrb	w15,[x15,:lo12:.L32766+33]
 	orr	w0,w14,w15
 	bl	.P16  // putnumset
 	mov	x2,8
@@ -590,8 +590,8 @@ main:
 	bl	putstring
 	adrp	x15,.L32766+33
 	adrp	x14,.L32766+32
-	ldrsb	w14,[x14,:lo12:.L32766+32]
-	ldrsb	w15,[x15,:lo12:.L32766+33]
+	ldrb	w14,[x14,:lo12:.L32766+32]
+	ldrb	w15,[x15,:lo12:.L32766+33]
 	and	w0,w14,w15
 	bl	.P16  // putnumset
 	mov	x2,8
@@ -605,8 +605,8 @@ main:
 	bl	putstring
 	adrp	x15,.L32766+33
 	adrp	x14,.L32766+32
-	ldrsb	w14,[x14,:lo12:.L32766+32]
-	ldrsb	w15,[x15,:lo12:.L32766+33]
+	ldrb	w14,[x14,:lo12:.L32766+32]
+	ldrb	w15,[x15,:lo12:.L32766+33]
 	bic	w0,w14,w15
 	bl	.P16  // putnumset
 	mov	x2,14
