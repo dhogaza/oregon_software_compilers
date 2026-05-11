@@ -381,7 +381,7 @@ _p_caseerr:
 	cset	w15,ne
 	strb	w15,[x29,16]
 	ldrb	w0,[x29,16]
-.L38:
+.L40:
 	ldp	x30,x29,[sp],32
 	ret
 	.text
@@ -398,7 +398,7 @@ _p_caseerr:
 	cset	w15,lt
 	strb	w15,[x29,16]
 	ldrb	w0,[x29,16]
-.L39:
+.L43:
 	ldp	x30,x29,[sp],32
 	ret
 	.text
@@ -415,7 +415,7 @@ _p_caseerr:
 	cset	w15,gt
 	strb	w15,[x29,16]
 	ldrb	w0,[x29,16]
-.L40:
+.L46:
 	ldp	x30,x29,[sp],32
 	ret
 	.text
@@ -432,7 +432,7 @@ _p_caseerr:
 	cset	w15,le
 	strb	w15,[x29,16]
 	ldrb	w0,[x29,16]
-.L41:
+.L49:
 	ldp	x30,x29,[sp],32
 	ret
 	.text
@@ -449,7 +449,7 @@ _p_caseerr:
 	cset	w15,ge
 	strb	w15,[x29,16]
 	ldrb	w0,[x29,16]
-.L42:
+.L52:
 	ldp	x30,x29,[sp],32
 	ret
 	.bss
@@ -645,7 +645,7 @@ main:
 	str	x0,[x29,-32]
 	bl	putboolln
 	bl	putln
-.L43:
+.L55:
 	ldp	x30,x29,[sp,128]
 	add	sp,sp,144
 	ret

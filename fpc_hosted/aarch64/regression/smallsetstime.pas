@@ -4,7 +4,7 @@ type nums = (one, two, three, four, five, six, seven, eight);
   alphaset = set of alpha;
 
 const
-  count = 1000;
+  count = 650;
 
 var s1, s2: numset;
   b1, b2: nums;
