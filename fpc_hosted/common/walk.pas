@@ -2080,7 +2080,6 @@ with target = 0.
         trueused := false;
         oldinv := inverted;
         if language = pascal then shortvisit(r, false);
-{DRB: check for operands which can be combined with branchless compares}
         walknode(l, lkey, 0, true);
         if inverted then genpseudo(jumpt, 0, 0, 0, 0, falselabel, lkey, 0)
         else genpseudo(jumpf, 0, 0, 0, 0, falselabel, lkey, 0);
@@ -2210,13 +2209,13 @@ with target = 0.
           tempop: tempnode;
           moveop, cmoveop, returnop: movenode(op, form);
           andop:
-            if relation then shortand
+            if shortevaluation then shortand
             else binarynode(op, form);
           orop:
-            if relation then shortor
+            if shortevaluation then shortor
             else binarynode(op, form);
           notop:
-            if relation then shortnot
+            if shortevaluation then shortnot
             else unarynode(op, form);
           modop, kwoop, stdmodop, {new and undefined for other than ints}
           divop, stddivop:
@@ -2413,7 +2412,7 @@ procedure walkvalue(root: nodeindex; {root of tree to walk}
         flabel := newlabel;
 
      { if usebranchlessboolops and not needsshort)  then}
-      if usebranchlessboolops and not (rootp^.op in [andop, orop, notop])  then
+      if usebranchlessboolops then
         begin
         if language = pascal then shortvisit(root, false);
         walknode(root, k1, 0, true);

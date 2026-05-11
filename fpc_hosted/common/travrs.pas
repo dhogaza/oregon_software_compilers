@@ -1764,6 +1764,7 @@ procedure build;
           join := false;
           target := false;
           relation := false;
+          shortevaluation := false;
           local := false;
           invariant := false;
           nodeoprnd[1] := false;
@@ -2812,7 +2813,11 @@ procedure build;
                            (call_depth = 0)
               else valid := true;
               cost := n.cost;
+{
               relation := relationbuilt;
+}
+              relation := n.relation;
+              shortevaluation := n.shortevaluation;
               local := cond_depth > 0;
               invariant := false;
 
@@ -3046,6 +3051,8 @@ procedure build;
             cost := 0;
             form := none;
             op := intop;
+            relation := false;
+            shortevaluation := false;
             for i := 1 to 3 do
               with oprndlist[i] do
                 begin
@@ -3448,7 +3455,9 @@ procedure build;
                 context_mark := 0; 
                 litflag := false;
                 i := 0; {clear any previous junk}
+{
                 relation := relationbuilt;
+}
                 p := insertexpression(n, contextlevel, unique, relationbuilt, l,
                                       uniqueoprnd);
                 end;
@@ -4164,6 +4173,8 @@ procedure build;
             n.ownvar := false;
             n.op := tempfilebuf.o;
             n.form := none;
+            n.relation := false;
+            n.shortevaluation := false;
             for i := 1 to 3 do
               with n.oprndlist[i] do
                 begin
@@ -4317,6 +4328,7 @@ procedure build;
                 else
                   relationbuilt := (n.form = bools) and (shorteval or
                                    stack[sp].relation);
+                n.shortevaluation := (n.form = bools) and shorteval or (language = c);
                 collectoprnds(1);
                 insertnormal;
                 end;
@@ -4326,6 +4338,7 @@ procedure build;
                 if (language = c) or (language = modula2) then
                   begin
                   relationbuilt := n.form = bools;
+                  n.shortevaluation := shorteval and (n.form = bools);
                   if relationbuilt then
                     begin
                     sequence_point;
@@ -4333,10 +4346,12 @@ procedure build;
                     cond_depth := cond_depth - 1;
                     end;
                   end
-                else
-                  relationbuilt := (n.form = bools) and (shorteval or
-                                   stack[sp].relation or
-                                   stack[sp - 1].relation);
+                else if n.form = bools then
+                  begin
+                  relationbuilt := shorteval or stack[sp].relation or
+                                   stack[sp - 1].relation;
+                  n.shortevaluation := shorteval;
+                  end;
                 collectoprnds(2);
                 insertnormal;
                 end;
@@ -4371,6 +4386,7 @@ procedure build;
               neqop, eqop, gtrop, geqop, inop:
                 begin
                 relationbuilt := true;
+                n.relation := true;
                 collectargs(2)
                 end;
               float1, chrstrop1, arraystrop1:
@@ -4511,11 +4527,7 @@ procedure build;
                   litflag := true;
                   i := 1
                   end;
-{
-                if targetmachine = aarch64 then
-                  insertnormal
-                else}
- insertnode(1);
+                insertnode(1);
                 end;
               originop, segop:
                 begin

@@ -1091,7 +1091,10 @@ procedure loops;
               fix, but I know what it breaks; you really cannot hoist those.
               a.o. no backend propagates correctly a key with a branchaccess
               (see copyaccess); hoisting a call also seems kind of peculiar. }
+{
            (((ptr^.form = bools) and ptr^.relation) or
+}
+           (((ptr^.form = bools) and ptr^.shortevaluation) or
            (ptr^.op in
            [forindexop, forupchkop, fordnchkop, forerrchkop, moveop, cmoveop, movelit, lssop, leqop, neqop, eqop, gtrop,
            geqop, lsslit, leqlit, eqlit, neqlit, gtrlit, geqlit, withop,

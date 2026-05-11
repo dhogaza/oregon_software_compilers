@@ -1532,7 +1532,7 @@ procedure dereference(k: keyindex {operand} );
         begin
         if refcount = 0 then
           begin
-          write('DEREFERENCE, refcount < 0');
+          write('DEREFERENCE, refcount < 0 key: ', k);
           compilerabort(inconsistent);
           end;
         refcount := refcount - 1;

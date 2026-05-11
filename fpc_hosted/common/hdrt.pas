@@ -93,6 +93,7 @@ type
            join: boolean; {invalidate node at next join}
            target: boolean; {this node is an assignment target}
            relation: boolean; {subnodes contain a relational operator}
+           shortevaluation: boolean; {evaluate using short-circuit evaluation}
            local: boolean; {local to a conditional expression}
            nodeoprnd: nodeoperandarray; {set if oprnds[i] is a link}
            looplink: nodeindex; { link to other vars in this loop/ read or
@@ -247,6 +248,8 @@ type
       ownvar: boolean; {true sez own variable}
       len: addressrange; {length of operands}
       cost: shortint; {cost of this node}
+      relation: boolean; {subnodes contain a relational operator}
+      shortevaluation: boolean; {for andop, orop, notop}
       {up to three operands per node}
       case {isrealnode:} boolean of
         true: (rval: realarray; );
