@@ -2402,8 +2402,18 @@ procedure walkvalue(root: nodeindex; {root of tree to walk}
       if language = c then valsize := defaulttargetintsize
       else valsize := unitsize;
       if (targetkey <> 0) and targetpresent(root) then targetkey := 0;
+        oldclearok := oktoclear;
+        oktoclear := false;
+        oldinv := inverted;
+        oldt := truelabel;
+        oldf := falselabel;
+        oldtused := trueused;
+        oldfused := falseused;
+        tlabel := newlabel;
+        flabel := newlabel;
 
-      if usebranchlessboolops then
+     { if usebranchlessboolops and not needsshort)  then}
+      if usebranchlessboolops and not (rootp^.op in [andop, orop, notop])  then
         begin
         if language = pascal then shortvisit(root, false);
         walknode(root, k1, 0, true);
@@ -2416,15 +2426,6 @@ procedure walkvalue(root: nodeindex; {root of tree to walk}
         end
       else
         begin
-        oldclearok := oktoclear;
-        oktoclear := false;
-        oldinv := inverted;
-        oldt := truelabel;
-        oldf := falselabel;
-        oldtused := trueused;
-        oldfused := falseused;
-        tlabel := newlabel;
-        flabel := newlabel;
         k := newkey;
         context[contextsp].high := k;
         keytable[k] := 0;
@@ -2436,13 +2437,14 @@ procedure walkvalue(root: nodeindex; {root of tree to walk}
         keytable[key] := root;
         genpseudo(createtrue, valsize, key, 1, 0, k, 0, 0);
         definelabel(flabel);
+        end;
+
         inverted := oldinv;
         truelabel := oldt;
         falselabel := oldf;
         trueused := oldtused;
         falseused := oldfused;
         oktoclear := oldclearok;
-        end;
 
       if keytable[k1] = root then keytable[k1] := 0; { use value, not relation,
                                                        in the future }
