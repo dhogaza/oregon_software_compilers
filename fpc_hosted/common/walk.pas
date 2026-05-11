@@ -2409,7 +2409,10 @@ procedure walkvalue(root: nodeindex; {root of tree to walk}
         walknode(root, k1, 0, true);
         key := newkey;
         context[contextsp].high := key;
-        genpseudo(condt, valsize, key, 1, 0, k1, 0, targetkey);
+        if inverted then
+          genpseudo(condf, valsize, key, 1, 0, k1, 0, targetkey)
+        else
+          genpseudo(condt, valsize, key, 1, 0, k1, 0, targetkey);
         end
       else
         begin
