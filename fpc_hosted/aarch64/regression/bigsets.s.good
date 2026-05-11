@@ -409,8 +409,6 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+32
 	adrp	x14,.L32766+128
 	ldrb	w14,[x14,:lo12:.L32766+128]
@@ -420,9 +418,7 @@ main:
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L39
-	mov	x0,1
-.L39:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,32
@@ -433,8 +429,6 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+32
 	mov	x14,4
 	add	x15,x15,:lo12:.L32766+32
@@ -443,9 +437,7 @@ main:
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L41
-	mov	x0,1
-.L41:
+	cset	w0,ne
 	bl	putboolln
 	adrp	x15,.L32766+129
 	mov	w16,94
@@ -521,8 +513,6 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+48
 	mov	x14,89
 	add	x15,x15,:lo12:.L32766+48
@@ -531,9 +521,7 @@ main:
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L43
-	mov	x0,1
-.L43:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,88
@@ -544,8 +532,6 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+48
 	mov	x14,191
 	add	x15,x15,:lo12:.L32766+48
@@ -554,9 +540,7 @@ main:
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L45
-	mov	x0,1
-.L45:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,104
@@ -567,8 +551,6 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+48
 	adrp	x14,.L32766+131
 	ldrb	w14,[x14,:lo12:.L32766+131]
@@ -578,9 +560,7 @@ main:
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L47
-	mov	x0,1
-.L47:
+	cset	w0,ne
 	bl	putboolln
 	adrp	x15,.L32765+168
 	add	x15,x15,:lo12:.L32765+168
@@ -618,8 +598,6 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+48
 	mov	x14,xzr
 	add	x15,x15,:lo12:.L32766+48
@@ -628,9 +606,7 @@ main:
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L49
-	mov	x0,1
-.L49:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,184
@@ -641,8 +617,6 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32765+224
 	add	x15,x15,:lo12:.L32765+224
 	sub	x14,x29,208
@@ -670,9 +644,7 @@ main:
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L51
-	mov	x0,1
-.L51:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,248
@@ -683,8 +655,6 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+48
 	adrp	x14,.L32766+129
 	ldrb	w14,[x14,:lo12:.L32766+129]
@@ -694,9 +664,7 @@ main:
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L53
-	mov	x0,1
-.L53:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,264
@@ -707,8 +675,6 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+48
 	adrp	x14,.L32766+130
 	ldrb	w14,[x14,:lo12:.L32766+130]
@@ -718,9 +684,7 @@ main:
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L55
-	mov	x0,1
-.L55:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,280
@@ -731,8 +695,6 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+48
 	mov	x14,xzr
 	add	x15,x15,:lo12:.L32766+48
@@ -741,9 +703,7 @@ main:
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L57
-	mov	x0,1
-.L57:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,296
@@ -754,8 +714,6 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+48
 	mov	x14,191
 	add	x15,x15,:lo12:.L32766+48
@@ -764,9 +722,7 @@ main:
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L59
-	mov	x0,1
-.L59:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,312
@@ -777,8 +733,6 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+48
 	mov	x14,91
 	add	x15,x15,:lo12:.L32766+48
@@ -787,9 +741,7 @@ main:
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L61
-	mov	x0,1
-.L61:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,328
@@ -800,8 +752,6 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+48
 	mov	x14,4
 	add	x15,x15,:lo12:.L32766+48
@@ -810,9 +760,7 @@ main:
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L63
-	mov	x0,1
-.L63:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,344
@@ -823,8 +771,6 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+48
 	mov	x14,5
 	add	x15,x15,:lo12:.L32766+48
@@ -833,9 +779,7 @@ main:
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L65
-	mov	x0,1
-.L65:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,360
@@ -846,8 +790,6 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+72
 	adrp	x14,.L32766+48
 	add	x13,x14,:lo12:.L32766+48
@@ -869,9 +811,7 @@ main:
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L67
-	mov	x0,1
-.L67:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,400
@@ -882,8 +822,6 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+72
 	adrp	x14,.L32766+48
 	add	x13,x14,:lo12:.L32766+48
@@ -905,9 +843,7 @@ main:
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L69
-	mov	x0,1
-.L69:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,440
@@ -918,8 +854,6 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+72
 	adrp	x14,.L32766+48
 	add	x13,x14,:lo12:.L32766+48
@@ -941,9 +875,7 @@ main:
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L71
-	mov	x0,1
-.L71:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,480
@@ -954,8 +886,6 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+72
 	adrp	x14,.L32766+48
 	add	x13,x14,:lo12:.L32766+48
@@ -977,9 +907,7 @@ main:
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L73
-	mov	x0,1
-.L73:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,520
@@ -990,8 +918,6 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32766+72
 	adrp	x14,.L32766+48
 	add	x13,x14,:lo12:.L32766+48
@@ -1013,9 +939,7 @@ main:
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L75
-	mov	x0,1
-.L75:
+	cset	w0,ne
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,560
@@ -1026,8 +950,6 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	mov	x0,xzr
-	str	x0,[x29,-8]
 	adrp	x15,.L32765+72
 	add	x15,x15,:lo12:.L32765+72
 	sub	x14,x29,584
@@ -1065,9 +987,7 @@ main:
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
-	b.eq	.L77
-	mov	x0,1
-.L77:
+	cset	w0,ne
 	bl	putboolln
 .L37:
 	add	x16,sp,104
