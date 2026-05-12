@@ -117,7 +117,7 @@
 	add	w28,w28,1
 	cmp	w28,7
 	b.ls	.L6
-.L9:
+.L7:
 .L4:
 	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,16]
@@ -136,7 +136,7 @@
 # Line: 39, Stmt: 1
 # Line: 40, Stmt: 2
 	mov	x28,xzr
-.L12:
+.L10:
 	add	x15,x29,x28, uxtb 0
 	lsr	x16,x0,x28
 	ands	x16,x16,1
@@ -144,9 +144,9 @@
 	strb	w14,[x15,18]
 	add	w28,w28,1
 	cmp	w28,10
-	b.ls	.L12
-.L15:
-.L10:
+	b.ls	.L10
+.L11:
+.L8:
 	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,48
@@ -175,11 +175,11 @@ main:
 	adrp	x11,.L32766+32
 	adrp	x10,.L32766+40
 	mov	x28,1
-.L20:
+.L16:
 	mov	x27,1
-.L21:
+.L17:
 	mov	x26,1
-.L22:
+.L18:
 	mov	w16,10
 	strb	w16,[x15,:lo12:.L32766+36]
 	mov	w16,2
@@ -203,8 +203,8 @@ main:
 	adrp	x15,.L32766+36
 	add	w26,w26,1
 	cmp	w26,650
-	b.le	.L22
-.L23:
+	b.le	.L18
+.L19:
 	adrp	x10,.L32766+40
 	adrp	x11,.L32766+32
 	adrp	x12,.L32766+35
@@ -213,8 +213,8 @@ main:
 	adrp	x15,.L32766+36
 	add	w27,w27,1
 	cmp	w27,650
-	b.le	.L21
-.L24:
+	b.le	.L17
+.L20:
 	adrp	x10,.L32766+40
 	adrp	x11,.L32766+32
 	adrp	x12,.L32766+35
@@ -223,9 +223,9 @@ main:
 	adrp	x15,.L32766+36
 	add	w28,w28,1
 	cmp	w28,650
-	b.le	.L20
-.L25:
-.L16:
+	b.le	.L16
+.L21:
+.L12:
 	ldp	x27,x28,[x29,-16]
 	ldr	x26,[x29,-24]
 	ldp	x30,x29,[sp,24]

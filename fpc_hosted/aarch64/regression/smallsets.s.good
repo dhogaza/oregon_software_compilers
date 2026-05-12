@@ -466,7 +466,7 @@ _p_caseerr:
 	add	w28,w28,1
 	cmp	w28,7
 	b.ls	.L41
-.L44:
+.L42:
 	bl	putln
 .L39:
 	ldr	x28,[x29,-8]
@@ -487,7 +487,7 @@ _p_caseerr:
 # Line: 38, Stmt: 2
 	str	x0,[x29,-16]
 	mov	x28,xzr
-.L47:
+.L45:
 	ldr	x0,[x29,-16]
 	lsr	x16,x0,x28
 	ands	x16,x16,1
@@ -498,10 +498,10 @@ _p_caseerr:
 	ldr	x0,[x29,-16]
 	add	w28,w28,1
 	cmp	w28,10
-	b.ls	.L47
-.L50:
+	b.ls	.L45
+.L46:
 	bl	putln
-.L45:
+.L43:
 	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,48
@@ -627,7 +627,7 @@ main:
 	adrp	x15,.L32766+48
 	ldr	x0,[x15,:lo12:.L32766+48]
 	bl	.P17  // putalphaset
-.L51:
+.L47:
 	ldp	x30,x29,[sp,112]
 	add	sp,sp,128
 	ret
