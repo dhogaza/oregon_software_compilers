@@ -4378,7 +4378,10 @@ procedure build;
                 collectopdata;
                 cnvts := standardids(stack[sp - 1].i);
                 if (n.form = bools) and not (cnvts in [predid, succid]) then
+                  begin
                   relationbuilt := true;
+                  n.relation := true;
+                  end;
                 unique := cnvts in
                           [frexpid, modfid, memcpyid, memmoveid, memsetid,
                           strcatid, strcpyid, strncpyid, strncatid];

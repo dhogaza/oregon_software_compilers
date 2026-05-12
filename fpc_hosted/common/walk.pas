@@ -2404,10 +2404,11 @@ procedure walkvalue(root: nodeindex; {root of tree to walk}
 
       if (targetkey <> 0) and targetpresent(root) then targetkey := 0;
 
-     { if usebranchlessboolops and not needsshort)  then}
       if usebranchlessboolops then
         begin
+{
         if language = pascal then shortvisit(root, false);
+}
         walknode(root, k1, 0, true);
         key := newkey;
         context[contextsp].high := key;
