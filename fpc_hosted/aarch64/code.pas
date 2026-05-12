@@ -82,8 +82,8 @@ procedure dumppseudo(var f: text);
           congruchk: write(f, 'congruchk': 15);
           copyaccess: write(f, 'copyaccess': 15);
           copystack: write(f, 'copystack': 15);
-          condf: write(f, 'condf': 15);
-          condt: write(f, 'condt': 15);
+          condvaluef: write(f, 'condvaluef': 15);
+          condvaluet: write(f, 'condvaluet': 15);
           createfalse: write(f, 'createfalse': 15);
           createtemp: write(f, 'createtemp': 15);
           createtrue: write(f, 'createtrue': 15);
@@ -775,9 +775,8 @@ procedure setkeyentry(k: keyindex; l:unsigned; o: oprndtype);
       refcount := 0;
       copycount := 0;
       copylink := 0;
-      properreg := 0;
-      properreg2 := 0;
-      access := valueaccess;
+      properreg := noreg;
+      properreg2 := noreg;
       tempflag := false;
       regsaved := false;
       reg2saved := false;
@@ -1141,6 +1140,15 @@ procedure genbr(inst: insts; labelno: integer);
     context[contextsp].lastbranch := lastnode;
   end {genbr};
 
+procedure genbcond(inst: insts; c: conds; labelno: integer);
+
+  begin {genbcond}
+    gen1(lastnode, buildinst(inst, false, false),
+         settemp(long, cond_oprnd(c)),
+         settemp(long, labeltarget_oprnd(labelno, false, 0)));
+    context[contextsp].lastbranch := lastnode;
+  end {genbcond};
+
 procedure gencomment(var after: nodeptr; comment: string);
 
   var
@@ -1290,8 +1298,7 @@ function equivaddr(l, r: keyindex): boolean;
     same := true;
     with keytable[l].oprnd, keytable[r] do
       begin
-      if (access <> valueaccess) or (keytable[l].access <> valueaccess) or
-         (packedaccess <> keytable[l].packedaccess) or
+      if (packedaccess <> keytable[l].packedaccess) or
          (oprnd.mode <> mode) or
          (oprnd.reg <> reg) or (oprnd.reg2 <> reg2) then
         same := false;
@@ -1325,20 +1332,19 @@ procedure adjustregcount(k: keyindex; {operand to adjust}
 
   begin
     with keytable[k], oprnd do
-      if access = valueaccess then
-        case mode of
-          register, shift_reg, extend_reg, pre_index, post_index,
-          abstract_offset, signed_offset, unsigned_offset, label_offset:
-            if regvalid then
-              registers[reg] := registers[reg] + delta;
-          reg_offset, tworeg:
-            begin
-            if regvalid then
-              registers[reg] := registers[reg] + delta;
-            if reg2valid then
-              registers[reg2] := registers[reg2] + delta;
-            end;
+      case mode of
+        register, shift_reg, extend_reg, pre_index, post_index,
+        abstract_offset, signed_offset, unsigned_offset, label_offset:
+          if regvalid then
+            registers[reg] := registers[reg] + delta;
+        reg_offset, tworeg:
+          begin
+          if regvalid then
+            registers[reg] := registers[reg] + delta;
+          if reg2valid then
+            registers[reg2] := registers[reg2] + delta;
           end;
+        end;
   end {adjustregcount} ;
 
 procedure bumptempcount(k: keyindex; {key of temp desired}
@@ -1393,7 +1399,6 @@ procedure setcommonkey;
       if key >= stackcounter then compilerabort(manykeys);
       if key > lastkey then
         begin
-        access := noaccess;
         regsaved := false;
         properreg := key; {simplifies certain special cases}
         properreg2 := key;
@@ -1409,11 +1414,6 @@ procedure setcommonkey;
         alignment := byte;
         oprnd := nomode_oprnd;
         regenoprnd := nomode_oprnd;
-        end
-      else if (key <> 0) and (access <> valueaccess) then
-        begin
-        write('setcommonkey screwup:', key: 1,', ',lastkey:1);
-        compilerabort(inconsistent);
         end;
       len := pseudoinst.len;
       refcount := pseudoinst.refcount;
@@ -1427,34 +1427,11 @@ procedure setcommonkey;
       end;
   end {setcommonkey} ;
 
-procedure setbr(inst: insts; {branch instruction used}
-                o: oprndtype {for cbz, cbnz});
-
-{ Sets the operand data for an operand which is accessed by a branch.
-  That is, only the condition code is used.  The type of conditions tested
-  for are implicit in the branch instruction.
-
-  This uses the global "key", which is the operand for the latest
-  pseudoinstruction.
-}
-
-
-  begin
-    adjustdelay := true;
-    with keytable[key] do
-      begin
-      access := branchaccess;
-      brinst := inst;
-      oprnd := o;
-      end;
-  end {setbr} ;
-
 procedure setvalue(o: oprndtype);
 
 begin {setvalue}
   with keytable[key] do
     begin
-    keytable[key].access := valueaccess;
     keytable[key].oprnd := o;
     adjustregcount(key, refcount);
     bumptempcount(key, refcount);
@@ -1762,7 +1739,6 @@ function newtemp(size: addressrange {size of temp to allocate} ): keyindex;
       with keytable[stackcounter] do
         begin
         len := size;
-        access := valueaccess;
         tempflag := false;
         regenoprnd := nomode_oprnd;
         validtemp := true;
@@ -1800,7 +1776,6 @@ function newparamtemp(size: addressrange {size of temp to allocate} ): keyindex;
       with keytable[stackcounter] do
         begin
         len := size;
-        access := valueaccess;
         tempflag := false;
         regenoprnd := nomode_oprnd;
         validtemp := true;
@@ -1891,7 +1866,7 @@ function savereg(r: regindex {register to save}) : keyindex;
       while not found and (i >= keymark) do
         begin
         with keytable[i], oprnd do
-          if (access = valueaccess) and (refcount > 0) then
+          if refcount > 0 then
             if (r = reg) {and regvalid} then
               begin
               if regenoprnd.mode <> nomode then
@@ -1972,47 +1947,46 @@ procedure markreg(r: regindex {register to clobber} );
       with context[contextsp] do
         for i := lastkey downto 1 do
           with keytable[i], oprnd do
-            if (access = valueaccess) then
-              if (r = reg) and regvalid then
+            if (r = reg) and regvalid then
+            begin
+            if i >= keymark then 
               begin
-              if i >= keymark then 
+              if not regsaved and (refcount > 0) then
                 begin
-                if not regsaved and (refcount > 0) then
+                if not saved then
                   begin
-                  if not saved then
-                    begin
-                    savedreg := savereg(r);
-                    saved := true;
-                    end;
-                  regsaved := true;
-                  properreg := savedreg;
-                  keytable[savedreg].refcount := keytable[savedreg].refcount +
-                                                 refcount
+                  savedreg := savereg(r);
+                  saved := true;
                   end;
-                regvalid := false;
+                regsaved := true;
+                properreg := savedreg;
+                keytable[savedreg].refcount := keytable[savedreg].refcount +
+                                               refcount
                 end;
-              joinreg := true;
-              end
-            else if (r = reg2) and reg2valid then
-              begin
-              if i >= keymark then
-                begin
-                if not reg2saved and (refcount > 0) then
-                  begin
-                  if not saved then
-                    begin
-                    savedreg := savereg(r);
-                    saved := true;
-                    end;
-                  reg2saved := true;
-                  properreg2 := savedreg;
-                  keytable[savedreg].refcount := keytable[savedreg].refcount +
-                                                 refcount
-                  end;
-                reg2valid := false;
-                end;
-              joinreg2 := true;
+              regvalid := false;
               end;
+            joinreg := true;
+            end
+          else if (r = reg2) and reg2valid then
+            begin
+            if i >= keymark then
+              begin
+              if not reg2saved and (refcount > 0) then
+                begin
+                if not saved then
+                  begin
+                  savedreg := savereg(r);
+                  saved := true;
+                  end;
+                reg2saved := true;
+                properreg2 := savedreg;
+                keytable[savedreg].refcount := keytable[savedreg].refcount +
+                                               refcount
+                end;
+              reg2valid := false;
+              end;
+            joinreg2 := true;
+            end;
       end;
   end {markreg} ;
 
@@ -2137,7 +2111,7 @@ procedure savekey(k: keyindex {operand to save} );
   begin
     if k > 0 then
       with keytable[k] do
-        if (access = valueaccess) and (regenoprnd.mode = nomode) then
+        if regenoprnd.mode = nomode then
           begin
           bumptempcount(k, -refcount);
           with oprnd do
@@ -2407,15 +2381,13 @@ procedure makedstaddressable(k: keyindex);
         begin
         regvalid := true;
         regsaved := false;
-        if (reg >= firstreg) and (reg <= lastreg) then
-          for i := context[contextsp].keymark downto 1 do
-            if (keytable[i].access = valueaccess) then
-              begin
-              if keytable[i].oprnd.reg = reg then
-                keytable[i].joinreg := true;
-              if keytable[i].oprnd.reg2 = reg then
-                keytable[i].joinreg2 := true;
-              end;
+        for i := context[contextsp].keymark downto 1 do
+          begin
+          if keytable[i].oprnd.reg = reg then
+            keytable[i].joinreg := true;
+          if keytable[i].oprnd.reg2 = reg then
+            keytable[i].joinreg2 := true;
+          end;
         end
       else makeaddressable(k);
   end;
@@ -2529,7 +2501,6 @@ procedure initblock;
     for i := lowesttemp to keysize do
       with keytable[i] do
         begin
-        access := noaccess;
         properreg := i;
         properreg2 := i;
         regvalid := false;
@@ -3470,7 +3441,6 @@ procedure savelabelx;
 
   begin
 
-    adjustdelay := false; {DRB probably not needed for arm64 after we pull calls from paramlists}
     definelabel(pseudoinst.oprnds[1]);
     saveactivekeys;
     contextsp := contextsp + 1;
@@ -4104,15 +4074,15 @@ procedure incdec(inst: insts {add, sub} );
     keytable[key].signed := keytable[left].signed;
   end {incdec} ;
 
-procedure cmpintptrx(signedbr, unsignedbr: insts {branch on result});
+procedure cmpintptrx(signedcond, unsignedcond: conds {for branching on result});
 
 { Compare scalars or pointers in keytable[left] and keytable[right].
-  Keytable[key] is set by setbr to the appropriate branch.
+  Keytable[key] is set to the appropriate conditional for use by the
+  following jumpcond or cond operator
 }
 
   var
-    brinst: insts; {the actual branch to use}
-
+    c: conds;
 
   begin {cmpintptrx}
     addressboth;
@@ -4122,18 +4092,18 @@ procedure cmpintptrx(signedbr, unsignedbr: insts {branch on result});
     }
     {unpkshkboth(len);}
 
-    if signedoprnds then brinst := signedbr
-    else brinst := unsignedbr;
+    if signedoprnds then c := signedcond
+    else c := unsignedcond;
 
     loadreg(left, right);
     loadreg(right, left);
     gen2(lastnode, buildinst(cmp, len = long, false), left, right);
-    setbr(brinst, nomode_oprnd);
+    setvalue(cond_oprnd(c));
   end {cmpintptrx} ;
 
 
 
-procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
+procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
 
 { Generate comparison with a literal integer.  If this is zero and left is in
   a general register, we can look backwards for the instruction that set it and
@@ -4151,11 +4121,18 @@ procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
   begin
     address(left);
     loadreg(left, 0);
-    if (pseudoinst.oprnds[2] = 0) and (signedbr in [beq, bne]) then
-      if signedbr = beq then
-        setbr(cbz, keytable[left].oprnd)
-      else
-        setbr(cbnz, keytable[left].oprnd)
+
+    { a kludge to allow the use of cbz/cbnz which depends on it following
+      the compare directly, which means the register won't be trashed.  Given
+      that the non-zero case requires that the flags not be modified before
+      the result of this compare is used, it seems like a fair assumption.
+    }
+
+    if (pseudoinst.oprnds[2] = 0) and (signedcond in [eq, ne]) then
+      begin
+      setvalue(cond_oprnd(signedcond));
+      keytable[key].oprnd.reg := keytable[left].oprnd.reg;
+      end
     else
       begin
       if not keytable[left].signed or
@@ -4169,9 +4146,9 @@ procedure cmplitintx(signedbr, unsignedbr: insts {branch instructions});
       litkey := preparelitint(pseudoinst.oprnds[2], left);
       gen2(lastnode, buildinst(i, len = long, false), left, litkey);
       if keytable[left].signed then
-        setbr(signedbr, nomode_oprnd)
+        setvalue(cond_oprnd(signedcond))
       else
-        setbr(unsignedbr, nomode_oprnd);
+        setvalue(cond_oprnd(unsignedcond));
       end
   end {cmplitintx} ;
 
@@ -4309,7 +4286,6 @@ procedure dointx;
 
 
   begin {dointx}
-    keytable[key].access := valueaccess;
     keytable[key].len := pseudoinst.len;
     keytable[key].signed := true;
     keytable[key].oprnd := intconst_oprnd(pseudoinst.oprnds[1]);
@@ -4327,7 +4303,6 @@ procedure dofptrx;
 
 
   begin {dofptrx}
-    keytable[key].access := valueaccess;
     keytable[key].len := pseudoinst.len;
     keytable[key].signed := false;
     keytable[key].oprnd.m := proccall;
@@ -4429,7 +4404,6 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
     reg: regindex;
 
   begin
-    keytable[key].access := valueaccess;
     with keytable[key], oprnd do
       begin
 {
@@ -4883,7 +4857,7 @@ procedure setinsertx;
       gen3(lastnode, buildinst(ands, true, false), ip0key, ip0key,
            settemp(long, imm12_oprnd(1, false)));
       end;
-    setbr(bne, nomode_oprnd);
+    setvalue(cond_oprnd(ne));
   end {insetx};
 
 
@@ -5798,7 +5772,7 @@ begin {casebranchx}
   gen2(lastnode, buildinst(cmp, false, false), scratch, t1);
   if errordefault then
     begin
-    genbr(bls, newlabel);
+    gen2(lastnode, build_inst(bcond, false, false),  cond_oprnd(ls), newlabel);
     definelabel(default);
     caseerrx;
     definelabel(lastlabel + 1);
@@ -5892,56 +5866,71 @@ procedure jumpx(lab: integer {label to jump to});
 procedure jumpcond(inv: boolean {invert the sense of the comparision});
 
 { Used to generate a jump true or jump false on a condition.  If the key is
-  not already a condition, it is forced to a "bne", as it is a boolean
+  not already a condition, it is forced to "ne", as it is a boolean
   variable.
 }
 
   var
     labeltarget: keyindex;
-    b: insts;
+    c: conds;
+    regkey: keyindex;
 
   begin
     address(right);
     labeltarget := settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1], false, 0));
-    if keytable[right].access = branchaccess then
-      b := keytable[right].brinst
+    if keytable[right].oprnd.mode = cond then
+      c := keytable[right].oprnd.condition
     else
       begin
-      b := cbnz;
+      c := ne;
       loadreg(right, 0);
       end;
-    if inv then b := invert[b];
-    if (b = cbz) or (b = cbnz) then
-      gen2(lastnode, buildinst(b, keytable[right].len = long, false), right, labeltarget)
-    else gen1(lastnode, buildinst(b, false, false), labeltarget);
+    if inv then c := invertcond[c];
+
+    {Here's the followon to the big kludge in cmplitintptr to a constant zero.
+     The register value for the oprnd was set to the register compared to,
+     while the above loadreg will make sure a boolean variable is loaded
+     to a register.  So in either case the oprnds reg field is correctly set.
+    }
+
+    if keytable[right].oprnd.reg <> noreg then
+      begin
+      regkey := settemp(keytable[right].len, reg_oprnd(keytable[right].oprnd.reg));
+      if c = eq then
+        gen2(lastnode, buildinst(cbz, keytable[right].len = long, false), regkey, labeltarget)
+      else
+        gen2(lastnode, buildinst(cbnz, keytable[right].len = long, false), regkey, labeltarget)
+      end
+    else gen2(lastnode, buildinst(bcond, false, false), settemp(long, cond_oprnd(c)),
+              labeltarget);
     context[contextsp].lastbranch := lastnode;
   end {jumpcond} ;
 
-procedure cond(inv: boolean);
+procedure condvalue(inv: boolean);
 
 var
   c: conds;
 
-begin {cond}
+begin {condvalue}
   address(left);
   settargetorreg;
-  with keytable[left], oprnd do
-    if access <> branchaccess then
+  with keytable[left].oprnd do
+    if mode <> cond then
       begin
-      write('Conditional to value not branch access');
+      write('Conditional to value not cond flags');
       compilerabort(inconsistent);
       end
     else
-      if inv then c := condmap[invert[brinst]]
-      else c := condmap[brinst];
-
+      if inv then c := invertcond[condition]
+      else c := condition;
+{ check cmplit0 case use csel I assume }
   gen2(lastnode, buildinst(cset, false, false), key,
                  settemp(0, cond_oprnd(c)));
 
-end {cond};
+end {condvalue};
 
 { These are awful in that a top level compare can be collapsed into a
-  single csel ... 
+  single cset ... currently not use thankfully.
 }
 
 procedure createfalsex;
@@ -6198,8 +6187,8 @@ procedure codeone;
       pindx: pindxx;
       paindx: paindxx;
 }
-      condf: cond(true);
-      condt: cond(false);
+      condvaluef: condvalue(true);
+      condvaluet: condvalue(false);
       createfalse: createfalsex;
       createtrue: createtruex;
 {
@@ -6319,12 +6308,12 @@ procedure codeone;
       gtrreal: cmprealx(bgt, libdgtr, fbgt);
 }
 
-      eqint, eqptr, eqfptr: cmpintptrx(beq, beq);
-      neqint, neqptr: cmpintptrx(bne, bne);
-      leqint, leqptr: cmpintptrx(ble, bls);
-      geqint, geqptr: cmpintptrx(bge, bhs);
-      lssint, lssptr: cmpintptrx(blt, blo);
-      gtrint, gtrptr: cmpintptrx(bgt, bhi);
+      eqint, eqptr, eqfptr: cmpintptrx(eq, eq);
+      neqint, neqptr: cmpintptrx(ne, ne);
+      leqint, leqptr: cmpintptrx(le, ls);
+      geqint, geqptr: cmpintptrx(ge, hs);
+      lssint, lssptr: cmpintptrx(lt, lo);
+      gtrint, gtrptr: cmpintptrx(gt, hi);
 {
       eqstruct: cmpstructx(beq);
       neqstruct: cmpstructx(bne);
@@ -6347,12 +6336,12 @@ procedure codeone;
       gtrlitreal: cmplitrealx(bgt, libdgtr, fbgt);
       geqlitreal: cmplitrealx(bge, libdgtr, fbge);
 }
-      eqlitint, eqlitptr: cmplitintx(beq, beq);
-      neqlitint, neqlitptr: cmplitintx(bne, bne);
-      leqlitint: cmplitintx(ble, bls);
-      geqlitint: cmplitintx(bge, bhs);
-      lsslitint: cmplitintx(blt, blo);
-      gtrlitint: cmplitintx(bgt, bhi);
+      eqlitint, eqlitptr: cmplitintx(eq, eq);
+      neqlitint, neqlitptr: cmplitintx(ne, ne);
+      leqlitint: cmplitintx(le, ls);
+      geqlitint: cmplitintx(ge, hs);
+      lsslitint: cmplitintx(lt, lo);
+      gtrlitint: cmplitintx(gt, hi);
 {
 
       eqset: cmpstructx(beq);
@@ -6401,10 +6390,7 @@ procedure codeone;
 
     while (keytable[lastkey].refcount = 0) and
           (lastkey >= context[contextsp].keymark) do
-      begin
-      keytable[lastkey].access := noaccess;
       lastkey := lastkey - 1;
-      end;
 
     { This prevents stumbling on an old key later.
     }
@@ -6412,7 +6398,6 @@ procedure codeone;
 
     while key >= context[contextsp].keymark do
       begin
-      if keytable[key].refcount = 0 then keytable[key].access := noaccess;
       key := key - 1;
       end;}
     if switcheverplus[test] then
@@ -6451,16 +6436,10 @@ procedure initcode;
     bsslabel := newlabel;
     rodatalabel := newlabel;
 
-    invert[beq] := bne;     invert[bne] := beq;     invert[blt] := bge;
-    invert[bgt] := ble;     invert[bge] := blt;     invert[ble] := bgt;
-    invert[blo] := bhs;     invert[bhi] := bls;     invert[bls] := bhi;
-    invert[bhs] := blo;     invert[bvs] := bvc;     invert[bvc] := bvs;
-    invert[b] := nop;       invert[cbz] := cbnz;    invert[cbnz] := cbz;
-
-    condmap[beq] := eq;     condmap[bne] := ne;     condmap[blt] := lt;
-    condmap[bgt] := gt;     condmap[bge] := ge;     condmap[ble] := le;
-    condmap[blo] := lo;     condmap[bhi] := hi;     condmap[bls] := ls;
-    condmap[bhs] := hs;     condmap[bvs] := vs;     condmap[bvc] := vc;
+    invertcond[eq] := ne;     invertcond[ne] := eq;     invertcond[lt] := ge;
+    invertcond[gt] := le;     invertcond[ge] := lt;     invertcond[le] := gt;
+    invertcond[lo] := hs;     invertcond[hi] := ls;     invertcond[ls] := hi;
+    invertcond[hs] := lo;     invertcond[vs] := vc;     invertcond[vc] := vs;
 
     { Front end doesn't do this for deeply historical reasons but in Linux
       the main program's just an external procedure.
