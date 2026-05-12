@@ -5920,38 +5920,6 @@ begin {condvalue}
   gen2(lastnode, buildinst(cset, false, false), key, settemp(0, cond_oprnd(c)));
 end {condvalue};
 
-{ These are awful in that a top level compare can be collapsed into a
-  single cset ... currently not use thankfully.
-}
-
-procedure createfalsex;
-
-{ Create false constant prior to conversion of comparison to value.
-
-  We have to save it now because we have an upcoming comparison.
-}
-
-
-  begin {createfalsex}
-    settargetorreg;
-    gensimplemove(lastnode, settemp(len, intconst_oprnd(0)), key);
-    savekey(key);
-  end {createfalsex} ;
-
-
-procedure createtruex;
-
-{ Create the value 'true'.
-}
-
-
-  begin {createtruex}
-    addressdst(left);
-    setallfields(left);
-    gensimplemove(lastnode, settemp(len, intconst_oprnd(1)), key);
-  end {createtruex} ;
-
-
 procedure pascallabelx;
 
 { Generate a pascal label.  The complication arises from the need to reset
@@ -6180,8 +6148,6 @@ procedure codeone;
 }
       condvaluef: condvalue(true);
       condvaluet: condvalue(false);
-      createfalse: createfalsex;
-      createtrue: createtruex;
 {
       createtemp: createtempx;
       jointemp: jointempx;
