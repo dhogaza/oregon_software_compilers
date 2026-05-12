@@ -200,7 +200,11 @@ procedure clearkeys;
         while not done do
           begin
           if bigcompilerversion then ptr := @(bignodetable[keytable[high]]);
-          if (keytable[high] = 0) or (ptr^.refcount = 0) then high := high - 1
+          if (keytable[high] = 0) or (ptr^.refcount = 0) then
+            begin
+            keytable[high] := 0;
+            high := high - 1
+           end
           else done := true;
           done := done or (high < low);
           end;
