@@ -4078,13 +4078,12 @@ procedure compintx;
 procedure compboolx;
 
   begin {compboolx}
+{    unpackshrink(left, len);}
     address(left);
-    loadreg(left, 0);
-    gen2(lastnode, buildinst(cmp, false, false), left,
-         settemp(long, imm12_oprnd(0, false)));
     settargetorreg; 
-    gen2(lastnode, buildinst(cset, false, false), key,
-                   settemp(0, cond_oprnd(eq)));
+    loadreg(left, 0);
+    gen3(lastnode, buildinst(eor, false, false), key, left,
+                             settemp(len, imm12_oprnd(1, false)));
   end {compboolx};
 
 procedure incdec(inst: insts {add, sub} );
