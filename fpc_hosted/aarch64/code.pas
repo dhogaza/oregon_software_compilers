@@ -1509,6 +1509,7 @@ procedure dereference(k: keyindex {operand} );
         begin
         if refcount = 0 then
           begin
+          write(macfile, 'DEREFERENCE, refcount < 0 key: ', k);
           write('DEREFERENCE, refcount < 0 key: ', k);
           compilerabort(inconsistent);
           end;
@@ -4507,9 +4508,6 @@ procedure dosetx;
   tempreg: regindex;
 
   begin {dosetx}
-{
-    firstsetinsert := true;
-}
     address(left);
 
     {kludge for empty set until we get smart short set literals or at least
@@ -4632,10 +4630,6 @@ begin {setarithmetic}
   end;
 end {setarithmetic};
 
-{ ignoring range checking for now for setinsertion and inset, both are
-  coded defensively, or so I tell myself
-}
-
 procedure setinsertx;
 
 { Insert an element (or range) into a set.  The constant part of any
@@ -4735,87 +4729,7 @@ procedure setinsertx;
     unlock(bitkey);
     unlock(target);
     unlock(left); 
-{
-    with keytable[target] do
-      if firstsetinsert then
-        if (settarget <> 0) and not equivaccess(settarget, left) and
-           not equivaccess(settarget, right) then {We can do it in place}
-          begin
-          genblockmove(target, settarget, min(len, word));
-          adjustregcount(target, - keytable[target].refcount);
-          keytable[target].oprnd := keytable[settarget].oprnd;
-          adjustregcount(target, keytable[target].refcount);
-          target := settarget;
-          end
-        else
-          begin {do it in a temporary location}
-          with keytable[target] do
-            if regsaved then { kill off this temp first }
-              begin
-              keytable[properreg].refcount := 0;
-              regsaved := false;
-              end;
-
-          newtemp(len);
-          keytable[stackcounter].tempflag := true;
-          dereference(target);
-          genblockmove(target, stackcounter, min(len, word));
-          rereference(target);
-          keytable[target].oprnd := keytable[stackcounter].oprnd;
-          keytable[target].properreg := stackcounter;
-          keytable[target].regsaved := true;
-          keytable[target].knowneven := true;
-          keytable[target].regvalid := true;
-          bumptempcount(target, keytable[target].refcount);
-          end;
-
-    firstsetinsert := false;
-
-    if right <> 0 then
-      begin
-      unpack(left, word);
-      lock(left);
-      settempdreg(keytable[left].len, getdreg);
-      unlock(left);
-      gensimplemove(left, tempkey);
-}
-{      adjustregcount(left, - keytable[left].refcount);}
-{
-      keytable[tempkey].len := keytable[left].len;
-      left := tempkey;
-}
-{      keytable[left].oprnd := keytable[tempkey].oprnd;}
-{      rereference(left);}
-{      unpack(right, byte);
-
-      lock(right);
-      genbr(bra, lastlabel - 1);
-      definelastlabel;
-      end
-    else
-      begin
-      lock(target);
-      unpackshrink(left, word);
-      unlock(target);
-      end;
-
-    bitkey := accessbit(target, false);
-
-    fix_set_addressing(target, bitkey);
-
-    gendouble(bset, left, bitkey);
-
-    if right <> 0 then
-      begin
-      settempimmediate(keytable[left].len, 1);
-      gendouble(add, tempkey, left);
-      definelastlabel;
-      gendouble(cmp, right, left);
-      genbr(ble, lastlabel + 2);
-      unlock(right);
-      end;
-}
-  end {setinsertx} ;
+  end {setinsertx};
 
   procedure insetx;
 
@@ -4861,8 +4775,68 @@ procedure setinsertx;
     setvalue(cond_oprnd(ne));
   end {insetx};
 
+procedure sysfnintx;
 
-{ DRB regtemp }
+{ Generate code for a system routine with scalar (non-real) argument.
+  These functions are all generated inline.
+}
+
+  procedure absintx;
+
+{ Generate code for abs(x)
+}
+
+
+    begin
+{
+      unpackshrink(left, len);
+}
+      address(left);
+      settargetorreg;
+      loadreg(left, key);
+      gen2(lastnode, buildinst(cmp, keytable[left].len = long, false), left,
+                     settemp(long, reg_oprnd(zero)));
+      gen3(lastnode, buildinst(cneg, keytable[left].len = long, false), key, left,
+                    settemp(0, cond_oprnd(mi)));
+    end {absintx} ;
+
+
+  procedure oddx;
+
+{ Generate code for odd(x), just mask off the last bit.
+}
+
+    begin
+      address(left);
+      loadreg(left, 0);
+      gen3(lastnode, buildinst(ands, keytable[left].len = long, false),
+                    settemp(long, reg_oprnd(zero)), left,
+                    settemp(long, imm12_oprnd(1, false)));
+      setvalue(cond_oprnd(ne));
+    end {oddx} ;
+
+
+  begin {sysfnintx} ;
+    case standardids(pseudoinst.oprnds[2]) of
+      oddid: oddx;
+{
+      eolnid: eolneofx(eolnbit);
+      eofid: eolneofx(eofbit);
+      roundid, truncid, fintid:
+        truncround(standardids(pseudoinst.oprnds[2]));
+      succid: incdec(add, false);
+      predid: incdec(sub, false);
+      sqrid:
+}
+      absid: absintx;
+{
+      ioerrorid: callsimplefn(libioerror);
+      iostatusid: callsimplefn(libiostatus);
+      capid: capx; { modula2 CAP function }
+}
+      end;
+  end {sysfnintx} ;
+
 procedure blockcodex;
 
 { Generate code for the beginning of a block.
@@ -5888,7 +5862,7 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
       end;
     if inv then c := invertcond[c];
 
-    {Here's the followon to the big kludge in cmplitintptr to a constant zero.
+    {Here's the followon to the big kludge in cmplitintx to a constant zero.
      The register value for the oprnd was set to the register compared to,
      while the above loadreg will make sure a boolean variable is loaded
      to a register.  So in either case the oprnds reg field is correctly set.
@@ -6202,9 +6176,9 @@ procedure codeone;
       makeroom: makeroomx;
       callroutine: callroutinex(true);
       unscallroutine: callroutinex(false);
+      sysfnint: sysfnintx;
 {
       sysfnstring: sysfnstringx;
-      sysfnint: sysfnintx;
       sysfnreal: sysfnrealx;
       castreal: castrealx;
       castrealint: castrealintx;

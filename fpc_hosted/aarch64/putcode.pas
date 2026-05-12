@@ -463,6 +463,7 @@ procedure write_inst(i: insttype);
 begin
   case i.inst of
     add: write(macfile, 'add');
+    absinst: write(macfile, 'abs');
     adr: write(macfile, 'adr');
     adrp: write(macfile, 'adrp');
     andinst: write(macfile, 'and');
@@ -478,6 +479,7 @@ begin
     cinv: write(macfile, 'cinv');
     cmp: write(macfile, 'cmp');
     cmn: write(macfile, 'cmn');
+    cneg: write(macfile, 'cneg');
     cset: write(macfile, 'cset');
     eon: write(macfile, 'eors');
     eor: write(macfile, 'eor');
