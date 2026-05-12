@@ -290,8 +290,7 @@ type
 
   {branch instructions}
 
-  first_b, b, bl, br, beq, bne, blt, bgt, ble, bge, bhi, bhs, blo, bls,
-  bcc, bcs, bvc, bvs, cbz, cbnz, last_b,
+  b, bcond, bl, br, cbz, cbnz,
 
   {miscellaneous instructions}
 
@@ -417,7 +416,7 @@ type
 }
 
 type
-  accesstype = (noaccess, branchaccess, valueaccess);
+  accesstype = (noaccess, valueaccess);
 
   { Linked list used to track all saves to a particular stack entry in
     the keytable.
@@ -674,9 +673,7 @@ var
 
   oktostuff: boolean; {set false if register stuffing not allowed}
 
-  invert, fpinvert: array [first_b .. last_b] of insts; {for inverting sense of
-                                                   branches}
-  condmap: array [first_b .. last_b] of conds;
+  invertcond: array [conds] of conds;
 
   keytable: keytabletype; {contains operand data}
 

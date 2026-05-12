@@ -1132,18 +1132,18 @@ procedure gen4(var after: nodeptr; i: insttype;
     gen4p(after, i, o1, o2, o3, o4);
   end {gen4} ;
 
-procedure genbr(inst: insts; labelno: integer);
+procedure genbr(var after: nodeptr; inst: insts; labelno: integer);
 
   begin {genbr}
-    gen1(lastnode, buildinst(inst, false, false),
+    gen1(after, buildinst(inst, false, false),
          settemp(long, labeltarget_oprnd(labelno, false, 0)));
     context[contextsp].lastbranch := lastnode;
   end {genbr};
 
-procedure genbcond(inst: insts; c: conds; labelno: integer);
+procedure genbcond(var after: nodeptr; c: conds; labelno: integer);
 
   begin {genbcond}
-    gen1(lastnode, buildinst(inst, false, false),
+    gen2(after, buildinst(bcond, false, false),
          settemp(long, cond_oprnd(c)),
          settemp(long, labeltarget_oprnd(labelno, false, 0)));
     context[contextsp].lastbranch := lastnode;
@@ -3711,7 +3711,7 @@ procedure defforindexx(sgn, { true if signed induction var }
 }
   end {defforindexx} ;
 
-procedure fortopx(signedbr, unsignedbr: insts { proper exit branch });
+procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
 
 { Start a for loop, top or bottom.  Branch arguments determine if we
   are going up or down.  If we have constant limits we do not generate a
@@ -3721,15 +3721,15 @@ procedure fortopx(signedbr, unsignedbr: insts { proper exit branch });
 }
 
   var
-    branch: insts;
+    c: conds;
     regkey: keyindex; {descriptor of for-index register}
 
 
   begin {fortopx}
     with forstack[forsp] do
       begin
-      if keytable[forkey].signed then branch := signedbr
-      else branch := unsignedbr;
+      if keytable[forkey].signed then c := signedcond
+      else c := unsignedcond;
       pseudolabelx;
       regkey := settemp(long, reg_oprnd(originalreg));
       keytable[regkey].len := savedlen;
@@ -3742,7 +3742,7 @@ procedure fortopx(signedbr, unsignedbr: insts { proper exit branch });
 }
         loadreg(target, regkey);
         gen2(lastnode, buildinst(cmp, savedlen = long, false), regkey, target);
-        genbr(branch, pseudoinst.oprnds[2]);
+        genbcond(lastnode, c, pseudoinst.oprnds[2]);
         end;
 
       if nonvolatile and not globalreg
@@ -3778,8 +3778,8 @@ procedure fortopx(signedbr, unsignedbr: insts { proper exit branch });
   end {fortopx} ;
 
 procedure forbottomx(improved: boolean; { true if cmp at bottom }
-                     incinst, { add or sub }
-                     signedbr, unsignedbr: insts {branch to top});
+                     incinst: insts; { add or sub }
+                     signedcond, unsignedcond: conds {branch to top});
 
 { Finish a for loop. If improved is true, we inc/dec and compare at
   this point. If improved is false, we inc/dec and branch to comparison
@@ -3792,7 +3792,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
     sgn: boolean;
     l: unsigned;
     needcompare: boolean; {need to generate a comparison at end of loop}
-    branch: insts;
+    c: conds;
     maxvalue: unsigned; {"cmp" instruction works if limit value < maxvalue}
     i: 1..4; {DRB: induction var limited by 32-bit integers}
     byvalue: unsigned; { BY value (always "1" for Pascal) }
@@ -3808,8 +3808,8 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
       sgn := keytable[forkey].signed;
       dereference(forkey);
       l := keytable[forkey].len;
-      if sgn then branch := signedbr
-      else branch := unsignedbr;
+      if sgn then c := signedcond
+      else c := unsignedcond;
     {  with keytable[forkey], oprnd do
         begin
 }
@@ -3847,7 +3847,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
         instruction, but if the add or subtract causes overflow (or carry, in
         the unsigned case) the compare won't work. On the bright side, not
         only does the compare not work but is is not needed, and a simple
-        branch on no overflow (or carry) is sufficient.
+        c on no overflow (or carry) is sufficient.
 
         Below, "needcompare" is set true if overflow (carry) will not occur
         when we "pass over" the final value, in which case we'll issue the
@@ -3885,23 +3885,23 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
           if incinst = sub then
             begin
             finalvalue := 0;
-            if sgn then branch := bgt else branch := bhi;
+            if sgn then c := gt else c := hi;
             end;
           end
         else if sgn and (incinst = add) and (finalvalue = -1) then
           begin
           finalvalue := 0;
-          branch := blt;
+          c := lt;
           end;
 
         gen2(lastnode, buildinst(cmp, keytable[forkey].len = long, false), forkey,
              preparelitint(finalvalue, forkey));
-        genbr(branch, pseudoinst.oprnds[1]);
+        genbcond(lastnode, c, pseudoinst.oprnds[1]);
         end {if needcompare}
-      else if sgn then genbr(bvc, pseudoinst.oprnds[1])
+      else if sgn then genbcond(lastnode, vc, pseudoinst.oprnds[1])
       else if incinst = sub then
-        genbr(bcs, pseudoinst.oprnds[1]) 
-        else genbr(bcc, pseudoinst.oprnds[1]);
+        genbcond(lastnode, cs, pseudoinst.oprnds[1]) 
+        else genbcond(lastnode, cc, pseudoinst.oprnds[1]);
       end; {with forstack[forsp]}
 
     dereference(target);
@@ -4128,7 +4128,8 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
       the result of this compare is used, it seems like a fair assumption.
     }
 
-    if (pseudoinst.oprnds[2] = 0) and (signedcond in [eq, ne]) then
+    if (pseudoinst.oprnds[2] = 0) and (signedcond in [eq, ne]) and
+       (pseudobuff.op in [jumpt, jumpf]) then
       begin
       setvalue(cond_oprnd(signedcond));
       keytable[key].oprnd.reg := keytable[left].oprnd.reg;
@@ -4689,7 +4690,7 @@ procedure setinsertx;
       definelastlabel;
       gen2(lastnode, buildinst(cmp, keytable[left].len = long, false),
            insertkey, limitkey);
-      genbr(bhi, lastlabel);
+      genbcond(lastnode, hi, lastlabel);
       end;
     gensimplemove(lastnode, settemp(long, intconst_oprnd(1)), bitkey);
     if setlen <= long then
@@ -4726,7 +4727,7 @@ procedure setinsertx;
       begin
       gen3(lastnode, buildinst(add, keytable[left].len = long, false), insertkey, insertkey,
            settemp(keytable[left].len, imm12_oprnd(1, false)));
-      genbr(b, lastlabel + 1);
+      genbr(lastnode, b, lastlabel + 1);
       definelastlabel;
       unlock(limitkey);
       end; 
@@ -5772,12 +5773,12 @@ begin {casebranchx}
   gen2(lastnode, buildinst(cmp, false, false), scratch, t1);
   if errordefault then
     begin
-    gen2(lastnode, build_inst(bcond, false, false),  cond_oprnd(ls), newlabel);
+    genbcond(lastnode, ls, newlabel);
     definelabel(default);
     caseerrx;
     definelabel(lastlabel + 1);
     end
-  else genbr(bhi, default);;
+  else genbcond(lastnode, hi, default);;
 
   tablelabel := newlabel;
   addressreg := getreg;
@@ -5837,7 +5838,7 @@ procedure jumpx(lab: integer {label to jump to});
 
 
   begin
-    genbr(b, lab);
+    genbr(lastnode, b, lab);
 
     { DRB:stuff for later tail merging which we might not even
       want to do for arm64 
@@ -5875,7 +5876,7 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
     c: conds;
     regkey: keyindex;
 
-  begin
+  begin {jumpcond}
     address(right);
     labeltarget := settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1], false, 0));
     if keytable[right].oprnd.mode = cond then
@@ -5901,8 +5902,7 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
       else
         gen2(lastnode, buildinst(cbnz, keytable[right].len = long, false), regkey, labeltarget)
       end
-    else gen2(lastnode, buildinst(bcond, false, false), settemp(long, cond_oprnd(c)),
-              labeltarget);
+    else genbcond(lastnode, c, pseudoinst.oprnds[1]);
     context[contextsp].lastbranch := lastnode;
   end {jumpcond} ;
 
@@ -5915,18 +5915,9 @@ begin {condvalue}
   address(left);
   settargetorreg;
   with keytable[left].oprnd do
-    if mode <> cond then
-      begin
-      write('Conditional to value not cond flags');
-      compilerabort(inconsistent);
-      end
-    else
-      if inv then c := invertcond[condition]
-      else c := condition;
-{ check cmplit0 case use csel I assume }
-  gen2(lastnode, buildinst(cset, false, false), key,
-                 settemp(0, cond_oprnd(c)));
-
+    if inv then c := invertcond[condition]
+    else c := condition;
+  gen2(lastnode, buildinst(cset, false, false), key, settemp(0, cond_oprnd(c)));
 end {condvalue};
 
 { These are awful in that a top level compare can be collapsed into a
@@ -6149,12 +6140,12 @@ procedure codeone;
       defforindex: defforindexx(true, false);
       defunsforlitindex: defforindexx(false, true);
       defunsforindex: defforindexx(false, false);
-      fordntop: fortopx(blt, blo);
-      fordnbottom: forbottomx(false, sub, bge, bhs);
-      fordnimproved: forbottomx(true, sub, bge, bhs);
-      foruptop: fortopx(bgt, bhi);
-      forupbottom: forbottomx(false, add, ble, bls);
-      forupimproved: forbottomx(true, add, ble, bls);
+      fordntop: fortopx(lt, lo);
+      fordnbottom: forbottomx(false, sub, ge, hs);
+      fordnimproved: forbottomx(true, sub, ge, hs);
+      foruptop: fortopx(gt, hi);
+      forupbottom: forbottomx(false, add, le, ls);
+      forupimproved: forbottomx(true, add, le, ls);
 {
       forupchk: forcheckx(true);
       fordnchk: forcheckx(false);

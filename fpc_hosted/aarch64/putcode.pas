@@ -470,23 +470,9 @@ begin
     asrinst: write(macfile, 'asr');
     bic: write(macfile, 'bic');
     b: write(macfile, 'b');
-    {change these to b+cond_oprnd}
-    bcc: write(macfile, 'b.cc');
-    bcs: write(macfile, 'b.cs');
-    beq: write(macfile, 'b.eq');
-    bge: write(macfile, 'b.ge');
-    bgt: write(macfile, 'b.gt');
-    bhi: write(macfile, 'b.hi');
-    bhs: write(macfile, 'b.hs');
+    bcond: write(macfile, 'b.');
     bl: write(macfile, 'bl');
-    ble: write(macfile, 'b.le');
-    blt: write(macfile, 'b.lt');
-    blo: write(macfile, 'b.lo');
-    bls: write(macfile, 'b.ls');
-    bne: write(macfile, 'b.ne');
     br: write(macfile, 'br');
-    bvc: write(macfile, 'b.vc');
-    bvs: write(macfile, 'b.vs');
     cbnz: write(macfile, 'cbnz');
     cbz: write(macfile, 'cbz');
     cinv: write(macfile, 'cinv');
@@ -665,6 +651,15 @@ begin {write_node}
     begin
     write(macfile, chr(9));
     write_inst(p^.inst);
+    if p^.inst.inst = bcond then
+      begin
+      write_oprnd(p^.oprnds[1], false);
+      write(macfile, chr(9));
+      write_oprnd(p^.oprnds[2], false);
+      writeln(macfile);
+     end
+    else
+    begin
     sep := chr(9);
     for i := 1 to p^.oprnd_cnt do
       begin
@@ -673,6 +668,7 @@ begin {write_node}
       write_oprnd(p^.oprnds[i], p^.inst.sf);
       end;
     writeln(macfile);
+    end;
     end;
   stmtnode:
     begin

@@ -2406,16 +2406,13 @@ procedure walkvalue(root: nodeindex; {root of tree to walk}
 
       if usebranchlessboolops then
         begin
-{
-        if language = pascal then shortvisit(root, false);
-}
         walknode(root, k1, 0, true);
         key := newkey;
         context[contextsp].high := key;
         if inverted then
-          genpseudo(condf, valsize, key, 1, 0, k1, 0, targetkey)
+          genpseudo(condvaluef, valsize, key, 1, 0, k1, 0, targetkey)
         else
-          genpseudo(condt, valsize, key, 1, 0, k1, 0, targetkey);
+          genpseudo(condvaluet, valsize, key, 1, 0, k1, 0, targetkey);
         end
       else
         begin
