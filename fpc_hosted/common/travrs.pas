@@ -2813,9 +2813,6 @@ procedure build;
                            (call_depth = 0)
               else valid := true;
               cost := n.cost;
-{
-              relation := relationbuilt;
-}
               relation := n.relation;
               shortevaluation := n.shortevaluation;
               local := cond_depth > 0;
@@ -4324,11 +4321,17 @@ procedure build;
               notop:
                 begin
                 collectopdata;
-                if language = c then relationbuilt := n.form = bools
+                if language = c then
+                 begin
+                 relationbuilt := n.form = bools;
+                 n.shortevaluation := true;
+                 end
                 else
+                  begin
                   relationbuilt := (n.form = bools) and (shorteval or
                                    stack[sp].relation);
-                n.shortevaluation := (n.form = bools) and shorteval or (language = c);
+                  n.shortevaluation := (n.form = bools) and shorteval;
+                  end;
                 collectoprnds(1);
                 insertnormal;
                 end;
