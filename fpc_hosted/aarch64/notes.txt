@@ -1,3 +1,4 @@
+
 -- random stuff
 
   -- maybe index shouldn't materialize globaladdresses that can be regened
@@ -22,6 +23,38 @@
      up some stuff???  Certainly makes it harder to assign to regtemp.
 
 --- current work
+
+  -- FILES
+
+    -- Compiler
+
+     Most work in body.pas to switch from passing parameters on the stack to passing
+     them in registers.  It's going to be painful because this was never anticipated,
+     of course.  And the interface to travrs then code is a huge kludge to begin with.
+
+     Differentiation can hopefully be done in mda.pas.
+
+     write/writeln/read/readln, the ugliest part of the entire compiler
+
+     1. setfile initiates the counter of the number of fmt pseudoops seen.
+     2. copystack is weird, mc68000 codegen says it is there to make read/readln
+        look like pascal functions. Huh.  These are just weird. This was probably
+        maintained to keep things more or less the same as they were on the PDP-11,
+        which used the same front end as the others until we abandoned supporting
+        it with new releases.
+
+     Binary file stuff should be easier in the compiler.
+
+     Doing this based on streams would seem to make the most sense though fds would
+     probably be easier.
+
+    -- Library
+
+     This is going to be complex.  Figuring how to represent files is going to be
+     quite the trip on its own. The library code can probably be written in Pascal
+     interfacing to the C library.  
+
+  --
 
      Make special empty set integer constant and make movsetx deal with it rather
      than generate it in the string file.  This will be needed when type:[set const]

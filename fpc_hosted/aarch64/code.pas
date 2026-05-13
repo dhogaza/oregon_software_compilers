@@ -1144,7 +1144,7 @@ procedure genbcond(var after: nodeptr; c: conds; labelno: integer);
 
   begin {genbcond}
     gen2(after, buildinst(bcond, false, false),
-         settemp(long, cond_oprnd(c)),
+         settemp(0, cond_oprnd(c)),
          settemp(long, labeltarget_oprnd(labelno, false, 0)));
     context[contextsp].lastbranch := lastnode;
   end {genbcond};
@@ -4419,7 +4419,7 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
         end
       else if left = 0 then
         begin
-        write('origin data not yet implemented');
+        write('origin data not  implemented');
         compilerabort(inconsistent);
         end
       else if left = 1 then
@@ -6142,10 +6142,8 @@ procedure codeone;
       movcstruct: movcstructx;
       addstr: addstrx;
 }
-      addint, addptr:
-        integerarithmetic(add);
-      subint, subptr:
-        integerarithmetic(sub);
+      addint, addptr: integerarithmetic(add);
+      subint, subptr: integerarithmetic(sub);
       mulint: integermultiply;
       stddivint: divintx;
       divint: divintx;
@@ -6204,12 +6202,14 @@ procedure codeone;
       pshstr: pshstrx;
 }
       pshstruct, pshset: pushmultiple;
+      copystack: ; { a nop as we pass params by register.  This kludge
+                     is easier then taking it out of the front end for
+                     register parameter machines. }
 {
       fmt: fmtx;
       setbinfile: setbinfilex;
       setfile: setfilex;
       closerange: closerangex;
-      copystack: copystackx;
       rdint: rdintcharx(libreadint, defaulttargetintsize);
       rdchar: rdintcharx(libreadchar, byte);
       rdreal: rdintcharx(libreadreal, len);
