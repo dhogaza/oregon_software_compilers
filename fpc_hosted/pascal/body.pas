@@ -1838,7 +1838,7 @@ procedure genunary(op: operatortype; {operation to generate}
     if bigcompilerversion then resultptr := @(bigtable[resulttype]);
   end {genunary} ;
 
-procedure genregtargetop(p: entryptr; form: types);
+procedure genregtargetop(regid: regrange; alloc: allockind; form: types);
 
 { called by genparamvalue and also by the code to return a function
   return value in a value}
@@ -1849,8 +1849,8 @@ procedure genregtargetop(p: entryptr; form: types);
   begin {genregtargetop}
    olen := oprndstk[sp].oprndlen;
    genoprnd;
-   genlit(p^.regid);
-   case p^.varalloc of
+   genlit(regid);
+   case alloc of
      regparam: genop(regtargetop);
      ptrregparam: genop(ptrregtargetop);
      realregparam: genop(realregtargetop);
@@ -1876,7 +1876,7 @@ procedure genparamvalue(p: entryptr; form: types; var stackparamcount: integer);
      stackparamcount := stackparamcount + 1;
      end
    else
-     genregtargetop(p, form);
+     genregtargetop(p^.regid, p^.varalloc, form);
   end {genparamvalue};
 
 procedure genparamaddr(p: entryptr; form: types; var stackparamcount: integer);
@@ -1898,19 +1898,7 @@ procedure genparamaddr(p: entryptr; form: types; var stackparamcount: integer);
    else
      begin
      genunary(addrop, ptrs);
-     olen := oprndstk[sp].oprndlen;
-     genoprnd;
-     genlit(p^.regid);
-     case p^.varalloc of
-       regparam: genop(regtargetop);
-       ptrregparam: genop(ptrregtargetop);
-       realregparam: genop(realregtargetop);
-     end; 
-     genint(olen);
-     genint(1);
-     genform(ptrs);
-     sp := sp + 1;
-     oprndstk[sp].operandkind := exproperand;
+     genregtargetop(p^.regid, p^.varalloc, ptrs);
      end;
   end {genparamaddr};
 
@@ -6300,6 +6288,8 @@ procedure statement(follow: tokenset {legal following symbols} );
   dispose require special processing for the optional tag arguments.
 }
 
+    var regparamsstdprocs: regparamstype;
+
 
     procedure pushstringparam(extendedstring: boolean {arrays or strings} );
 
@@ -7070,6 +7060,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 
 
     begin {standardprocedures}
+      initregparams(regparamsstdprocs);
       newexprstmt(syscall);
       genint(ord(procid));
       gettoken;

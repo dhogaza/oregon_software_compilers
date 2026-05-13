@@ -28,20 +28,23 @@
 
     -- Compiler
 
-     Most work in body.pas to switch from passing parameters on the stack to passing
-     them in registers.  It's going to be painful because this was never anticipated,
-     of course.  And the interface to travrs then code is a huge kludge to begin with.
+     genparamvalue and genparamaddr just need analogues for instrinsics which don't
+     have their parameters defined in the symbol table.  gensysparamvalue and
+     gensysparamaddr perhaps?  mda.pas can have a procedure or function  that says
+     whether or not the given parameter should go in a register or not.  We'll pass
+     in the parameter number and type, and it will pass out whether or not it goes
+     into a register or on the stack.  This can work with an ABI that only passes
+     the first param in a register and the rest on the stack, for instance.  Could
+     give a foothold into the problem of implememting a variable number of params
+     which I probably shouldn't do.
 
-     Differentiation can hopefully be done in mda.pas.
+     Other issue is preserving the file argument across calls.  Saving it on the
+     stack isn't the worst thing in the world, followed by loading it into x0
+     every time we call a file intrinsic.
 
      write/writeln/read/readln, the ugliest part of the entire compiler
 
-     1. setfile initiates the counter of the number of fmt pseudoops seen.
-     2. copystack is weird, mc68000 codegen says it is there to make read/readln
-        look like pascal functions. Huh.  These are just weird. This was probably
-        maintained to keep things more or less the same as they were on the PDP-11,
-        which used the same front end as the others until we abandoned supporting
-        it with new releases.
+     setfile initiates the counter of the number of fmt pseudoops seen.
 
      Binary file stuff should be easier in the compiler.
 

@@ -54,6 +54,7 @@ type
   {addressrange = 0..maxaddr;} {possible address values}
 
   bitrange = 0..maxbit; {possible bit indices within a word}
+  regrange = 0..255; {no machine we care about has more registers than this}
 
   { Structures to describe types and labels}
 
@@ -207,8 +208,8 @@ type
                 nextparamlink: index; {if parameter, points to next param in
                                        list}
                 offset: unsignedint; {address of item within block}
-                regid: 0..255; {register assigned for a register param}
-                regcount: 0..255; {register params can occupy more than one register}
+                regid: regrange; {register assigned for a register param}
+                regcount: regrange; {register params can occupy more than one register}
                 length: addressrange; {length of item}
                 vartype: index; {name's type}
                 paramlist: index; {Index of last parameter}
