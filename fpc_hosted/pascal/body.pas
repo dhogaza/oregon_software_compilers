@@ -1914,11 +1914,26 @@ procedure genstdparamvalue(form: types; var regparams: regparamstype);
     if alloc = normalalloc then
       genunary(pushvalue, form)
     else
+      genregtargetop(regid, alloc, ptrs);
+end {genstdparamvalue};
+
+procedure genstdparamaddr(form: types; var regparams: regparamstype);
+
+  var
+    alloc: allockind;
+    regid: regrange;
+  
+
+  begin {genstdparamaddr}
+    allocstdparam(form, regparams, alloc, regid);
+    if alloc = normalalloc then
+      genunary(pushvalue, form)
+    else
       begin
       genunary(addrop, ptrs);
       genregtargetop(regid, alloc, ptrs);
       end;
-end {genstdparamvalue};
+end {genstdparamaddr};
 
 procedure foldintplusminus(sign: integer {1 if add, -1 if sub} );
 
@@ -6306,9 +6321,6 @@ procedure statement(follow: tokenset {legal following symbols} );
   dispose require special processing for the optional tag arguments.
 }
 
-    var regparamsstdprocs: regparamstype;
-
-
     procedure pushstringparam(extendedstring: boolean {arrays or strings} );
 
 { Push a string parameter onto the operand stack.  This actually generates
@@ -6755,11 +6767,13 @@ procedure statement(follow: tokenset {legal following symbols} );
             writelen: addressrange; {length of write parameter}
             writealloc: allockind; {register or stack}
             writeregid: regrange; {for register param}
+            writeregparams: regparamstype; {for tracking param alloc}
 
             stringflag: boolean; {used to check for string argument}
             basetype: index; {pointer to base type}
 
           begin {onewriteparam}
+            initregparams(writeregparams);
             if filetype <> textindex then filehack(filetype, false);
             skipfactor := varread;
             expression(follow + [comma, rpar, colon], false);
@@ -6780,7 +6794,7 @@ procedure statement(follow: tokenset {legal following symbols} );
               case writeform of
                 bools, chars, ints:
                   begin
-                  genstdparamvalue(writeform, regparamsstdprocs);
+                  genstdparamvalue(writeform, writeregparams);
 {
                   genunary(pushvalue, writeform);
 }
@@ -6788,7 +6802,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                   end;
                 none, reals, doubles:
                   begin
-                  genstdparamvalue(writeform, regparamsstdprocs);
+                  genstdparamvalue(writeform, writeregparams);
 {
                   genunary(pushvalue, writeform);
 }
@@ -7087,7 +7101,6 @@ procedure statement(follow: tokenset {legal following symbols} );
 
 
     begin {standardprocedures}
-      initregparams(regparamsstdprocs);
       newexprstmt(syscall);
       genint(ord(procid));
       gettoken;

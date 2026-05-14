@@ -4837,6 +4837,70 @@ procedure sysfnintx;
       end;
   end {sysfnintx} ;
 
+procedure sysroutinex;
+
+  begin {sysroutinex}
+    case standardids(pseudoinst.oprnds[1]) of
+{
+      pageid: calliosupport(libpage, 0);
+      putid: callandpop(libput, 1);
+      getid: callandpop(libget, 1);
+      breakid: callandpop(libbreak, 1);
+      seekid: callandpop(libseek, 2);
+      closeid: callandpop(libclose, 1);
+      resetid: openx(libreset);
+      rewriteid: openx(librewrite);
+      packid: callandpop(libpack, 11);
+      unpackid: callandpop(libunpack, 11);
+      newid: callandpop(libnew, 2);
+      disposeid: callandpop(libdispose, 2);
+      renameid: callandpop(librename, 3);
+      noioerrorid: callandpop(libnoioerror, 1);
+      deleteid: callandpop(libdelete, 1);
+}
+      writeid, readid: ;
+{
+      writelnid: calliosupport(libwriteln, 0);
+      readlnid: calliosupport(libreadln, 0);
+      insertid: callandpop(libinsert, 4);
+      deletestrid: callandpop(libdeletestr, 4);
+      valprocid:
+      strid:
+      setfpcrid: setfpcrfn;
+      fsincosid: fsincosfn;
+      inclid: setbit(true);
+      exclid: setbit(false);
+}
+      end;
+    filenamed := false;
+    formatcount := 0;
+    dontchangevalue := 0;
+    paramlist_started := false; {reset switch}
+  end {sysroutinex};
+
+procedure wrcommon(libroutine: libroutines; {formatting routine to call}
+                   deffmt: integer {default width if needed} );
+  var
+    libkey: keyindex;
+
+  begin {wrcommon}
+    if formatcount = 0 then
+      begin
+{
+      settempimmediate(defaulttargetintsize, deffmt);
+      aligntemps; {just to be sure}
+      newtemp(defaulttargetintsize);
+      gendouble(move, tempkey, stackcounter);
+}
+      end;
+    if filenamed then libkey := settemp(long, libcall_oprnd(libroutine))
+    else libkey := settemp(long, libcall_oprnd(succ(libroutine)));
+    gen1(lastnode, buildinst(bl, false, false), libkey);
+    formatcount := 0;
+    firstreg := 0;
+    formatcount := 0;
+  end {wrcommon};
+
 procedure blockcodex;
 
 { Generate code for the beginning of a block.
@@ -5667,6 +5731,8 @@ and
     stackcounter := stackcounter + pseudoinst.oprnds[2];
     stackoffset := -keytable[stackcounter].oprnd.index;
 
+    firstreg := 0;
+
   end {callroutinex} ;
 
 
@@ -6184,8 +6250,8 @@ procedure codeone;
 }
       loopholefn, castptrint, castintptr, castfptrint, castintfptr:
 	loopholefnx;
-{
       sysroutine: sysroutinex;
+{
       chrstr: chrstrx;
       arraystr: arraystrx;
       flt: fltx;
@@ -6219,13 +6285,13 @@ procedure codeone;
       rdxstr: rdxstrx;
       rdbin: callsupport(libget);
       wrbin: callsupport(libput);
-      wrint: wrcommon(libwriteint, 12);
-      wrchar: wrcommon(libwritechar, 1);
       wrst: wrstx(true);
       wrxstr: wrstx(false);
-      wrbool: wrcommon(libwritebool, 5);
       wrreal: wrrealx;
 }
+      wrint: wrcommon(libwriteint, 12);
+      wrchar: wrcommon(libwritechar, 1);
+      wrbool: wrcommon(libwritebool, 5);
       jump: jumpx(pseudoinst.oprnds[1]);
       jumpf: jumpcond(true);
       jumpt: jumpcond(false);
