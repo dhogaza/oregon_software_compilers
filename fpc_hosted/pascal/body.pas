@@ -1902,6 +1902,24 @@ procedure genparamaddr(p: entryptr; form: types; var stackparamcount: integer);
      end;
   end {genparamaddr};
 
+procedure genstdparamvalue(form: types; var regparams: regparamstype);
+
+  var
+    alloc: allockind;
+    regid: regrange;
+  
+
+  begin {genstdparamvalue}
+    allocstdparam(form, regparams, alloc, regid);
+    if alloc = normalalloc then
+      genunary(pushvalue, form)
+    else
+      begin
+      genunary(addrop, ptrs);
+      genregtargetop(regid, alloc, ptrs);
+      end;
+end {genstdparamvalue};
+
 procedure foldintplusminus(sign: integer {1 if add, -1 if sub} );
 
 { Fold integer addition or subtraction.  This can be done if both
@@ -6735,6 +6753,9 @@ procedure statement(follow: tokenset {legal following symbols} );
           var
             writeform: types; {form of argument}
             writelen: addressrange; {length of write parameter}
+            writealloc: allockind; {register or stack}
+            writeregid: regrange; {for register param}
+
             stringflag: boolean; {used to check for string argument}
             basetype: index; {pointer to base type}
 
@@ -6759,12 +6780,18 @@ procedure statement(follow: tokenset {legal following symbols} );
               case writeform of
                 bools, chars, ints:
                   begin
+                  genstdparamvalue(writeform, regparamsstdprocs);
+{
                   genunary(pushvalue, writeform);
+}
                   parsecolons(1);
                   end;
                 none, reals, doubles:
                   begin
+                  genstdparamvalue(writeform, regparamsstdprocs);
+{
                   genunary(pushvalue, writeform);
+}
                   parsecolons(2);
                   end;
                 arrays, strings:

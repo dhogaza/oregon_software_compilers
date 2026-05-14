@@ -52,6 +52,15 @@ procedure initregparams(var regparams: regparamstype);
   register params.
 }
 
+procedure allocstdparam(form: types; var regparams: regparamstype;
+                        var alloc: allockind; var regid: regrange);
+
+{ allocate a paramater for a standard function or procedure.  These don't have
+  symbol table entries so the information is generated dynamically when 
+  these routines are parsed.  Aarch64 standard routines never need stack
+  allocation.
+}
+
 procedure alloc(align: alignmentrange; {variable alignment}
                 length: addressrange; {length of variable}
                 var spacesize: addressrange; {size of data space}
@@ -408,6 +417,31 @@ function alignmentof(f: entryptr; {form to check}
     else if packedresult then alignmentof := f^.align * bitsperunit
     else alignmentof := (f^.align + bitsperunit - 1) div bitsperunit;
   end {alignmentof} ;
+
+procedure allocstdparam(form: types; var regparams: regparamstype;
+                        var alloc: allockind; var regid: regrange);
+
+{ allocate a paramater for a standard function or procedure.  These don't have
+  symbol table entries so the information is generated dynamically when 
+  these routines are parsed.  Aarch64 standard routines never need stack
+  allocation.
+}
+
+  begin {allocstdparam}
+    with regparams do
+      if form in [reals, doubles] then
+        begin
+        regid := realregparams;
+        realregparams := realregparams + 1;
+        alloc := realregparam;
+        end
+      else
+        begin
+        regid := regparams;
+        regparams := regparams + 1;
+        alloc := regparam;
+        end;
+  end {allocstdparam};
 
 procedure allocparam(paramptr: entryptr; {the param we are allocating}
                      align: alignmentrange; {param alignment}

@@ -433,6 +433,23 @@ function alignmentof(f: entryptr; {form to check}
     else alignmentof := (f^.align + bitsperunit - 1) div bitsperunit;
   end {alignmentof} ;
 
+procedure allocstdparam(form: types; var regparams: regparamstype;
+                        var alloc: allockind; var regid: regrange);
+
+{ 
+  symbol table entries so the information is generated dynamically when 
+  these routines are parsed.  
+
+  ***M68000***
+  Params are passed on the stack so always returns normalalloc.
+
+}
+
+  begin {allocstdparam}
+    alloc := normalalloc;
+    regid := 0;
+  end {allocstdparam};
+
 procedure allocparam(paramptr: entryptr; {the param we are allocating}
                      align: alignmentrange; {param alignment}
                      length: addressrange; {length of param}
