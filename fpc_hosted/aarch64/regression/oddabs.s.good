@@ -456,10 +456,8 @@ main:
 	mov	x1,1
 	mov	x2,8
 	bl	putstring
-	str	x0,[x29,-8]
 	mov	x0,1
 	bl	.P16  // oddf
-	str	x0,[x29,-8]
 	bl	putboolln
 	mov	x2,8
 	sub	x0,x29,16
@@ -470,10 +468,8 @@ main:
 	mov	x1,1
 	mov	x2,8
 	bl	putstring
-	str	x0,[x29,-8]
 	mov	x0,4
 	bl	.P16  // oddf
-	str	x0,[x29,-8]
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,32
@@ -484,10 +480,8 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	str	x0,[x29,-8]
 	mov	w0,65536
 	bl	.P16  // oddf
-	str	x0,[x29,-8]
 	bl	putboolln
 	mov	x2,14
 	sub	x0,x29,48
@@ -498,11 +492,9 @@ main:
 	mov	x1,1
 	mov	x2,14
 	bl	putstring
-	str	x0,[x29,-8]
 	movz	x0,16961
 	movk	x0,15,lsl 16
 	bl	.P16  // oddf
-	str	x0,[x29,-8]
 	bl	putboolln
 	mov	x2,8
 	sub	x0,x29,56
@@ -513,10 +505,8 @@ main:
 	mov	x1,1
 	mov	x2,8
 	bl	putstring
-	str	x0,[x29,-8]
 	mov	x0,1
 	bl	.P17  // absf
-	str	x0,[x29,-8]
 	bl	putintln
 	mov	x2,12
 	sub	x0,x29,72
@@ -527,10 +517,8 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	str	x0,[x29,-8]
 	mov	x0,65535
 	bl	.P17  // absf
-	str	x0,[x29,-8]
 	bl	putintln
 	mov	x2,9
 	sub	x0,x29,88
@@ -541,11 +529,9 @@ main:
 	mov	x1,1
 	mov	x2,9
 	bl	putstring
-	str	x0,[x29,-8]
 	movz	x0,65535
 	movk	x0,65535,lsl 16
 	bl	.P17  // absf
-	str	x0,[x29,-8]
 	bl	putintln
 	mov	x2,17
 	sub	x0,x29,112
@@ -556,11 +542,9 @@ main:
 	mov	x1,1
 	mov	x2,17
 	bl	putstring
-	str	x0,[x29,-8]
 	movz	x0,57600
 	movk	x0,1525,lsl 16
 	bl	.P17  // absf
-	str	x0,[x29,-8]
 	bl	putintln
 .L43:
 	ldp	x30,x29,[sp,112]

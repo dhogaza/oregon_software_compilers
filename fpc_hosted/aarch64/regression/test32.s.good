@@ -536,23 +536,17 @@ main:
 	mov	x1,1
 	mov	x2,9
 	bl	putstringln
-	str	x0,[x29,-32]
 	mov	x0,1
 	mov	x1,2
 	bl	.P18  // lt
-	str	x0,[x29,-32]
 	bl	putboolln
-	str	x0,[x29,-32]
 	mov	x0,2
 	mov	x1,2
 	bl	.P18  // lt
-	str	x0,[x29,-32]
 	bl	putboolln
-	str	x0,[x29,-32]
 	mov	x0,3
 	mov	x1,2
 	bl	.P18  // lt
-	str	x0,[x29,-32]
 	bl	putboolln
 	bl	putln
 	mov	x2,12
@@ -564,23 +558,17 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstringln
-	str	x0,[x29,-32]
 	mov	x0,1
 	mov	x1,2
 	bl	.P19  // gt
-	str	x0,[x29,-32]
 	bl	putboolln
-	str	x0,[x29,-32]
 	mov	x0,2
 	mov	x1,2
 	bl	.P19  // gt
-	str	x0,[x29,-32]
 	bl	putboolln
-	str	x0,[x29,-32]
 	mov	x0,3
 	mov	x1,2
 	bl	.P19  // gt
-	str	x0,[x29,-32]
 	bl	putboolln
 	bl	putln
 	mov	x2,18
@@ -592,23 +580,17 @@ main:
 	mov	x1,1
 	mov	x2,18
 	bl	putstringln
-	str	x0,[x29,-32]
 	mov	x0,1
 	mov	x1,2
 	bl	.P20  // le
-	str	x0,[x29,-32]
 	bl	putboolln
-	str	x0,[x29,-32]
 	mov	x0,2
 	mov	x1,2
 	bl	.P20  // le
-	str	x0,[x29,-32]
 	bl	putboolln
-	str	x0,[x29,-32]
 	mov	x0,3
 	mov	x1,2
 	bl	.P20  // le
-	str	x0,[x29,-32]
 	bl	putboolln
 	bl	putln
 	mov	x2,21
@@ -620,23 +602,17 @@ main:
 	mov	x1,1
 	mov	x2,21
 	bl	putstringln
-	str	x0,[x29,-32]
 	mov	x0,1
 	mov	x1,2
 	bl	.P21  // ge
-	str	x0,[x29,-32]
 	bl	putboolln
-	str	x0,[x29,-32]
 	mov	x0,2
 	mov	x1,2
 	bl	.P21  // ge
-	str	x0,[x29,-32]
 	bl	putboolln
-	str	x0,[x29,-32]
 	mov	x0,3
 	mov	x1,2
 	bl	.P21  // ge
-	str	x0,[x29,-32]
 	bl	putboolln
 	bl	putln
 	mov	x2,8
@@ -648,23 +624,17 @@ main:
 	mov	x1,1
 	mov	x2,8
 	bl	putstringln
-	str	x0,[x29,-32]
 	mov	x0,1
 	mov	x1,2
 	bl	.P16  // eq
-	str	x0,[x29,-32]
 	bl	putboolln
-	str	x0,[x29,-32]
 	mov	x0,2
 	mov	x1,2
 	bl	.P16  // eq
-	str	x0,[x29,-32]
 	bl	putboolln
-	str	x0,[x29,-32]
 	mov	x0,3
 	mov	x1,2
 	bl	.P16  // eq
-	str	x0,[x29,-32]
 	bl	putboolln
 	bl	putln
 	mov	x2,12
@@ -676,23 +646,17 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstringln
-	str	x0,[x29,-32]
 	mov	x0,1
 	mov	x1,2
 	bl	.P17  // ne
-	str	x0,[x29,-32]
 	bl	putboolln
-	str	x0,[x29,-32]
 	mov	x0,2
 	mov	x1,2
 	bl	.P17  // ne
-	str	x0,[x29,-32]
 	bl	putboolln
-	str	x0,[x29,-32]
 	mov	x0,3
 	mov	x1,2
 	bl	.P17  // ne
-	str	x0,[x29,-32]
 	bl	putboolln
 	bl	putln
 .L47:
