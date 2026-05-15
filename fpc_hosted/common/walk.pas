@@ -1222,6 +1222,20 @@ with target = 0.
         genpseudo(copystack, 0, 0, 0, 0, 0, 0, 0);
       end {copystacknode} ;
 
+    procedure fileparamnode;
+
+{ Process special file param operatore.  This is used with ABIs that call
+  for passing parameters in registers, rather on the stack.  For now, and
+  almost certainly forever, only aarch64.  Comments regarding copystack
+  apply here, too.  Both are massive kludges.
+}
+
+
+      begin {fileparamnode}
+        walkvalue(l, key, targetkey);
+        genpseudo(fileparam, ptrsize, 0, 0, 0, 0, 0, 0);
+      end {fileparamnode} ;
+
 
     procedure checknode(op: operatortype {root operator} );
 
@@ -1665,6 +1679,38 @@ with target = 0.
       end {stacknode} ;
 
 
+    procedure stackregparamnode(op: operatortype; {root operator}
+                                form: types {operand form} );
+
+{ Walk and generate code for a node which pushes a value on the stack
+  or to a hard-wired register (known to the code generator)
+
+  Left operand is the link to other parameters, right operand is the
+  value.
+
+  DRB: yes, this is a hack to work around the existing logic of this old
+  compiler technology without doing a lot of rewriting.
+}
+
+
+      begin {stacknode}
+        walknode(l, lkey, 0, true);
+        mapkey;
+
+        if targetmachine <> aarch64 then
+          genpseudo(stacktarget, len, key, refcount, copycount, 1, 0, 0);
+        if op in [pushlitvalue, pushfptr] then
+          genpseudo(map[op, form], len, key, 0, 0, r, 0, 0)
+        else
+          begin
+          walkvalue(r, rkey, key);
+          genpseudo(map[op, form], len, key, 0, 0, rkey, 0, 0);
+          end;
+
+        if language <> c then clearkeys;
+      end {stacknode} ;
+
+
     procedure pushaddrnode(op: operatortype;
                            form: types);
 
@@ -1683,7 +1729,7 @@ with target = 0.
         walknode(l, lkey, 0, true);
         if bigcompilerversion then rptr := @(bignodetable[r]);
         walkfirst := (rptr^.op in
-                     [copystackop, call, callparam, unscall, unscallparam]) or
+                     [copystackop, call, callparam, unscall, unscallparam, fileparamop]) or
                      (form = strings);
         if walkfirst then walkvalue(r, rkey, key);
         mapkey;
@@ -2184,7 +2230,7 @@ with target = 0.
           unscallparam: callparamnode(op);
           reserve: reservenode;
           pushaddr, pushstraddr: pushaddrnode(op, form);
-          bldfmt: stacknode(op, none);
+          bldfmt: stackregparamnode(op, none);
           pushproc: pushprocnode;
           pushfinal: pushfinalnode;
           pushvalue, pushlitvalue, pushfptr: stacknode(op, form);
@@ -2250,6 +2296,7 @@ with target = 0.
           setbinfileop: setbinfilenode;
           setfileop, closerangeop: unmappedunarynode(op, form);
           copystackop: copystacknode;
+          fileparamop: fileparamnode;
           defforindexop, defunsforindexop: defforindexnode(true);
           defforlitindexop, defunsforlitindexop: defforindexnode(false);
           regparamop: regparamnode(regparam);

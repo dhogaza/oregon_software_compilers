@@ -1914,7 +1914,7 @@ procedure genstdparamvalue(form: types; var regparams: regparamstype);
     if alloc = normalalloc then
       genunary(pushvalue, form)
     else
-      genregtargetop(regid, alloc, ptrs);
+      genregtargetop(regid, alloc, form);
 end {genstdparamvalue};
 
 procedure genstdparamaddr(form: types; var regparams: regparamstype);
@@ -6565,26 +6565,32 @@ procedure statement(follow: tokenset {legal following symbols} );
       end {filehack} ;
 
 
-    procedure gencopystack(reservelen: integer {stack space to reserve for
-                                                result value} );
+    procedure gencopystack(len: integer; var regparams: regparamstype );
 
-{ Generate special code to copy the top element of the runtime stack,
+{ Generate special code to copy the top element of the runtime stack
+  into the proper place for a file parameter (stack or register)
   which is assumed by this routine to be the explicitly named file
   argument to "read" or "write".  Complicated by the fact that the
   travrs operand stack (for building nodes) might or might not already
   contain the read/write argument.
 }
 
+      var
+        alloc: allockind;
+        dummy: regrange;
 
       begin {gencopystack}
+        allocstdparam(ptrs, regparams, alloc, dummy);
         if not constcheck(sp) then genop(switchstack);
-        genop(copystackop);
-        genint(reservelen);
+        if alloc = normalalloc then
+          genop(copystackop)
+       else
+          genop(fileparamop);
+        genint(len);
         genint(0);
         genform(ptrs);
         if not constcheck(sp) then genop(switchstack);
       end {gencopystack} ;
-
 
     procedure readprocedure;
 
@@ -6605,6 +6611,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 }
 
         var
+          readregparams: regparamstype; {for tracking param alloc}
           readform: types; {type of parameter}
           readfile: boolean; {true if read(filevar, ...) form}
           restoresp: - 1..oprnddepth; {for restoring operand sp after each read}
@@ -6630,10 +6637,10 @@ procedure statement(follow: tokenset {legal following symbols} );
                 begin
                 if readform = ints then resultlen := defaulttargetintsize
                 else resultlen := sizeof(resultptr, false);
-                gencopystack(resultlen);
+                gencopystack(resultlen, readregparams);
                 end
               else if readfile and ((token <> rpar) or not readflag) then
-                gencopystack(0);
+                gencopystack(0, readregparams);
 
               if not (readform in [none, ints, reals, doubles, chars]) then
                 begin
@@ -6652,8 +6659,8 @@ procedure statement(follow: tokenset {legal following symbols} );
 { Parse one read parameter.  This must be a variable.
 }
 
-
           begin {onereadparam}
+            initregparams(readregparams);
             sp := restoresp;
             if token = ident then
               begin
@@ -6789,23 +6796,18 @@ procedure statement(follow: tokenset {legal following symbols} );
               if writeform = arrays then stringflag := resultptr^.stringtype
               else stringflag := writeform = strings;
 
-              if ((token <> rpar) or not writeflag) then gencopystack(0);
+              if writefile and ((token <> rpar) or not writeflag) then
+                gencopystack(0, writeregparams);
 
               case writeform of
                 bools, chars, ints:
                   begin
                   genstdparamvalue(writeform, writeregparams);
-{
-                  genunary(pushvalue, writeform);
-}
                   parsecolons(1);
                   end;
                 none, reals, doubles:
                   begin
                   genstdparamvalue(writeform, writeregparams);
-{
-                  genunary(pushvalue, writeform);
-}
                   parsecolons(2);
                   end;
                 arrays, strings:

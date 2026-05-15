@@ -82,6 +82,7 @@ procedure dumppseudo(var f: text);
           congruchk: write(f, 'congruchk': 15);
           copyaccess: write(f, 'copyaccess': 15);
           copystack: write(f, 'copystack': 15);
+          fileparam: write(f, 'fileparam': 15);
           condvaluef: write(f, 'condvaluef': 15);
           condvaluet: write(f, 'condvaluet': 15);
           createfalse: write(f, 'createfalse': 15);
@@ -1814,6 +1815,13 @@ function stacktemp(size: addressrange): keyindex;
       end;
   end {stacktemp} ;
 
+procedure removeparamtemps(count: integer);
+
+begin {removeparamtemps}
+  stackcounter := stackcounter + count;
+  stackoffset := -keytable[stackcounter].oprnd.index;
+end {removeparamtemps};
+
 { Register allocation procedures }
 
 { Currently registers are always spilled to the stack.  At one point regparams
@@ -3311,6 +3319,16 @@ procedure reloadloop;
   end {reloadloop} ;
 
 
+procedure calliosupport(libroutine: libroutines);
+  var
+    libkey: keyindex;
+  begin
+    if filenamed then libkey := settemp(long, libcall_oprnd(libroutine))
+    else libkey := settemp(long, libcall_oprnd(succ(libroutine)));
+    gen1(lastnode, buildinst(bl, false, false), libkey);
+    markscratchregs;
+    firstreg := 0;
+  end;
 
 {start of individual pseudoop codegen procedures}
 
@@ -4775,6 +4793,68 @@ procedure setinsertx;
     setvalue(cond_oprnd(ne));
   end {insetx};
 
+{ various file handling intrinsics }
+
+procedure wrcommon(libroutine: libroutines; {formatting routine to call}
+                   deffmt: integer {default width if needed} );
+  var
+    regkey: keyindex;
+
+  begin {wrcommon}
+    if formatcount = 0 then
+      begin
+      { whee hardcoding parameter registers!}
+      gensimplemove(lastnode,
+                    settemp(long, intconst_oprnd(deffmt)),
+                    settemp(long, reg_oprnd(firstreg)));
+      end;
+    calliosupport(libroutine);
+    formatcount := 0;
+    formatcount := 0;
+  end {wrcommon};
+
+procedure setfilex;
+
+{ Flags beginning of file processing of some sort or another.  "Filenamed"
+  is used to differentiate between implicit and explicit files for read/write.
+  "Filestkcnt" is used for clearing the stack for reset/rewrite.
+}
+
+begin {setfilex}
+  filenamed := true;
+  dontchangevalue := dontchangevalue + 1;
+end {setfilex} ;
+
+procedure fmtx;
+
+begin {fmtx}
+  address(left);
+  gensimplemove(lastnode, left, settemp(long, reg_oprnd(firstreg)));
+  markreg(firstreg);
+  firstreg := firstreg + 1;
+  formatcount := formatcount + 1;
+end {fmtx};
+
+procedure fileparamx;
+
+{ A kludgey artifact of modifying this very old compiler system to pass
+  parameters by register rather than on the stack.  For write[ln]/read[ln]
+  function calls the optional file argument is saved on the stack, and 
+  passed in x0 for each wrint/wrbool/etc call.
+}
+
+begin {fileparamx}
+  gensimplemove(lastnode, stackcounter, settemp(long, reg_oprnd(0)));
+  markreg(0);
+  firstreg := 1;
+end {fileparamx};
+
+procedure removefileparam;
+
+begin {removefileparam}
+  if filenamed then removeparamtemps(1);
+end {removefileparam};
+
 procedure sysfnintx;
 
 { Generate code for a system routine with scalar (non-real) argument.
@@ -4858,9 +4938,13 @@ procedure sysroutinex;
       noioerrorid: callandpop(libnoioerror, 1);
       deleteid: callandpop(libdelete, 1);
 }
-      writeid, readid: ;
+      writeid, readid: removefileparam;
+      writelnid:
+        begin
+        removefileparam;
+        calliosupport(libwriteln);
+        end;
 {
-      writelnid: calliosupport(libwriteln, 0);
       readlnid: calliosupport(libreadln, 0);
       insertid: callandpop(libinsert, 4);
       deletestrid: callandpop(libdeletestr, 4);
@@ -4877,29 +4961,6 @@ procedure sysroutinex;
     dontchangevalue := 0;
     paramlist_started := false; {reset switch}
   end {sysroutinex};
-
-procedure wrcommon(libroutine: libroutines; {formatting routine to call}
-                   deffmt: integer {default width if needed} );
-  var
-    libkey: keyindex;
-
-  begin {wrcommon}
-    if formatcount = 0 then
-      begin
-{
-      settempimmediate(defaulttargetintsize, deffmt);
-      aligntemps; {just to be sure}
-      newtemp(defaulttargetintsize);
-      gendouble(move, tempkey, stackcounter);
-}
-      end;
-    if filenamed then libkey := settemp(long, libcall_oprnd(libroutine))
-    else libkey := settemp(long, libcall_oprnd(succ(libroutine)));
-    gen1(lastnode, buildinst(bl, false, false), libkey);
-    formatcount := 0;
-    firstreg := 0;
-    formatcount := 0;
-  end {wrcommon};
 
 procedure blockcodex;
 
@@ -5231,8 +5292,8 @@ procedure regtargetx;
     markreg(pseudoinst.oprnds[1]);
     setvalue(reg_oprnd(pseudoinst.oprnds[1]));
     regused[pseudoinst.oprnds[1]] := true;
-    if pseudoinst.oprnds[1] > firstreg then
-        firstreg := pseudoinst.oprnds[1];
+    if pseudoinst.oprnds[1] >= firstreg then
+      firstreg := pseudoinst.oprnds[1] + 1;
   end {regtargetx} ;
 
 procedure regtempx;
@@ -5314,6 +5375,21 @@ procedure pshintptrx;
     gensimplemove(lastnode, left, key);
     dontchangevalue := dontchangevalue - 1;
   end {pshintptrx};
+
+procedure pshaddrx;
+
+  var
+    addrkey: keyindex;
+
+  begin {pshaddrx}
+    address(left);
+    lock(left);
+    addrkey := settemp(long, reg_oprnd(getreg));
+    unlock(left);
+    genmoveaddress(left, addrkey);
+    gensimplemove(lastnode, addrkey, key);
+    dontchangevalue := dontchangevalue - 1;
+  end {pshaddrx};
 
 procedure movemultiple;
 
@@ -5728,8 +5804,7 @@ and
     else if (len <= long) then
       setvalue(reg_oprnd(0));
 
-    stackcounter := stackcounter + pseudoinst.oprnds[2];
-    stackoffset := -keytable[stackcounter].oprnd.index;
+    removeparamtemps(pseudoinst.oprnds[2]);
 
     firstreg := 0;
 
@@ -6258,23 +6333,21 @@ procedure codeone;
 }
       pshint, pshptr: pshintptrx;
       pshlitint, pshlitptr, pshlitfptr: pshlitintptrx;
+      pshaddr: pshaddrx;
 {
       pshfptr: pshfptrx;
       pshlitreal: pshlitrealx;
       pshreal: pshx;
-      pshaddr: pshaddrx;
       pshstraddr: pshstraddrx;
       pshproc: pshprocx;
       pshstr: pshstrx;
 }
       pshstruct, pshset: pushmultiple;
-      copystack: ; { a nop as we pass params by register.  This kludge
-                     is easier then taking it out of the front end for
-                     register parameter machines. }
-{
-      fmt: fmtx;
-      setbinfile: setbinfilex;
       setfile: setfilex;
+      fileparam: fileparamx;
+      fmt: fmtx;
+{
+      setbinfile: setbinfilex;
       closerange: closerangex;
       rdint: rdintcharx(libreadint, defaulttargetintsize);
       rdchar: rdintcharx(libreadchar, byte);

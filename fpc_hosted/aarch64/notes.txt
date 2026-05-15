@@ -28,23 +28,21 @@
 
     -- Compiler
 
-     genparamvalue and genparamaddr just need analogues for instrinsics which don't
-     have their parameters defined in the symbol table.  gensysparamvalue and
-     gensysparamaddr perhaps?  mda.pas can have a procedure or function  that says
-     whether or not the given parameter should go in a register or not.  We'll pass
-     in the parameter number and type, and it will pass out whether or not it goes
-     into a register or on the stack.  This can work with an ABI that only passes
-     the first param in a register and the rest on the stack, for instance.  Could
-     give a foothold into the problem of implememting a variable number of params
-     which I probably shouldn't do.
+     main initiation:
 
-     Other issue is preserving the file argument across calls.  Saving it on the
-     stack isn't the worst thing in the world, followed by loading it into x0
-     every time we call a file intrinsic.
+	adrp	x0, :got:stdout
+	ldr	x0, [x0, :got_lo12:stdout]
 
      write/writeln/read/readln, the ugliest part of the entire compiler
 
-     setfile initiates the counter of the number of fmt pseudoops seen.
+     Preserving the file argument across calls.  Saving it on the
+     stack isn't the worst thing in the world, followed by loading it into x0
+     every time we call a file intrinsic.
+
+     "copystack" then copies the stack arg to x0.  body.pas needs to allocate
+     a dummy param to figure out where to put it then, with walk.pas kludged to
+     not treat it as a stacknode (or for the code generator to kludge around it,
+     which is probably better as the fewer changes to the front end the better).
 
      Binary file stuff should be easier in the compiler.
 

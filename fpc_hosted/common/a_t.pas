@@ -60,7 +60,7 @@ type
               geqlit, withop, setfileop, setfileaddrop, setinput, newset,
               bldset, setelt, setpair, bldnil, bldfmt, inop, addrop, pushaddr,
               pushstraddr, pushvalue, pushcvalue, pushfinal, pushlitvalue,
-              pushret, pushfptr, retop, call, jumpvfuncop,
+              pushret, pushfptr, retop, call, jumpvfuncop, fileparamop,
               unscall, callparam, unscallparam, copystackop, reserve,
               pushproc, rd, wr, switchstack, structop, closerangeop,
               dummyargop, filebufindrop, regtargetop, realregtargetop,

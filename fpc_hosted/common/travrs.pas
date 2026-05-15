@@ -4207,7 +4207,7 @@ procedure build;
               float, negop, indrop, filebufindrop, incop, decop, remop, quoop,
               ptrchkop, pushcvalue, definelazyop, setbinfileop, copystackop,
               closerangeop, chrstrop, arraystrop, groupop, compop, float_double,
-              real_to_dbl, dbl_to_real:
+              real_to_dbl, dbl_to_real, fileparamop:
                 collectargs(1);
               tempop:
                 begin

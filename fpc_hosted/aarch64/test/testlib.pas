@@ -15,7 +15,12 @@ procedure putbool(b: boolean); external;
 procedure putboolln(b: boolean); external;
 procedure putcharln(ch: char); external;
 procedure putln; external;
+
+{pascal-2 lib routines defined here}
+
 procedure _p_caseerr; external;
+procedure _p_wtc_o(ch: char; length: integer); external;
+procedure _p_wtln_o(i: integer; length: integer); external;
 
 procedure putln;
 
@@ -124,9 +129,25 @@ procedure putcharln;
     putln;
   end;
 
+{pascal-2 library procedures and functions}
+
 procedure _p_caseerr;
   begin
     putstringln('case error');
     exit(1);
   end;
 
+procedure _p_wtc_o;
+
+  var i: integer;
+
+begin
+  putchar(ch);
+  for i := 2 to length do putchar(' ');
+end;
+
+procedure _p_wtln_o;
+
+begin
+  putchar(chr(10));
+end;

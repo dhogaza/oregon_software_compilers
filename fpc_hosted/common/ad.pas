@@ -281,6 +281,7 @@ procedure statement;
           cmoveop: write('cmoveop');
           congruchkop: write('congruchkop');
           copystackop: write('copystackop');
+          fileparamop: write('fileparamop');
           dbl_to_real: write('dbl_to_real');
           decop: write('decop');
           defforindexop: write('defforindexop');
@@ -457,7 +458,7 @@ procedure statement;
           dstartop, dstoreop, dstructop, dsubop, dendop:
             do_data_op;
           addrop, aindxop, andop, bldfmt, bldset, call, callparam, cindxchkop,
-          closerangeop, cmoveop, congruchkop, copystackop, decop, andeqop,
+          closerangeop, cmoveop, congruchkop, copystackop, fileparamop, decop, andeqop,
           definelazyop, divop, eqlit, eqop, filebufindrop, float, float1,
           chrstrop, chrstrop1, arraystrop, arraystrop1, fordnchkop, oreqop,
           forerrchkop, forupchkop, geqlit, geqop, gtrlit, gtrop, incop,

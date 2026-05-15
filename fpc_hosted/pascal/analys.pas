@@ -3197,7 +3197,7 @@ procedure initanalys;
         vdos: i := standardidtable[id];
         unix:
           case unixtarget of
-            umax: i := standardidtable[id];
+            umax, linux: i := standardidtable[id];
             otherwise
               i := standardidtable[id] * ord((today >= usearly) and
                                              (today <= uslate));
