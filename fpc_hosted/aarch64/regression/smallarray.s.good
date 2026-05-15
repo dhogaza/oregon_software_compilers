@@ -16,8 +16,8 @@
 putln:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
-# Line: 22, Stmt: 1
-# Line: 23, Stmt: 2
+# Line: 27, Stmt: 1
+# Line: 28, Stmt: 2
 	mov	x0,10
 	bl	putchar
 .L2:
@@ -35,8 +35,8 @@ putstring:
 	add	x29,sp,32
 	str	x28,[x29,-8]
 	str	x1,[x29,-16]
-# Line: 28, Stmt: 1
-# Line: 29, Stmt: 2
+# Line: 33, Stmt: 1
+# Line: 34, Stmt: 2
 	str	x0,[x29,-24]
 	str	x2,[x29,-32]
 	mov	x28,x1
@@ -70,8 +70,8 @@ putstringln:
 	add	x29,sp,32
 	str	x28,[x29,-8]
 	str	x1,[x29,-16]
-# Line: 34, Stmt: 1
-# Line: 35, Stmt: 2
+# Line: 39, Stmt: 1
+# Line: 40, Stmt: 2
 	str	x0,[x29,-24]
 	str	x2,[x29,-32]
 	mov	x28,x1
@@ -105,8 +105,8 @@ puthex:
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
 	str	x28,[x29,-8]
-# Line: 45, Stmt: 1
-# Line: 47, Stmt: 2
+# Line: 50, Stmt: 1
+# Line: 52, Stmt: 2
 	mov	x28,xzr
 .L12:
 .L15:
@@ -150,8 +150,8 @@ puthexln:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,8]
 	add	x29,sp,8
-# Line: 66, Stmt: 1
-# Line: 67, Stmt: 2
+# Line: 71, Stmt: 1
+# Line: 72, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x15,[x29,-8]
 	mov	x0,x15
@@ -173,8 +173,8 @@ putint:
 	add	x29,sp,24
 	str	x28,[x29,-8]
 	str	x0,[x29,-16]
-# Line: 78, Stmt: 1
-# Line: 79, Stmt: 2
+# Line: 83, Stmt: 1
+# Line: 84, Stmt: 2
 	cmp	w0,wzr
 	b.ge	.L26
 .L27:
@@ -222,8 +222,8 @@ putintln:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,8]
 	add	x29,sp,8
-# Line: 101, Stmt: 1
-# Line: 102, Stmt: 2
+# Line: 106, Stmt: 1
+# Line: 107, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x15,[x29,-8]
 	mov	x0,x15
@@ -243,8 +243,8 @@ putbool:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-# Line: 108, Stmt: 1
-# Line: 109, Stmt: 2
+# Line: 113, Stmt: 1
+# Line: 114, Stmt: 2
 	cbz	w0,.L31
 .L32:
 	mov	x2,4
@@ -282,8 +282,8 @@ putboolln:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,8]
 	add	x29,sp,8
-# Line: 115, Stmt: 1
-# Line: 116, Stmt: 2
+# Line: 120, Stmt: 1
+# Line: 121, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x15,[x29,-8]
 	mov	x0,x15
@@ -304,8 +304,8 @@ putcharln:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,8]
 	add	x29,sp,8
-# Line: 122, Stmt: 1
-# Line: 123, Stmt: 2
+# Line: 127, Stmt: 1
+# Line: 128, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x15,[x29,-8]
 	mov	x0,x15
@@ -325,7 +325,7 @@ _p_caseerr:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-# Line: 128, Stmt: 1
+# Line: 135, Stmt: 1
 	mov	x2,10
 	sub	x0,x29,16
 	adrp	x1,.L32765+12
@@ -344,9 +344,59 @@ _p_caseerr:
 	.text
 	.align 2
 #
+#	_p_wtc_o
+#
+	.global _p_wtc_o
+_p_wtc_o:
+	sub	sp,sp,48
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
+	str	x28,[x29,-8]
+# Line: 144, Stmt: 1
+# Line: 145, Stmt: 2
+	str	x1,[x29,-16]
+	str	x0,[x29,-24]
+	ldr	x15,[x29,-24]
+	mov	x0,x15
+	bl	putchar
+	mov	x28,2
+.L39:
+	ldr	x15,[x29,-16]
+	cmp	w28,w15
+	b.gt	.L38
+	mov	x0,32
+	bl	putchar
+	ldr	x15,[x29,-16]
+	adds	w28,w28,1
+	b.vc	.L39
+.L38:
+.L37:
+	ldr	x28,[x29,-8]
+	ldp	x30,x29,[sp,24]
+	add	sp,sp,48
+	ret
+	.text
+	.align 2
+#
+#	_p_wtln_o
+#
+	.global _p_wtln_o
+_p_wtln_o:
+	stp	x30,x29,[sp,-16]!
+	add	x29,sp,xzr
+# Line: 151, Stmt: 1
+# Line: 152, Stmt: 2
+	mov	x0,10
+	bl	putchar
+.L40:
+	ldp	x30,x29,[sp],16
+	ret
+	.text
+	.align 2
+#
 #	fill
 #
-.P14:
+.P16:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,48]
 	add	x29,sp,48
@@ -354,13 +404,13 @@ _p_caseerr:
 # Line: 16, Stmt: 1
 # Line: 17, Stmt: 2
 	mov	x28,1
-.L40:
+.L44:
 	mov	x14,396
 	mul	w15,w28,w14
 	mov	x13,100
 	mul	w14,w28,w13
 	mov	x27,1
-.L41:
+.L45:
 	add	x13,x0,x15, sxtw 0
 	add	x13,x13,x27, sxtw 2
 	add	w12,w14,w27
@@ -368,13 +418,13 @@ _p_caseerr:
 	str	w12,[x17,-256]
 	add	w27,w27,1
 	cmp	w27,99
-	b.le	.L41
-.L42:
+	b.le	.L45
+.L46:
 	add	w28,w28,1
 	cmp	w28,99
-	b.le	.L40
-.L43:
-.L37:
+	b.le	.L44
+.L47:
+.L41:
 	ldp	x27,x28,[x29,-16]
 	ldp	x30,x29,[sp,48]
 	add	sp,sp,80
@@ -384,7 +434,7 @@ _p_caseerr:
 #
 #	verify
 #
-.P15:
+.P17:
 	sub	sp,sp,112
 	stp	x30,x29,[sp,72]
 	add	x29,sp,72
@@ -395,7 +445,7 @@ _p_caseerr:
 	mov	x27,xzr
 	str	x0,[x29,-32]
 	mov	x28,1
-.L47:
+.L51:
 	mov	x14,396
 	mul	w15,w28,w14
 	mov	x13,100
@@ -404,7 +454,7 @@ _p_caseerr:
 	str	x15,[x29,-48]
 	str	x14,[x29,-56]
 	mov	x26,1
-.L48:
+.L52:
 	add	x13,x0,x15, sxtw 0
 	add	x13,x13,x26, sxtw 2
 	add	w12,w14,w26
@@ -412,8 +462,8 @@ _p_caseerr:
 	ldrsw	x11,[x17,-256]
 	str	x11,[x29,-64]
 	cmp	w11,w12
-	b.eq	.L49
-.L50:
+	b.eq	.L53
+.L54:
 	add	w27,w27,1
 	mov	x0,x28
 	bl	putint
@@ -426,19 +476,19 @@ _p_caseerr:
 	ldr	x15,[x29,-64]
 	mov	x0,x15
 	bl	putintln
-.L49:
+.L53:
 	ldr	x0,[x29,-40]
 	ldr	x14,[x29,-56]
 	ldr	x15,[x29,-48]
 	add	w26,w26,1
 	cmp	w26,99
-	b.le	.L48
-.L51:
+	b.le	.L52
+.L55:
 	ldr	x0,[x29,-32]
 	add	w28,w28,1
 	cmp	w28,99
-	b.le	.L47
-.L52:
+	b.le	.L51
+.L56:
 	mov	x2,7
 	sub	x0,x29,72
 	adrp	x1,.L32765+23
@@ -450,7 +500,7 @@ _p_caseerr:
 	bl	putstring
 	mov	x0,x27
 	bl	putintln
-.L44:
+.L48:
 	ldp	x27,x28,[x29,-16]
 	ldr	x26,[x29,-24]
 	ldp	x30,x29,[sp,72]
@@ -472,10 +522,10 @@ main:
 # Line: 38, Stmt: 1
 	adrp	x15,.L32766+32
 	add	x0,x15,:lo12:.L32766+32
-	bl	.P14  // fill
+	bl	.P16  // fill
 	adrp	x15,.L32766+32
 	add	x0,x15,:lo12:.L32766+32
-	bl	.P15  // verify
-.L53:
+	bl	.P17  // verify
+.L57:
 	ldp	x30,x29,[sp],16
 	ret
