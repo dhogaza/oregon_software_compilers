@@ -2419,7 +2419,7 @@ begin {settargetorreg}
   if (keytable[target].oprnd.mode = register) and keytable[target].regvalid then
     setallfields(target)
   else
-    setvalue(reg_oprnd(getreg()));
+    setvalue(reg_oprnd(getreg));
 end {settargetorreg};
 
 procedure settargetortemp(len: addressrange);
@@ -4470,7 +4470,7 @@ end {dostructx} ;
 
 { set operations }
 
-procedure genmoveset(src, dst: keyindex);
+procedure moveset(src, dst: keyindex);
 
 { will morph into genmovestruct later }
 
@@ -4478,7 +4478,7 @@ var
   srcregkey, dstregkey, ip0key, ip1key: keyindex;
   l: addressrange;
 
-  begin
+  begin {moveset}
     lock(dst);
     srcregkey := settemp(long, reg_oprnd(getreg));
     genmoveaddress(src, srcregkey);
@@ -4505,7 +4505,7 @@ var
       gen2(lastnode, buildinst(ldr, true, false), ip0key, srcregkey);
       gen2(lastnode, buildinst(str, true, false), ip0key, dstregkey);
       end;
-  end;
+  end {moveset};
       
 procedure dosetx;
 
@@ -4553,7 +4553,7 @@ procedure dosetx;
     else
       begin
       settargetortemp(len);
-      genmoveset(left, key);
+      moveset(left, key);
       end;
    target := key;
   end {dosetx} ;
@@ -4567,7 +4567,7 @@ begin {movsetx}
     if len <= long then
       gensimplemove(lastnode, right, left)
     else
-      genmoveset(right, left);
+      moveset(right, left);
   end;
 end {movsetx};
 
@@ -5390,6 +5390,10 @@ procedure movemultiple(src, dst: keyindex);
 { must handle very long operands as this craps out at
   65535 bytes at the moment.  Not that we really want
   to encourage moving such large structures.
+
+  There's a lot of improvement to be had here for moving
+  if we're unrolling, i.e. adding to index fields directly
+  when possible.  We aren't constrained as we are with ldp.
 }
 
 var
@@ -5409,46 +5413,42 @@ var
     keytable[srcregkey].oprnd.index := byte;
     keytable[dstregkey].oprnd.mode := post_index;
     keytable[dstregkey].oprnd.index := byte;
-    ip0key := settemp(long, reg_oprnd(ip0));
-    ip1key := settemp(long, reg_oprnd(ip1));
-    gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), ip0key);
-    labelkey := settemp(long, labeltarget_oprnd(lastlabel, false, 0));
-    definelastlabel;
-    gen2(lastnode, buildinst(ldr, true, false), ip1key, srcregkey);
-    gen2(lastnode, buildinst(str, true, false), ip1key, dstregkey);
-    gen3(lastnode, buildinst(sub, true, true), ip0key, ip0key,
-                   settemp(long, imm12_oprnd(1, false)));
-    gen2(lastnode, buildinst(cbnz, true, false), ip0key, labelkey);
+    ip0key := settemp(byte, reg_oprnd(ip0));
+    ip1key := settemp(byte, reg_oprnd(ip1));
+    l := len;
+    if l <= 4 then
+      while l > 0 do
+        begin
+        gen2(lastnode, ldrinst(byte, false), ip0key, srcregkey);
+        gen2(lastnode, strinst(byte), ip0key, dstregkey);
+        l := l - 1;
+        end
+    else
+      begin
+      gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), ip0key);
+      labelkey := settemp(long, labeltarget_oprnd(lastlabel, false, 0));
+      definelastlabel;
+      gen2(lastnode, ldrinst(byte, false), ip1key, srcregkey);
+      gen2(lastnode, strinst(byte), ip1key, dstregkey);
+      gen3(lastnode, buildinst(sub, true, true), ip0key, ip0key,
+                     settemp(long, imm12_oprnd(1, false)));
+      gen2(lastnode, buildinst(cbnz, true, false), ip0key, labelkey);
+      end
   end;
 
-procedure pushmultiple;
+procedure pshstructx;
 
-  var
-    regkey: keyindex;
+begin {pshstructx}
+  address(left);
+  movemultiple(left, key);
+end; {pshstructx}
 
-begin {pushmultiple}
-{
-  if regmoveok(len) then pshintptrx
-  else
-}
-    begin
-    saveactivekeys;
-    address(left);
-    lock(left);
-    firstreg := 3;
-    regkey := settemp(long, reg_oprnd(2));
-    gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), regkey);
-    keytable[regkey].oprnd.reg := 0;
-    genmoveaddress(key, regkey);
-    keytable[regkey].oprnd.reg := 1;
-    genmoveaddress(left, regkey);
-    markscratchregs;
-    gen1(lastnode, buildinst(bl, false, false),
-         settemp(long, libcall_oprnd(libcmemcpy)));
-    firstreg := 0;
-    unlock(left);
-    end;
-end; {pushmultiple}
+procedure pshsetx;
+
+begin {pshstructx}
+  address(left);
+  moveset(left, key);
+end; {pshstructx}
 
 procedure regparamx;
 
@@ -6338,7 +6338,8 @@ procedure codeone;
       pshproc: pshprocx;
       pshstr: pshstrx;
 }
-      pshstruct, pshset: {pushmultiple} movemultiple(left, key);
+      pshstruct: pshstructx;
+      pshset: pshsetx;
       setfile: setfilex;
       fileparam: fileparamx;
       fmt: fmtx;
