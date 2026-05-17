@@ -618,7 +618,7 @@ begin
           begin
           write(macfile, ':lo12:');
           write(macfile, '.L', o.labelno);
-          if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset and $FFF:1);
+          if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset:1);
           end
       else
         write(macfile, '.L', o.labelno);
