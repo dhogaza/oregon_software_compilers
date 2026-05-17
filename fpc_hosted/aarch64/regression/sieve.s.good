@@ -409,15 +409,15 @@ _p_wtln_o:
 #
 #	p
 #
-.P17:
+.P16:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,40]
 	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
 	str	x24,[x29,-40]
-# Line: 21, Stmt: 1
-# Line: 22, Stmt: 2
+# Line: 19, Stmt: 1
+# Line: 20, Stmt: 2
 	mov	x28,1
 .L45:
 	mov	x27,xzr
@@ -492,8 +492,8 @@ _p_wtln_o:
 main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
-# Line: 40, Stmt: 1
-	bl	.P17  // p
+# Line: 38, Stmt: 1
+	bl	.P16  // p
 .L55:
 	ldp	x30,x29,[sp],16
 	ret
