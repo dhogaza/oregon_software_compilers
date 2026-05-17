@@ -282,7 +282,7 @@ putbool:
 .L32:
 	mov	x2,4
 	sub	x0,x29,16
-	adrp	x1,.L32765+1
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+1
 	bl	memcpy 
 	sub	x0,x29,16
@@ -293,7 +293,7 @@ putbool:
 .L31:
 	mov	x2,5
 	sub	x0,x29,16
-	adrp	x1,.L32765+6
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+6
 	bl	memcpy 
 	sub	x0,x29,16
@@ -361,7 +361,7 @@ _p_caseerr:
 # Line: 135, Stmt: 1
 	mov	x2,10
 	sub	x0,x29,16
-	adrp	x1,.L32765+12
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+12
 	bl	memcpy 
 	sub	x0,x29,16
@@ -441,26 +441,26 @@ main:
 	add	x29,sp,608
 # Line: 92, Stmt: 1
 # Line: 93, Stmt: 2
-	adrp	x15,.L32766+128
+	adrp	x15,.L32766
 	mov	w16,74
 	strb	w16,[x15,:lo12:.L32766+128]
-	adrp	x14,.L32766+32
-	adrp	x13,.L32765+24
+	adrp	x14,.L32766
+	adrp	x13,.L32765
 	add	x13,x13,:lo12:.L32765+24
 	add	x12,x14,:lo12:.L32766+32
 	ldp	x16,x17,[x13],16
 	stp	x16,x17,[x12],16
 	mov	x2,13
 	sub	x0,x29,16
-	adrp	x1,.L32765+41
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+41
 	bl	memcpy 
 	sub	x0,x29,16
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32766+32
-	adrp	x14,.L32766+128
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	ldrb	w14,[x14,:lo12:.L32766+128]
 	add	x15,x15,:lo12:.L32766+32
 	asr	x16,x14,3
@@ -472,14 +472,14 @@ main:
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,32
-	adrp	x1,.L32765+55
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+55
 	bl	memcpy 
 	sub	x0,x29,32
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+32
+	adrp	x15,.L32766
 	mov	x14,4
 	add	x15,x15,:lo12:.L32766+32
 	asr	x16,x14,3
@@ -489,17 +489,17 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32766+129
+	adrp	x15,.L32766
 	mov	w16,94
 	strb	w16,[x15,:lo12:.L32766+129]
-	adrp	x14,.L32766+130
+	adrp	x14,.L32766
 	mov	w16,5
 	strb	w16,[x14,:lo12:.L32766+130]
-	adrp	x13,.L32766+131
+	adrp	x13,.L32766
 	mov	w16,189
 	strb	w16,[x13,:lo12:.L32766+131]
-	adrp	x12,.L32766+48
-	adrp	x11,.L32765+72
+	adrp	x12,.L32766
+	adrp	x11,.L32765
 	add	x11,x11,:lo12:.L32765+72
 	add	x10,x12,:lo12:.L32766+48
 	ldp	x16,x17,[x11],16
@@ -522,8 +522,8 @@ main:
 	add	w10,w10,1
 	b	.L32764
 .L32763:
-	adrp	x11,.L32766+72
-	adrp	x10,.L32765+104
+	adrp	x11,.L32766
+	adrp	x10,.L32765
 	add	x10,x10,:lo12:.L32765+104
 	add	x9,x11,:lo12:.L32766+72
 	ldp	x16,x17,[x10],16
@@ -556,14 +556,14 @@ main:
 	str	x16,[x6],16
 	mov	x2,12
 	sub	x0,x29,72
-	adrp	x1,.L32765+129
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+129
 	bl	memcpy 
 	sub	x0,x29,72
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,89
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -575,14 +575,14 @@ main:
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,88
-	adrp	x1,.L32765+142
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+142
 	bl	memcpy 
 	sub	x0,x29,88
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,191
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -594,15 +594,15 @@ main:
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,104
-	adrp	x1,.L32765+156
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+156
 	bl	memcpy 
 	sub	x0,x29,104
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
-	adrp	x14,.L32766+131
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	ldrb	w14,[x14,:lo12:.L32766+131]
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -612,14 +612,14 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+168
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+168
 	sub	x14,x29,128
 	ldp	x16,x17,[x15],16
 	stp	x16,x17,[x14],16
 	ldr	x16,[x15],16
 	str	x16,[x14],16
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	add	x13,x15,:lo12:.L32766+48
 	sub	x12,x29,128
 	sub	x11,x29,152
@@ -632,7 +632,7 @@ main:
 	ldr	x17,[x12],16
 	orr	x16,x16,x17
 	str	x16,[x11],16
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	sub	x14,x29,152
 	add	x15,x15,:lo12:.L32766+48
 	ldp	x16,x17,[x14],16
@@ -641,14 +641,14 @@ main:
 	str	x16,[x15],16
 	mov	x2,12
 	sub	x0,x29,168
-	adrp	x1,.L32765+193
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+193
 	bl	memcpy 
 	sub	x0,x29,168
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,xzr
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -660,21 +660,21 @@ main:
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,184
-	adrp	x1,.L32765+206
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+206
 	bl	memcpy 
 	sub	x0,x29,184
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32765+224
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+224
 	sub	x14,x29,208
 	ldp	x16,x17,[x15],16
 	stp	x16,x17,[x14],16
 	ldr	x16,[x15],16
 	str	x16,[x14],16
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	add	x13,x15,:lo12:.L32766+48
 	sub	x12,x29,208
 	sub	x11,x29,232
@@ -698,15 +698,15 @@ main:
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,248
-	adrp	x1,.L32765+249
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+249
 	bl	memcpy 
 	sub	x0,x29,248
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
-	adrp	x14,.L32766+129
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	ldrb	w14,[x14,:lo12:.L32766+129]
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -718,15 +718,15 @@ main:
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,264
-	adrp	x1,.L32765+262
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+262
 	bl	memcpy 
 	sub	x0,x29,264
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
-	adrp	x14,.L32766+130
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	ldrb	w14,[x14,:lo12:.L32766+130]
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -738,14 +738,14 @@ main:
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,280
-	adrp	x1,.L32765+275
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+275
 	bl	memcpy 
 	sub	x0,x29,280
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,xzr
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -757,14 +757,14 @@ main:
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,296
-	adrp	x1,.L32765+288
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+288
 	bl	memcpy 
 	sub	x0,x29,296
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,191
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -776,14 +776,14 @@ main:
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,312
-	adrp	x1,.L32765+302
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+302
 	bl	memcpy 
 	sub	x0,x29,312
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,91
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -795,14 +795,14 @@ main:
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,328
-	adrp	x1,.L32765+315
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+315
 	bl	memcpy 
 	sub	x0,x29,328
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,4
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -814,14 +814,14 @@ main:
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,344
-	adrp	x1,.L32765+329
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+329
 	bl	memcpy 
 	sub	x0,x29,344
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,5
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -833,15 +833,15 @@ main:
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,360
-	adrp	x1,.L32765+342
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+342
 	bl	memcpy 
 	sub	x0,x29,360
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+72
-	adrp	x14,.L32766+48
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	add	x13,x14,:lo12:.L32766+48
 	add	x12,x15,:lo12:.L32766+72
 	sub	x11,x29,384
@@ -865,15 +865,15 @@ main:
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,400
-	adrp	x1,.L32765+355
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+355
 	bl	memcpy 
 	sub	x0,x29,400
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32766+72
-	adrp	x14,.L32766+48
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	add	x13,x14,:lo12:.L32766+48
 	add	x12,x15,:lo12:.L32766+72
 	sub	x11,x29,424
@@ -897,15 +897,15 @@ main:
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,440
-	adrp	x1,.L32765+369
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+369
 	bl	memcpy 
 	sub	x0,x29,440
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32766+72
-	adrp	x14,.L32766+48
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	add	x13,x14,:lo12:.L32766+48
 	add	x12,x15,:lo12:.L32766+72
 	sub	x11,x29,464
@@ -929,15 +929,15 @@ main:
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,480
-	adrp	x1,.L32765+383
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+383
 	bl	memcpy 
 	sub	x0,x29,480
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32766+72
-	adrp	x14,.L32766+48
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	add	x13,x14,:lo12:.L32766+48
 	add	x12,x15,:lo12:.L32766+72
 	sub	x11,x29,504
@@ -961,15 +961,15 @@ main:
 	bl	putboolln
 	mov	x2,12
 	sub	x0,x29,520
-	adrp	x1,.L32765+397
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+397
 	bl	memcpy 
 	sub	x0,x29,520
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+72
-	adrp	x14,.L32766+48
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	add	x13,x14,:lo12:.L32766+48
 	add	x12,x15,:lo12:.L32766+72
 	sub	x11,x29,544
@@ -993,21 +993,21 @@ main:
 	bl	putboolln
 	mov	x2,13
 	sub	x0,x29,560
-	adrp	x1,.L32765+410
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+410
 	bl	memcpy 
 	sub	x0,x29,560
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32765+72
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+72
 	sub	x14,x29,584
 	ldp	x16,x17,[x15],16
 	stp	x16,x17,[x14],16
 	ldr	x16,[x15],16
 	str	x16,[x14],16
-	adrp	x15,.L32766+131
+	adrp	x15,.L32766
 	ldrb	w13,[x15,:lo12:.L32766+131]
 	mov	x14,1
 	sub	x12,x29,584
@@ -1017,7 +1017,7 @@ main:
 	ldrb	w17,[x12, x16]
 	orr	x17,x17,x14
 	strb	w17,[x12, x16]
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	add	x13,x15,:lo12:.L32766+48
 	sub	x12,x29,584
 	sub	x11,x29,608

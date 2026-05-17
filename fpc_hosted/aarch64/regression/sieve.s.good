@@ -248,7 +248,7 @@ putbool:
 .L32:
 	mov	x2,4
 	sub	x0,x29,16
-	adrp	x1,.L32765+1
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+1
 	bl	memcpy 
 	sub	x0,x29,16
@@ -259,7 +259,7 @@ putbool:
 .L31:
 	mov	x2,5
 	sub	x0,x29,16
-	adrp	x1,.L32765+6
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+6
 	bl	memcpy 
 	sub	x0,x29,16
@@ -327,7 +327,7 @@ _p_caseerr:
 # Line: 135, Stmt: 1
 	mov	x2,10
 	sub	x0,x29,16
-	adrp	x1,.L32765+12
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+12
 	bl	memcpy 
 	sub	x0,x29,16

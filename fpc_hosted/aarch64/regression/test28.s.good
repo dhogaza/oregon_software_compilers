@@ -116,17 +116,17 @@ main:
 	stp	x30,x29,[sp,96]
 	add	x29,sp,96
 # Line: 67, Stmt: 1
-	adrp	x15,.L32766+32
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+32
 	mov	x1,xzr
 	mov	x2,xzr
 	bl	.P2  // fill
-	adrp	x15,.L32766+32
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+32
 	mov	x1,xzr
 	mov	x2,xzr
 	bl	.P3  // p
-	adrp	x15,.L32766+32
+	adrp	x15,.L32766
 	mov	x2,1
 	sub	x0,x29,8
 	add	x1,x15,:lo12:.L32766+32
@@ -135,17 +135,17 @@ main:
 	mov	x1,xzr
 	mov	x2,xzr
 	bl	.P4  // p1
-	adrp	x15,.L32766+34
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+34
 	mov	x1,xzr
 	mov	x2,1
 	bl	.P2  // fill
-	adrp	x15,.L32766+34
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+34
 	mov	x1,xzr
 	mov	x2,1
 	bl	.P3  // p
-	adrp	x15,.L32766+34
+	adrp	x15,.L32766
 	mov	x2,2
 	sub	x0,x29,16
 	add	x1,x15,:lo12:.L32766+34
@@ -154,17 +154,17 @@ main:
 	mov	x1,xzr
 	mov	x2,1
 	bl	.P4  // p1
-	adrp	x15,.L32766+36
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+36
 	mov	x1,xzr
 	mov	x2,2
 	bl	.P2  // fill
-	adrp	x15,.L32766+36
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+36
 	mov	x1,xzr
 	mov	x2,2
 	bl	.P3  // p
-	adrp	x15,.L32766+36
+	adrp	x15,.L32766
 	mov	x2,3
 	sub	x0,x29,24
 	add	x1,x15,:lo12:.L32766+36
@@ -173,17 +173,17 @@ main:
 	mov	x1,xzr
 	mov	x2,2
 	bl	.P4  // p1
-	adrp	x15,.L32766+40
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+40
 	mov	x1,xzr
 	mov	x2,3
 	bl	.P2  // fill
-	adrp	x15,.L32766+40
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+40
 	mov	x1,xzr
 	mov	x2,3
 	bl	.P3  // p
-	adrp	x15,.L32766+40
+	adrp	x15,.L32766
 	mov	x2,4
 	sub	x0,x29,32
 	add	x1,x15,:lo12:.L32766+40
@@ -192,17 +192,17 @@ main:
 	mov	x1,xzr
 	mov	x2,3
 	bl	.P4  // p1
-	adrp	x15,.L32766+44
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+44
 	mov	x1,xzr
 	mov	x2,4
 	bl	.P2  // fill
-	adrp	x15,.L32766+44
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+44
 	mov	x1,xzr
 	mov	x2,4
 	bl	.P3  // p
-	adrp	x15,.L32766+44
+	adrp	x15,.L32766
 	mov	x2,5
 	sub	x0,x29,40
 	add	x1,x15,:lo12:.L32766+44
@@ -211,17 +211,17 @@ main:
 	mov	x1,xzr
 	mov	x2,4
 	bl	.P4  // p1
-	adrp	x15,.L32766+50
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+50
 	mov	x1,xzr
 	mov	x2,5
 	bl	.P2  // fill
-	adrp	x15,.L32766+50
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+50
 	mov	x1,xzr
 	mov	x2,5
 	bl	.P3  // p
-	adrp	x15,.L32766+50
+	adrp	x15,.L32766
 	mov	x2,6
 	sub	x0,x29,48
 	add	x1,x15,:lo12:.L32766+50
@@ -230,17 +230,17 @@ main:
 	mov	x1,xzr
 	mov	x2,5
 	bl	.P4  // p1
-	adrp	x15,.L32766+56
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+56
 	mov	x1,xzr
 	mov	x2,6
 	bl	.P2  // fill
-	adrp	x15,.L32766+56
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+56
 	mov	x1,xzr
 	mov	x2,6
 	bl	.P3  // p
-	adrp	x15,.L32766+56
+	adrp	x15,.L32766
 	mov	x2,7
 	sub	x0,x29,56
 	add	x1,x15,:lo12:.L32766+56
@@ -249,17 +249,17 @@ main:
 	mov	x1,xzr
 	mov	x2,6
 	bl	.P4  // p1
-	adrp	x15,.L32766+64
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+64
 	mov	x1,xzr
 	mov	x2,7
 	bl	.P2  // fill
-	adrp	x15,.L32766+64
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+64
 	mov	x1,xzr
 	mov	x2,7
 	bl	.P3  // p
-	adrp	x15,.L32766+64
+	adrp	x15,.L32766
 	mov	x2,8
 	sub	x0,x29,64
 	add	x1,x15,:lo12:.L32766+64
@@ -268,17 +268,17 @@ main:
 	mov	x1,xzr
 	mov	x2,7
 	bl	.P4  // p1
-	adrp	x15,.L32766+72
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+72
 	mov	x1,xzr
 	mov	x2,8
 	bl	.P2  // fill
-	adrp	x15,.L32766+72
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+72
 	mov	x1,xzr
 	mov	x2,8
 	bl	.P3  // p
-	adrp	x15,.L32766+72
+	adrp	x15,.L32766
 	mov	x2,9
 	sub	x0,x29,80
 	add	x1,x15,:lo12:.L32766+72
@@ -287,17 +287,17 @@ main:
 	mov	x1,xzr
 	mov	x2,8
 	bl	.P4  // p1
-	adrp	x15,.L32766+82
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+82
 	mov	x1,xzr
 	mov	x2,9
 	bl	.P2  // fill
-	adrp	x15,.L32766+82
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+82
 	mov	x1,xzr
 	mov	x2,9
 	bl	.P3  // p
-	adrp	x15,.L32766+82
+	adrp	x15,.L32766
 	mov	x2,10
 	sub	x0,x29,96
 	add	x1,x15,:lo12:.L32766+82

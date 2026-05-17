@@ -30,10 +30,10 @@ main:
 	stp	x25,x26,[x29,-32]
 	str	x24,[x29,-40]
 # Line: 94, Stmt: 1
-	adrp	x15,.L32766+40
-	adrp	x14,.L32766+139
-	adrp	x13,.L32766+56
-	adrp	x12,.L32766+80
+	adrp	x15,.L32766
+	adrp	x14,.L32766
+	adrp	x13,.L32766
+	adrp	x12,.L32766
 # Line: 95, Stmt: 2
 	mov	x27,1
 .L5:
@@ -49,7 +49,7 @@ main:
 	mov	x26,5
 	mov	w16,189
 	strb	w16,[x14,:lo12:.L32766+139]
-	adrp	x11,.L32765+16
+	adrp	x11,.L32765
 	add	x11,x11,:lo12:.L32765+16
 	add	x10,x13,:lo12:.L32766+56
 	ldp	x16,x17,[x11],16
@@ -70,7 +70,7 @@ main:
 	add	w26,w26,1
 	b	.L32764
 .L32763:
-	adrp	x11,.L32765+48
+	adrp	x11,.L32765
 	add	x11,x11,:lo12:.L32765+48
 	add	x10,x12,:lo12:.L32766+80
 	ldp	x16,x17,[x11],16
@@ -101,7 +101,7 @@ main:
 	ldr	x17,[x8],16
 	and	x16,x16,x17
 	str	x16,[x7],16
-	adrp	x11,.L32765+72
+	adrp	x11,.L32765
 	add	x11,x11,:lo12:.L32765+72
 	sub	x10,x29,88
 	ldp	x16,x17,[x11],16

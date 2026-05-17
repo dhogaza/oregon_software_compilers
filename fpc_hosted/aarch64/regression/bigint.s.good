@@ -252,7 +252,7 @@ putbool:
 .L32:
 	mov	x2,4
 	sub	x0,x29,16
-	adrp	x1,.L32765+1
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+1
 	bl	memcpy 
 	sub	x0,x29,16
@@ -263,7 +263,7 @@ putbool:
 .L31:
 	mov	x2,5
 	sub	x0,x29,16
-	adrp	x1,.L32765+6
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+6
 	bl	memcpy 
 	sub	x0,x29,16
@@ -331,7 +331,7 @@ _p_caseerr:
 # Line: 135, Stmt: 1
 	mov	x2,10
 	sub	x0,x29,16
-	adrp	x1,.L32765+12
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+12
 	bl	memcpy 
 	sub	x0,x29,16
@@ -409,14 +409,14 @@ _p_wtln_o:
 	mov	w28,65536
 	movz	x28,4095
 	movk	x28,1,lsl 16
-	adrp	x15,.L32766+32
+	adrp	x15,.L32766
 	ldrsw	x14,[x15,:lo12:.L32766+32]
 	add	w28,w14,4095
 	add	w14,w28,1,lsl 12
 	str	w14,[x29,28]
 	mov	x2,3
 	sub	x0,x29,16
-	adrp	x1,.L32765+23
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+23
 	bl	memcpy 
 	sub	x0,x29,16
@@ -427,7 +427,7 @@ _p_wtln_o:
 	bl	putintln
 	mov	x2,3
 	sub	x0,x29,24
-	adrp	x1,.L32765+27
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+27
 	bl	memcpy 
 	sub	x0,x29,24
@@ -439,7 +439,7 @@ _p_wtln_o:
 	bl	putintln
 	mov	x2,3
 	sub	x0,x29,32
-	adrp	x1,.L32765+31
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+31
 	bl	memcpy 
 	sub	x0,x29,32
@@ -450,7 +450,7 @@ _p_wtln_o:
 	bl	putintln
 	mov	x2,3
 	sub	x0,x29,40
-	adrp	x1,.L32765+35
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+35
 	bl	memcpy 
 	sub	x0,x29,40
@@ -461,14 +461,14 @@ _p_wtln_o:
 	bl	putintln
 	mov	x2,3
 	sub	x0,x29,48
-	adrp	x1,.L32765+39
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+39
 	bl	memcpy 
 	sub	x0,x29,48
 	mov	x1,1
 	mov	x2,3
 	bl	putstring
-	adrp	x15,.L32766+32
+	adrp	x15,.L32766
 	ldrsw	x0,[x15,:lo12:.L32766+32]
 	bl	putintln
 .L41:
@@ -488,7 +488,7 @@ _p_wtln_o:
 # Line: 29, Stmt: 1
 	mov	x2,3
 	sub	x0,x29,8
-	adrp	x1,.L32765+43
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+43
 	bl	memcpy 
 	sub	x0,x29,8
@@ -499,7 +499,7 @@ _p_wtln_o:
 	bl	putintln
 	mov	x2,3
 	sub	x0,x29,16
-	adrp	x1,.L32765+47
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+47
 	bl	memcpy 
 	sub	x0,x29,16
@@ -510,7 +510,7 @@ _p_wtln_o:
 	bl	putintln
 	mov	x2,3
 	sub	x0,x29,24
-	adrp	x1,.L32765+51
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+51
 	bl	memcpy 
 	sub	x0,x29,24
@@ -521,7 +521,7 @@ _p_wtln_o:
 	bl	putintln
 	mov	x2,3
 	sub	x0,x29,32
-	adrp	x1,.L32765+55
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+55
 	bl	memcpy 
 	sub	x0,x29,32
@@ -532,14 +532,14 @@ _p_wtln_o:
 	bl	putintln
 	mov	x2,3
 	sub	x0,x29,40
-	adrp	x1,.L32765+59
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+59
 	bl	memcpy 
 	sub	x0,x29,40
 	mov	x1,1
 	mov	x2,3
 	bl	putstring
-	adrp	x15,.L32766+32
+	adrp	x15,.L32766
 	ldrsw	x0,[x15,:lo12:.L32766+32]
 	bl	putintln
 .L42:
@@ -562,7 +562,7 @@ _p_wtln_o:
 	movz	x16,4095
 	movk	x16,1,lsl 16
 	str	w16,[x29,20]
-	adrp	x15,.L32766+32
+	adrp	x15,.L32766
 	ldrsw	x14,[x15,:lo12:.L32766+32]
 	add	w15,w14,4095
 	str	w15,[x29,24]
@@ -590,7 +590,7 @@ main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
 # Line: 45, Stmt: 1
-	adrp	x15,.L32766+32
+	adrp	x15,.L32766
 	mov	w16,1
 	str	w16,[x15,:lo12:.L32766+32]
 	bl	.P16  // bar

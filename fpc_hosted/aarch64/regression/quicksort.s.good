@@ -251,7 +251,7 @@ putbool:
 .L32:
 	mov	x2,4
 	sub	x0,x29,16
-	adrp	x1,.L32765+1
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+1
 	bl	memcpy 
 	sub	x0,x29,16
@@ -262,7 +262,7 @@ putbool:
 .L31:
 	mov	x2,5
 	sub	x0,x29,16
-	adrp	x1,.L32765+6
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+6
 	bl	memcpy 
 	sub	x0,x29,16
@@ -330,7 +330,7 @@ _p_caseerr:
 # Line: 135, Stmt: 1
 	mov	x2,10
 	sub	x0,x29,16
-	adrp	x1,.L32765+12
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+12
 	bl	memcpy 
 	sub	x0,x29,16
@@ -607,7 +607,7 @@ main:
 # Line: 96, Stmt: 1
 	mov	x2,8
 	sub	x0,x29,8
-	adrp	x1,.L32765+23
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+23
 	bl	memcpy 
 	sub	x0,x29,8
@@ -617,20 +617,20 @@ main:
 	movz	x0,34464
 	movk	x0,1,lsl 16
 	bl	putintln
-	adrp	x15,.L32766+40
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+40
 	bl	.P16  // initarray
-	adrp	x15,.L32766+40
+	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+40
 	bl	.P17  // quicksort
-	adrp	x15,.L32766+36
+	adrp	x15,.L32766
 	mov	w16,1
 	strb	w16,[x15,:lo12:.L32766+36]
-	adrp	x15,.L32766+32
+	adrp	x15,.L32766
 	mov	w16,2
 	str	w16,[x15,:lo12:.L32766+32]
-	adrp	x15,.L32766+36
-	adrp	x14,.L32766+32
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 .L65:
 	ldrb	w13,[x15,:lo12:.L32766+36]
 	cbz	w13,.L66
@@ -656,14 +656,14 @@ main:
 .L66:
 	mov	x2,19
 	sub	x0,x29,32
-	adrp	x1,.L32765+32
+	adrp	x1,.L32765
 	add	x1,x1,:lo12:.L32765+32
 	bl	memcpy 
 	sub	x0,x29,32
 	mov	x1,1
 	mov	x2,19
 	bl	putstring
-	adrp	x15,.L32766+36
+	adrp	x15,.L32766
 	ldrb	w0,[x15,:lo12:.L32766+36]
 	bl	putboolln
 .L64:
