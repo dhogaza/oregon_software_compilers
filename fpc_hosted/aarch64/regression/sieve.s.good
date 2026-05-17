@@ -246,22 +246,32 @@ putbool:
 # Line: 114, Stmt: 2
 	cbz	w0,.L31
 .L32:
-	mov	x2,4
-	sub	x0,x29,16
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+1
-	bl	memcpy 
+	adrp	x15,.L32765+1
+	add	x15,x15,:lo12:.L32765+1
+	sub	x14,x29,16
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
 	sub	x0,x29,16
 	mov	x1,1
 	mov	x2,4
 	bl	putstring
 	b	.L33
 .L31:
-	mov	x2,5
-	sub	x0,x29,16
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+6
-	bl	memcpy 
+	adrp	x15,.L32765+6
+	add	x15,x15,:lo12:.L32765+6
+	sub	x14,x29,16
+	mov	x16,5
+.L32764:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32764
 	sub	x0,x29,16
 	mov	x1,1
 	mov	x2,5
@@ -325,11 +335,15 @@ _p_caseerr:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 135, Stmt: 1
-	mov	x2,10
-	sub	x0,x29,16
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+12
-	bl	memcpy 
+	adrp	x15,.L32765+12
+	add	x15,x15,:lo12:.L32765+12
+	sub	x14,x29,16
+	mov	x16,10
+.L32763:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32763
 	sub	x0,x29,16
 	mov	x1,1
 	mov	x2,10

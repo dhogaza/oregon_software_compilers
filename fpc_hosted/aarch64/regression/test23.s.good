@@ -271,22 +271,32 @@ putbool:
 # Line: 114, Stmt: 2
 	cbz	w0,.L31
 .L32:
-	mov	x2,4
-	sub	x0,x29,16
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+1
-	bl	memcpy 
+	adrp	x15,.L32765+1
+	add	x15,x15,:lo12:.L32765+1
+	sub	x14,x29,16
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
 	sub	x0,x29,16
 	mov	x1,1
 	mov	x2,4
 	bl	putstring
 	b	.L33
 .L31:
-	mov	x2,5
-	sub	x0,x29,16
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+6
-	bl	memcpy 
+	adrp	x15,.L32765+6
+	add	x15,x15,:lo12:.L32765+6
+	sub	x14,x29,16
+	mov	x16,5
+.L32764:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32764
 	sub	x0,x29,16
 	mov	x1,1
 	mov	x2,5
@@ -350,11 +360,15 @@ _p_caseerr:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 135, Stmt: 1
-	mov	x2,10
-	sub	x0,x29,16
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+12
-	bl	memcpy 
+	adrp	x15,.L32765+12
+	add	x15,x15,:lo12:.L32765+12
+	sub	x14,x29,16
+	mov	x16,10
+.L32763:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32763
 	sub	x0,x29,16
 	mov	x1,1
 	mov	x2,10
@@ -432,42 +446,42 @@ _p_wtln_o:
 	sub	w15,w15,97
 	cmp	w15,25
 	b.hi	.L69
-	adrp	x14,.L32764
-	add	x14,x14,:lo12:.L32764
+	adrp	x14,.L32762
+	add	x14,x14,:lo12:.L32762
 	ldr	w15,[x14, w15, uxtw 2]
-	adr	x14,.L32763
+	adr	x14,.L32761
 	add	x15,x14,x15, sxtw 2
 	br	x15
-.L32763:
+.L32761:
 	.section	.rodata
 	.align 3
-.L32764:
-	.word	(.L43-.L32763)/4
-	.word	(.L44-.L32763)/4
-	.word	(.L45-.L32763)/4
-	.word	(.L46-.L32763)/4
-	.word	(.L47-.L32763)/4
-	.word	(.L48-.L32763)/4
-	.word	(.L49-.L32763)/4
-	.word	(.L50-.L32763)/4
-	.word	(.L51-.L32763)/4
-	.word	(.L52-.L32763)/4
-	.word	(.L53-.L32763)/4
-	.word	(.L54-.L32763)/4
-	.word	(.L55-.L32763)/4
-	.word	(.L56-.L32763)/4
-	.word	(.L57-.L32763)/4
-	.word	(.L58-.L32763)/4
-	.word	(.L59-.L32763)/4
-	.word	(.L60-.L32763)/4
-	.word	(.L61-.L32763)/4
-	.word	(.L62-.L32763)/4
-	.word	(.L63-.L32763)/4
-	.word	(.L64-.L32763)/4
-	.word	(.L65-.L32763)/4
-	.word	(.L66-.L32763)/4
-	.word	(.L67-.L32763)/4
-	.word	(.L68-.L32763)/4
+.L32762:
+	.word	(.L43-.L32761)/4
+	.word	(.L44-.L32761)/4
+	.word	(.L45-.L32761)/4
+	.word	(.L46-.L32761)/4
+	.word	(.L47-.L32761)/4
+	.word	(.L48-.L32761)/4
+	.word	(.L49-.L32761)/4
+	.word	(.L50-.L32761)/4
+	.word	(.L51-.L32761)/4
+	.word	(.L52-.L32761)/4
+	.word	(.L53-.L32761)/4
+	.word	(.L54-.L32761)/4
+	.word	(.L55-.L32761)/4
+	.word	(.L56-.L32761)/4
+	.word	(.L57-.L32761)/4
+	.word	(.L58-.L32761)/4
+	.word	(.L59-.L32761)/4
+	.word	(.L60-.L32761)/4
+	.word	(.L61-.L32761)/4
+	.word	(.L62-.L32761)/4
+	.word	(.L63-.L32761)/4
+	.word	(.L64-.L32761)/4
+	.word	(.L65-.L32761)/4
+	.word	(.L66-.L32761)/4
+	.word	(.L67-.L32761)/4
+	.word	(.L68-.L32761)/4
 	.text
 	.align 2
 .L70:
@@ -607,42 +621,42 @@ _p_wtln_o:
 	sub	w15,w15,97
 	cmp	w15,25
 	b.hi	.L99
-	adrp	x14,.L32762
-	add	x14,x14,:lo12:.L32762
+	adrp	x14,.L32760
+	add	x14,x14,:lo12:.L32760
 	ldr	w15,[x14, w15, uxtw 2]
-	adr	x14,.L32761
+	adr	x14,.L32759
 	add	x15,x14,x15, sxtw 2
 	br	x15
-.L32761:
+.L32759:
 	.section	.rodata
 	.align 3
-.L32762:
-	.word	(.L74-.L32761)/4
-	.word	(.L75-.L32761)/4
-	.word	(.L99-.L32761)/4
-	.word	(.L76-.L32761)/4
-	.word	(.L77-.L32761)/4
-	.word	(.L78-.L32761)/4
-	.word	(.L79-.L32761)/4
-	.word	(.L80-.L32761)/4
-	.word	(.L81-.L32761)/4
-	.word	(.L82-.L32761)/4
-	.word	(.L83-.L32761)/4
-	.word	(.L84-.L32761)/4
-	.word	(.L85-.L32761)/4
-	.word	(.L86-.L32761)/4
-	.word	(.L87-.L32761)/4
-	.word	(.L88-.L32761)/4
-	.word	(.L89-.L32761)/4
-	.word	(.L90-.L32761)/4
-	.word	(.L91-.L32761)/4
-	.word	(.L92-.L32761)/4
-	.word	(.L93-.L32761)/4
-	.word	(.L94-.L32761)/4
-	.word	(.L95-.L32761)/4
-	.word	(.L96-.L32761)/4
-	.word	(.L97-.L32761)/4
-	.word	(.L98-.L32761)/4
+.L32760:
+	.word	(.L74-.L32759)/4
+	.word	(.L75-.L32759)/4
+	.word	(.L99-.L32759)/4
+	.word	(.L76-.L32759)/4
+	.word	(.L77-.L32759)/4
+	.word	(.L78-.L32759)/4
+	.word	(.L79-.L32759)/4
+	.word	(.L80-.L32759)/4
+	.word	(.L81-.L32759)/4
+	.word	(.L82-.L32759)/4
+	.word	(.L83-.L32759)/4
+	.word	(.L84-.L32759)/4
+	.word	(.L85-.L32759)/4
+	.word	(.L86-.L32759)/4
+	.word	(.L87-.L32759)/4
+	.word	(.L88-.L32759)/4
+	.word	(.L89-.L32759)/4
+	.word	(.L90-.L32759)/4
+	.word	(.L91-.L32759)/4
+	.word	(.L92-.L32759)/4
+	.word	(.L93-.L32759)/4
+	.word	(.L94-.L32759)/4
+	.word	(.L95-.L32759)/4
+	.word	(.L96-.L32759)/4
+	.word	(.L97-.L32759)/4
+	.word	(.L98-.L32759)/4
 	.text
 	.align 2
 .L100:
@@ -788,75 +802,103 @@ main:
 	stp	x30,x29,[sp,304]
 	add	x29,sp,304
 # Line: 80, Stmt: 1
-	mov	x2,40
-	sub	x0,x29,40
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+23
-	bl	memcpy 
+	adrp	x15,.L32765+23
+	add	x15,x15,:lo12:.L32765+23
+	sub	x14,x29,40
+	mov	x16,40
+.L32758:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32758
 	sub	x0,x29,40
 	mov	x1,1
 	mov	x2,40
 	bl	putstringln
-	mov	x2,3
-	sub	x0,x29,48
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+64
-	bl	memcpy 
+	adrp	x15,.L32765+64
+	add	x15,x15,:lo12:.L32765+64
+	sub	x14,x29,48
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
 	sub	x0,x29,48
 	mov	x1,1
 	mov	x2,3
 	bl	putstring
 	mov	x0,xzr
 	bl	putintln
-	mov	x2,6
-	sub	x0,x29,56
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+68
-	bl	memcpy 
+	adrp	x15,.L32765+68
+	add	x15,x15,:lo12:.L32765+68
+	sub	x14,x29,56
+	mov	x16,6
+.L32757:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32757
 	sub	x0,x29,56
 	mov	x1,1
 	mov	x2,6
 	bl	putstring
 	mov	x0,1234
 	bl	putintln
-	mov	x2,7
-	sub	x0,x29,64
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+75
-	bl	memcpy 
+	adrp	x15,.L32765+75
+	add	x15,x15,:lo12:.L32765+75
+	sub	x14,x29,64
+	mov	x16,7
+.L32756:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32756
 	sub	x0,x29,64
 	mov	x1,1
 	mov	x2,7
 	bl	putstring
 	mov	x0,65535
 	bl	putintln
-	mov	x2,7
-	sub	x0,x29,72
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+83
-	bl	memcpy 
+	adrp	x15,.L32765+83
+	add	x15,x15,:lo12:.L32765+83
+	sub	x14,x29,72
+	mov	x16,7
+.L32755:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32755
 	sub	x0,x29,72
 	mov	x1,1
 	mov	x2,7
 	bl	putstring
 	mov	w0,65536
 	bl	putintln
-	mov	x2,7
-	sub	x0,x29,80
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+91
-	bl	memcpy 
+	adrp	x15,.L32765+91
+	add	x15,x15,:lo12:.L32765+91
+	sub	x14,x29,80
+	mov	x16,7
+.L32754:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32754
 	sub	x0,x29,80
 	mov	x1,1
 	mov	x2,7
 	bl	putstring
 	mov	w0,65537
 	bl	putintln
-	mov	x2,7
-	sub	x0,x29,88
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+99
-	bl	memcpy 
+	adrp	x15,.L32765+99
+	add	x15,x15,:lo12:.L32765+99
+	sub	x14,x29,88
+	mov	x16,7
+.L32753:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32753
 	sub	x0,x29,88
 	mov	x1,1
 	mov	x2,7
@@ -864,11 +906,17 @@ main:
 	movz	x0,3
 	movk	x0,1,lsl 16
 	bl	putintln
-	mov	x2,4
-	sub	x0,x29,96
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+107
-	bl	memcpy 
+	adrp	x15,.L32765+107
+	add	x15,x15,:lo12:.L32765+107
+	sub	x14,x29,96
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
 	sub	x0,x29,96
 	mov	x1,1
 	mov	x2,4
@@ -876,33 +924,45 @@ main:
 	movz	x0,65535
 	movk	x0,65535,lsl 16
 	bl	putintln
-	mov	x2,8
-	sub	x0,x29,104
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+112
-	bl	memcpy 
+	adrp	x15,.L32765+112
+	add	x15,x15,:lo12:.L32765+112
+	sub	x14,x29,104
+	mov	x16,8
+.L32752:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32752
 	sub	x0,x29,104
 	mov	x1,1
 	mov	x2,8
 	bl	putstring
 	mov	w0,4294901760
 	bl	putintln
-	mov	x2,8
-	sub	x0,x29,112
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+121
-	bl	memcpy 
+	adrp	x15,.L32765+121
+	add	x15,x15,:lo12:.L32765+121
+	sub	x14,x29,112
+	mov	x16,8
+.L32751:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32751
 	sub	x0,x29,112
 	mov	x1,1
 	mov	x2,8
 	bl	putstring
 	mov	w0,4294901759
 	bl	putintln
-	mov	x2,8
-	sub	x0,x29,120
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+130
-	bl	memcpy 
+	adrp	x15,.L32765+130
+	add	x15,x15,:lo12:.L32765+130
+	sub	x14,x29,120
+	mov	x16,8
+.L32750:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32750
 	sub	x0,x29,120
 	mov	x1,1
 	mov	x2,8
@@ -910,32 +970,44 @@ main:
 	movz	x0,65533
 	movk	x0,65534,lsl 16
 	bl	putintln
-	mov	x2,12
-	sub	x0,x29,136
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+139
-	bl	memcpy 
+	adrp	x15,.L32765+139
+	add	x15,x15,:lo12:.L32765+139
+	sub	x14,x29,136
+	mov	x16,12
+.L32749:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32749
 	sub	x0,x29,136
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
 	mov	w0,2004318071
 	bl	putintln
-	mov	x2,48
-	sub	x0,x29,184
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+152
-	bl	memcpy 
+	adrp	x15,.L32765+152
+	add	x15,x15,:lo12:.L32765+152
+	sub	x14,x29,184
+	mov	x16,48
+.L32748:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32748
 	sub	x0,x29,184
 	mov	x1,1
 	mov	x2,48
 	bl	putstringln
 	bl	putln
-	mov	x2,22
-	sub	x0,x29,208
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+201
-	bl	memcpy 
+	adrp	x15,.L32765+201
+	add	x15,x15,:lo12:.L32765+201
+	sub	x14,x29,208
+	mov	x16,22
+.L32747:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32747
 	sub	x0,x29,208
 	mov	x1,1
 	mov	x2,22
@@ -958,20 +1030,28 @@ main:
 	bl	.P17  // p1
 	mov	x0,56
 	bl	.P17  // p1
-	mov	x2,39
-	sub	x0,x29,248
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+224
-	bl	memcpy 
+	adrp	x15,.L32765+224
+	add	x15,x15,:lo12:.L32765+224
+	sub	x14,x29,248
+	mov	x16,39
+.L32746:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32746
 	sub	x0,x29,248
 	mov	x1,1
 	mov	x2,39
 	bl	putstringln
-	mov	x2,50
-	sub	x0,x29,304
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+264
-	bl	memcpy 
+	adrp	x15,.L32765+264
+	add	x15,x15,:lo12:.L32765+264
+	sub	x14,x29,304
+	mov	x16,50
+.L32745:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32745
 	sub	x0,x29,304
 	mov	x1,1
 	mov	x2,50

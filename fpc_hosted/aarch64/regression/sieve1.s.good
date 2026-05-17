@@ -246,22 +246,32 @@ putbool:
 # Line: 114, Stmt: 2
 	cbz	w0,.L31
 .L32:
-	mov	x2,4
-	sub	x0,x29,16
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+1
-	bl	memcpy 
+	adrp	x15,.L32765+1
+	add	x15,x15,:lo12:.L32765+1
+	sub	x14,x29,16
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
+	ldrb	w16,[x15],1
+	strb	w16,[x14],1
 	sub	x0,x29,16
 	mov	x1,1
 	mov	x2,4
 	bl	putstring
 	b	.L33
 .L31:
-	mov	x2,5
-	sub	x0,x29,16
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+6
-	bl	memcpy 
+	adrp	x15,.L32765+6
+	add	x15,x15,:lo12:.L32765+6
+	sub	x14,x29,16
+	mov	x16,5
+.L32764:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32764
 	sub	x0,x29,16
 	mov	x1,1
 	mov	x2,5
@@ -325,11 +335,15 @@ _p_caseerr:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 135, Stmt: 1
-	mov	x2,10
-	sub	x0,x29,16
-	adrp	x1,.L32765
-	add	x1,x1,:lo12:.L32765+12
-	bl	memcpy 
+	adrp	x15,.L32765+12
+	add	x15,x15,:lo12:.L32765+12
+	sub	x14,x29,16
+	mov	x16,10
+.L32763:
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
+	subs	x16,x16,1
+	cbnz	x16,.L32763
 	sub	x0,x29,16
 	mov	x1,1
 	mov	x2,10
@@ -405,21 +419,21 @@ main:
 	stp	x30,x29,[sp,48]
 	add	x29,sp,48
 # Line: 17, Stmt: 1
-	adrp	x15,.L32766+999424
-	adrp	x14,.L32766+999424
-	adrp	x13,.L32766+999424
+	adrp	x15,.L32766+1000040
+	adrp	x14,.L32766+1000044
+	adrp	x13,.L32766+1000048
 # Line: 18, Stmt: 2
-	adrp	x12,.L32766+999424
+	adrp	x12,.L32766+1000052
 	mov	x11,1
 .L45:
-	adrp	x16,.L32766+999424
-	str	w11,[x16,:lo12:.L32766+628]
-	str	wzr,[x13,:lo12:.L32766+624]
-	adrp	x12,.L32766+999424
+	adrp	x16,.L32766+1000052
+	str	w11,[x16,:lo12:.L32766+1000052]
+	str	wzr,[x13,:lo12:.L32766+1000048]
+	adrp	x12,.L32766+1000036
 	mov	x10,xzr
 .L46:
-	adrp	x16,.L32766+999424
-	str	w10,[x16,:lo12:.L32766+612]
+	adrp	x16,.L32766+1000036
+	str	w10,[x16,:lo12:.L32766+1000036]
 	adrp	x12,.L32766
 	add	x12,x12,:lo12:.L32766
 	add	x12,x12,x10, sxtw 0
@@ -431,11 +445,11 @@ main:
 	cmp	w10,w16
 	b.le	.L46
 .L47:
-	adrp	x12,.L32766+999424
+	adrp	x12,.L32766+1000036
 	mov	x10,xzr
 .L48:
-	adrp	x16,.L32766+999424
-	str	w10,[x16,:lo12:.L32766+612]
+	adrp	x16,.L32766+1000036
+	str	w10,[x16,:lo12:.L32766+1000036]
 	adrp	x12,.L32766
 	add	x12,x12,:lo12:.L32766
 	add	x12,x12,x10, sxtw 0
@@ -444,14 +458,14 @@ main:
 .L50:
 	add	w12,w10,w10
 	add	w12,w12,3
-	str	w12,[x15,:lo12:.L32766+616]
-	ldrsw	x9,[x15,:lo12:.L32766+616]
+	str	w12,[x15,:lo12:.L32766+1000040]
+	ldrsw	x9,[x15,:lo12:.L32766+1000040]
 	add	w12,w10,w9
-	str	w12,[x14,:lo12:.L32766+620]
-	adrp	x12,.L32766+999424
-	adrp	x9,.L32766+999424
+	str	w12,[x14,:lo12:.L32766+1000044]
+	adrp	x12,.L32766+1000040
+	adrp	x9,.L32766+1000044
 .L42:
-	ldrsw	x8,[x9,:lo12:.L32766+620]
+	ldrsw	x8,[x9,:lo12:.L32766+1000044]
 	movz	x16,16960
 	movk	x16,15,lsl 16
 	cmp	w8,w16
@@ -461,15 +475,15 @@ main:
 	add	x7,x7,:lo12:.L32766
 	add	x7,x7,x8, sxtw 0
 	strb	wzr,[x7,32]
-	ldrsw	x6,[x12,:lo12:.L32766+616]
+	ldrsw	x6,[x12,:lo12:.L32766+1000040]
 	add	w7,w8,w6
-	str	w7,[x9,:lo12:.L32766+620]
+	str	w7,[x9,:lo12:.L32766+1000044]
 	b	.L42
 .L51:
-	adrp	x12,.L32766+999424
-	ldrsw	x8,[x12,:lo12:.L32766+624]
+	adrp	x12,.L32766+1000048
+	ldrsw	x8,[x12,:lo12:.L32766+1000048]
 	add	w9,w8,1
-	str	w9,[x12,:lo12:.L32766+624]
+	str	w9,[x12,:lo12:.L32766+1000048]
 .L49:
 	add	w10,w10,1
 	movz	x16,16960
@@ -481,8 +495,8 @@ main:
 	cmp	w11,100
 	b.le	.L45
 .L54:
-	adrp	x15,.L32766+999424
-	ldrsw	x0,[x15,:lo12:.L32766+624]
+	adrp	x15,.L32766+1000048
+	ldrsw	x0,[x15,:lo12:.L32766+1000048]
 	bl	putintln
 .L41:
 	ldp	x30,x29,[sp,48]
