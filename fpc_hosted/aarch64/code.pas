@@ -5385,7 +5385,7 @@ procedure pshaddrx;
     dontchangevalue := dontchangevalue - 1;
   end {pshaddrx};
 
-procedure movemultiple;
+procedure movemultiple(src, dst: keyindex);
 
 { must handle very long operands as this craps out at
   65535 bytes at the moment.  Not that we really want
@@ -5393,7 +5393,7 @@ procedure movemultiple;
 }
 
 var
-  srcregkey, dstregkey, ip0key, ip1key: keyindex;
+  srcregkey, dstregkey, ip0key, ip1key, labelkey: keyindex;
   l: addressrange;
 
   begin
@@ -5411,13 +5411,14 @@ var
     keytable[dstregkey].oprnd.index := byte;
     ip0key := settemp(long, reg_oprnd(ip0));
     ip1key := settemp(long, reg_oprnd(ip1));
-    genmovesimple(lastaddr, settemp(long, intconst(len)), ip0key);
+    gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), ip0key);
+    labelkey := settemp(long, labeltarget_oprnd(lastlabel, false, 0));
     definelastlabel;
-    gen3(lastnode, buildinst(ldr, true, false), ip1key, srcregkey);
-    gen3(lastnode, buildinst(str, true, false), ip1key, dstregkey);
+    gen2(lastnode, buildinst(ldr, true, false), ip1key, srcregkey);
+    gen2(lastnode, buildinst(str, true, false), ip1key, dstregkey);
     gen3(lastnode, buildinst(sub, true, true), ip0key, ip0key,
-                   settemp(long, imm12_oprnd(1)));
-    gen2(lastnode, buildinst(cbnz, true = long, false), ip0, lastlabel + 1);
+                   settemp(long, imm12_oprnd(1, false)));
+    gen2(lastnode, buildinst(cbnz, true, false), ip0key, labelkey);
   end;
 
 procedure pushmultiple;
@@ -6271,7 +6272,7 @@ procedure codeone;
       movreal, returnreal: movrealx;
       movlitreal: movlitrealx;
 }
-      movstruct, returnstruct: movemultiple;
+      movstruct, returnstruct: movemultiple(right, left);
       movset: movsetx;
 {
       movstr: movstrx;
@@ -6337,7 +6338,7 @@ procedure codeone;
       pshproc: pshprocx;
       pshstr: pshstrx;
 }
-      pshstruct, pshset: pushmultiple;
+      pshstruct, pshset: {pushmultiple} movemultiple(left, key);
       setfile: setfilex;
       fileparam: fileparamx;
       fmt: fmtx;
