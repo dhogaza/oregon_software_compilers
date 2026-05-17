@@ -614,9 +614,16 @@ begin
     libcall: writelibname(o.libroutine);
     labeltarget:
       begin
-        if o.lowbits then write(macfile, ':lo12:');
+        if o.lowbits then
+          begin
+          write(macfile, ':lo12:');
+          write(macfile, '.L', o.labelno);
+          if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset and $FFF:1);
+          end
+      else
         write(macfile, '.L', o.labelno);
-        if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset:1);
+        if (o.labeloffset and $FFFFF000) <> 0 then
+          write(macfile, '+',o.labeloffset and $FFFFF000:1);
       end;
     label_offset:
       begin
@@ -630,7 +637,7 @@ begin
         compilerabort(inconsistent);;
         end;
       write(macfile, '.L', o.labelno);
-      if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset:1);
+      if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset and $FFF:1);
       write(macfile, ']');
       end;
     tworeg:
