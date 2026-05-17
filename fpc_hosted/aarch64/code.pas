@@ -4502,12 +4502,6 @@ var
       end;
     if l  >= long then
       begin
-{
-      keytable[srcregkey].oprnd.index := 0;
-      keytable[srcregkey].oprnd.mode := unsigned_offset;
-      keytable[dstregkey].oprnd.index := 0;
-      keytable[dstregkey].oprnd.mode := unsigned_offset;
-}
       gen2(lastnode, buildinst(ldr, true, false), ip0key, srcregkey);
       gen2(lastnode, buildinst(str, true, false), ip0key, dstregkey);
       end;
@@ -5399,31 +5393,32 @@ procedure movemultiple;
 }
 
 var
-  regkey: keyindex;
+  srcregkey, dstregkey, ip0key, ip1key: keyindex;
+  l: addressrange;
 
-begin {movemultiple}
-{
-  if regmoveok(len) then movintptrx
-  else
-}
-    begin
-    saveactivekeys;
-    addressboth;
-    lockboth;
-    firstreg := 3;
-    regkey := settemp(long, reg_oprnd(2));
-    gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), regkey);
-    keytable[regkey].oprnd.reg := 0;
-    genmoveaddress(left, regkey);
-    keytable[regkey].oprnd.reg := 1;
-    genmoveaddress(right, regkey);
-    markscratchregs;
-    gen1(lastnode, buildinst(bl, false, false),
-         settemp(long, libcall_oprnd(libcmemcpy)));
-    firstreg := 0;
-    unlockboth;
-    end;
-end; {movemultiple}
+  begin
+    lock(dst);
+    srcregkey := settemp(long, reg_oprnd(getreg));
+    genmoveaddress(src, srcregkey);
+    unlock(dst);
+    lock(srcregkey);
+    dstregkey := settemp(long, reg_oprnd(getreg));
+    genmoveaddress(dst, dstregkey);
+    unlock(srcregkey);
+    keytable[srcregkey].oprnd.mode := post_index;
+    keytable[srcregkey].oprnd.index := byte;
+    keytable[dstregkey].oprnd.mode := post_index;
+    keytable[dstregkey].oprnd.index := byte;
+    ip0key := settemp(long, reg_oprnd(ip0));
+    ip1key := settemp(long, reg_oprnd(ip1));
+    genmovesimple(lastaddr, settemp(long, intconst(len)), ip0key);
+    definelastlabel;
+    gen3(lastnode, buildinst(ldr, true, false), ip1key, srcregkey);
+    gen3(lastnode, buildinst(str, true, false), ip1key, dstregkey);
+    gen3(lastnode, buildinst(sub, true, true), ip0key, ip0key,
+                   settemp(long, imm12_oprnd(1)));
+    gen2(lastnode, buildinst(cbnz, true = long, false), ip0, lastlabel + 1);
+  end;
 
 procedure pushmultiple;
 
