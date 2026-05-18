@@ -20,7 +20,8 @@ procedure putln; external;
 
 procedure _p_caseerr; external;
 procedure _p_wtc_o(ch: char; length: integer); external;
-procedure _p_wtln_o(i: integer; length: integer); external;
+procedure _p_wti_o(i: integer; length: integer); external;
+procedure _p_wtln_o; external;
 
 procedure putln;
 
@@ -141,13 +142,47 @@ procedure _p_wtc_o;
 
   var i: integer;
 
-begin
-  putchar(ch);
-  for i := 2 to length do putchar(' ');
-end;
+  begin
+    for i := 2 to length do putchar(' ');
+    putchar(ch);
+  end;
+
+procedure _p_wti_o;
+
+  var
+    digits: packed array [0..18] of char;
+    j: integer;
+    count: integer;
+
+  begin
+    count := 0;
+    if i < 0 then
+    begin
+      putchar('-');
+      i := -i;
+      count := count + 1;
+    end;
+
+    j := 0;
+    repeat
+      digits[j] := chr(i mod 10 + ord('0'));
+      j := j + 1;
+      i := i div 10;
+      count := count + 1;
+    until i = 0;
+
+    for count := count + 1 to length do
+      putchar(' ');
+
+    repeat
+      j := j - 1;
+      putchar(digits[j]);
+    until j = 0;
+
+  end;
 
 procedure _p_wtln_o;
 
-begin
-  putchar(chr(10));
-end;
+  begin
+    putchar(chr(10));
+  end;
