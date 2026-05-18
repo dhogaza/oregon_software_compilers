@@ -1927,7 +1927,7 @@ procedure genstdparamaddr(form: types; var regparams: regparamstype);
   begin {genstdparamaddr}
     allocstdparam(form, regparams, alloc, regid);
     if alloc = normalalloc then
-      genunary(pushvalue, form)
+      genunary(pushaddr, form)
     else
       begin
       genunary(addrop, ptrs);
@@ -2571,7 +2571,7 @@ procedure genpushint(i: integer);
   end {genpushint} ;
 
 
-procedure genpushdefaultint(i: integer);
+procedure genpushdefaultint(i: integer; var regparams: regparamstype);
 
 { Cause i to be pushed at runtime.
 }
@@ -2580,7 +2580,7 @@ procedure genpushdefaultint(i: integer);
   begin {genpushdefaultint}
     pushint(i);
     setdefaulttargetintsize;
-    genunary(pushvalue, ints);
+    genstdparamvalue(ints, regparams);
   end {genpushdefaultint} ;
 
 
@@ -4017,7 +4017,8 @@ procedure statement(follow: tokenset {legal following symbols} );
 
   procedure fileparam(pushit: boolean; {parameter must be pushed}
                       emitlen: boolean; {element length is needed, too}
-                      textfileneeded: boolean {must be a text file} );
+                      textfileneeded: boolean; {must be a text file}
+                      var regparams: regparamstype {param allocation} );
 
 { Parses a file parameter to a procedure.  This is assumed to be the first
   parameter in all cases, as it parses the initial left parenthesis too.
@@ -4043,16 +4044,17 @@ procedure statement(follow: tokenset {legal following symbols} );
           begin
           if textfileneeded and (resulttype <> textindex) then
             warnbefore(nottextfile);
-          if pushit then genunary(pushaddr, resultform);
+          if pushit then genstdparamaddr(resultform, regparams);
           if emitlen and (resultform = files) then
-            if resulttype = textindex then genpushdefaultint( - 1)
+            if resulttype = textindex then genpushdefaultint(-1, regparams)
             else
               begin
               if bigcompilerversion then
                 f := @(bigtable[resultptr^.filebasetype]);
               genpushdefaultint(forcealign(sizeof(f, false), alignmentof(f,
                                            false),
-                                false) * (bitsperunit div bitsperfileunit));
+                                false) * (bitsperunit div bitsperfileunit),
+                                regparams);
               end;
           end;
         end
@@ -4885,6 +4887,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 
       var
         paramform: types; {type of the parameter}
+        regparams: regparamstype; {for allocating parameters}
 
 
       procedure beginparams;
@@ -4960,7 +4963,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 
 
         begin {iofunction}
-          fileparam(false, false, false);
+          fileparam(false, false, false, regparams);
           finishparams([none, files], finaltype);
           if finaltype = intindex then setdefaulttargetintsize;
         end {iofunction} ;
@@ -5740,6 +5743,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 
 
       begin {standardfunctions}
+        initregparams(regparams);
         if not (procid in
            [refid, loopholeid, sizeid, bitsizeid, ordid, chrid, succid, predid,
            lengthid, concatid, snglid, dblid, upperid, lowerid]) then
@@ -6321,6 +6325,9 @@ procedure statement(follow: tokenset {legal following symbols} );
   dispose require special processing for the optional tag arguments.
 }
 
+    var
+      regparams: regparamstype; {for allocating parameters}
+
     procedure pushstringparam(extendedstring: boolean {arrays or strings} );
 
 { Push a string parameter onto the operand stack.  This actually generates
@@ -6349,7 +6356,7 @@ procedure statement(follow: tokenset {legal following symbols} );
           if constcheck(sp) then dumpconst(stringlen, false);
           oprndstk[sp].oprndlen := ptrsize;
           genunary(pushaddr, ints);
-          genpushdefaultint(stringlen);
+          genpushdefaultint(stringlen, regparams);
           end;
       end {pushstringparam} ;
 
@@ -6361,7 +6368,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 
 
       begin {ioprocedure}
-        fileparam(true, false, textfileneeded);
+        fileparam(true, false, textfileneeded, regparams);
         parseextraargs;
       end {ioprocedure} ;
 
@@ -6374,7 +6381,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 
 
       begin {seek}
-        fileparam(true, false, false);
+        fileparam(true, false, false, regparams);
         verifytoken(comma, nocommaerr);
         expression(follow + [comma, rpar], false);
         if not (resultform in [none, ints]) then warn(badfunctionarg);
@@ -6397,8 +6404,8 @@ procedure statement(follow: tokenset {legal following symbols} );
           begin
           sp := sp + 1;
           oprndstk[sp] := nilvalue;
-          genunary(pushvalue, ptrs);
-          genpushdefaultint(0);
+          genstdparamvalue(ptrs, regparams);
+          genpushdefaultint(0, regparams);
           end
         else
           begin
@@ -6419,7 +6426,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 
 
       begin {rename}
-        fileparam(true, false, false);
+        fileparam(true, false, false, regparams);
         getname(false);
         parseextraargs;
       end {rename} ;
@@ -6433,7 +6440,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 
 
       begin {resetrewrite}
-        fileparam(true, true, false);
+        fileparam(true, true, false, regparams);
         genunary(setfileop, none);
         if token in
            [comma, eql..andsym, ident, intconst..stringconst, lbrack, lpar,
@@ -7103,6 +7110,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 
 
     begin {standardprocedures}
+      initregparams(regparams);
       newexprstmt(syscall);
       genint(ord(procid));
       gettoken;

@@ -3318,14 +3318,24 @@ procedure reloadloop;
       end;
   end {reloadloop} ;
 
+procedure callsupport(libroutine: libroutines {support routine to call} );
 
-procedure calliosupport(libroutine: libroutines);
+ { Call the support library. }
+
   var
     libkey: keyindex;
-  begin
-    if filenamed then libkey := settemp(long, libcall_oprnd(libroutine))
-    else libkey := settemp(long, libcall_oprnd(succ(libroutine)));
+
+  begin {callsupport}
+    libkey := settemp(long, libcall_oprnd(libroutine));
     gen1(lastnode, buildinst(bl, false, false), libkey);
+  end {callsupport} ;
+
+
+procedure calliosupport(libroutine: libroutines);
+
+  begin
+    if filenamed then callsupport(libroutine)
+    else callsupport(succ(libroutine));
     markscratchregs;
     firstreg := 0;
   end;
@@ -4805,6 +4815,7 @@ procedure wrcommon(libroutine: libroutines; {formatting routine to call}
     calliosupport(libroutine);
     formatcount := 0;
     formatcount := 0;
+    dontchangevalue := 0;
   end {wrcommon};
 
 procedure setfilex;
@@ -4915,37 +4926,36 @@ procedure sysroutinex;
 
   begin {sysroutinex}
     case standardids(pseudoinst.oprnds[1]) of
+      pageid: calliosupport(libpage);
+      putid: callsupport(libput);
+      getid: callsupport(libget);
+      breakid: callsupport(libbreak);
+      seekid: callsupport(libseek);
+      closeid: callsupport(libclose);
 {
-      pageid: calliosupport(libpage, 0);
-      putid: callandpop(libput, 1);
-      getid: callandpop(libget, 1);
-      breakid: callandpop(libbreak, 1);
-      seekid: callandpop(libseek, 2);
-      closeid: callandpop(libclose, 1);
       resetid: openx(libreset);
       rewriteid: openx(librewrite);
-      packid: callandpop(libpack, 11);
-      unpackid: callandpop(libunpack, 11);
-      newid: callandpop(libnew, 2);
-      disposeid: callandpop(libdispose, 2);
-      renameid: callandpop(librename, 3);
-      noioerrorid: callandpop(libnoioerror, 1);
-      deleteid: callandpop(libdelete, 1);
 }
+      packid: callsupport(libpack);
+      unpackid: callsupport(libunpack);
+      newid: callsupport(libnew);
+      disposeid: callsupport(libdispose);
+      renameid: callsupport(librename);
+      noioerrorid: callsupport(libnoioerror);
+      deleteid: callsupport(libdelete);
       writeid, readid: removefileparam;
       writelnid:
         begin
         removefileparam;
         calliosupport(libwriteln);
         end;
-{
-      readlnid: calliosupport(libreadln, 0);
-      insertid: callandpop(libinsert, 4);
-      deletestrid: callandpop(libdeletestr, 4);
+      readlnid: calliosupport(libreadln);
+      insertid: callsupport(libinsert);
+      deletestrid: callsupport(libdeletestr);
+{     pascal extended string ops
       valprocid:
       strid:
-      setfpcrid: setfpcrfn;
-      fsincosid: fsincosfn;
+      C or Modula-2? Not needed
       inclid: setbit(true);
       exclid: setbit(false);
 }
@@ -6353,8 +6363,10 @@ procedure codeone;
         if filenamed then callandpop(libreadstring, 2)
         else callandpop(libreadstringi, 2);
       rdxstr: rdxstrx;
+}
       rdbin: callsupport(libget);
       wrbin: callsupport(libput);
+{
       wrst: wrstx(true);
       wrxstr: wrstx(false);
       wrreal: wrrealx;
