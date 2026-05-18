@@ -23,6 +23,18 @@
      up some stuff???  Certainly makes it harder to assign to regtemp.
 
 --- current work
+  -- std routine parameters
+
+     pushing of strings -> moving strings to param registers ugh...
+
+     alloc one param for the length and then if regparam do some hacked up
+     shit to get the length?  Target code something like:
+
+     move address to Xn+1
+     mov [Xn+1,1], Xn
+     add xn, xn, 1
+
+     should be able to do this in body ... maybe helper for the len
 
   -- FILES
 

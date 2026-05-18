@@ -4818,6 +4818,31 @@ procedure wrcommon(libroutine: libroutines; {formatting routine to call}
     dontchangevalue := 0;
   end {wrcommon};
 
+procedure wrstx(stdstring: boolean {true if packed array[1..n] kind} );
+
+{ Write a string to a text file.  The length and pointer parameters  are
+  assumed to be already loaded into the proper registers.  We copy the
+  length parameter as the width format parameter if none is explicitly
+  provided.
+
+}
+
+  var lengthregkey, widthregkey: keyindex;
+
+  begin
+    if formatcount = 0 then
+      begin
+      lengthregkey := settemp(long, reg_oprnd(firstreg - 1));
+      widthregkey := settemp(long, reg_oprnd(firstreg));
+      gensimplemove(lastnode, lengthregkey, widthregkey);
+{
+      if stdstring then gensimplemove(stackcounter + 1, stackcounter)
+      else gensimplemove(stackcounter + 2, stackcounter);
+}
+      end;
+    calliosupport(libwritestring)
+  end {wrstx} ;
+
 procedure setfilex;
 
 { Flags beginning of file processing of some sort or another.  "Filenamed"
@@ -6366,8 +6391,8 @@ procedure codeone;
 }
       rdbin: callsupport(libget);
       wrbin: callsupport(libput);
-{
       wrst: wrstx(true);
+{
       wrxstr: wrstx(false);
       wrreal: wrrealx;
 }

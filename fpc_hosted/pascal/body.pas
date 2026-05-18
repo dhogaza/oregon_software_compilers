@@ -1925,7 +1925,7 @@ procedure genstdparamaddr(form: types; var regparams: regparamstype);
   
 
   begin {genstdparamaddr}
-    allocstdparam(form, regparams, alloc, regid);
+    allocstdparam(ptrs, regparams, alloc, regid);
     if alloc = normalalloc then
       genunary(pushaddr, form)
     else
@@ -2557,19 +2557,6 @@ procedure setdefaulttargetintsize;
   begin {setdefaulttargetintsize}
     oprndstk[sp].oprndlen := defaulttargetintsize;
   end {setdefaulttargetintsize} ;
-
-
-procedure genpushint(i: integer);
-
-{ Cause i to be pushed at runtime.
-}
-
-
-  begin {genpushint}
-    pushint(i);
-    genunary(pushvalue, ints);
-  end {genpushint} ;
-
 
 procedure genpushdefaultint(i: integer; var regparams: regparamstype);
 
@@ -6328,7 +6315,8 @@ procedure statement(follow: tokenset {legal following symbols} );
     var
       regparams: regparamstype; {for allocating parameters}
 
-    procedure pushstringparam(extendedstring: boolean {arrays or strings} );
+    procedure pushstringparam(extendedstring: boolean; {arrays or strings}
+                              regparams: regparamstype {for param allocation});
 
 { Push a string parameter onto the operand stack.  This actually generates
   code to push a reference to the string, followed by a the string length.
@@ -6355,7 +6343,7 @@ procedure statement(follow: tokenset {legal following symbols} );
           stringlen := resultptr^.arraymembers;
           if constcheck(sp) then dumpconst(stringlen, false);
           oprndstk[sp].oprndlen := ptrsize;
-          genunary(pushaddr, ints);
+          genstdparamaddr(ints, regparams);
           genpushdefaultint(stringlen, regparams);
           end;
       end {pushstringparam} ;
@@ -6386,7 +6374,7 @@ procedure statement(follow: tokenset {legal following symbols} );
         expression(follow + [comma, rpar], false);
         if not (resultform in [none, ints]) then warn(badfunctionarg);
         setdefaulttargetintsize;
-        genunary(pushvalue, ints);
+        genstdparamvalue(ints, regparams);
         parseextraargs;
       end {seek} ;
 
@@ -6412,7 +6400,7 @@ procedure statement(follow: tokenset {legal following symbols} );
           expression(follow + [comma, rpar, intconst..stringconst], false);
           if (resultform = arrays) and resultptr^.stringtype or
              (resultform = strings) then
-            pushstringparam(resultform = strings)
+            pushstringparam(resultform = strings, regparams)
           else if (resultform <> none) then warnbefore(nostringerr);
           end;
       end {getname} ;
@@ -6654,7 +6642,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                 if ((readform <> arrays) or not resultptr^.stringtype) and
                    (readform <> strings) or (switchcounters[standard] > 0) then
                   warnbefore(badreadtype)
-                else pushstringparam(false);
+                else pushstringparam(false, regparams);
                 end;
               end;
             genunary(rd, readform);
@@ -6820,7 +6808,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                 arrays, strings:
                   begin
                   if not stringflag then warnbefore(badwritearg)
-                  else pushstringparam(writeform = strings);
+                  else pushstringparam(writeform = strings, writeregparams);
                   parsecolons(1)
                   end;
                 otherwise
