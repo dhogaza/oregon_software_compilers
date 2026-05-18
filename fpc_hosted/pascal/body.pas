@@ -4049,7 +4049,7 @@ procedure statement(follow: tokenset {legal following symbols} );
     end {fileparam} ;
 
 
-  procedure stringtarget;
+  procedure stringtarget(var regparams: regparamstype);
 
 { Parse and generate a string target parameter for intrinsic string
   functions.   The argument must be a string variable, and the address
@@ -4065,10 +4065,10 @@ procedure statement(follow: tokenset {legal following symbols} );
       if not (resultform in [strings, none]) then warnbefore(nostringerr);
       varlen := oprndstk[sp].oprndlen - 1;
       oprndstk[sp].oprndlen := ptrsize;
-      genunary(pushaddr, strings);
+      genstdparamaddr(ptrs, regparams);
       pushint(varlen);
       oprndstk[sp].oprndlen := shorttargetintsize;
-      genunary(pushvalue, ints);
+      genstdparamvalue(ints, regparams);
     end {stringtarget} ;
 
 
@@ -5482,6 +5482,8 @@ procedure statement(follow: tokenset {legal following symbols} );
   Ask Borland someday!
 }
 
+{ DBR: this is broken! }
+
         var
           strlen: addressrange;
 
@@ -5499,17 +5501,17 @@ procedure statement(follow: tokenset {legal following symbols} );
             warnbefore(nostringerr);
           strlen := oprndstk[sp].oprndlen;
           oprndstk[sp].oprndlen := ptrsize;
-          genunary(pushaddr, strings);
+          genstdparamaddr(strings, regparams);
           verifytoken(comma, nocommaerr);
           expression(follow + [comma], false);
           if not (resultform in [none, ints]) then warn(badfunctionarg);
           setshorttargetintsize;
-          genunary(pushvalue, ints);
+          genstdparamvalue(ints, regparams);
           verifytoken(comma, nocommaerr);
           expression(follow + [rpar], false);
           if not (resultform in [none, ints]) then warn(badfunctionarg);
           setshorttargetintsize;
-          genunary(pushvalue, ints);
+          genstdparamvalue(ints, regparams);
           parseextraargs;
           newstringtype(resulttype, strings, strlen);
           newresulttype(resulttype);
@@ -5545,6 +5547,8 @@ procedure statement(follow: tokenset {legal following symbols} );
 
 { Parse "pos(string1, string2)".
 }
+
+{DRB: broken.  Must fix std function returns}
 
 
         begin {pos}
@@ -6929,12 +6933,12 @@ procedure statement(follow: tokenset {legal following symbols} );
         verifytoken(lpar, nolparerr);
         stringsource;
         verifytoken(comma, nocommaerr);
-        stringtarget;
+        stringtarget(regparams);
         verifytoken(comma, nocommaerr);
         expression(follow + [rpar], false);
         if not (resultform in [none, ints]) then warn(badfunctionarg);
         setshorttargetintsize;
-        genunary(pushvalue, ints);
+        genstdparamvalue(ints, regparams);
         parseextraargs;
       end {insert} ;
 
@@ -6948,12 +6952,12 @@ procedure statement(follow: tokenset {legal following symbols} );
       begin {deletestr}
         genop(bldnil);
         verifytoken(lpar, nolparerr);
-        stringtarget;
+        stringtarget(regparams);
         verifytoken(comma, nocommaerr);
         expression(follow + [comma], false);
         if not (resultform in [none, ints]) then warn(badfunctionarg);
         setdefaulttargetintsize;
-        genunary(pushvalue, ints);
+        genstdparamvalue(ints, regparams);
         verifytoken(comma, nocommaerr);
         expression(follow + [rpar], false);
         if not (resultform in [none, ints]) then warn(badfunctionarg);
@@ -6979,12 +6983,12 @@ procedure statement(follow: tokenset {legal following symbols} );
            realindex) or identical(resulttype, doubleindex)) then
           warn(paramtypeerr);
         oprndstk[sp].oprndlen := ptrsize;
-        genunary(pushaddr, resultform);
+        genstdparamaddr(ptrs, regparams);
         verifytoken(comma, nocommaerr);
         modifyvariable(true, true);
         if not identical(resulttype, intindex) then warn(paramtypeerr);
         oprndstk[sp].oprndlen := ptrsize;
-        genunary(pushaddr, ints);
+        genstdparamaddr(ptrs, regparams);
         parseextraargs;
       end {val} ;
 
@@ -7006,7 +7010,7 @@ procedure statement(follow: tokenset {legal following symbols} );
         if resultform = ints then parsecolons(1)
         else parsecolons(2);
         verifytoken(comma, nocommaerr);
-        stringtarget;
+        stringtarget(regparams);
         parseextraargs;
       end {str} ;
 
