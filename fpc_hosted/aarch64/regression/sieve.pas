@@ -13,8 +13,6 @@ var
  
 %include 'testlib';
 
-procedure foo; external;
-
 procedure p;
 var
   i, prime, k, count, iter : integer;

@@ -23,6 +23,18 @@
      up some stuff???  Certainly makes it harder to assign to regtemp.
 
 --- current work
+  -- std routine parameters
+
+     pushing of strings -> moving strings to param registers ugh...
+
+     alloc one param for the length and then if regparam do some hacked up
+     shit to get the length?  Target code something like:
+
+     move address to Xn+1
+     mov [Xn+1,1], Xn
+     add xn, xn, 1
+
+     should be able to do this in body ... maybe helper for the len
 
   -- FILES
 
@@ -33,16 +45,6 @@
 	adrp	x0, :got:stdout
 	ldr	x0, [x0, :got_lo12:stdout]
 
-     write/writeln/read/readln, the ugliest part of the entire compiler
-
-     Preserving the file argument across calls.  Saving it on the
-     stack isn't the worst thing in the world, followed by loading it into x0
-     every time we call a file intrinsic.
-
-     "copystack" then copies the stack arg to x0.  body.pas needs to allocate
-     a dummy param to figure out where to put it then, with walk.pas kludged to
-     not treat it as a stacknode (or for the code generator to kludge around it,
-     which is probably better as the fewer changes to the front end the better).
 
      Binary file stuff should be easier in the compiler.
 
@@ -53,7 +55,7 @@
 
      This is going to be complex.  Figuring how to represent files is going to be
      quite the trip on its own. The library code can probably be written in Pascal
-     interfacing to the C library.  
+     interfacing to the C library.  Or the C library more likely ...
 
   --
 
