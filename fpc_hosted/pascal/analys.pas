@@ -3526,7 +3526,7 @@ procedure initanalys;
         enterform(ints, f, fptr);
         with fptr^ do
           begin
-          intindex := f;
+          longintindex := f;
           size := longtargetintsize;
           align := longintalign;
           end;

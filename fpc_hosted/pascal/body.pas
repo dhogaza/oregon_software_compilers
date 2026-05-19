@@ -6499,7 +6499,7 @@ procedure statement(follow: tokenset {legal following symbols} );
             else illegalident(n);
             end;
           if not (resultform in [none, ptrs]) then warnbefore(noptrvar);
-          genunary(pushaddr, ptrs);
+          genstdparamaddr(ptrs, regparams);
           end
         else warnbetween(novarerr);
         currentrecord := noneindex;
@@ -6521,7 +6521,7 @@ procedure statement(follow: tokenset {legal following symbols} );
         if bigcompilerversion then currentptr := @(bigtable[currentrecord]);
         pushint(sizeof(currentptr, false));
         oprndstk[sp].oprndlen := defaultptrsize;
-        genunary(pushvalue, ints);
+        genstdparamvalue(ints, regparams);
         parseextraargs;
         if not callnew and containedfile then genunary(closerangeop, none);
       end {newdispose} ;

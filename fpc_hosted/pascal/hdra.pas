@@ -318,7 +318,7 @@ type
           elastprocrecord: integer;
 	  enullboundindex, eintindex, esubrangeindex, erealindex, edoubleindex,
 	   echartypeindex, eboolindex, etextindex, enoneindex,
-	   enilindex: index;
+	   enilindex, eshortintindex, elongintindex: index;
 	  econsttablelimit: integer;
           estringfilebase: integer;
           etargetrealsize: integer;
@@ -382,7 +382,7 @@ var
   display: array [levelindex] of displayentry; {compile time display}
 
   {the following are entries for standard types}
-  intindex, shortintindex, realindex, doubleindex, chartypeindex,
+  intindex, shortintindex, longintindex, realindex, doubleindex, chartypeindex,
     boolindex, noneindex, nilindex, textindex, inputindex, outputindex,
     subrangeindex: index;
 
