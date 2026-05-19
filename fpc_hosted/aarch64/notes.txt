@@ -23,6 +23,10 @@
      up some stuff???  Certainly makes it harder to assign to regtemp.
 
 --- current work
+
+  -- add int64 and uint64, for now just need to be able to extends 4 byte to
+     8 byte for new.
+
   -- std routine parameters
 
      pushing of strings -> moving strings to param registers ugh...

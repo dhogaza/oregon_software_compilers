@@ -72,6 +72,15 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
 { Allocate space for a single parameter
 }
 
+procedure allocstdparam(form: types; var regparams: regparamstype;
+                        var alloc: allockind; var regid: regrange);
+
+{ allocate a paramater for a standard function or procedure.  These don't have
+  symbol table entries so the information is generated dynamically when 
+  these routines are parsed.  Aarch64 standard routines never need stack
+  allocation.
+}
+
 procedure alloc(align: alignmentrange; {variable alignment}
                 length: addressrange; {length of variable}
                 var spacesize: addressrange; {size of data space}
@@ -105,6 +114,16 @@ procedure allocpacked(align: alignmentrange; {variable alignment}
   desired.
 }
 
+function initialblocksize(blocklevel: levelindex): addressrange;
+
+{ Determines the offset from the fp for the first variable.
+  Zero for MC68000
+}
+
+function paramalloc(paramptr, typeptr: entryptr): allockind;
+
+{ MC68000 passes all params on the stack.
+}
 
 procedure getallocdata(form: entryptr; {type being allocated}
                        varkind: nametype; {type of field or var}
@@ -563,6 +582,24 @@ procedure allocpacked(align: alignmentrange; {variable alignment}
     else overflowed := true;
   end; {allocpacked}
 
+function initialblocksize(blocklevel: levelindex): addressrange;
+
+{ Determines the offset from the fp for the first variable.
+  Zero for MC68000
+}
+
+begin {initialblocksize}
+  initialblocksize := 0;
+end {initialblocksize};
+
+function paramalloc(paramptr, typeptr: entryptr): allockind;
+
+{ MC68000 passes all params on the stack.
+}
+
+  begin {paramalloc}
+    paramalloc := normalalloc;
+  end; {paramalloc}
 
 procedure getallocdata(form: entryptr; {type being allocated}
                        varkind: nametype; {type of field or var}
