@@ -1,6 +1,12 @@
+type
+  _p_charptr = ^char; 
+
 {glibc}
 procedure exit(code: integer); external;
 procedure putchar(ch: char); external;
+function malloc(size: int64): _p_charptr; external;
+procedure free(p: _p_charptr); external;
+
 
 type
   lib_unsigned = 0..16#FFFFFFFF;
@@ -30,6 +36,8 @@ procedure _p_wti_o(i: integer; width: integer); external;
 procedure _p_wtb_o(b: boolean; width: integer); external;
 procedure _p_wts_o(var str: stringarray; length: integer; width: integer); external;
 procedure _p_wtln_o; external;
+procedure _p_new(var p: _p_charptr; size: int64); external;
+procedure _p_dispos(var p: _p_charptr; size: int64); external;
 
 procedure putln;
 
@@ -57,7 +65,6 @@ procedure puthex;
     j: integer;
 
   begin
-
     j := 0;
     repeat
       if i mod 16 > 9 then
@@ -215,3 +222,14 @@ procedure _p_wtln_o;
   begin
     putchar(chr(10));
   end;
+
+procedure _p_new;
+begin
+  p := malloc(size);
+end;
+
+procedure _p_dispos;
+begin
+  free(p);
+  p := loophole(_p_charptr, 1);
+end;
