@@ -3318,7 +3318,8 @@ procedure reloadloop;
       end;
   end {reloadloop} ;
 
-procedure callsupport(libroutine: libroutines {support routine to call} );
+procedure callsupport(libroutine: libroutines {support routine to call};
+                      killregs: boolean {only false for exit or errors});
 
  { Call the support library. }
 
@@ -3328,15 +3329,16 @@ procedure callsupport(libroutine: libroutines {support routine to call} );
   begin {callsupport}
     libkey := settemp(long, libcall_oprnd(libroutine));
     gen1(lastnode, buildinst(bl, false, false), libkey);
+    if killregs then
+      markscratchregs;
   end {callsupport} ;
 
 
 procedure calliosupport(libroutine: libroutines);
 
   begin
-    if filenamed then callsupport(libroutine)
-    else callsupport(succ(libroutine));
-    markscratchregs;
+    if filenamed then callsupport(libroutine, true)
+    else callsupport(succ(libroutine), true);
     firstreg := 0;
   end;
 
@@ -4952,22 +4954,22 @@ procedure sysroutinex;
   begin {sysroutinex}
     case standardids(pseudoinst.oprnds[1]) of
       pageid: calliosupport(libpage);
-      putid: callsupport(libput);
-      getid: callsupport(libget);
-      breakid: callsupport(libbreak);
-      seekid: callsupport(libseek);
-      closeid: callsupport(libclose);
+      putid: callsupport(libput, true);
+      getid: callsupport(libget, true);
+      breakid: callsupport(libbreak, true);
+      seekid: callsupport(libseek, true);
+      closeid: callsupport(libclose, true);
 {
       resetid: openx(libreset);
       rewriteid: openx(librewrite);
 }
-      packid: callsupport(libpack);
-      unpackid: callsupport(libunpack);
-      newid: callsupport(libnew);
-      disposeid: callsupport(libdispose);
-      renameid: callsupport(librename);
-      noioerrorid: callsupport(libnoioerror);
-      deleteid: callsupport(libdelete);
+      packid: callsupport(libpack, true);
+      unpackid: callsupport(libunpack, true);
+      newid: callsupport(libnew, true);
+      disposeid: callsupport(libdispose, true);
+      renameid: callsupport(librename, true);
+      noioerrorid: callsupport(libnoioerror, true);
+      deleteid: callsupport(libdelete, true);
       writeid, readid: removefileparam;
       writelnid:
         begin
@@ -4975,8 +4977,8 @@ procedure sysroutinex;
         calliosupport(libwriteln);
         end;
       readlnid: calliosupport(libreadln);
-      insertid: callsupport(libinsert);
-      deletestrid: callsupport(libdeletestr);
+      insertid: callsupport(libinsert, true);
+      deletestrid: callsupport(libdeletestr, true);
 {     pascal extended string ops
       valprocid:
       strid:
@@ -5121,7 +5123,7 @@ procedure putblock;
       settempreg(long, autod, sp);
       gen2(move, long, tempkey + 1, tempkey);
       tempkey := tempkey + 2;
-      callsupport(libcloseinrange);
+      callsupport(libcloseinrange, true);
       settempimmediate(word, 8);  { Clean up stack }
       settempareg(sp);
       gen2(adda, word, tempkey + 1, tempkey);
@@ -6169,7 +6171,7 @@ procedure pascalgotox;
       settempreg(long, autod, sp);
       gen2(move, long, tempkey + 1, tempkey);
       tempkey := tempkey + 2;
-      callsupport(libcloseinrange);
+      callsupport(libcloseinrange, true);
       settempimmediate(word, 8);  { Clean up stack }
       settempareg(sp);
       gen2(adda, word, tempkey + 1, tempkey);
@@ -6185,7 +6187,7 @@ procedure pascalgotox;
 {
         if (switchcounters[profiling] > 0) or (switchcounters[debugging] > 0)
            then
-          callsupport(libdebugger_goto);
+          callsupport(libdebugger_goto, true);
 }
       { This call is a profiler/debugger entry point for a non-local goto. }
 
@@ -6389,8 +6391,8 @@ procedure codeone;
         else callandpop(libreadstringi, 2);
       rdxstr: rdxstrx;
 }
-      rdbin: callsupport(libget);
-      wrbin: callsupport(libput);
+      rdbin: callsupport(libget, true);
+      wrbin: callsupport(libput, true);
       wrst: wrstx(true);
 {
       wrxstr: wrstx(false);

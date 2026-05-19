@@ -9,6 +9,8 @@
 
 *** current bugs
 
+   -- 64-bit arithmetic doesn't work, not suprisingly.
+
    -- sets with > 8 elements and < 17 elements are allocated 64 bits.  No 16 or 32
       bits probably because of copying allocation stuff from mc68000 mda. More curious
       than crucial.  But we really should be able to do length/align 1/1, 2/2, 4/4 and
