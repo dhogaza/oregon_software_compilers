@@ -49,8 +49,8 @@
 putln:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
-# Line: 36, Stmt: 1
-# Line: 37, Stmt: 2
+# Line: 44, Stmt: 1
+# Line: 45, Stmt: 2
 	mov	x0,10
 	bl	putchar
 .L2:
@@ -68,8 +68,8 @@ putstring:
 	add	x29,sp,32
 	str	x28,[x29,-8]
 	str	x1,[x29,-16]
-# Line: 42, Stmt: 1
-# Line: 43, Stmt: 2
+# Line: 50, Stmt: 1
+# Line: 51, Stmt: 2
 	str	x0,[x29,-24]
 	str	x2,[x29,-32]
 	mov	x28,x1
@@ -103,8 +103,8 @@ putstringln:
 	add	x29,sp,32
 	str	x28,[x29,-8]
 	str	x1,[x29,-16]
-# Line: 48, Stmt: 1
-# Line: 49, Stmt: 2
+# Line: 56, Stmt: 1
+# Line: 57, Stmt: 2
 	str	x0,[x29,-24]
 	str	x2,[x29,-32]
 	mov	x28,x1
@@ -138,8 +138,8 @@ puthex:
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
 	str	x28,[x29,-8]
-# Line: 59, Stmt: 1
-# Line: 61, Stmt: 2
+# Line: 67, Stmt: 1
+# Line: 68, Stmt: 2
 	mov	x28,xzr
 .L12:
 .L15:
@@ -183,8 +183,8 @@ puthexln:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,8]
 	add	x29,sp,8
-# Line: 80, Stmt: 1
-# Line: 81, Stmt: 2
+# Line: 87, Stmt: 1
+# Line: 88, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x15,[x29,-8]
 	mov	x0,x15
@@ -206,8 +206,8 @@ putint:
 	add	x29,sp,24
 	str	x28,[x29,-8]
 	str	x0,[x29,-16]
-# Line: 92, Stmt: 1
-# Line: 93, Stmt: 2
+# Line: 99, Stmt: 1
+# Line: 100, Stmt: 2
 	cmp	w0,wzr
 	b.ge	.L26
 .L27:
@@ -255,8 +255,8 @@ putintln:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,8]
 	add	x29,sp,8
-# Line: 115, Stmt: 1
-# Line: 116, Stmt: 2
+# Line: 122, Stmt: 1
+# Line: 123, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x15,[x29,-8]
 	mov	x0,x15
@@ -276,11 +276,11 @@ putbool:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-# Line: 122, Stmt: 1
-# Line: 123, Stmt: 2
+# Line: 129, Stmt: 1
+# Line: 130, Stmt: 2
 	cbz	w0,.L31
 .L32:
-	adrp	x15,.L32765+1
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+1
 	sub	x14,x29,16
 	ldrb	w16,[x15],1
@@ -297,7 +297,7 @@ putbool:
 	bl	putstring
 	b	.L33
 .L31:
-	adrp	x15,.L32765+6
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+6
 	sub	x14,x29,16
 	mov	x16,5
@@ -325,8 +325,8 @@ putboolln:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,8]
 	add	x29,sp,8
-# Line: 129, Stmt: 1
-# Line: 130, Stmt: 2
+# Line: 136, Stmt: 1
+# Line: 137, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x15,[x29,-8]
 	mov	x0,x15
@@ -347,8 +347,8 @@ putcharln:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,8]
 	add	x29,sp,8
-# Line: 136, Stmt: 1
-# Line: 137, Stmt: 2
+# Line: 143, Stmt: 1
+# Line: 144, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x15,[x29,-8]
 	mov	x0,x15
@@ -368,8 +368,8 @@ _p_caseerr:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-# Line: 144, Stmt: 1
-	adrp	x15,.L32765+12
+# Line: 151, Stmt: 1
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+12
 	sub	x14,x29,16
 	mov	x16,10
@@ -400,8 +400,8 @@ _p_wtb_o:
 	add	x29,sp,32
 	str	x28,[x29,-8]
 	str	x0,[x29,-16]
-# Line: 153, Stmt: 1
-# Line: 154, Stmt: 2
+# Line: 160, Stmt: 1
+# Line: 161, Stmt: 2
 	eor	w15,w0,1
 	mov	x14,5
 	add	w15,w14,w15
@@ -436,8 +436,8 @@ _p_wtc_o:
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
 	str	x28,[x29,-8]
-# Line: 163, Stmt: 1
-# Line: 164, Stmt: 2
+# Line: 170, Stmt: 1
+# Line: 171, Stmt: 2
 	str	x0,[x29,-16]
 	str	x1,[x29,-24]
 	mov	x28,2
@@ -471,8 +471,8 @@ _p_wti_o:
 	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
 	str	x0,[x29,-24]
-# Line: 175, Stmt: 1
-# Line: 176, Stmt: 2
+# Line: 182, Stmt: 1
+# Line: 183, Stmt: 2
 	mov	x28,xzr
 	str	x1,[x29,-32]
 	cmp	w0,wzr
@@ -541,8 +541,8 @@ _p_wts_o:
 	add	x29,sp,32
 	str	x28,[x29,-8]
 	str	x1,[x29,-16]
-# Line: 206, Stmt: 1
-# Line: 207, Stmt: 2
+# Line: 213, Stmt: 1
+# Line: 214, Stmt: 2
 	sub	w15,w2,w1
 	str	x0,[x29,-24]
 	str	x15,[x29,-32]
@@ -587,11 +587,55 @@ _p_wts_o:
 _p_wtln_o:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
-# Line: 215, Stmt: 1
+# Line: 222, Stmt: 1
 	mov	x0,10
 	bl	putchar
 .L60:
 	ldp	x30,x29,[sp],16
+	ret
+	.text
+	.align 2
+#
+#	_p_new
+#
+	.global _p_new
+_p_new:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
+# Line: 227, Stmt: 1
+# Line: 228, Stmt: 2
+	str	x0,[x29,-16]
+	mov	x0,x1
+	bl	malloc
+	ldr	x15,[x29,-16]
+	str	x0,[x15]
+.L61:
+	ldp	x30,x29,[sp,16]
+	add	sp,sp,32
+	ret
+	.text
+	.align 2
+#
+#	_p_dispos
+#
+	.global _p_dispos
+_p_dispos:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
+# Line: 232, Stmt: 1
+# Line: 233, Stmt: 2
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	ldr	x0,[x15]
+	bl	free
+	mov	x15,1
+	ldr	x14,[x29,-8]
+	str	x15,[x14]
+.L62:
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
 	ret
 	.bss
 	.align 3
@@ -610,16 +654,16 @@ main:
 	add	x29,sp,608
 # Line: 92, Stmt: 1
 # Line: 93, Stmt: 2
-	adrp	x15,.L32766+128
+	adrp	x15,.L32766
 	mov	w16,74
 	strb	w16,[x15,:lo12:.L32766+128]
-	adrp	x14,.L32766+32
-	adrp	x13,.L32765+24
+	adrp	x14,.L32766
+	adrp	x13,.L32765
 	add	x13,x13,:lo12:.L32765+24
 	add	x12,x14,:lo12:.L32766+32
 	ldp	x16,x17,[x13],16
 	stp	x16,x17,[x12],16
-	adrp	x13,.L32765+41
+	adrp	x13,.L32765
 	add	x13,x13,:lo12:.L32765+41
 	sub	x12,x29,16
 	mov	x16,13
@@ -632,8 +676,8 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32766+32
-	adrp	x14,.L32766+128
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	ldrb	w14,[x14,:lo12:.L32766+128]
 	add	x15,x15,:lo12:.L32766+32
 	asr	x16,x14,3
@@ -643,7 +687,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+55
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+55
 	sub	x14,x29,32
 	mov	x16,12
@@ -656,7 +700,7 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+32
+	adrp	x15,.L32766
 	mov	x14,4
 	add	x15,x15,:lo12:.L32766+32
 	asr	x16,x14,3
@@ -666,17 +710,17 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32766+129
+	adrp	x15,.L32766
 	mov	w16,94
 	strb	w16,[x15,:lo12:.L32766+129]
-	adrp	x14,.L32766+130
+	adrp	x14,.L32766
 	mov	w16,5
 	strb	w16,[x14,:lo12:.L32766+130]
-	adrp	x13,.L32766+131
+	adrp	x13,.L32766
 	mov	w16,189
 	strb	w16,[x13,:lo12:.L32766+131]
-	adrp	x12,.L32766+48
-	adrp	x11,.L32765+72
+	adrp	x12,.L32766
+	adrp	x11,.L32765
 	add	x11,x11,:lo12:.L32765+72
 	add	x10,x12,:lo12:.L32766+48
 	ldp	x16,x17,[x11],16
@@ -699,8 +743,8 @@ main:
 	add	w10,w10,1
 	b	.L32760
 .L32759:
-	adrp	x11,.L32766+72
-	adrp	x10,.L32765+104
+	adrp	x11,.L32766
+	adrp	x10,.L32765
 	add	x10,x10,:lo12:.L32765+104
 	add	x9,x11,:lo12:.L32766+72
 	ldp	x16,x17,[x10],16
@@ -731,7 +775,7 @@ main:
 	ldr	x17,[x7],16
 	and	x16,x16,x17
 	str	x16,[x6],16
-	adrp	x10,.L32765+129
+	adrp	x10,.L32765
 	add	x10,x10,:lo12:.L32765+129
 	sub	x9,x29,72
 	mov	x16,12
@@ -744,7 +788,7 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,89
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -754,7 +798,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+142
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+142
 	sub	x14,x29,88
 	mov	x16,13
@@ -767,7 +811,7 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,191
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -777,7 +821,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+156
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+156
 	sub	x14,x29,104
 	mov	x16,12
@@ -790,8 +834,8 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
-	adrp	x14,.L32766+131
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	ldrb	w14,[x14,:lo12:.L32766+131]
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -801,14 +845,14 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+168
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+168
 	sub	x14,x29,128
 	ldp	x16,x17,[x15],16
 	stp	x16,x17,[x14],16
 	ldr	x16,[x15],16
 	str	x16,[x14],16
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	add	x13,x15,:lo12:.L32766+48
 	sub	x12,x29,128
 	sub	x11,x29,152
@@ -821,14 +865,14 @@ main:
 	ldr	x17,[x12],16
 	orr	x16,x16,x17
 	str	x16,[x11],16
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	sub	x14,x29,152
 	add	x15,x15,:lo12:.L32766+48
 	ldp	x16,x17,[x14],16
 	stp	x16,x17,[x15],16
 	ldr	x16,[x14],16
 	str	x16,[x15],16
-	adrp	x15,.L32765+193
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+193
 	sub	x14,x29,168
 	mov	x16,12
@@ -841,7 +885,7 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,xzr
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -851,7 +895,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+206
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+206
 	sub	x14,x29,184
 	mov	x16,13
@@ -864,14 +908,14 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32765+224
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+224
 	sub	x14,x29,208
 	ldp	x16,x17,[x15],16
 	stp	x16,x17,[x14],16
 	ldr	x16,[x15],16
 	str	x16,[x14],16
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	add	x13,x15,:lo12:.L32766+48
 	sub	x12,x29,208
 	sub	x11,x29,232
@@ -893,7 +937,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+249
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+249
 	sub	x14,x29,248
 	mov	x16,12
@@ -906,8 +950,8 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
-	adrp	x14,.L32766+129
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	ldrb	w14,[x14,:lo12:.L32766+129]
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -917,7 +961,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+262
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+262
 	sub	x14,x29,264
 	mov	x16,12
@@ -930,8 +974,8 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
-	adrp	x14,.L32766+130
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	ldrb	w14,[x14,:lo12:.L32766+130]
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -941,7 +985,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+275
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+275
 	sub	x14,x29,280
 	mov	x16,12
@@ -954,7 +998,7 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,xzr
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -964,7 +1008,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+288
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+288
 	sub	x14,x29,296
 	mov	x16,13
@@ -977,7 +1021,7 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,191
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -987,7 +1031,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+302
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+302
 	sub	x14,x29,312
 	mov	x16,12
@@ -1000,7 +1044,7 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,91
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -1010,7 +1054,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+315
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+315
 	sub	x14,x29,328
 	mov	x16,13
@@ -1023,7 +1067,7 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,4
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -1033,7 +1077,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+329
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+329
 	sub	x14,x29,344
 	mov	x16,12
@@ -1046,7 +1090,7 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	mov	x14,5
 	add	x15,x15,:lo12:.L32766+48
 	asr	x16,x14,3
@@ -1056,7 +1100,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+342
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+342
 	sub	x14,x29,360
 	mov	x16,12
@@ -1069,8 +1113,8 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+72
-	adrp	x14,.L32766+48
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	add	x13,x14,:lo12:.L32766+48
 	add	x12,x15,:lo12:.L32766+72
 	sub	x11,x29,384
@@ -1092,7 +1136,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+355
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+355
 	sub	x14,x29,400
 	mov	x16,13
@@ -1105,8 +1149,8 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32766+72
-	adrp	x14,.L32766+48
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	add	x13,x14,:lo12:.L32766+48
 	add	x12,x15,:lo12:.L32766+72
 	sub	x11,x29,424
@@ -1128,7 +1172,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+369
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+369
 	sub	x14,x29,440
 	mov	x16,13
@@ -1141,8 +1185,8 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32766+72
-	adrp	x14,.L32766+48
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	add	x13,x14,:lo12:.L32766+48
 	add	x12,x15,:lo12:.L32766+72
 	sub	x11,x29,464
@@ -1164,7 +1208,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+383
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+383
 	sub	x14,x29,480
 	mov	x16,13
@@ -1177,8 +1221,8 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32766+72
-	adrp	x14,.L32766+48
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	add	x13,x14,:lo12:.L32766+48
 	add	x12,x15,:lo12:.L32766+72
 	sub	x11,x29,504
@@ -1200,7 +1244,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+397
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+397
 	sub	x14,x29,520
 	mov	x16,12
@@ -1213,8 +1257,8 @@ main:
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
-	adrp	x15,.L32766+72
-	adrp	x14,.L32766+48
+	adrp	x15,.L32766
+	adrp	x14,.L32766
 	add	x13,x14,:lo12:.L32766+48
 	add	x12,x15,:lo12:.L32766+72
 	sub	x11,x29,544
@@ -1236,7 +1280,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-	adrp	x15,.L32765+410
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+410
 	sub	x14,x29,560
 	mov	x16,13
@@ -1249,14 +1293,14 @@ main:
 	mov	x1,1
 	mov	x2,13
 	bl	putstring
-	adrp	x15,.L32765+72
+	adrp	x15,.L32765
 	add	x15,x15,:lo12:.L32765+72
 	sub	x14,x29,584
 	ldp	x16,x17,[x15],16
 	stp	x16,x17,[x14],16
 	ldr	x16,[x15],16
 	str	x16,[x14],16
-	adrp	x15,.L32766+131
+	adrp	x15,.L32766
 	ldrb	w13,[x15,:lo12:.L32766+131]
 	mov	x14,1
 	sub	x12,x29,584
@@ -1266,7 +1310,7 @@ main:
 	ldrb	w17,[x12, x16]
 	orr	x17,x17,x14
 	strb	w17,[x12, x16]
-	adrp	x15,.L32766+48
+	adrp	x15,.L32766
 	add	x13,x15,:lo12:.L32766+48
 	sub	x12,x29,584
 	sub	x11,x29,608
@@ -1288,7 +1332,7 @@ main:
 	ands	x16,x16,1
 	cset	w0,ne
 	bl	putboolln
-.L61:
+.L63:
 	add	x16,sp,104
 	ldp	x30,x29,[x16,504]
 	add	sp,sp,624
