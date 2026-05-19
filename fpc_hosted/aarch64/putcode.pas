@@ -368,7 +368,10 @@ procedure copysfile;
       writeln(macfile, '#');
       writeln(macfile, '#  Constants');
       writeln(macfile, '#');
-      writeln(macfile, chr(9), '.section', chr(9), '.rodata');
+      if unixtarget = linux then
+        writeln(macfile, chr(9), '.section', chr(9), '.rodata')
+     else
+        writeln(macfile, chr(9), '.section', chr(9), '__TEXT,__const');
       writeln(macfile, chr(9), '.align 3');
       writeln(macfile, '.L', rodatalabel:1, ':'); { the label associated with constants }
       write_constants(i);
@@ -434,8 +437,16 @@ procedure writeproclabel(procn: proctableindex);
       }
       if blockref = 0 then
         begin
-        writeln(macfile, chr(9), '.global main');
-        writeln(macfile, 'main:');
+        if unixtarget = linux then
+          begin
+          writeln(macfile, chr(9), '.global main');
+          writeln(macfile, 'main:');
+          end
+        else {assumptions, assumpsions ...}
+          begin
+          writeln(macfile, chr(9), '.global _main');
+          writeln(macfile, '_main:');
+          end;
         end
       else
         begin write(macfile, chr(9), '.global ');
@@ -530,7 +541,7 @@ begin
     end;
     extend_reg:
     begin
-      write_reg(o.reg, sf);
+      write_reg(o.reg, o.reg_extend = xtx);
       write(macfile, ', ', signed_prefix[o.extend_signed], reg_extends_text[o.reg_extend],
             ' ', o.extend_shift);
     end;
@@ -612,37 +623,52 @@ begin
         writeprocname(o.proclabelno)
       end;
     libcall: writelibname(o.libroutine);
-    labeltarget:
+    datalabel:
       begin
-        if o.lowbits then
-          begin
+      if o.lowbits then
+        begin
+        if unixtarget = linux then
           write(macfile, ':lo12:');
-          write(macfile, '.L', o.labelno);
-          if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset:1);
-          end
+        write(macfile, '.L', o.labelno);
+        if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset:1);
+        if unixtarget = macosx then
+          write(macfile, '@PAGEOFF');
+        end
       else
+        begin
         write(macfile, '.L', o.labelno);
         if (o.labeloffset and $FFFFF000) <> 0 then
           write(macfile, '+',o.labeloffset and $FFFFF000:1);
+        if unixtarget = macosx then
+          write(macfile, '@PAGE');
+        end
       end;
+    labeltarget:
+      write(macfile, '.L', o.labelno);
     label_offset:
       begin
       write(macfile, '[');
       write_reg(o.reg, true);
       write(macfile, ',');
-      if o.lowbits then write(macfile, ':lo12:')
-      else
+      if not o.lowbits then
         begin
         write('label_offset operand without lowbits set');
         compilerabort(inconsistent);;
         end;
+      if unixtarget = linux then write(macfile, ':lo12:');
       write(macfile, '.L', o.labelno);
       if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset and $FFF:1);
+      if unixtarget = macosx then write(macfile, '@PAGEOFF');
       write(macfile, ']');
       end;
     tworeg:
       begin
       write('operand mode tworeg found in instruction node');
+      compilerabort(inconsistent);
+      end;
+    otherwise
+      begin
+      write('lllegal operand mode instruction node (', o.mode, ')');
       compilerabort(inconsistent);
       end;
   end;

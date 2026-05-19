@@ -696,8 +696,22 @@ function literal_oprnd(lit: integer): oprndtype;
     literal_oprnd := o;
   end;
 
-function labeltarget_oprnd(labelno: integer; lowbits: boolean;
+function datalabel_oprnd(labelno: integer; lowbits: boolean;
                            labeloffset: integer): oprndtype;
+
+  var
+    o:oprndtype;
+  begin
+    o.reg := noreg;
+    o.reg2 := noreg;
+    o.mode := datalabel;
+    o.labelno := labelno;
+    o.lowbits := lowbits;
+    o.labeloffset := labeloffset;
+    datalabel_oprnd := o;
+  end;
+
+function labeltarget_oprnd(labelno: integer): oprndtype;
 
   var
     o:oprndtype;
@@ -706,8 +720,8 @@ function labeltarget_oprnd(labelno: integer; lowbits: boolean;
     o.reg2 := noreg;
     o.mode := labeltarget;
     o.labelno := labelno;
-    o.lowbits := lowbits;
-    o.labeloffset := labeloffset;
+    o.lowbits := false;
+    o.labeloffset := 0;
     labeltarget_oprnd := o;
   end;
 
@@ -1137,7 +1151,7 @@ procedure genbr(var after: nodeptr; inst: insts; labelno: integer);
 
   begin {genbr}
     gen1(after, buildinst(inst, false, false),
-         settemp(long, labeltarget_oprnd(labelno, false, 0)));
+         settemp(long, labeltarget_oprnd(labelno)));
     context[contextsp].lastbranch := lastnode;
   end {genbr};
 
@@ -1146,7 +1160,7 @@ procedure genbcond(var after: nodeptr; c: conds; labelno: integer);
   begin {genbcond}
     gen2(after, buildinst(bcond, false, false),
          settemp(0, cond_oprnd(c)),
-         settemp(long, labeltarget_oprnd(labelno, false, 0)));
+         settemp(long, labeltarget_oprnd(labelno)));
     context[contextsp].lastbranch := lastnode;
   end {genbcond};
 
@@ -2988,14 +3002,14 @@ procedure genmoveaddress(src, dst: keyindex);
       compilerabort(inconsistent);
       end;
 
-    with keytable[src].oprnd do
+    with keytable[src],oprnd do
       case mode of
       label_offset:
         begin
-        labelkey := settemp(long, labeltarget_oprnd(labelno, true, labeloffset)); 
+        labelkey := settemp(long, datalabel_oprnd(labelno, true, labeloffset)); 
         gen3(lastnode, buildinst(add, true, false), dst, settemp(long, reg_oprnd(reg)), labelkey);
         end;
-      labeltarget:
+      datalabel:
         begin
         gen2(lastnode, buildinst(adrp, true, false), dst, src);
         keytable[src].oprnd.lowbits := true;
@@ -3016,7 +3030,7 @@ procedure genmoveaddress(src, dst: keyindex);
         begin
         gen3(lastnode, buildinst(add, true, false), dst,
              settemp(long, reg_oprnd(reg)),
-             settemp(long, extend_reg_oprnd(reg2, extend, shift, signed)));
+             settemp(len, extend_reg_oprnd(reg2, extend, shift, signed)));
         end;
       otherwise
         begin
@@ -3290,8 +3304,9 @@ procedure reloadloop;
                 begin
                 gen2(lastnode,
                       buildinst(adrp, true, false), r,
-                      settemp(long, labeltarget_oprnd(keytable[stackcopy].oprnd.labelno, false,
-                                                      keytable[stackcopy].oprnd.labeloffset)));
+                      settemp(long,
+                              datalabel_oprnd(keytable[stackcopy].oprnd.labelno, false,
+                                                    keytable[stackcopy].oprnd.labeloffset)));
                 reloadfirst := lastnode;
                 end
               else
@@ -4453,7 +4468,7 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
         compilerabort(inconsistent);
         end
       else if left = 1 then
-        setvalue(labeltarget_oprnd(bsslabel, false, 0))
+        setvalue(datalabel_oprnd(bsslabel, false, 0))
       else if left = level then
         setvalue(index_oprnd(abstract_offset, fp, 0))
       else if left = level - 1 then
@@ -4477,7 +4492,7 @@ procedure dostructx;
     labelkey, regkey: keyindex;
 
 begin {dostructx}
-  setvalue(labeltarget_oprnd(rodatalabel, false, pseudoinst.oprnds[1]));
+  setvalue(datalabel_oprnd(rodatalabel, false, pseudoinst.oprnds[1]));
 end {dostructx} ;
 
 { set operations }
@@ -4551,7 +4566,7 @@ procedure dosetx;
       tempreg := getreg;
       tempregkey := settemp(len, reg_oprnd(tempreg));
       labelkey := settemp(long,
-                          labeltarget_oprnd(keytable[left].oprnd.labelno, false,
+                          datalabel_oprnd(keytable[left].oprnd.labelno, false,
                           keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
       gen2(lastnode, buildinst(adrp, true, false), tempregkey, labelkey);
       structkey := settemp(len,
@@ -5463,7 +5478,7 @@ var
     else
       begin
       gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), ip0key);
-      labelkey := settemp(long, labeltarget_oprnd(lastlabel, false, 0));
+      labelkey := settemp(long, labeltarget_oprnd(lastlabel));
       definelastlabel;
       gen2(lastnode, ldrinst(byte, false), ip1key, srcregkey);
       gen2(lastnode, strinst(byte), ip1key, dstregkey);
@@ -5521,7 +5536,7 @@ procedure indxx;
 
   begin {indxx}
     if (pseudoinst.oprnds[2] = 0) and
-        (keytable[left].oprnd.mode <> labeltarget) then
+        (keytable[left].oprnd.mode <> datalabel) then
       begin
       setallfields(left);
       dereference(left);
@@ -5534,7 +5549,7 @@ procedure indxx;
   the range of the index, etc etc.  Good enough for preliminary testing.
 }
       case keytable[left].oprnd.mode of
-        labeltarget:
+        datalabel:
           {We would like to index the var with a label offset but one
            has to scale that by the length of the load or store operation.
            Need to study clang output.
@@ -5542,7 +5557,7 @@ procedure indxx;
           begin
           r := getreg;
           newkey := settemp(long, reg_oprnd(getreg));
-          labelkey := settemp(long,labeltarget_oprnd(keytable[left].oprnd.labelno,
+          labelkey := settemp(long,datalabel_oprnd(keytable[left].oprnd.labelno,
                               false, keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
           keytable[key].regenoprnd := keytable[labelkey].oprnd;
           gen2(lastnode, buildinst(adrp, true, false), newkey, labelkey);
@@ -5646,7 +5661,7 @@ procedure aindxx;
 
     setvalue(reg_offset_oprnd(keytable[tempkey].oprnd.reg, keytable[right].oprnd.reg, bits(len),
                           extend, keytable[right].signed));                         
-    keytable[key].len := long; {The front end changed the length because of
+    keytable[key].len := keytable[right].len; {The front end changed the length because of
                                 index scaling}
   end {aindxx} ;
 
@@ -5931,7 +5946,7 @@ begin {casebranchx}
   tablelabel := newlabel;
   addressreg := getreg;
   addresskey := settemp(long, reg_oprnd(addressreg));
-  t1 := settemp(long, labeltarget_oprnd(tablelabel, false, 0));
+  t1 := settemp(long, datalabel_oprnd(tablelabel, false, 0));
   gen2(lastnode, buildinst(adrp, true, false), addresskey, t1);
   keytable[t1].oprnd.lowbits := true;
   gen3(lastnode, buildinst(add, true, false), addresskey, addresskey, t1);
@@ -5940,7 +5955,7 @@ begin {casebranchx}
   gen2(lastnode, buildinst(ldr, false, false), scratch,
        settemp(word, reg_offset_oprnd(addressreg, scratchreg, 2, xtw, false)));
   gen2(lastnode, buildinst(adr, true, false), addresskey,
-       settemp(long, labeltarget_oprnd(baselabel, false, 0)));
+       settemp(long, datalabel_oprnd(baselabel, false, 0)));
   gen3(lastnode, buildinst(add, true, false), scratch, addresskey,
        settemp(long, extend_reg_oprnd(scratchreg, xtw, 2, true)));
   gen1(lastnode, buildinst(br, true, false), scratch);
@@ -6026,7 +6041,7 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
 
   begin {jumpcond}
     address(right);
-    labeltarget := settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1], false, 0));
+    labeltarget := settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1]));
     if keytable[right].oprnd.mode = cond then
       c := keytable[right].oprnd.condition
     else
