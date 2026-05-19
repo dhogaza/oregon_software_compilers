@@ -808,7 +808,7 @@ WriteLn('Sysname:  ', trim(U.Sysname));  // e.g., Linux
       if trim(u.sysname) = 'Linux' then
         temp_unixtarget := linux
       else if trim(u.sysname) = 'Darwin' then
-        temp_unixtarget := macosx
+        temp_unixtarget := darwin
       else temp_unixtarget := defunixtarget;
 end;
 

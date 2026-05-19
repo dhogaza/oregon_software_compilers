@@ -631,7 +631,7 @@ begin
           write(macfile, ':lo12:');
         write(macfile, '.L', o.labelno);
         if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset:1);
-        if unixtarget = macosx then
+        if unixtarget = darwin then
           write(macfile, '@PAGEOFF');
         end
       else
@@ -639,7 +639,7 @@ begin
         write(macfile, '.L', o.labelno);
         if (o.labeloffset and $FFFFF000) <> 0 then
           write(macfile, '+',o.labeloffset and $FFFFF000:1);
-        if unixtarget = macosx then
+        if unixtarget = darwin then
           write(macfile, '@PAGE');
         end
       end;
@@ -658,7 +658,7 @@ begin
       if unixtarget = linux then write(macfile, ':lo12:');
       write(macfile, '.L', o.labelno);
       if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset and $FFF:1);
-      if unixtarget = macosx then write(macfile, '@PAGEOFF');
+      if unixtarget = darwin then write(macfile, '@PAGEOFF');
       write(macfile, ']');
       end;
     tworeg:
