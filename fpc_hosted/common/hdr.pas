@@ -202,9 +202,9 @@ type
   switcheverplusarray = packed array [switch] of boolean;
 
   standardids = ( { Pascal junk }
-                                 integerid, shortintid, realid, doubleid,
-                                 charid, booleanid, trueid, falseid, textid,
-                                 inputid, outputid, writeid, writelnid,
+                                 integerid, int64id, uint64id, shortintid, realid,
+                                 doubleid, charid, booleanid, trueid, falseid,
+                                 textid, inputid, outputid, writeid, writelnid,
                                  readid, readlnid, putid, getid, seekid,
                                  resetid, rewriteid, closeid, breakid, newid,
                                  disposeid, packid, unpackid, pageid, timeid,

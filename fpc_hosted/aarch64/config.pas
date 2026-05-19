@@ -115,6 +115,7 @@ const
   defaulttargetrealsize = singlesize; {default real size is single precision}
   defaulttargetintsize = 4; {target integer size in HOST addressing units}
   shorttargetintsize = 4; {16 bit integer size in TARGET addressing units}
+  longtargetintsize = 8; {64 bit integer size in TARGET addressing units}
   defaultptrsize = 8; {size of a pointer in addressing units}
   farptrsize = 8; {no difference for the 68k}
   longptrsize = defaultptrsize; {only different on the iapx86}
@@ -332,13 +333,14 @@ const
   setvaluebytes = 31; {maximum set size (bytes), for set values}
   setalign = 8; {alignment requirement for a set}
   intalign = 4; {alignment for an integer}
+  longintalign = 8; {alignment for int64/uint64}
   shortintalign = 2; {alignment for a short integer}
 
   charsize = unitsize; {size of a character}
   charalign = unitsize; {alignment for a character}
 
-  longintsize = 4; {size of largest integer}
-  shortintsize = 2; {size of a medium size integer}
+  longintsize = 8; {size of largest integer}
+  shortintsize = 4; {size of a medium size integer}
 
   scalarsize = unitsize; {size of a small scalar}
   scalaralign = unitsize; {alignment for small scalars}

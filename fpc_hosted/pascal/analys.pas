@@ -3519,6 +3519,20 @@ procedure initanalys;
         end;
       enterstandardid(integerid, typename, targetintsize, intindex);
 
+      {DRB no uint64 for the moment or maybe ever}
+      if targetmachine = aarch64 then
+        begin
+        {define 'int64'}
+        enterform(ints, f, fptr);
+        with fptr^ do
+          begin
+          intindex := f;
+          size := longtargetintsize;
+          align := longintalign;
+          end;
+        enterstandardid(int64id, typename, targetintsize, intindex);
+        end;
+
       {define 'shortint' subrange}
       enterform(subranges, f, fptr);
       shortintindex := f;

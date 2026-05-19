@@ -3542,6 +3542,9 @@ procedure initscanner;
       enterstandardid('pos       ', 3, posid);
       enterstandardid('deletestr ', 9, deletestrid);
 
+      if targetmachine = aarch64 then
+        enterstandardid('int64     ', 5, int64id);
+
       if targetmachine = mc68000 then
         begin
         enterstandardid('facos     ', 5, facosid);
