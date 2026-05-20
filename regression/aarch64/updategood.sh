@@ -1,9 +1,5 @@
 #!/bin/bash
-os=`uname`
-os=${os,,}
-src="$HOME/oregon_software_compilers/regression"
-os=`uname`
-os=${os,,}
+. ./env.sh
 pushd $os >/dev/null
 for f in $src/*.pas; do
     echo "--- updating $(basename $f) good files ---"

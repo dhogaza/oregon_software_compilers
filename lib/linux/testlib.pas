@@ -2,10 +2,10 @@ type
   _p_charptr = ^char; 
 
 {glibc}
-procedure exit(code: integer); external;
-procedure putchar(ch: char); external;
-function malloc(size: int64): _p_charptr; external;
-procedure free(p: _p_charptr); external;
+procedure exit(code: integer); nonpascal;
+procedure putchar(ch: char); nonpascal;
+function malloc(size: int64): _p_charptr; nonpascal;
+procedure free(p: _p_charptr); nonpascal;
 
 
 type

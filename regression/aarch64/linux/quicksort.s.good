@@ -116,13 +116,13 @@ puthex:
 	cmp	w15,9
 	b.ls	.L16
 .L17:
-	add	x14,x29,x28, sxtw 0
+	add	x14,x29,w28, sxtw 0
 	sub	w13,w15,10
 	add	w13,w13,65
 	strb	w13,[x14,16]
 	b	.L18
 .L16:
-	add	x14,x29,x28, sxtw 0
+	add	x14,x29,w28, sxtw 0
 	add	w13,w15,48
 	strb	w13,[x14,16]
 .L18:
@@ -132,7 +132,7 @@ puthex:
 .L13:
 .L14:
 	sub	w28,w28,1
-	add	x15,x29,x28, sxtw 0
+	add	x15,x29,w28, sxtw 0
 	ldrb	w0,[x15,16]
 	bl	putchar
 	cbnz	w28,.L14
@@ -190,7 +190,7 @@ putint:
 	mov	x28,xzr
 .L22:
 .L25:
-	add	x15,x29,x28, sxtw 0
+	add	x15,x29,w28, sxtw 0
 	ldr	x14,[x29,-16]
 	mov	x13,10
 	sdiv	w11,w14,w13
@@ -204,7 +204,7 @@ putint:
 .L23:
 .L24:
 	sub	w28,w28,1
-	add	x15,x29,x28, sxtw 0
+	add	x15,x29,w28, sxtw 0
 	ldrb	w0,[x15,16]
 	bl	putchar
 	cbnz	w28,.L24
@@ -459,7 +459,7 @@ _p_wti_o:
 	mov	x27,xzr
 .L44:
 .L47:
-	add	x15,x29,x27, sxtw 0
+	add	x15,x29,w27, sxtw 0
 	ldr	x14,[x29,-24]
 	mov	x13,10
 	sdiv	w11,w14,w13
@@ -488,7 +488,7 @@ _p_wti_o:
 .L45:
 .L46:
 	sub	w27,w27,1
-	add	x15,x29,x27, sxtw 0
+	add	x15,x29,w27, sxtw 0
 	ldrb	w0,[x15,16]
 	bl	putchar
 	cbnz	w27,.L46
@@ -534,7 +534,7 @@ _p_wts_o:
 	ldr	x14,[x29,-16]
 	cmp	w28,w14
 	b.gt	.L58
-	add	x13,x15,x28, sxtw 0
+	add	x13,x15,w28, sxtw 0
 	ldrb	w0,[x13,-1]
 	bl	putchar
 	ldr	x14,[x29,-16]
@@ -620,7 +620,7 @@ _p_dispos:
 # Line: 23, Stmt: 2
 	mov	x28,1
 .L65:
-	add	x15,x0,x28, sxtw 2
+	add	x15,x0,w28, sxtw 2
 	movz	x13,34464
 	movk	x13,1,lsl 16
 	sub	w14,w13,w28
@@ -674,7 +674,7 @@ _p_dispos:
 # Line: 63, Stmt: 2
 	ldr	x15,[x28,-8]
 	ldr	x15,[x15,16]
-	add	x15,x15,x0, sxtw 2
+	add	x15,x15,w0, sxtw 2
 	ldrsw	x27,[x15,-4]
 	add	w26,w0,1
 	mov	x25,x1
@@ -695,7 +695,7 @@ _p_dispos:
 .L70:
 	cmp	w26,w1
 	b.gt	.L74
-	add	x13,x14,x26, sxtw 2
+	add	x13,x14,w26, sxtw 2
 	ldrsw	x13,[x13,-4]
 	cmp	w13,w27
 	b.ge	.L74
@@ -704,7 +704,7 @@ _p_dispos:
 	b	.L70
 .L74:
 .L69:
-	add	x13,x15,x25, sxtw 2
+	add	x13,x15,w25, sxtw 2
 	cmp	w25,w0
 	b.le	.L77
 	ldrsw	x12,[x13,-4]
@@ -717,7 +717,7 @@ _p_dispos:
 	cmp	w26,w25
 	b.ge	.L80
 .L81:
-	add	x12,x15,x26, sxtw 2
+	add	x12,x15,w26, sxtw 2
 	sub	x0,x12,4
 	sub	x1,x13,4
 	bl	.P27  // swap
@@ -728,9 +728,9 @@ _p_dispos:
 	ldr	x15,[x15,16]
 	str	x15,[x29,-32]
 	ldr	x0,[x29,-40]
-	add	x14,x15,x0, sxtw 2
+	add	x14,x15,w0, sxtw 2
 	sub	x0,x14,4
-	add	x15,x15,x25, sxtw 2
+	add	x15,x15,w25, sxtw 2
 	sub	x1,x15,4
 	bl	.P27  // swap
 	str	w25,[x29,16]
@@ -860,8 +860,8 @@ main:
 	ldrsw	x13,[x14,:lo12:.L32766+32]
 	adrp	x12,.L32766
 	add	x12,x12,:lo12:.L32766
-	add	x11,x12,x13, sxtw 2
-	add	x12,x12,x13, sxtw 2
+	add	x11,x12,w13, sxtw 2
+	add	x12,x12,w13, sxtw 2
 	ldrsw	x11,[x11,36]
 	ldrsw	x12,[x12,32]
 	cmp	w11,w12

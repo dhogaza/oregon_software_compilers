@@ -114,13 +114,13 @@ puthex:
 	cmp	w15,9
 	b.ls	.L16
 .L17:
-	add	x14,x29,x28, sxtw 0
+	add	x14,x29,w28, sxtw 0
 	sub	w13,w15,10
 	add	w13,w13,65
 	strb	w13,[x14,16]
 	b	.L18
 .L16:
-	add	x14,x29,x28, sxtw 0
+	add	x14,x29,w28, sxtw 0
 	add	w13,w15,48
 	strb	w13,[x14,16]
 .L18:
@@ -130,7 +130,7 @@ puthex:
 .L13:
 .L14:
 	sub	w28,w28,1
-	add	x15,x29,x28, sxtw 0
+	add	x15,x29,w28, sxtw 0
 	ldrb	w0,[x15,16]
 	bl	putchar
 	cbnz	w28,.L14
@@ -188,7 +188,7 @@ putint:
 	mov	x28,xzr
 .L22:
 .L25:
-	add	x15,x29,x28, sxtw 0
+	add	x15,x29,w28, sxtw 0
 	ldr	x14,[x29,-16]
 	mov	x13,10
 	sdiv	w11,w14,w13
@@ -202,7 +202,7 @@ putint:
 .L23:
 .L24:
 	sub	w28,w28,1
-	add	x15,x29,x28, sxtw 0
+	add	x15,x29,w28, sxtw 0
 	ldrb	w0,[x15,16]
 	bl	putchar
 	cbnz	w28,.L24
@@ -457,7 +457,7 @@ _p_wti_o:
 	mov	x27,xzr
 .L44:
 .L47:
-	add	x15,x29,x27, sxtw 0
+	add	x15,x29,w27, sxtw 0
 	ldr	x14,[x29,-24]
 	mov	x13,10
 	sdiv	w11,w14,w13
@@ -486,7 +486,7 @@ _p_wti_o:
 .L45:
 .L46:
 	sub	w27,w27,1
-	add	x15,x29,x27, sxtw 0
+	add	x15,x29,w27, sxtw 0
 	ldrb	w0,[x15,16]
 	bl	putchar
 	cbnz	w27,.L46
@@ -532,7 +532,7 @@ _p_wts_o:
 	ldr	x14,[x29,-16]
 	cmp	w28,w14
 	b.gt	.L58
-	add	x13,x15,x28, sxtw 0
+	add	x13,x15,w28, sxtw 0
 	ldrb	w0,[x13,-1]
 	bl	putchar
 	ldr	x14,[x29,-16]
@@ -625,8 +625,8 @@ _p_dispos:
 	mul	w14,w28,w13
 	mov	x27,1
 .L67:
-	add	x13,x0,x15, sxtw 0
-	add	x13,x13,x27, sxtw 2
+	add	x13,x0,w15, sxtw 0
+	add	x13,x13,w27, sxtw 2
 	add	w12,w14,w27
 	movz	x17,14464
 	movk	x17,1,lsl 16
@@ -674,8 +674,8 @@ _p_dispos:
 	str	x14,[x29,-56]
 	mov	x26,1
 .L74:
-	add	x13,x0,x15, sxtw 0
-	add	x13,x13,x26, sxtw 2
+	add	x13,x0,w15, sxtw 0
+	add	x13,x13,w26, sxtw 2
 	add	w12,w14,w26
 	movz	x17,14464
 	movk	x17,1,lsl 16

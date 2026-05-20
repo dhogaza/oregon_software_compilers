@@ -109,7 +109,7 @@
 # Line: 32, Stmt: 2
 	mov	x28,xzr
 .L6:
-	add	x15,x29,x28, uxtb 0
+	add	x15,x29,w28, uxtb 0
 	lsr	w16,w0,w28
 	ands	w16,w16,1
 	cset	w14,ne
@@ -137,7 +137,7 @@
 # Line: 40, Stmt: 2
 	mov	x28,xzr
 .L10:
-	add	x15,x29,x28, uxtb 0
+	add	x15,x29,w28, uxtb 0
 	lsr	x16,x0,x28
 	ands	x16,x16,1
 	cset	w14,ne
