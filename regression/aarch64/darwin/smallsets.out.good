@@ -1,0 +1,7 @@
+s1:[one, two, five, func(four)] true true false true true false false false 
+s2:[eight, two..five] false true true true true false false true 
+s1 + s2 true true true true true false false true 
+s1 * s2 false true false true true false false false 
+s1 - s2 true false false false false false false false 
+sa1:[b, e, k] false true false false true false false false false false true 
+sa2:[c..j] false false true true true true true true true true false 
