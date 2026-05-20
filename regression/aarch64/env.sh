@@ -1,6 +1,6 @@
 #!/bin/bash
 os=`uname`
-os=${os,,}
+os="$(echo $os | tr '[A-Z]' '[a-z]')"
 arch=`uname -m`
 if [[ "$arch" == "arm64" ]]; then
   arch="aarch64"
@@ -10,7 +10,7 @@ if [[ "$arch" != "aarch64" ]]; then
   exit
 fi
 src="$HOME/oregon_software_compilers/regression/src"
-lib="$HOME/oregon_software_compilers/lib/$os"
+lib="$HOME/oregon_software_compilers/lib"
 pasdir="$HOME/oregon_software_compilers/fpc_hosted/aarch64"
 if [ ! -d "$os" ]; then
   mkdir $os
