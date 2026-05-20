@@ -753,16 +753,8 @@ begin {write_node}
   proclabelnode: writeproclabel(p^.proclabel);
   labelnode: writeln(macfile, '.L', p^.labelno, ':');
   labeldeltanode:
-    if unixtarget = linux then
-      writeln(macfile, chr(9), '.long', chr(9), '.L', p^.targetlabel,
-                       '-.L', p^.tablebase)
-    else
-      begin
-      writeln(macfile, chr(9), '.word .L', lastlabel);
-      writeln(macfile, chr(9), '.set .L', lastlabel, ', .L', p^.targetlabel,
-                       '-.L', p^.tablebase);
-      lastlabel := lastlabel - 1;
-      end;
+    writeln(macfile, chr(9), '.long', chr(9), '.L', p^.targetlabel,
+                     '-.L', p^.tablebase);
   commentnode: writeln(macfile, '# ', p^.comment);
   otherwise writeln('bad node');
   end;
