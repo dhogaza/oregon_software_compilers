@@ -76,6 +76,10 @@ const
   defunixtarget = nohost;
   oldproctable = true; {we are using old-style procedure table}
   language = pascal;
+
+  nullterminatedstrings = false; {forces null char at the end of string types, and
+                                  allows conversion to pointer to first char to pass
+                                  to C code, generally for C library calls}
   newdebugger = false;
   register_return = false;
   newscaninterface = false; {we are using old-style string table and tokens}
@@ -84,6 +88,7 @@ const
 
   useglobalcontext = true; {let travrs use the global context for things
                             like "doint"}
+
 
 { Machine dependent parameters
   The machine dependent parameters here apply to more than one pass.

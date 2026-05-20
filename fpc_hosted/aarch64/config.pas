@@ -75,6 +75,11 @@ const
   defunixtarget = linux;
   oldproctable = true; {we are using old-style procedure table}
   language = pascal;
+
+  nullterminatedstrings = true; {forces null char at the end of string types, and
+                                 allows conversion to pointer to first char to pass
+                                 to C code, generally for C library calls}
+
   newdebugger = false;
   register_return = true;
   newscaninterface = false; {we are using old-style string table and tokens}
