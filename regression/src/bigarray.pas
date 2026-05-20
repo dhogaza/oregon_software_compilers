@@ -1,7 +1,5 @@
 program p;
 
-%include 'testlib'
-
 const max=19999;
 
 type bigarray = array [1..max, 1..max] of integer;
@@ -29,9 +27,9 @@ begin
       if a[i,j] <> i * (max + 1) + j then
         begin
         fails := fails + 1;
-        putint(i); putchar(' '); putint(j); putchar(' '); putintln(a[i,j]);
+        writeln(i:1, ' ', j:1, ' ', a[i,j]:1);
         end;
-  putstring('fails: '); putintln(fails);
+  writeln('fails: ', fails:1);
 end;
 
 begin

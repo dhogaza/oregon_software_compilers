@@ -1,5 +1,3 @@
-%include 'testlib'
-
 label 1, 2;
 var i: integer;
 
@@ -23,22 +21,22 @@ procedure p;
 
 begin
   i := 1234;
-  putstringln('before global label 1');
-  putintln(i);
+  writeln('before global label 1');
+  writeln(i:1);
   p;
   goto 1;
-  putstringln('error');
+  writeln('error');
   1:
-  putstringln('after global label 1');
-  putintln(i);
+  writeln('after global label 1');
+  writeln(i:1);
 
   i := 4321;
-  putstringln('before global label 2');
-  putintln(i);
+  writeln('before global label 2');
+  writeln(i:1);
   p1;
   goto 2;
-  putstringln('error');
+  writeln('error');
   2:
-  putstringln('after global label 2');
-  putintln(i);
+  writeln('after global label 2');
+  writeln(i:1);
 end.

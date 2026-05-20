@@ -1,5 +1,3 @@
-%include 'testlib'
-
 var a: integer;
 
 procedure bar;
@@ -11,11 +9,11 @@ begin
   j := i + 4095;
   k := a + 4095;
   l := k + 4096;
-  putstring('i: '); putintln(i);
-  putstring('j: '); putintln(j);
-  putstring('k: '); putintln(k);
-  putstring('l: '); putintln(l);
-  putstring('a: '); putintln(a);
+  writeln('i: ', i:1);
+  writeln('j: ', j:1);
+  writeln('k: ', k:1);
+  writeln('l: ', l:1);
+  writeln('a: ', a:1);
 end;
 
 
@@ -27,11 +25,11 @@ var i,j,k,l: integer;
   procedure foo2;
 
   begin
-    putstring('i: '); putintln(i);
-    putstring('j: '); putintln(j);
-    putstring('k: '); putintln(k);
-    putstring('l: '); putintln(l);
-    putstring('a: '); putintln(a);
+    writeln('i: ', i:1);
+    writeln('j: ', j:1);
+    writeln('k: ', k:1);
+    writeln('l: ', l:1);
+    writeln('a: ', a:1);
   end;
 
 begin

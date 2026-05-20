@@ -1,5 +1,3 @@
-%include 'testlib'
-
 var i: integer;
 
 procedure outer;
@@ -26,24 +24,24 @@ procedure p;
 
 begin
   i := 1234;
-  putstringln('before nested label 1');
-  putintln(i);
+  writeln('before nested label 1');
+  writeln(i:1);
   p;
   goto 1;
-  putstringln('error');
+  writeln('error');
   1:
-  putstringln('after nested label 1');
-  putintln(i);
+  writeln('after nested label 1');
+  writeln(i:1);
 
   i := 4321;
-  putstringln('before nested label 2');
-  putintln(i);
+  writeln('before nested label 2');
+  writeln(i:1);
   p1;
   goto 2;
-  putstringln('error');
+  writeln('error');
   2:
-  putstringln('after nested label 2');
-  putintln(i);
+  writeln('after nested label 2');
+  writeln(i:1);
 end;
 
 begin
