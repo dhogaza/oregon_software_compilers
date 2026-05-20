@@ -9,8 +9,6 @@
 
 *** current bugs
 
-   -- nomode operand due to changes for darwin as yet undetermined, gulp
-
    -- 64-bit arithmetic doesn't work, not suprisingly.
 
    -- sets with > 8 elements and < 17 elements are allocated 64 bits.  No 16 or 32
