@@ -649,38 +649,37 @@ _p_dispos:
 	add	x14,x14,:lo12:.L32762
 	ldr	w15,[x14, w15, uxtw 2]
 	adr	x14,.L32761
-	add	x15,x14,w15, sxtw 2
+	add	x15,x14,w15, uxtw 0
 	br	x15
 .L32761:
 	.section	.rodata
-	.align 3
 .L32762:
-	.word	(.L65-.L32761)/4
-	.word	(.L66-.L32761)/4
-	.word	(.L67-.L32761)/4
-	.word	(.L68-.L32761)/4
-	.word	(.L69-.L32761)/4
-	.word	(.L70-.L32761)/4
-	.word	(.L71-.L32761)/4
-	.word	(.L72-.L32761)/4
-	.word	(.L73-.L32761)/4
-	.word	(.L74-.L32761)/4
-	.word	(.L75-.L32761)/4
-	.word	(.L76-.L32761)/4
-	.word	(.L77-.L32761)/4
-	.word	(.L78-.L32761)/4
-	.word	(.L79-.L32761)/4
-	.word	(.L80-.L32761)/4
-	.word	(.L81-.L32761)/4
-	.word	(.L82-.L32761)/4
-	.word	(.L83-.L32761)/4
-	.word	(.L84-.L32761)/4
-	.word	(.L85-.L32761)/4
-	.word	(.L86-.L32761)/4
-	.word	(.L87-.L32761)/4
-	.word	(.L88-.L32761)/4
-	.word	(.L89-.L32761)/4
-	.word	(.L90-.L32761)/4
+	.long	.L65-.L32761
+	.long	.L66-.L32761
+	.long	.L67-.L32761
+	.long	.L68-.L32761
+	.long	.L69-.L32761
+	.long	.L70-.L32761
+	.long	.L71-.L32761
+	.long	.L72-.L32761
+	.long	.L73-.L32761
+	.long	.L74-.L32761
+	.long	.L75-.L32761
+	.long	.L76-.L32761
+	.long	.L77-.L32761
+	.long	.L78-.L32761
+	.long	.L79-.L32761
+	.long	.L80-.L32761
+	.long	.L81-.L32761
+	.long	.L82-.L32761
+	.long	.L83-.L32761
+	.long	.L84-.L32761
+	.long	.L85-.L32761
+	.long	.L86-.L32761
+	.long	.L87-.L32761
+	.long	.L88-.L32761
+	.long	.L89-.L32761
+	.long	.L90-.L32761
 	.text
 	.align 2
 .L92:
@@ -824,38 +823,37 @@ _p_dispos:
 	add	x14,x14,:lo12:.L32760
 	ldr	w15,[x14, w15, uxtw 2]
 	adr	x14,.L32759
-	add	x15,x14,w15, sxtw 2
+	add	x15,x14,w15, uxtw 0
 	br	x15
 .L32759:
 	.section	.rodata
-	.align 3
 .L32760:
-	.word	(.L96-.L32759)/4
-	.word	(.L97-.L32759)/4
-	.word	(.L121-.L32759)/4
-	.word	(.L98-.L32759)/4
-	.word	(.L99-.L32759)/4
-	.word	(.L100-.L32759)/4
-	.word	(.L101-.L32759)/4
-	.word	(.L102-.L32759)/4
-	.word	(.L103-.L32759)/4
-	.word	(.L104-.L32759)/4
-	.word	(.L105-.L32759)/4
-	.word	(.L106-.L32759)/4
-	.word	(.L107-.L32759)/4
-	.word	(.L108-.L32759)/4
-	.word	(.L109-.L32759)/4
-	.word	(.L110-.L32759)/4
-	.word	(.L111-.L32759)/4
-	.word	(.L112-.L32759)/4
-	.word	(.L113-.L32759)/4
-	.word	(.L114-.L32759)/4
-	.word	(.L115-.L32759)/4
-	.word	(.L116-.L32759)/4
-	.word	(.L117-.L32759)/4
-	.word	(.L118-.L32759)/4
-	.word	(.L119-.L32759)/4
-	.word	(.L120-.L32759)/4
+	.long	.L96-.L32759
+	.long	.L97-.L32759
+	.long	.L121-.L32759
+	.long	.L98-.L32759
+	.long	.L99-.L32759
+	.long	.L100-.L32759
+	.long	.L101-.L32759
+	.long	.L102-.L32759
+	.long	.L103-.L32759
+	.long	.L104-.L32759
+	.long	.L105-.L32759
+	.long	.L106-.L32759
+	.long	.L107-.L32759
+	.long	.L108-.L32759
+	.long	.L109-.L32759
+	.long	.L110-.L32759
+	.long	.L111-.L32759
+	.long	.L112-.L32759
+	.long	.L113-.L32759
+	.long	.L114-.L32759
+	.long	.L115-.L32759
+	.long	.L116-.L32759
+	.long	.L117-.L32759
+	.long	.L118-.L32759
+	.long	.L119-.L32759
+	.long	.L120-.L32759
 	.text
 	.align 2
 .L122:
