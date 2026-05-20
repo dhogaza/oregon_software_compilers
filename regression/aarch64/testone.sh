@@ -7,7 +7,7 @@ diff $1.s $1.s.good > $1.s.diff
 if [ -s "$1.s.diff" ]; then
     echo "$1.s is different than $1.s.good"
 fi
-gcc $1.s
+gcc $HOME/oregon_software_compilers/lib/darwin/paslib.o $1.s
 ./a.out > $1.out
 diff $1.out $1.out.good >$1.out.diff
 if [ -s "$1.out.diff" ]; then

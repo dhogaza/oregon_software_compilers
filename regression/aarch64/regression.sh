@@ -10,7 +10,7 @@ for f in $src/*.pas; do
     if [ -s "$base.s.diff" ]; then
       echo "$base.s is different than $base.s.good"
     fi
-    gcc $base.s
+    gcc $HOME/oregon_software_compilers/lib/darwin/paslib.o $base.s
     ./a.out > $base.out
     diff $base.out $base.out.good >$base.out.diff
     if [ -s "$base.out.diff" ]; then

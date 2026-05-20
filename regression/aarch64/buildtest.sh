@@ -5,7 +5,7 @@
 pushd $os >/dev/null
 echo "--- building $1 good files ---"
 $pasdir/pas2arm64 $src/$1 --include=$lib --noch --mac=$1
-gcc $1.s
+gcc $HOME/oregon_software_compilers/lib/darwin/paslib.o $1.s
 mv $1.s $1.s.good
 ./a.out > $1.out
 mv $1.out $1.out.good
