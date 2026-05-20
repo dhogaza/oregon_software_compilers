@@ -147,7 +147,7 @@ procedure panic;
       end;
     writeln(' during Pascal-2 compilation');
 
-    if not switcheverplus[test] then halt();
+    if not switcheverplus[test] then halt(1);
   end {panic} ;
 
 end.
