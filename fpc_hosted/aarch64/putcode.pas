@@ -670,11 +670,13 @@ begin
     tworeg:
       begin
       write('operand mode tworeg found in instruction node');
+      write(macfile, 'operand mode tworeg found in instruction node');
       compilerabort(inconsistent);
       end;
     otherwise
       begin
-      write('lllegal operand mode instruction node (', o.mode, ')');
+      write('Illegal operand mode instruction node (', o.mode, ')');
+      write(macfile, 'Illegal operand mode instruction node (', o.mode, ')');
       compilerabort(inconsistent);
       end;
   end;
