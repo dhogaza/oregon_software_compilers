@@ -217,6 +217,8 @@ begin {main}
       begin
       writeln('?Errors detected: ', lasterror: 1);
       {DRB exitst(exitstatus); }
+      halt(1);
       end;
     end;
+    halt(ord(lasterror > 1));
 end {main} .
