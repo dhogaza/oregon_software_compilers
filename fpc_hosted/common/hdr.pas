@@ -728,7 +728,7 @@ var
   moduletype: (mainmodule, submodule, srmodule); {Pascal-F only}
 
   { Special unix parameters }
-{  unixtarget: unixflavors;}
+  unixtarget: unixflavors;
 
   envirinfile: bytestream; {environment input file}
   enviroutfile: bytestream; {defined environment output file}

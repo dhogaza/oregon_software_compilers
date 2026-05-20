@@ -58,7 +58,7 @@ type
                  Tandy, Sun, HP9300, Munix, Regulus, Wicat, CandD, Perpos, Ctix, Nti,
                  Venix, UniFlex, VMEV2, UniPlusV2, Ncr, LMI, gmf, domainix,
                  pcix, inix86, inix286, MSxenix, umax, atxenix, ultrix,
-                 morebsd, NEC, uspare5, uspare6, linux, last_host);
+                 morebsd, NEC, uspare5, uspare6, linux, darwin, last_host);
 
   shortint = integer; {DRB fpc defaults to 8 bits}
   integer = longint; {DRB fpc defaults to 16 bits}
@@ -72,7 +72,6 @@ const
   hostopsys = unix;
   targetopsys = unix;
 
-  unixtarget = linux;
   defunixtarget = linux;
   oldproctable = true; {we are using old-style procedure table}
   language = pascal;

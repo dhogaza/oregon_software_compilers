@@ -31,7 +31,7 @@ unit csi;
 
 interface
 
-uses config, product, utils, hdr, sysutils;
+uses config, product, utils, hdr, sysutils, baseunix;
 
 procedure csi;
 
@@ -222,6 +222,12 @@ implementation
       qualtable[framepointerq] := 'FRAMEPOINTER';
       qualtable[oldreswordsq] := 'OLDRESWORDS';
 
+      if targetopsys = unix then
+        begin
+        qualtable[longlibq] := 'LONGLIB';
+        qualtable[unixtargetq] := 'UNIXTARGET';
+        end;
+
       case targetmachine of
         mc68000:
           begin
@@ -239,12 +245,7 @@ implementation
             qualtable[picq] := 'PIC';
             end;
           if targetopsys = vdos then
-            qualtable[longlibq] := 'LONGLIB'
-          else if targetopsys = unix then
-            begin
             qualtable[longlibq] := 'LONGLIB';
-            qualtable[unixtargetq] := 'UNIXTARGET';
-            end;
           end;
         end {case} ;
     end {initquals} ;
@@ -730,7 +731,7 @@ implementation
         allow dead-code removal of some backend code.
       }
 
-{      unixtarget := temp_unixtarget;}
+      unixtarget := temp_unixtarget;
     end {passtocompiler} ;
 
 
@@ -767,6 +768,7 @@ implementation
 procedure csi;
 
   var i: integer;
+  u: utsname;
 
   begin {csi}
     targetintsize := defaulttargetintsize;
@@ -800,7 +802,16 @@ procedure csi;
     if language <> c then
       qualsset := [checkq, mainq, framepointerq, librequestq];
 
-    temp_unixtarget := defunixtarget;
+    if fpuname(u) = 0 then
+begin
+WriteLn('Sysname:  ', trim(U.Sysname));  // e.g., Linux
+      if trim(u.sysname) = 'Linux' then
+        temp_unixtarget := linux
+      else if trim(u.sysname) = 'Darwin' then
+        temp_unixtarget := darwin
+      else temp_unixtarget := defunixtarget;
+end;
+
     fppspecified := false;
 
     for i := 1 to paramcount do
