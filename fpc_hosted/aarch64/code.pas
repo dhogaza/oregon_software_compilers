@@ -2030,7 +2030,7 @@ procedure markscratchregs;
     r: regindex;
 
   begin {markscratchregs}
-    for r := 0 to pr - 1 do
+    for r := firstreg to pr - 1 do
       markreg(r);
   end {markscratchregs};
 
@@ -3350,10 +3350,10 @@ procedure callsupport(libroutine: libroutines {support routine to call};
     libkey: keyindex;
 
   begin {callsupport}
-    libkey := settemp(long, libcall_oprnd(libroutine));
-    gen1(lastnode, buildinst(bl, false, false), libkey);
     if killregs then
       markscratchregs;
+    libkey := settemp(long, libcall_oprnd(libroutine));
+    gen1(lastnode, buildinst(bl, false, false), libkey);
   end {callsupport} ;
 
 
