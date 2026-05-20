@@ -2931,7 +2931,7 @@ procedure procdefinition;
             if functiondefinition then namekind := externalfunc
             else namekind := externalproc;
 
-            if (directive = nonpascalid) and (targetmachine <> aarch64) then
+            if (directive = nonpascalid) then
               proctable[procref].calllinkage := nonpascalcall
             else if (directive = fortranid) and (targetmachine <> aarch64) then
               proctable[procref].calllinkage := fortrancall
