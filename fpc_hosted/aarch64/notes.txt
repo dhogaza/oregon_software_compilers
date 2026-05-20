@@ -9,6 +9,8 @@
 
 *** current bugs
 
+   -- nomode operand due to changes for darwin as yet undetermined, gulp
+
    -- 64-bit arithmetic doesn't work, not suprisingly.
 
    -- sets with > 8 elements and < 17 elements are allocated 64 bits.  No 16 or 32
@@ -26,8 +28,15 @@
 
 --- current work
 
-  -- add int64 and uint64, for now just need to be able to extends 4 byte to
-     8 byte for new.
+  -- move testlib.pas to the lib main directly as the source is identical for linux
+     and darwin thanks to "nonpascal", a total hack.  Need to come up with a better
+     way for this someday perhaps.
+
+  -- build testlib object in linux/darwin subdirectories and make a shell script that
+     compiles and links using the compiled code. Break out _p_ stuff and precompile them,
+     so every addition doesn't break regression, but compile the putln etc stuff as
+     now as those are good compiler tests.
+
 
   -- std routine parameters
 

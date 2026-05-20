@@ -137,7 +137,8 @@ procedure exitblock(level: levelindex {level of block being exited} );
        (targetmachine = i80386) then
       regok := not anynonlocallabels and (not anyexternals or (level > 1))
     else
-      regok := not anynonpascalcalls and not anynonlocallabels and
+      regok := (not anynonpascalcalls or (targetmachine = aarch64)) and
+               not anynonlocallabels and
                (not anyexternals or (level > 1));
 
     tempvars := 0;

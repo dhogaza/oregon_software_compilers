@@ -969,6 +969,24 @@ function newinsertafter(after: nodeptr; kind: nodekinds): nodeptr;
     newinsertafter := p;
   end {newinsertafter};
 
+{Check to make sure all of an instructions operands have
+ been set.  Useful to track down nomodes
+}
+
+procedure checkinst(p: nodeptr);
+
+var
+  i: oprnd_range;
+
+begin {checkinst}
+  for i := 1 to p^.oprnd_cnt do
+    if p^.oprnds[i].mode = nomode then
+      begin
+      write('operand ', i, ' is nomode');
+      compilerabort(inconsistent);
+      end;
+end {checkinst};
+
 procedure geninst(p: nodeptr;
                   i: insttype;
                   l: oprnd_range {number of operands});
@@ -988,20 +1006,6 @@ begin
   labelnextnode := false;
 end;
 
-procedure genoprnd(p: nodeptr; 
-                   i: oprnd_range; {which operand to generate}
-                   o: oprndtype {operand to generate} );
-
-{ Generates the given operand in lastptr.
-
-  Does nothing essentially so will probably disappear ...
-}
-
-  begin {genoprnd}
-
-    with p^ do
-      oprnds[i] := o;
-  end {genoprnd} ;
 
 { Generate instructions.  Comes in two forms, one takes a pointer to the node the
   new instruction should follow, the other takes a pointer to the node to fill.  The
@@ -1043,6 +1047,7 @@ Procedure gen1p(p: nodeptr;
   begin {gen1p}
     geninst(p, i, 1);
     p^.oprnds[1] := keytable[o1].oprnd;
+    checkinst(p);
   end {gen1p} ;
 
 procedure gen1(var after: nodeptr;
@@ -1071,6 +1076,7 @@ procedure gen2p(p: nodeptr;
     geninst(p, i, 2);
     p^.oprnds[1] := keytable[o1].oprnd;
     p^.oprnds[2] := keytable[o2].oprnd;
+    checkinst(p);
   end {gen2p} ;
 
 
@@ -1101,6 +1107,7 @@ procedure gen3p(p: nodeptr;
     p^.oprnds[1] := keytable[o1].oprnd;
     p^.oprnds[2] := keytable[o2].oprnd;
     p^.oprnds[3] := keytable[o3].oprnd;
+    checkinst(p);
   end {gen3p} ;
 
 
@@ -1132,6 +1139,7 @@ procedure gen4p(p: nodeptr;
     p^.oprnds[2] := keytable[o2].oprnd;
     p^.oprnds[3] := keytable[o3].oprnd;
     p^.oprnds[4] := keytable[o4].oprnd;
+    checkinst(p);
   end {gen4p} ;
 
 
@@ -3872,7 +3880,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
             end
           else
             begin
-            k := keytable[key].properreg;
+            k := keytable[forkey].properreg;
             keytable[k].tempflag := true;  
             makeaddressable(k);
             end;
