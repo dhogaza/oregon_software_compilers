@@ -2,7 +2,7 @@ program main;
 
 { simple conformant array testing }
 
-procedure putchar(ch: char); external;
+procedure putchar(ch: char); nonpascal;
 
 var
   a1:array [0..0] of char;

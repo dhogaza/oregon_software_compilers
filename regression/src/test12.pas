@@ -1,4 +1,4 @@
-procedure putchar(ch: char); external;
+procedure putchar(ch: char); nonpascal;
 
 procedure bar(a, b: char);
   var ch: char;
