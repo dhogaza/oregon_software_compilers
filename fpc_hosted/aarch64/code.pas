@@ -5170,11 +5170,11 @@ procedure putblock;
     else
       blockcost := blksize + regcost + maxstackoffset;
 
-    blockcost := (blockcost + (2 * long - 1)) and - (2 * long);
+    blockcost := (blockcost + quad - 1) and -quad;
 
     finalizestackoffsets(firstnode, lastnode, maxstackoffset, regcost);
 
-    spoffset := regcost + maxstackoffset;
+    spoffset := (regcost + maxstackoffset + quad -1) and -quad;
     spoffsettemp := settemp(long, index_oprnd(unsigned_offset, sp, spoffset));
     saveregoffsettemp := settemp(long, index_oprnd(signed_offset, fp, 0));
 
