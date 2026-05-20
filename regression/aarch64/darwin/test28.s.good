@@ -53,12 +53,12 @@
 	sub	w15,w28,w1
 	ldr	x14,[x29,-24]
 	ldrb	w0,[x14, w15, sxtw]
-	bl	putchar
+	bl	_putchar
 	add	w28,w28,1
 	b	.L7
 .L8:
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 .L6:
 	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,32]
@@ -90,12 +90,12 @@
 	sub	w15,w28,w1
 	ldr	x14,[x29,-24]
 	ldrb	w0,[x14, w15, sxtw]
-	bl	putchar
+	bl	_putchar
 	add	w28,w28,1
 	b	.L11
 .L12:
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 .L10:
 	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,32]
@@ -110,24 +110,24 @@
 #
 #	main (main)
 #
-	.global main
-main:
+	.global _main
+_main:
 	sub	sp,sp,112
 	stp	x30,x29,[sp,96]
 	add	x29,sp,96
 # Line: 67, Stmt: 1
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+32
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+32@PAGEOFF
 	mov	x1,xzr
 	mov	x2,xzr
 	bl	.P2  // fill
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+32
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+32@PAGEOFF
 	mov	x1,xzr
 	mov	x2,xzr
 	bl	.P3  // p
-	adrp	x15,.L32766
-	add	x15,x15,:lo12:.L32766+32
+	adrp	x15,.L32766@PAGE
+	add	x15,x15,.L32766+32@PAGEOFF
 	sub	x14,x29,8
 	ldrb	w16,[x15],1
 	strb	w16,[x14],1
@@ -135,18 +135,18 @@ main:
 	mov	x1,xzr
 	mov	x2,xzr
 	bl	.P4  // p1
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+34
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+34@PAGEOFF
 	mov	x1,xzr
 	mov	x2,1
 	bl	.P2  // fill
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+34
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+34@PAGEOFF
 	mov	x1,xzr
 	mov	x2,1
 	bl	.P3  // p
-	adrp	x15,.L32766
-	add	x15,x15,:lo12:.L32766+34
+	adrp	x15,.L32766@PAGE
+	add	x15,x15,.L32766+34@PAGEOFF
 	sub	x14,x29,16
 	ldrb	w16,[x15],1
 	strb	w16,[x14],1
@@ -156,18 +156,18 @@ main:
 	mov	x1,xzr
 	mov	x2,1
 	bl	.P4  // p1
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+36
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+36@PAGEOFF
 	mov	x1,xzr
 	mov	x2,2
 	bl	.P2  // fill
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+36
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+36@PAGEOFF
 	mov	x1,xzr
 	mov	x2,2
 	bl	.P3  // p
-	adrp	x15,.L32766
-	add	x15,x15,:lo12:.L32766+36
+	adrp	x15,.L32766@PAGE
+	add	x15,x15,.L32766+36@PAGEOFF
 	sub	x14,x29,24
 	ldrb	w16,[x15],1
 	strb	w16,[x14],1
@@ -179,18 +179,18 @@ main:
 	mov	x1,xzr
 	mov	x2,2
 	bl	.P4  // p1
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+40
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+40@PAGEOFF
 	mov	x1,xzr
 	mov	x2,3
 	bl	.P2  // fill
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+40
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+40@PAGEOFF
 	mov	x1,xzr
 	mov	x2,3
 	bl	.P3  // p
-	adrp	x15,.L32766
-	add	x15,x15,:lo12:.L32766+40
+	adrp	x15,.L32766@PAGE
+	add	x15,x15,.L32766+40@PAGEOFF
 	sub	x14,x29,32
 	ldrb	w16,[x15],1
 	strb	w16,[x14],1
@@ -204,18 +204,18 @@ main:
 	mov	x1,xzr
 	mov	x2,3
 	bl	.P4  // p1
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+44
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+44@PAGEOFF
 	mov	x1,xzr
 	mov	x2,4
 	bl	.P2  // fill
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+44
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+44@PAGEOFF
 	mov	x1,xzr
 	mov	x2,4
 	bl	.P3  // p
-	adrp	x15,.L32766
-	add	x15,x15,:lo12:.L32766+44
+	adrp	x15,.L32766@PAGE
+	add	x15,x15,.L32766+44@PAGEOFF
 	sub	x14,x29,40
 	mov	x16,5
 .L32764:
@@ -227,18 +227,18 @@ main:
 	mov	x1,xzr
 	mov	x2,4
 	bl	.P4  // p1
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+50
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+50@PAGEOFF
 	mov	x1,xzr
 	mov	x2,5
 	bl	.P2  // fill
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+50
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+50@PAGEOFF
 	mov	x1,xzr
 	mov	x2,5
 	bl	.P3  // p
-	adrp	x15,.L32766
-	add	x15,x15,:lo12:.L32766+50
+	adrp	x15,.L32766@PAGE
+	add	x15,x15,.L32766+50@PAGEOFF
 	sub	x14,x29,48
 	mov	x16,6
 .L32763:
@@ -250,18 +250,18 @@ main:
 	mov	x1,xzr
 	mov	x2,5
 	bl	.P4  // p1
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+56
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+56@PAGEOFF
 	mov	x1,xzr
 	mov	x2,6
 	bl	.P2  // fill
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+56
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+56@PAGEOFF
 	mov	x1,xzr
 	mov	x2,6
 	bl	.P3  // p
-	adrp	x15,.L32766
-	add	x15,x15,:lo12:.L32766+56
+	adrp	x15,.L32766@PAGE
+	add	x15,x15,.L32766+56@PAGEOFF
 	sub	x14,x29,56
 	mov	x16,7
 .L32762:
@@ -273,18 +273,18 @@ main:
 	mov	x1,xzr
 	mov	x2,6
 	bl	.P4  // p1
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+64
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+64@PAGEOFF
 	mov	x1,xzr
 	mov	x2,7
 	bl	.P2  // fill
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+64
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+64@PAGEOFF
 	mov	x1,xzr
 	mov	x2,7
 	bl	.P3  // p
-	adrp	x15,.L32766
-	add	x15,x15,:lo12:.L32766+64
+	adrp	x15,.L32766@PAGE
+	add	x15,x15,.L32766+64@PAGEOFF
 	sub	x14,x29,64
 	mov	x16,8
 .L32761:
@@ -296,18 +296,18 @@ main:
 	mov	x1,xzr
 	mov	x2,7
 	bl	.P4  // p1
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+72
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+72@PAGEOFF
 	mov	x1,xzr
 	mov	x2,8
 	bl	.P2  // fill
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+72
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+72@PAGEOFF
 	mov	x1,xzr
 	mov	x2,8
 	bl	.P3  // p
-	adrp	x15,.L32766
-	add	x15,x15,:lo12:.L32766+72
+	adrp	x15,.L32766@PAGE
+	add	x15,x15,.L32766+72@PAGEOFF
 	sub	x14,x29,80
 	mov	x16,9
 .L32760:
@@ -319,18 +319,18 @@ main:
 	mov	x1,xzr
 	mov	x2,8
 	bl	.P4  // p1
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+82
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+82@PAGEOFF
 	mov	x1,xzr
 	mov	x2,9
 	bl	.P2  // fill
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+82
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+82@PAGEOFF
 	mov	x1,xzr
 	mov	x2,9
 	bl	.P3  // p
-	adrp	x15,.L32766
-	add	x15,x15,:lo12:.L32766+82
+	adrp	x15,.L32766@PAGE
+	add	x15,x15,.L32766+82@PAGEOFF
 	sub	x14,x29,96
 	mov	x16,10
 .L32759:

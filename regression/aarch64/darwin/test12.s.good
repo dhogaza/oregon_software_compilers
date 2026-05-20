@@ -17,14 +17,14 @@
 	cmp	w28,w1
 	b.hi	.L3
 	mov	x0,x28
-	bl	putchar
+	bl	_putchar
 	ldr	x0,[x29,-24]
 	ldr	x1,[x29,-16]
 	adds	w28,w28,1
 	b.cc	.L4
 .L3:
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 	ldr	x15,[x29,-16]
 	mov	x28,x15
 .L6:
@@ -32,13 +32,13 @@
 	cmp	w28,w15
 	b.lo	.L5
 	mov	x0,x28
-	bl	putchar
+	bl	_putchar
 	ldr	x15,[x29,-24]
 	subs	w28,w28,1
 	b.cs	.L6
 .L5:
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 .L2:
 	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,24]
@@ -58,23 +58,23 @@
 	mov	x28,97
 .L8:
 	mov	x0,x28
-	bl	putchar
+	bl	_putchar
 	add	w28,w28,1
 	cmp	w28,122
 	b.ls	.L8
 .L9:
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 	mov	x28,122
 .L10:
 	mov	x0,x28
-	bl	putchar
+	bl	_putchar
 	sub	w28,w28,1
 	cmp	w28,97
 	b.hs	.L10
 .L11:
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 .L7:
 	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,8]
@@ -99,14 +99,14 @@
 	cmp	w28,w1
 	b.gt	.L13
 	add	w0,w28,48
-	bl	putchar
+	bl	_putchar
 	ldr	x0,[x29,-24]
 	ldr	x1,[x29,-16]
 	adds	w28,w28,1
 	b.vc	.L14
 .L13:
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 	ldr	x15,[x29,-16]
 	mov	x28,x15
 .L16:
@@ -114,13 +114,13 @@
 	cmp	w28,w15
 	b.lt	.L15
 	add	w0,w28,48
-	bl	putchar
+	bl	_putchar
 	ldr	x15,[x29,-24]
 	subs	w28,w28,1
 	b.vc	.L16
 .L15:
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 .L12:
 	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,24]
@@ -140,23 +140,23 @@
 	mov	x28,2
 .L18:
 	add	w0,w28,48
-	bl	putchar
+	bl	_putchar
 	add	w28,w28,1
 	cmp	w28,9
 	b.le	.L18
 .L19:
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 	mov	x28,9
 .L20:
 	add	w0,w28,48
-	bl	putchar
+	bl	_putchar
 	sub	w28,w28,1
 	cmp	w28,2
 	b.ge	.L20
 .L21:
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 .L17:
 	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,8]
@@ -171,8 +171,8 @@
 #
 #	 (main)
 #
-	.global main
-main:
+	.global _main
+_main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
 # Line: 44, Stmt: 1
@@ -180,17 +180,17 @@ main:
 	mov	x1,102
 	bl	.P2  // bar
 	mov	x0,45
-	bl	putchar
+	bl	_putchar
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 	bl	.P3  // foo
 	mov	x0,xzr
 	mov	x1,8
 	bl	.P4  // bar1
 	mov	x0,45
-	bl	putchar
+	bl	_putchar
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 	bl	.P5  // foo1
 .L22:
 	ldp	x30,x29,[sp],16

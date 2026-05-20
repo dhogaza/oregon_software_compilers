@@ -1,7 +1,7 @@
 #
 #  Constants
 #
-	.section	.rodata
+	.section	__TEXT,__const
 	.align 3
 .L32765:
 	.byte	0x04,0x74,0x72,0x75,0x65,0x05,0x66,0x61,0x6C,0x73,0x65,0x0A
@@ -43,7 +43,7 @@ putln:
 # Line: 44, Stmt: 1
 # Line: 45, Stmt: 2
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 .L2:
 	ldp	x30,x29,[sp],16
 	ret
@@ -70,7 +70,7 @@ putstring:
 	sub	w15,w28,w1
 	ldr	x14,[x29,-24]
 	ldrb	w0,[x14, w15, sxtw]
-	bl	putchar
+	bl	_putchar
 	ldr	x0,[x29,-24]
 	ldr	x1,[x29,-16]
 	ldr	x2,[x29,-32]
@@ -105,7 +105,7 @@ putstringln:
 	sub	w15,w28,w1
 	ldr	x14,[x29,-24]
 	ldrb	w0,[x14, w15, sxtw]
-	bl	putchar
+	bl	_putchar
 	ldr	x0,[x29,-24]
 	ldr	x1,[x29,-16]
 	ldr	x2,[x29,-32]
@@ -156,7 +156,7 @@ puthex:
 	sub	w28,w28,1
 	add	x15,x29,w28, sxtw 0
 	ldrb	w0,[x15,16]
-	bl	putchar
+	bl	_putchar
 	cbnz	w28,.L14
 .L11:
 .L19:
@@ -203,7 +203,7 @@ putint:
 	b.ge	.L26
 .L27:
 	mov	x0,45
-	bl	putchar
+	bl	_putchar
 	ldr	x14,[x29,-16]
 	neg	w15,w14
 	mov	x0,x15
@@ -228,7 +228,7 @@ putint:
 	sub	w28,w28,1
 	add	x15,x29,w28, sxtw 0
 	ldrb	w0,[x15,16]
-	bl	putchar
+	bl	_putchar
 	cbnz	w28,.L24
 .L21:
 .L28:
@@ -271,8 +271,8 @@ putbool:
 # Line: 130, Stmt: 2
 	cbz	w0,.L31
 .L32:
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+1
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+1@PAGEOFF
 	sub	x14,x29,16
 	ldrb	w16,[x15],1
 	strb	w16,[x14],1
@@ -288,8 +288,8 @@ putbool:
 	bl	putstring
 	b	.L33
 .L31:
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+6
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+6@PAGEOFF
 	sub	x14,x29,16
 	mov	x16,5
 .L32764:
@@ -323,7 +323,7 @@ putboolln:
 	mov	x0,x15
 	bl	putbool
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 .L34:
 	ldp	x30,x29,[sp,8]
 	add	sp,sp,32
@@ -343,7 +343,7 @@ putcharln:
 	str	x0,[x29,-8]
 	ldr	x15,[x29,-8]
 	mov	x0,x15
-	bl	putchar
+	bl	_putchar
 	bl	putln
 .L35:
 	ldp	x30,x29,[sp,8]
@@ -360,8 +360,8 @@ _p_caseerr:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 151, Stmt: 1
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+12
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+12@PAGEOFF
 	sub	x14,x29,16
 	mov	x16,10
 .L32763:
@@ -374,7 +374,7 @@ _p_caseerr:
 	mov	x2,10
 	bl	putstringln
 	mov	x0,1
-	bl	exit
+	bl	_exit
 .L36:
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
@@ -402,7 +402,7 @@ _p_wtb_o:
 	cmp	w28,w1
 	b.gt	.L38
 	mov	x0,32
-	bl	putchar
+	bl	_putchar
 	ldr	x0,[x29,-16]
 	ldr	x1,[x29,-32]
 	adds	w28,w28,1
@@ -436,7 +436,7 @@ _p_wtc_o:
 	cmp	w28,w1
 	b.gt	.L41
 	mov	x0,32
-	bl	putchar
+	bl	_putchar
 	ldr	x0,[x29,-16]
 	ldr	x1,[x29,-24]
 	adds	w28,w28,1
@@ -444,7 +444,7 @@ _p_wtc_o:
 .L41:
 	ldr	x15,[x29,-16]
 	mov	x0,x15
-	bl	putchar
+	bl	_putchar
 .L40:
 	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,24]
@@ -470,7 +470,7 @@ _p_wti_o:
 	b.ge	.L48
 .L49:
 	mov	x0,45
-	bl	putchar
+	bl	_putchar
 	ldr	x14,[x29,-24]
 	neg	w15,w14
 	mov	x0,x15
@@ -502,7 +502,7 @@ _p_wti_o:
 	cmp	w28,w15
 	b.gt	.L51
 	mov	x0,32
-	bl	putchar
+	bl	_putchar
 	ldr	x15,[x29,-32]
 	adds	w28,w28,1
 	b.vc	.L52
@@ -512,7 +512,7 @@ _p_wti_o:
 	sub	w27,w27,1
 	add	x15,x29,w27, sxtw 0
 	ldrb	w0,[x15,16]
-	bl	putchar
+	bl	_putchar
 	cbnz	w27,.L46
 .L43:
 .L53:
@@ -542,7 +542,7 @@ _p_wts_o:
 	cmp	w28,w15
 	b.gt	.L56
 	mov	x0,32
-	bl	putchar
+	bl	_putchar
 	ldr	x0,[x29,-24]
 	ldr	x1,[x29,-16]
 	ldr	x15,[x29,-32]
@@ -558,7 +558,7 @@ _p_wts_o:
 	b.gt	.L58
 	add	x13,x15,w28, sxtw 0
 	ldrb	w0,[x13,-1]
-	bl	putchar
+	bl	_putchar
 	ldr	x14,[x29,-16]
 	ldr	x15,[x29,-24]
 	adds	w28,w28,1
@@ -580,7 +580,7 @@ _p_wtln_o:
 	add	x29,sp,xzr
 # Line: 222, Stmt: 1
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 .L60:
 	ldp	x30,x29,[sp],16
 	ret
@@ -598,7 +598,7 @@ _p_new:
 # Line: 228, Stmt: 2
 	str	x0,[x29,-16]
 	mov	x0,x1
-	bl	malloc
+	bl	_malloc
 	ldr	x15,[x29,-16]
 	str	x0,[x15]
 .L61:
@@ -620,7 +620,7 @@ _p_dispos:
 	str	x0,[x29,-8]
 	ldr	x15,[x29,-8]
 	ldr	x0,[x15]
-	bl	free
+	bl	_free
 	mov	x15,1
 	ldr	x14,[x29,-8]
 	str	x15,[x14]
@@ -645,42 +645,68 @@ _p_dispos:
 	sub	w15,w15,97
 	cmp	w15,25
 	b.hi	.L91
-	adrp	x14,.L32762
-	add	x14,x14,:lo12:.L32762
+	adrp	x14,.L32762@PAGE
+	add	x14,x14,.L32762@PAGEOFF
 	ldr	w15,[x14, w15, uxtw 2]
 	adr	x14,.L32761
-	add	x15,x14,w15, sxtw 2
+	add	x15,x14,w15, uxtw 0
 	br	x15
 .L32761:
-	.section	.rodata
-	.align 3
+	.data_region jt32
 .L32762:
-	.word	(.L65-.L32761)/4
-	.word	(.L66-.L32761)/4
-	.word	(.L67-.L32761)/4
-	.word	(.L68-.L32761)/4
-	.word	(.L69-.L32761)/4
-	.word	(.L70-.L32761)/4
-	.word	(.L71-.L32761)/4
-	.word	(.L72-.L32761)/4
-	.word	(.L73-.L32761)/4
-	.word	(.L74-.L32761)/4
-	.word	(.L75-.L32761)/4
-	.word	(.L76-.L32761)/4
-	.word	(.L77-.L32761)/4
-	.word	(.L78-.L32761)/4
-	.word	(.L79-.L32761)/4
-	.word	(.L80-.L32761)/4
-	.word	(.L81-.L32761)/4
-	.word	(.L82-.L32761)/4
-	.word	(.L83-.L32761)/4
-	.word	(.L84-.L32761)/4
-	.word	(.L85-.L32761)/4
-	.word	(.L86-.L32761)/4
-	.word	(.L87-.L32761)/4
-	.word	(.L88-.L32761)/4
-	.word	(.L89-.L32761)/4
-	.word	(.L90-.L32761)/4
+	.word .L32760
+	.set .L32760, .L65-.L32761
+	.word .L32759
+	.set .L32759, .L66-.L32761
+	.word .L32758
+	.set .L32758, .L67-.L32761
+	.word .L32757
+	.set .L32757, .L68-.L32761
+	.word .L32756
+	.set .L32756, .L69-.L32761
+	.word .L32755
+	.set .L32755, .L70-.L32761
+	.word .L32754
+	.set .L32754, .L71-.L32761
+	.word .L32753
+	.set .L32753, .L72-.L32761
+	.word .L32752
+	.set .L32752, .L73-.L32761
+	.word .L32751
+	.set .L32751, .L74-.L32761
+	.word .L32750
+	.set .L32750, .L75-.L32761
+	.word .L32749
+	.set .L32749, .L76-.L32761
+	.word .L32748
+	.set .L32748, .L77-.L32761
+	.word .L32747
+	.set .L32747, .L78-.L32761
+	.word .L32746
+	.set .L32746, .L79-.L32761
+	.word .L32745
+	.set .L32745, .L80-.L32761
+	.word .L32744
+	.set .L32744, .L81-.L32761
+	.word .L32743
+	.set .L32743, .L82-.L32761
+	.word .L32742
+	.set .L32742, .L83-.L32761
+	.word .L32741
+	.set .L32741, .L84-.L32761
+	.word .L32740
+	.set .L32740, .L85-.L32761
+	.word .L32739
+	.set .L32739, .L86-.L32761
+	.word .L32738
+	.set .L32738, .L87-.L32761
+	.word .L32737
+	.set .L32737, .L88-.L32761
+	.word .L32736
+	.set .L32736, .L89-.L32761
+	.word .L32735
+	.set .L32735, .L90-.L32761
+	.end_data_region
 	.text
 	.align 2
 .L92:
@@ -689,115 +715,115 @@ _p_dispos:
 	b	.L91
 .L64:
 	mov	x0,49
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L65:
 	mov	x0,97
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L66:
 	mov	x0,98
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L67:
 	mov	x0,99
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L68:
 	mov	x0,100
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L69:
 	mov	x0,101
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L70:
 	mov	x0,102
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L71:
 	mov	x0,103
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L72:
 	mov	x0,104
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L73:
 	mov	x0,105
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L74:
 	mov	x0,106
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L75:
 	mov	x0,107
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L76:
 	mov	x0,108
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L77:
 	mov	x0,109
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L78:
 	mov	x0,110
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L79:
 	mov	x0,111
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L80:
 	mov	x0,112
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L81:
 	mov	x0,113
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L82:
 	mov	x0,114
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L83:
 	mov	x0,115
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L84:
 	mov	x0,116
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L85:
 	mov	x0,117
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L86:
 	mov	x0,118
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L87:
 	mov	x0,119
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L88:
 	mov	x0,120
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L89:
 	mov	x0,121
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L90:
 	mov	x0,122
-	bl	putchar
+	bl	_putchar
 	b	.L91
 .L91:
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 .L63:
 	ldp	x30,x29,[sp,8]
 	add	sp,sp,32
@@ -820,42 +846,68 @@ _p_dispos:
 	sub	w15,w15,97
 	cmp	w15,25
 	b.hi	.L121
-	adrp	x14,.L32760
-	add	x14,x14,:lo12:.L32760
+	adrp	x14,.L32734@PAGE
+	add	x14,x14,.L32734@PAGEOFF
 	ldr	w15,[x14, w15, uxtw 2]
-	adr	x14,.L32759
-	add	x15,x14,w15, sxtw 2
+	adr	x14,.L32733
+	add	x15,x14,w15, uxtw 0
 	br	x15
-.L32759:
-	.section	.rodata
-	.align 3
-.L32760:
-	.word	(.L96-.L32759)/4
-	.word	(.L97-.L32759)/4
-	.word	(.L121-.L32759)/4
-	.word	(.L98-.L32759)/4
-	.word	(.L99-.L32759)/4
-	.word	(.L100-.L32759)/4
-	.word	(.L101-.L32759)/4
-	.word	(.L102-.L32759)/4
-	.word	(.L103-.L32759)/4
-	.word	(.L104-.L32759)/4
-	.word	(.L105-.L32759)/4
-	.word	(.L106-.L32759)/4
-	.word	(.L107-.L32759)/4
-	.word	(.L108-.L32759)/4
-	.word	(.L109-.L32759)/4
-	.word	(.L110-.L32759)/4
-	.word	(.L111-.L32759)/4
-	.word	(.L112-.L32759)/4
-	.word	(.L113-.L32759)/4
-	.word	(.L114-.L32759)/4
-	.word	(.L115-.L32759)/4
-	.word	(.L116-.L32759)/4
-	.word	(.L117-.L32759)/4
-	.word	(.L118-.L32759)/4
-	.word	(.L119-.L32759)/4
-	.word	(.L120-.L32759)/4
+.L32733:
+	.data_region jt32
+.L32734:
+	.word .L32732
+	.set .L32732, .L96-.L32733
+	.word .L32731
+	.set .L32731, .L97-.L32733
+	.word .L32730
+	.set .L32730, .L121-.L32733
+	.word .L32729
+	.set .L32729, .L98-.L32733
+	.word .L32728
+	.set .L32728, .L99-.L32733
+	.word .L32727
+	.set .L32727, .L100-.L32733
+	.word .L32726
+	.set .L32726, .L101-.L32733
+	.word .L32725
+	.set .L32725, .L102-.L32733
+	.word .L32724
+	.set .L32724, .L103-.L32733
+	.word .L32723
+	.set .L32723, .L104-.L32733
+	.word .L32722
+	.set .L32722, .L105-.L32733
+	.word .L32721
+	.set .L32721, .L106-.L32733
+	.word .L32720
+	.set .L32720, .L107-.L32733
+	.word .L32719
+	.set .L32719, .L108-.L32733
+	.word .L32718
+	.set .L32718, .L109-.L32733
+	.word .L32717
+	.set .L32717, .L110-.L32733
+	.word .L32716
+	.set .L32716, .L111-.L32733
+	.word .L32715
+	.set .L32715, .L112-.L32733
+	.word .L32714
+	.set .L32714, .L113-.L32733
+	.word .L32713
+	.set .L32713, .L114-.L32733
+	.word .L32712
+	.set .L32712, .L115-.L32733
+	.word .L32711
+	.set .L32711, .L116-.L32733
+	.word .L32710
+	.set .L32710, .L117-.L32733
+	.word .L32709
+	.set .L32709, .L118-.L32733
+	.word .L32708
+	.set .L32708, .L119-.L32733
+	.word .L32707
+	.set .L32707, .L120-.L32733
+	.end_data_region
 	.text
 	.align 2
 .L122:
@@ -866,122 +918,122 @@ _p_dispos:
 	b	.L121
 .L94:
 	mov	x0,49
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L95:
 	mov	x0,56
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L96:
 	mov	x0,97
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L97:
 	mov	x0,98
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L98:
 	mov	x0,100
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L99:
 	mov	x0,101
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L100:
 	mov	x0,102
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L101:
 	mov	x0,103
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L102:
 	mov	x0,104
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L103:
 	mov	x0,105
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L104:
 	mov	x0,106
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L105:
 	mov	x0,107
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L106:
 	mov	x0,108
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L107:
 	mov	x0,109
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L108:
 	mov	x0,110
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L109:
 	mov	x0,111
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L110:
 	mov	x0,112
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L111:
 	mov	x0,113
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L112:
 	mov	x0,114
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L113:
 	mov	x0,115
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L114:
 	mov	x0,116
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L115:
 	mov	x0,117
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L116:
 	mov	x0,118
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L117:
 	mov	x0,119
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L118:
 	mov	x0,120
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L119:
 	mov	x0,121
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L120:
 	mov	x0,122
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L121:
 	mov	x0,63
-	bl	putchar
+	bl	_putchar
 	ldr	x15,[x29,-8]
 	mov	x0,x15
-	bl	putchar
+	bl	_putchar
 	b	.L123
 .L123:
 	mov	x0,10
-	bl	putchar
+	bl	_putchar
 .L93:
 	ldp	x30,x29,[sp,8]
 	add	sp,sp,32
@@ -995,27 +1047,27 @@ _p_dispos:
 #
 #	foo (main)
 #
-	.global main
-main:
+	.global _main
+_main:
 	sub	sp,sp,320
 	stp	x30,x29,[sp,304]
 	add	x29,sp,304
 # Line: 80, Stmt: 1
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+23
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+23@PAGEOFF
 	sub	x14,x29,40
 	mov	x16,40
-.L32758:
+.L32706:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32758
+	cbnz	x16,.L32706
 	sub	x0,x29,40
 	mov	x1,1
 	mov	x2,40
 	bl	putstringln
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+64
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+64@PAGEOFF
 	sub	x14,x29,48
 	ldrb	w16,[x15],1
 	strb	w16,[x14],1
@@ -1029,75 +1081,75 @@ main:
 	bl	putstring
 	mov	x0,xzr
 	bl	putintln
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+68
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+68@PAGEOFF
 	sub	x14,x29,56
 	mov	x16,6
-.L32757:
+.L32705:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32757
+	cbnz	x16,.L32705
 	sub	x0,x29,56
 	mov	x1,1
 	mov	x2,6
 	bl	putstring
 	mov	x0,1234
 	bl	putintln
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+75
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+75@PAGEOFF
 	sub	x14,x29,64
 	mov	x16,7
-.L32756:
+.L32704:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32756
+	cbnz	x16,.L32704
 	sub	x0,x29,64
 	mov	x1,1
 	mov	x2,7
 	bl	putstring
 	mov	x0,65535
 	bl	putintln
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+83
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+83@PAGEOFF
 	sub	x14,x29,72
 	mov	x16,7
-.L32755:
+.L32703:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32755
+	cbnz	x16,.L32703
 	sub	x0,x29,72
 	mov	x1,1
 	mov	x2,7
 	bl	putstring
 	mov	w0,65536
 	bl	putintln
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+91
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+91@PAGEOFF
 	sub	x14,x29,80
 	mov	x16,7
-.L32754:
+.L32702:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32754
+	cbnz	x16,.L32702
 	sub	x0,x29,80
 	mov	x1,1
 	mov	x2,7
 	bl	putstring
 	mov	w0,65537
 	bl	putintln
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+99
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+99@PAGEOFF
 	sub	x14,x29,88
 	mov	x16,7
-.L32753:
+.L32701:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32753
+	cbnz	x16,.L32701
 	sub	x0,x29,88
 	mov	x1,1
 	mov	x2,7
@@ -1105,8 +1157,8 @@ main:
 	movz	x0,3
 	movk	x0,1,lsl 16
 	bl	putintln
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+107
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+107@PAGEOFF
 	sub	x14,x29,96
 	ldrb	w16,[x15],1
 	strb	w16,[x14],1
@@ -1123,45 +1175,45 @@ main:
 	movz	x0,65535
 	movk	x0,65535,lsl 16
 	bl	putintln
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+112
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+112@PAGEOFF
 	sub	x14,x29,104
 	mov	x16,8
-.L32752:
+.L32700:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32752
+	cbnz	x16,.L32700
 	sub	x0,x29,104
 	mov	x1,1
 	mov	x2,8
 	bl	putstring
 	mov	w0,4294901760
 	bl	putintln
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+121
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+121@PAGEOFF
 	sub	x14,x29,112
 	mov	x16,8
-.L32751:
+.L32699:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32751
+	cbnz	x16,.L32699
 	sub	x0,x29,112
 	mov	x1,1
 	mov	x2,8
 	bl	putstring
 	mov	w0,4294901759
 	bl	putintln
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+130
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+130@PAGEOFF
 	sub	x14,x29,120
 	mov	x16,8
-.L32750:
+.L32698:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32750
+	cbnz	x16,.L32698
 	sub	x0,x29,120
 	mov	x1,1
 	mov	x2,8
@@ -1169,44 +1221,44 @@ main:
 	movz	x0,65533
 	movk	x0,65534,lsl 16
 	bl	putintln
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+139
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+139@PAGEOFF
 	sub	x14,x29,136
 	mov	x16,12
-.L32749:
+.L32697:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32749
+	cbnz	x16,.L32697
 	sub	x0,x29,136
 	mov	x1,1
 	mov	x2,12
 	bl	putstring
 	mov	w0,2004318071
 	bl	putintln
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+152
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+152@PAGEOFF
 	sub	x14,x29,184
 	mov	x16,48
-.L32748:
+.L32696:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32748
+	cbnz	x16,.L32696
 	sub	x0,x29,184
 	mov	x1,1
 	mov	x2,48
 	bl	putstringln
 	bl	putln
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+201
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+201@PAGEOFF
 	sub	x14,x29,208
 	mov	x16,22
-.L32747:
+.L32695:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32747
+	cbnz	x16,.L32695
 	sub	x0,x29,208
 	mov	x1,1
 	mov	x2,22
@@ -1229,28 +1281,28 @@ main:
 	bl	.P24  // p1
 	mov	x0,56
 	bl	.P24  // p1
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+224
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+224@PAGEOFF
 	sub	x14,x29,248
 	mov	x16,39
-.L32746:
+.L32694:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32746
+	cbnz	x16,.L32694
 	sub	x0,x29,248
 	mov	x1,1
 	mov	x2,39
 	bl	putstringln
-	adrp	x15,.L32765
-	add	x15,x15,:lo12:.L32765+264
+	adrp	x15,.L32765@PAGE
+	add	x15,x15,.L32765+264@PAGEOFF
 	sub	x14,x29,304
 	mov	x16,50
-.L32745:
+.L32693:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32745
+	cbnz	x16,.L32693
 	sub	x0,x29,304
 	mov	x1,1
 	mov	x2,50
