@@ -32,6 +32,7 @@ var
   reg_extends_text: array[reg_extends] of packed array [1..3] of char;
   reg_shifts_text: array[reg_shifts] of packed array [1..3] of char;
   conds_text: array[conds] of packed array [1..2] of char;
+  data_region: boolean;
 
 { Since this doesn't have to run on a tiny 'ole computer like the
   PDP-11 this is an artifact of the old disk-caching implementation
@@ -722,12 +723,23 @@ begin {write_node}
     end;
   rodatanode:
     begin
-      writeln(macfile, chr(9), '.section', chr(9), '.rodata');
-      writeln(macfile, chr(9), '.align 3');
+      {used only for case tables}
+      if unixtarget = linux then
+        writeln(macfile, chr(9), '.section', chr(9), '.rodata')
+      else
+        begin
+        data_region := true;
+        writeln(macfile, chr(9), '.data_region jt32');
+        end;
       writeln(macfile, '.L', p^.labelno:1,':');
      end;
   textnode:
     begin
+    if (unixtarget = darwin) and data_region then
+      begin
+      data_region := false;
+      writeln(macfile, chr(9), '.end_data_region');
+      end;
     writeln(macfile, chr(9), '.text');
     writeln(macfile, chr(9), '.align 2');
     end;
@@ -740,8 +752,17 @@ begin {write_node}
     end;
   proclabelnode: writeproclabel(p^.proclabel);
   labelnode: writeln(macfile, '.L', p^.labelno, ':');
-  labeldeltanode: writeln(macfile, chr(9), '.word', chr(9), '(.L', p^.targetlabel,
-                          '-.L', p^.tablebase, ')/4');
+  labeldeltanode:
+    if unixtarget = linux then
+      writeln(macfile, chr(9), '.long', chr(9), '.L', p^.targetlabel,
+                       '-.L', p^.tablebase)
+    else
+      begin
+      writeln(macfile, chr(9), '.word .L', lastlabel);
+      writeln(macfile, chr(9), '.set .L', lastlabel, ', .L', p^.targetlabel,
+                       '-.L', p^.tablebase);
+      lastlabel := lastlabel - 1;
+      end;
   commentnode: writeln(macfile, '# ', p^.comment);
   otherwise writeln('bad node');
   end;
@@ -750,6 +771,7 @@ end {write_node};
 procedure initmac;
 
 begin
+  data_region := false;
   reg_prefix[false] := 'w'; reg_prefix[true] := 'x';
   signed_prefix[false] := 'u'; signed_prefix[true] := 's';
 

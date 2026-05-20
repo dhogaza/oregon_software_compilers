@@ -5897,23 +5897,6 @@ procedure casebranchx;
 
   oprnds[2]:    Upper bound of cases
 
-  The code generated is:
-
-     ;move selection expression into Dn
-             sub.w   #lower,Dn       ;skew to range 0..(upper-lower)
-             cmpi.w  #(upper-lower),Dn       ;range test
-     if "otherwise" exists, or no error checking (refcount = 0) then:
-             bls.?   <otherwiselimb> ;condition = (C+Z); short/long branch
-     else no "otherwise" and error checking on (refcount = 1):
-             bhi.s   templabel       ;condition = not(C+Z)
-             jsr     caseerror       ;"case selector matches no label"
-         templabel:                  ;target of short branch around error
-     ;fi
-             add.w   Dn,Dn           ;make word address
-             move.w  6(PC,Dn.w),Dn   ;fetch 16-bit offset, reusing Dn
-             jmp     2(PC,Dn.w)      ;dispatch to selected case limb
-     table:  <word offsets of form "caselimb - table">
-    t: keyindex; {case expression}
 }
 
   var
@@ -5962,10 +5945,15 @@ begin {casebranchx}
   baselabel := newlabel; {must be last temp label for caseeltx}
   gen2(lastnode, buildinst(ldr, false, false), scratch,
        settemp(word, reg_offset_oprnd(addressreg, scratchreg, 2, xtw, false)));
+{
+  linux?
   gen2(lastnode, buildinst(adr, true, false), addresskey,
        settemp(long, datalabel_oprnd(baselabel, false, 0)));
+}
+  gen2(lastnode, buildinst(adr, true, false), addresskey,
+       settemp(long, labeltarget_oprnd(baselabel)));
   gen3(lastnode, buildinst(add, true, false), scratch, addresskey,
-       settemp(long, extend_reg_oprnd(scratchreg, xtw, 2, true)));
+       settemp(long, extend_reg_oprnd(scratchreg, xtw, 0, false)));
   gen1(lastnode, buildinst(br, true, false), scratch);
   definelabel(baselabel);
   unlock(scratch);

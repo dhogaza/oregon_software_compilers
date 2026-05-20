@@ -9,6 +9,20 @@
 
 *** current bugs
 
+   -- case tables don't work on darwin
+      adr relocation should not have @PAGE for getting the base of the
+      dispatch table.  And the dispatch table needs to be copied from fpc
+      assembly output.  It will require a global data element counter and
+      output something like:
+
+.data_region jt32
+Ld1:
+	.word	L$set$1
+	.set L$set$1,Lj9-Ld1
+	.word	L$set$2
+	.set L$set$2,Lj8-Ld1
+.end_data_region 
+
    -- 64-bit arithmetic doesn't work, not suprisingly.
 
    -- sets with > 8 elements and < 17 elements are allocated 64 bits.  No 16 or 32
