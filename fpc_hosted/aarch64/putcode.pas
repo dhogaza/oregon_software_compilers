@@ -451,7 +451,7 @@ procedure writeproclabel(procn: proctableindex);
       else
         begin write(macfile, chr(9), '.global ');
         { for darwin }
-        if proctable[blockref].calllinkage = nonpascalcall then
+        if (unixtarget = darwin) and (proctable[blockref].calllinkage = nonpascalcall) then
           write(macfile, '_');
         writeprocname(blockref);
         writeln(macfile);
@@ -624,7 +624,7 @@ begin
             write(macfile, '  // ');
           end;
         { check for darwin award }
-        if proctable[o.proclabelno].calllinkage = nonpascalcall then
+        if (unixtarget = darwin) and (proctable[o.proclabelno].calllinkage = nonpascalcall) then
           write(macfile, '_');
         writeprocname(o.proclabelno)
       end;
