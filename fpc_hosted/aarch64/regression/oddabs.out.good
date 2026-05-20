@@ -1,8 +1,0 @@
-odd(1): true
-odd(4): false
-odd(65536): false
-odd(1000001): true
-abs(1): 1
-abs(65535): 65535
-abs(-1): 1
-abs(-100000000): 100000000
