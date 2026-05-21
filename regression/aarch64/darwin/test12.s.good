@@ -5,8 +5,8 @@
 #
 .P2:
 	sub	sp,sp,48
-	stp	x30,x29,[sp,24]
-	add	x29,sp,24
+	stp	x30,x29,[sp,32]
+	add	x29,sp,32
 	str	x28,[x29,-8]
 	str	x1,[x29,-16]
 	str	x0,[x29,-24]
@@ -41,7 +41,7 @@
 	bl	_putchar
 .L2:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,24]
+	ldp	x30,x29,[sp,32]
 	add	sp,sp,48
 	ret
 	.text
@@ -51,8 +51,8 @@
 #
 .P3:
 	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
 	str	x28,[x29,-8]
 # Line: 17, Stmt: 1
 	mov	x28,97
@@ -77,7 +77,7 @@
 	bl	_putchar
 .L7:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,8]
+	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
 	.text
@@ -87,8 +87,8 @@
 #
 .P4:
 	sub	sp,sp,48
-	stp	x30,x29,[sp,24]
-	add	x29,sp,24
+	stp	x30,x29,[sp,32]
+	add	x29,sp,32
 	str	x28,[x29,-8]
 	str	x1,[x29,-16]
 	str	x0,[x29,-24]
@@ -123,7 +123,7 @@
 	bl	_putchar
 .L12:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,24]
+	ldp	x30,x29,[sp,32]
 	add	sp,sp,48
 	ret
 	.text
@@ -133,8 +133,8 @@
 #
 .P5:
 	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
 	str	x28,[x29,-8]
 # Line: 37, Stmt: 1
 	mov	x28,2
@@ -159,7 +159,7 @@
 	bl	_putchar
 .L17:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,8]
+	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
 	.bss

@@ -108,8 +108,8 @@ putstringln:
 	.global puthex
 puthex:
 	sub	sp,sp,64
-	stp	x30,x29,[sp,24]
-	add	x29,sp,24
+	stp	x30,x29,[sp,32]
+	add	x29,sp,32
 	str	x28,[x29,-8]
 # Line: 44, Stmt: 1
 # Line: 45, Stmt: 2
@@ -143,7 +143,7 @@ puthex:
 .L11:
 .L19:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,24]
+	ldp	x30,x29,[sp,32]
 	add	sp,sp,64
 	ret
 	.text
@@ -154,8 +154,8 @@ puthex:
 	.global puthexln
 puthexln:
 	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
 # Line: 64, Stmt: 1
 # Line: 65, Stmt: 2
 	str	x0,[x29,-8]
@@ -164,7 +164,7 @@ puthexln:
 	bl	puthex
 	bl	putln
 .L20:
-	ldp	x30,x29,[sp,8]
+	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
 	.text
@@ -175,8 +175,8 @@ puthexln:
 	.global putint
 putint:
 	sub	sp,sp,64
-	stp	x30,x29,[sp,24]
-	add	x29,sp,24
+	stp	x30,x29,[sp,32]
+	add	x29,sp,32
 	str	x28,[x29,-8]
 	str	x0,[x29,-16]
 # Line: 76, Stmt: 1
@@ -215,7 +215,7 @@ putint:
 .L21:
 .L28:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,24]
+	ldp	x30,x29,[sp,32]
 	add	sp,sp,64
 	ret
 	.text
@@ -226,8 +226,8 @@ putint:
 	.global putintln
 putintln:
 	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
 # Line: 99, Stmt: 1
 # Line: 100, Stmt: 2
 	str	x0,[x29,-8]
@@ -236,7 +236,7 @@ putintln:
 	bl	putint
 	bl	putln
 .L29:
-	ldp	x30,x29,[sp,8]
+	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
 	.text
@@ -296,8 +296,8 @@ putbool:
 	.global putboolln
 putboolln:
 	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
 # Line: 113, Stmt: 1
 # Line: 114, Stmt: 2
 	str	x0,[x29,-8]
@@ -307,7 +307,7 @@ putboolln:
 	mov	x0,10
 	bl	_putchar
 .L34:
-	ldp	x30,x29,[sp,8]
+	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
 	.text
@@ -318,8 +318,8 @@ putboolln:
 	.global putcharln
 putcharln:
 	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
 # Line: 120, Stmt: 1
 # Line: 121, Stmt: 2
 	str	x0,[x29,-8]
@@ -328,7 +328,7 @@ putcharln:
 	bl	_putchar
 	bl	putln
 .L35:
-	ldp	x30,x29,[sp,8]
+	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
 	.text

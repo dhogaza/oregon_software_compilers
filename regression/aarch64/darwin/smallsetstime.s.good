@@ -163,8 +163,8 @@
 	.global _main
 _main:
 	sub	sp,sp,48
-	stp	x30,x29,[sp,24]
-	add	x29,sp,24
+	stp	x30,x29,[sp,32]
+	add	x29,sp,32
 	stp	x27,x28,[x29,-16]
 	str	x26,[x29,-24]
 # Line: 44, Stmt: 1
@@ -228,6 +228,6 @@ _main:
 .L12:
 	ldp	x27,x28,[x29,-16]
 	ldr	x26,[x29,-24]
-	ldp	x30,x29,[sp,24]
+	ldp	x30,x29,[sp,32]
 	add	sp,sp,48
 	ret

@@ -15,8 +15,8 @@
 #
 .P1:
 	sub	sp,sp,48
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
 	str	x28,[x29,-8]
 # Line: 7, Stmt: 1
 # Line: 8, Stmt: 2
@@ -78,7 +78,7 @@
 	bl	_p_wtln_o 
 .L2:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,8]
+	ldp	x30,x29,[sp,16]
 	add	sp,sp,48
 	ret
 	.text
@@ -146,8 +146,8 @@
 #
 .P2:
 	sub	sp,sp,48
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
 	str	x28,[x29,-8]
 # Line: 35, Stmt: 1
 	mov	w16,65536
@@ -166,7 +166,7 @@
 	bl	.P3  // foo2
 .L4:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,8]
+	ldp	x30,x29,[sp,16]
 	add	sp,sp,48
 	ret
 	.bss

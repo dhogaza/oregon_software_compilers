@@ -35,15 +35,15 @@
 #
 .P1:
 	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
 	str	x28,[x29,-8]
 # Line: 12, Stmt: 1
 	mov	x28,x29
 	bl	.P2  // p2
 .L3:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,8]
+	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
 	.text
