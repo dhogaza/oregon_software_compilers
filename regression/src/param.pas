@@ -4,13 +4,13 @@ var z: integer;
 
 procedure foo(a,b,c,d,e,f,g,h,i,j,k,l:integer);
 begin
-putstring('foo: '); putint(b); putint(h); putintln(k);
+writeln('foo: ', b, h, k);
 end;
 
 procedure bar(a,b,c,d,e,f,g,h,i,j,k,l:integer);
 
 begin
-putstring('bar: '); putint(a); putint(i); putintln(l);
+writeln('bar: ', a, i, l);
 end;
 
 begin
