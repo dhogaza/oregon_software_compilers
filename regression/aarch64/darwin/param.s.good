@@ -330,37 +330,33 @@ putcharln:
 #	foo
 #
 .P12:
-	sub	sp,sp,48
-	stp	x30,x29,[sp,32]
-	add	x29,sp,32
+	sub	sp,sp,32
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
 # Line: 6, Stmt: 1
 # Line: 7, Stmt: 2
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+12@PAGEOFF
-	sub	x14,x29,8
-	mov	x16,5
-.L32763:
-	ldrb	w17,[x15],1
-	strb	w17,[x14],1
-	subs	x16,x16,1
-	cbnz	x16,.L32763
+	adrp	x0,.L32765@PAGE
+	add	x0,x0,.L32765+12@PAGEOFF
+	str	x1,[x29,-8]
+	mov	x1,5
+	mov	x2,x1
 	str	x7,[x29,-16]
-	str	x1,[x29,-24]
-	sub	x0,x29,8
-	mov	x1,1
-	mov	x2,5
-	bl	putstring
-	ldr	x15,[x29,-24]
+	bl	_p_wts_o 
+	ldr	x15,[x29,-8]
 	mov	x0,x15
-	bl	putint
+	mov	x1,12
+	bl	_p_wti_o 
 	ldr	x15,[x29,-16]
 	mov	x0,x15
-	bl	putint
+	mov	x1,12
+	bl	_p_wti_o 
 	ldrsw	x0,[x29,32]
-	bl	putintln
+	mov	x1,12
+	bl	_p_wti_o 
+	bl	_p_wtln_o 
 .L36:
-	ldp	x30,x29,[sp,32]
-	add	sp,sp,48
+	ldp	x30,x29,[sp,16]
+	add	sp,sp,32
 	ret
 	.text
 	.align 2
@@ -373,27 +369,23 @@ putcharln:
 	add	x29,sp,16
 # Line: 12, Stmt: 1
 # Line: 13, Stmt: 2
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+18@PAGEOFF
-	sub	x14,x29,8
-	mov	x16,5
-.L32762:
-	ldrb	w17,[x15],1
-	strb	w17,[x14],1
-	subs	x16,x16,1
-	cbnz	x16,.L32762
-	str	x0,[x29,-16]
-	sub	x0,x29,8
-	mov	x1,1
-	mov	x2,5
-	bl	putstring
-	ldr	x15,[x29,-16]
+	str	x0,[x29,-8]
+	adrp	x0,.L32765@PAGE
+	add	x0,x0,.L32765+18@PAGEOFF
+	mov	x1,5
+	mov	x2,x1
+	bl	_p_wts_o 
+	ldr	x15,[x29,-8]
 	mov	x0,x15
-	bl	putint
+	mov	x1,12
+	bl	_p_wti_o 
 	ldrsw	x0,[x29,16]
-	bl	putint
+	mov	x1,12
+	bl	_p_wti_o 
 	ldrsw	x0,[x29,40]
-	bl	putintln
+	mov	x1,12
+	bl	_p_wti_o 
+	bl	_p_wtln_o 
 .L37:
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
@@ -409,9 +401,9 @@ putcharln:
 #
 	.global _main
 _main:
-	sub	sp,sp,48
-	stp	x30,x29,[sp,32]
-	add	x29,sp,32
+	sub	sp,sp,64
+	stp	x30,x29,[sp,48]
+	add	x29,sp,48
 # Line: 16, Stmt: 1
 	adrp	x15,.L32766@PAGE
 	mov	w16,3
@@ -450,14 +442,14 @@ _main:
 	mov	x16,12
 	str	x16,[sp,24]
 	bl	.P13  // bar
-	adrp	x15,.L32766@PAGE
-	ldrsw	x15,[x15,.L32766+32@PAGEOFF]
+	mov	x15,3
+	str	x15,[x29,-8]
 	cmp	w15,3
 	b.ne	.L39
 .L40:
 	mov	x0,1
 	mov	x1,2
-	mov	x2,3
+	mov	x2,x15
 	mov	x3,4
 	mov	x4,5
 	mov	x5,6
@@ -476,7 +468,7 @@ _main:
 .L39:
 	mov	x0,1
 	mov	x1,2
-	mov	x2,3
+	mov	x2,x15
 	mov	x3,4
 	mov	x4,5
 	mov	x5,6
@@ -494,7 +486,8 @@ _main:
 .L41:
 	mov	x0,1
 	mov	x1,2
-	mov	x2,3
+	ldr	x15,[x29,-8]
+	mov	x2,x15
 	mov	x3,4
 	mov	x4,5
 	mov	x5,6
@@ -510,6 +503,6 @@ _main:
 	str	x16,[sp,24]
 	bl	.P12  // foo
 .L38:
-	ldp	x30,x29,[sp,32]
-	add	sp,sp,48
+	ldp	x30,x29,[sp,48]
+	add	sp,sp,64
 	ret

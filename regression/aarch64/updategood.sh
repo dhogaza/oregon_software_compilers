@@ -5,7 +5,13 @@ for f in $src/*.pas; do
     echo "--- updating $(basename $f) good files ---"
     f=${f%%.*}
     base=$(basename $f)
-    cp $base.s $base.s.good
-    cp $base.out $base.out.good
+    if [ -s "$base.out.diff" ]; then
+      echo "making $base.out good"
+      cp $base.out $base.out.good
+    fi
+    if [ -s "$base.s.diff" ]; then
+      echo "making $base.s good"
+      cp $base.s $base.s.good
+    fi
 done
 popd >/dev/null
