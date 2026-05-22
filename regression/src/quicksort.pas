@@ -14,8 +14,6 @@ program sort(input, output);
     sorted: boolean;
     arr: intarrtype;
 
-  %include 'testlib';
-
   procedure initarray(var a: intarrtype);
     var i: integer;
 
@@ -94,8 +92,7 @@ program sort(input, output);
       end;
 
     begin
-        putstring('sorting ');
-        putintln(maxelts);
+        writeln('sorting ', maxelts:1);
         initarray(arr);
         quicksort(arr);
         sorted := true;
@@ -105,6 +102,5 @@ program sort(input, output);
             sorted := arr[i] >= arr[i - 1];
             i := i + 1;
           end;
-        putstring('result is sorted = ');
-        putboolln(sorted);
+        writeln('result is sorted = ', sorted:1);
     end.

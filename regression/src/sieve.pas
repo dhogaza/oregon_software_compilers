@@ -11,8 +11,6 @@ const
 var
   flags : array [0..SIZE] of boolean;
  
-%include 'testlib';
-
 procedure p;
 var
   i, prime, k, count, iter : integer;
@@ -32,7 +30,7 @@ begin
         count := count + 1;
       end;
   end;
-  putintln(count);
+  writeln(count:1);
 end;
 
 begin

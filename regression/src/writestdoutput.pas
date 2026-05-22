@@ -1,7 +1,5 @@
 { test simple write to standard output}
 
-%include 'testlib'
-
 var i:integer;
   ch: char;
   a: packed array [1..3] of char;

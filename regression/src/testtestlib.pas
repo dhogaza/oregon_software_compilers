@@ -1,4 +1,6 @@
-program foo;
+{ Keeping one test to make sure the old testlib code still compiles
+  and works.
+}
 
 %include 'testlib';
 

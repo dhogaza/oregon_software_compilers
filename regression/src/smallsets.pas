@@ -1,4 +1,3 @@
-%include 'testlib'
 type nums = (one, two, three, four, five, six, seven, eight);
   numset = set of nums;
   alpha = (a,b,c,d,e,f,g,h,i,j,k);
@@ -25,22 +24,16 @@ procedure putnumset(s: numset);
   var n:nums;
 begin
   for n := one to eight do
-    begin
-    putbool(n in s);
-    putchar(' ');
-    end;
-  putln;
+    write(n in s, ' ');
+  writeln;
 end;
 
 procedure putalphaset(s: alphaset);
   var n:alpha;
 begin
   for n := a to k do
-    begin
-    putbool(n in s);
-    putchar(' ');
-    end;
-  putln;
+    write(n in s, ' ');
+  writeln;
 end;
 
 begin
@@ -49,12 +42,12 @@ begin
   b1 := two;
   b2 := five;
   initsets;
-  putstring('s1:[one, two, five, func(four)] '); putnumset(s1);
-  putstring('s2:[eight, two..five] '); putnumset(s2);
-  putstring('s1 + s2 '); putnumset(s1 + s2);
-  putstring('s1 * s2 '); putnumset(s1 * s2);
-  putstring('s1 - s2 '); putnumset(s1 - s2);
-  putstring('sa1:[b, e, k] '); putalphaset(sa1);
-  putstring('sa2:[c..j] '); putalphaset(sa2);
+  write('s1:[one, two, five, func(four)] '); putnumset(s1);
+  write('s2:[eight, two..five] '); putnumset(s2);
+  write('s1 + s2 '); putnumset(s1 + s2);
+  write('s1 * s2 '); putnumset(s1 * s2);
+  write('s1 - s2 '); putnumset(s1 - s2);
+  write('sa1:[b, e, k] '); putalphaset(sa1);
+  write('sa2:[c..j] '); putalphaset(sa2);
 end.
   

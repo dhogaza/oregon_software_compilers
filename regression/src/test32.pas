@@ -1,5 +1,4 @@
 const foo = 'abc';
-%include 'testlib';
 
 var b: boolean;
   i,j,k,l: integer;
@@ -41,42 +40,42 @@ begin
 end;
 
 begin
-  putstringln('three pairs: 1,2 2,2 3,2');
-  putln;
-  putstringln('less than');
-  putboolln(lt(1,2));
-  putboolln(lt(2,2));
-  putboolln(lt(3,2));
-  putln;
+  writeln('three pairs: 1,2 2,2 3,2');
+  writeln;
+  writeln('less than');
+  writeln(lt(1,2):1);
+  writeln(lt(2,2):1);
+  writeln(lt(3,2):1);
+  writeln;
 
-  putstringln('greater than');
-  putboolln(gt(1,2));
-  putboolln(gt(2,2));
-  putboolln(gt(3,2));
-  putln;
+  writeln('greater than');
+  writeln(gt(1,2):1);
+  writeln(gt(2,2):1);
+  writeln(gt(3,2):1);
+  writeln;
 
-  putstringln('less or equal than');
-  putboolln(le(1,2));
-  putboolln(le(2,2));
-  putboolln(le(3,2));
-  putln;
+  writeln('less or equal than');
+  writeln(le(1,2):1);
+  writeln(le(2,2):1);
+  writeln(le(3,2):1);
+  writeln;
 
-  putstringln('greater or equal than');
-  putboolln(ge(1,2));
-  putboolln(ge(2,2));
-  putboolln(ge(3,2));
-  putln;
+  writeln('greater or equal than');
+  writeln(ge(1,2):1);
+  writeln(ge(2,2):1);
+  writeln(ge(3,2):1);
+  writeln;
 
-  putstringln('equal to');
-  putboolln(eq(1,2));
-  putboolln(eq(2,2));
-  putboolln(eq(3,2));
-  putln;
+  writeln('equal to');
+  writeln(eq(1,2):1);
+  writeln(eq(2,2):1);
+  writeln(eq(3,2):1);
+  writeln;
 
-  putstringln('not equal to');
-  putboolln(ne(1,2));
-  putboolln(ne(2,2));
-  putboolln(ne(3,2));
-  putln;
+  writeln('not equal to');
+  writeln(ne(1,2):1);
+  writeln(ne(2,2):1);
+  writeln(ne(3,2):1);
+  writeln;
 
 end.

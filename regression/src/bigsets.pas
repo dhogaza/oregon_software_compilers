@@ -1,5 +1,3 @@
-%include 'testlib'
-
 type n192 = (n192b1,n192b2,n192b3,n192b4,n192b5,n192b6,n192b7,n192b8,
   n192b9,n192b10,n192b11,n192b12,n192b13,n192b14,n192b15,n192b16,
   n192b17,n192b18,n192b19,n192b20,n192b21,n192b22,n192b23,n192b24,
@@ -92,31 +90,32 @@ var
 begin
   i128 := n128b75;
   v128 := [n128b5];
-  putstring('expect false '); putboolln(i128 in v128);
-  putstring('expect true '); putboolln(n128b5 in v128);
+  writeln('expect false ', i128 in v128);
+  writeln('expect true ', n128b5 in v128);
   i192 := n192b95;
   i192x := n192b6;
   i192xx := n192b190;
   v192 := [i192x..i192];
   v192x := [n192b6, n192b90, n192b192];
   v192 := (v192 + v192x) * v192;
-  putstring('expect true '); putboolln(n192b90 in v192);
-  putstring('expect false '); putboolln(n192b192 in v192);
-  putstring('expect true '); putboolln(i192xx in v192);
+  writeln('expect true ', n192b90 in v192);
+  writeln('expect false ', n192b192 in v192);
+  writeln('expect false ', i192xx in v192);
   v192 := v192 + [n192b1];
-  putstring('expect true '); putboolln(n192b1 in v192);
-  putstring('expect false '); putboolln(n192b1 in (v192 - [n192b1]));
-  putstring('expect true '); putboolln(i192 in v192);
-  putstring('expect true '); putboolln(i192x in v192);
-  putstring('expect true '); putboolln(n192b1 in v192);
-  putstring('expect false '); putboolln(n192b192 in v192);
-  putstring('expect true '); putboolln(n192b92 in v192);
-  putstring('expect false '); putboolln(n192b5 in v192);
-  putstring('expect true '); putboolln(n192b6 in v192);
-  putstring('expect true '); putboolln(n192b6 in (v192 * v192x));
-  putstring('expect false '); putboolln(n192b6 in (v192 - v192x));
-  putstring('expect false '); putboolln(n192b192 in (v192 * v192x));
-  putstring('expect false '); putboolln(n192b192 in (v192 - v192x));
-  putstring('expect true '); putboolln(n192b91 in (v192 - v192x));
-  putstring('expect false '); putboolln(n192b5 in (v192 - [i192xx]));
+  writeln('expect true ', n192b6 in v192);
+  writeln('expect true ', n192b1 in v192);
+  writeln('expect false ', n192b1 in (v192 - [n192b1]));
+  writeln('expect true ', i192 in v192);
+  writeln('expect true ', i192x in v192);
+  writeln('expect true ', n192b1 in v192);
+  writeln('expect false ', n192b192 in v192);
+  writeln('expect true ', n192b92 in v192);
+  writeln('expect false ', n192b5 in v192);
+  writeln('expect true ', n192b6 in v192);
+  writeln('expect true ', n192b6 in (v192 * v192x));
+  writeln('expect false ', n192b6 in (v192 - v192x));
+  writeln('expect false ', n192b192 in (v192 * v192x));
+  writeln('expect false ', n192b192 in (v192 - v192x));
+  writeln('expect true ', n192b91 in (v192 - v192x));
+  writeln('expect false ', n192b5 in (v192 - [i192xx]));
 end.

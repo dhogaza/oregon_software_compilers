@@ -1,11 +1,8 @@
-%include 'testlib'
-
 function oddf(i:integer): boolean;
 
 begin
   oddf := odd(i);
 end;
-
 
 function absf(i:integer):integer;
 
@@ -14,13 +11,13 @@ begin
 end;
 
 begin
-  putstring('odd(1): '); putboolln(oddf(1));
-  putstring('odd(4): '); putboolln(oddf(4));
-  putstring('odd(65536): '); putboolln(oddf(65536));
-  putstring('odd(1000001): '); putboolln(oddf(1000001));
+  writeln('odd(1): ', oddf(1):1);
+  writeln('odd(4): ', oddf(4):1);
+  writeln('odd(65536): ', oddf(65536):1);
+  writeln('odd(1000001): ', oddf(1000001):1);
 
-  putstring('abs(1): '); putintln(absf(1));
-  putstring('abs(65535): '); putintln(absf(65535));
-  putstring('abs(-1): '); putintln(absf(-1));
-  putstring('abs(-100000000): '); putintln(absf(100000000));
+  writeln('abs(1): ', absf(1):1);
+  writeln('abs(65535): ', absf(65535):1);
+  writeln('abs(-1): ', absf(-1):1);
+  writeln('abs(-100000000): ', absf(100000000):1);
 end.

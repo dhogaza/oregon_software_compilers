@@ -12,8 +12,6 @@ var
   flags : array [0..SIZE] of boolean;
   i, prime, k, count, iter : integer;
  
-%include 'testlib';
-
 begin
   for iter := 1 to ITERMAX do begin
     count := 0;
@@ -30,6 +28,6 @@ begin
         count := count + 1;
       end;
   end;
-  putintln(count);
+  writeln(count:1);
 end.
 
