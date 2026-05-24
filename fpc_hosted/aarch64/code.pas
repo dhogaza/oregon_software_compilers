@@ -2408,7 +2408,7 @@ procedure makedstaddressable(k: keyindex);
 
   begin
     with keytable[k], oprnd do
-      if (mode = register) and (reg >= firstreg) and (reg <= lastreg) then
+      if (mode = register) and (reg <= lastreg) then
         begin
         regvalid := true;
         regsaved := false;
@@ -5434,7 +5434,7 @@ var
   srcregkey, dstregkey, ip0key, ip1key, labelkey: keyindex;
   l: addressrange;
 
-  begin
+  begin {movemultiple}
     lock(dst);
     srcregkey := settemp(long, reg_oprnd(getreg));
     genmoveaddress(src, srcregkey);
@@ -5468,7 +5468,15 @@ var
                      settemp(long, imm12_oprnd(1, false)));
       gen2(lastnode, buildinst(cbnz, true, false), ip0key, labelkey);
       end
-  end;
+  end {movemultiple};
+
+procedure movstructx;
+
+begin {movstructx}
+  addressboth;
+  movemultiple(right, left);
+end {movstructx};
+
 
 procedure pshstructx;
 
@@ -6298,7 +6306,7 @@ procedure codeone;
       movreal, returnreal: movrealx;
       movlitreal: movlitrealx;
 }
-      movstruct, returnstruct: movemultiple(right, left);
+      movstruct, returnstruct: movstructx;
       movset: movsetx;
 {
       movstr: movstrx;
