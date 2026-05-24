@@ -10,8 +10,6 @@
 
 *** current bugs
 
-   -- weird stuff with x0 ???
-
    -- the fp offset issue attemped (?) fix might be wrong (or right).  The
       spoffset used to set fp should merely be the amount subtracted from the
       stack on entry -blocksize or something like that.  Think a bit.

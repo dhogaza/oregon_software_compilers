@@ -705,7 +705,6 @@ var
     library calls.
   }
   paramlist_started: boolean;
-  regparam_target: keyindex;
 
   settargetused: boolean;  {set in setarithmetic and checked in movstruct to
                             prevent redundant set moves. }

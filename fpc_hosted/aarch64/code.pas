@@ -2279,7 +2279,7 @@ procedure changevalue(var key1: keyindex; {key to be changed}
     savekey(key1);
   end {changevalue} ;
 
-procedure makeaddressable(var k: keyindex);
+procedure makeaddressable(var k: keyindex; target: keyindex);
 
 { Force addressability of specified key. Also permanently makes the new
   address mode available subject to restrictions of allowmodify. A key
@@ -2323,12 +2323,11 @@ procedure makeaddressable(var k: keyindex);
       adjustregcount(k, - refcount);
       if restorereg then
         begin
-        {DRB try to restore a register operand to the current register param
-         target if possible.
-        }
-        if (mode = register) and
-           (registers[keytable[regparam_target].oprnd.reg] = 1) then
-          reg := keytable[regparam_target].oprnd.reg
+        { DRB try to restore a register operand to its eventual resting
+          place }
+        if (mode = register) and (target <> 0) and
+           (keytable[target].oprnd.mode = register) then
+          reg := keytable[target].oprnd.reg
         else
           reg := getreg;
         recall_reg(reg, properreg);
@@ -2372,14 +2371,14 @@ procedure makeaddressable(var k: keyindex);
       end;
   end {makeaddressable} ;
 
-procedure address(var k: keyindex);
+procedure address(var k: keyindex; target: keyindex);
 
 { Shorthand concatenation of a dereference and makeaddressable call }
 
 
   begin
     dereference(k);
-    makeaddressable(k);
+    makeaddressable(k, target);
   end {address} ;
 
 
@@ -2389,9 +2388,9 @@ procedure addressboth;
 
 
   begin
-    address(right);
+    address(right, 0);
     lock(right);
-    address(left);
+    address(left, 0);
     unlock(right);
   end {addressboth} ;
 
@@ -2421,7 +2420,7 @@ procedure makedstaddressable(k: keyindex);
             keytable[i].joinreg2 := true;
           end;
         end
-      else makeaddressable(k);
+      else makeaddressable(k, 0);
   end;
 
 procedure addressdst(k: keyindex);
@@ -2472,8 +2471,6 @@ procedure initblock;
     i: integer; {general purpose induction variable}
 
   begin
-    regparam_target := 0; {reset switch}
-
     while (currentswitch <= lastswitch) and
           ((switches[currentswitch].mhi = gethi) and
           (switches[currentswitch].mlow <= getlow) or
@@ -3706,7 +3703,7 @@ procedure defforindexx(sgn, { true if signed induction var }
 { DRB
       unpackshrink(left, len);
 }
-      address(left);
+      address(left, 0);
       end;
 
     lock(left);
@@ -3791,7 +3788,7 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
 
       if target <> 0 then
         begin
-        makeaddressable(target);
+        makeaddressable(target, 0);
 { DRB
         shrink(target, keytable[forkey].len);
 }
@@ -3876,14 +3873,14 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
           begin
           if keytable[forkey].regenoprnd.mode <> nomode then
             begin
-            makeaddressable(forkey);
+            makeaddressable(forkey, 0);
             k := forkey;
             end
           else
             begin
             k := keytable[forkey].properreg;
             keytable[k].tempflag := true;  
-            makeaddressable(k);
+            makeaddressable(k, 0);
             end;
 { was dereference(forkey) here rather than above }
           newkey := settemp(long, reg_oprnd(originalreg));
@@ -4082,7 +4079,7 @@ procedure unaryint(inst: insts);
 {    unpackshrink(left, len);}
     settargetorreg; 
     lock(key);
-    address(left);
+    address(left, 0);
     loadreg(left, 0);
     unlock(key);
     gen2(lastnode, buildinst(inst, len = long, false), key, left);
@@ -4093,7 +4090,7 @@ procedure compintx;
 
   begin {compintx}
 {    unpackshrink(left, len);}
-    address(left);
+    address(left, 0);
     loadreg(left, 0);
     settargetorreg; 
     gen2(lastnode, buildinst(movn, len = long, false), key, left);
@@ -4104,7 +4101,7 @@ procedure compboolx;
 
   begin {compboolx}
 {    unpackshrink(left, len);}
-    address(left);
+    address(left, 0);
     settargetorreg; 
     loadreg(left, 0);
     gen3(lastnode, buildinst(eor, false, false), key, left,
@@ -4121,7 +4118,7 @@ procedure incdec(inst: insts {add, sub} );
 {    unpackshrink(left, len);}
     settargetorreg; 
     lock(key);
-    address(left);
+    address(left, 0);
     loadreg(left, 0);
     unlock(key);
     gen3(lastnode, buildinst(inst, len = long, false), key, left,
@@ -4174,7 +4171,7 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
     litkey: keyindex;
 
   begin
-    address(left);
+    address(left, 0);
     loadreg(left, 0);
 
     { a kludge to allow the use of cbz/cbnz which depends on it following
@@ -4286,7 +4283,7 @@ procedure getquox;
   begin {getquox}
     if keytable[left].oprnd.mode = tworeg then
       keytable[left].reg2valid := true;
-    address(left);
+    address(left, 0);
     keytable[key].regsaved := keytable[left].regsaved;
     keytable[key].properreg := keytable[left].properreg; 
     setvalue(reg_oprnd(keytable[left].oprnd.reg));
@@ -4301,7 +4298,7 @@ procedure getremx;
   begin {getremx}
     if keytable[left].oprnd.mode = tworeg then
       keytable[left].regvalid := true;
-    address(left);
+    address(left, 0);
     if keytable[left].oprnd.mode = tworeg then
       begin
       keytable[key].reg2saved := keytable[left].reg2saved;
@@ -4459,7 +4456,7 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
         setvalue(index_oprnd(abstract_offset, sl, 0))
       else
         begin
-        address(target);
+        address(target, 0);
         reg := getreg;
         gensimplemove(lastnode, settemp(long, index_oprnd(abstract_offset,
                       keytable[target].oprnd.reg, -long)),
@@ -4531,7 +4528,7 @@ procedure dosetx;
   tempreg: regindex;
 
   begin {dosetx}
-    address(left);
+    address(left, 0);
 
     {kludge for empty set until we get smart short set literals or at least
      getting the length issue fixed in the front end after all of these endless
@@ -4672,10 +4669,10 @@ procedure setinsertx;
     looplabel, skiplabel: labelrange;
 
   begin {setinsertx}
-    address(left);
+    address(left, 0);
     setlen := keytable[target].len;
     lock(left);
-    makeaddressable(target);
+    makeaddressable(target, 0);
     lock(target);
     bitkey := settemp(long, reg_oprnd(getreg));
     lock(bitkey);
@@ -4690,7 +4687,7 @@ procedure setinsertx;
     { range insert?}
     if right <> 0 then 
       begin
-      address(right);
+      address(right, 0);
       if keytable[right].oprnd.mode = intconst then
         begin
         handle_intconst12(lastnode, right);
@@ -4860,7 +4857,7 @@ end {setfilex} ;
 procedure fmtx;
 
 begin {fmtx}
-  address(left);
+  address(left, 0);
   gensimplemove(lastnode, left, settemp(long, reg_oprnd(firstreg)));
   markreg(firstreg);
   firstreg := firstreg + 1;
@@ -4903,7 +4900,7 @@ procedure sysfnintx;
 {
       unpackshrink(left, len);
 }
-      address(left);
+      address(left, 0);
       settargetorreg;
       loadreg(left, key);
       gen2(lastnode, buildinst(cmp, keytable[left].len = long, false), left,
@@ -4919,7 +4916,7 @@ procedure sysfnintx;
 }
 
     begin
-      address(left);
+      address(left, 0);
       loadreg(left, 0);
       gen3(lastnode, buildinst(ands, keytable[left].len = long, false),
                     settemp(long, reg_oprnd(zero)), left,
@@ -5319,7 +5316,6 @@ procedure regtargetx;
 
 
   begin {regtargetx}
-    regparam_target := pseudoinst.key;
     if not regtargethack then
       markreg(pseudoinst.oprnds[1]);
     setvalue(reg_oprnd(pseudoinst.oprnds[1]));
@@ -5340,7 +5336,7 @@ procedure regtempx;
 
 
   begin
-    address(left);
+    address(left, 0);
     setvalue(reg_oprnd(lastreg + pseudoinst.oprnds[3]));
     regused[lastreg + pseudoinst.oprnds[3]] := true;
   end {regtempx} ;
@@ -5374,7 +5370,7 @@ procedure movintptrx;
     addressdst(left);
     unlock(right);
     lock(left);
-    address(right);
+    address(right, left);
     unlock(left);
     gensimplemove(lastnode, right, left);
     savedstkey(left);
@@ -5403,7 +5399,7 @@ procedure pshlitintptrx;
 procedure pshintptrx;
 
   begin {pshintptrx}
-    address(left);
+    address(left, 0);
     gensimplemove(lastnode, left, key);
     dontchangevalue := dontchangevalue - 1;
   end {pshintptrx};
@@ -5414,7 +5410,7 @@ procedure pshaddrx;
     addrkey: keyindex;
 
   begin {pshaddrx}
-    address(left);
+    address(left, 0);
     lock(left);
     addrkey := settemp(long, reg_oprnd(getreg));
     unlock(left);
@@ -5477,14 +5473,14 @@ var
 procedure pshstructx;
 
 begin {pshstructx}
-  address(left);
+  address(left, 0);
   movemultiple(left, key);
 end; {pshstructx}
 
 procedure pshsetx;
 
 begin {pshstructx}
-  address(left);
+  address(left, 0);
   moveset(left, key);
 end; {pshstructx}
 
@@ -5499,7 +5495,7 @@ begin {regparamx}
   regused[pseudoinst.oprnds[3]] := true;
   if left <> 0 then
     begin
-    address(left);
+    address(left, 0);
     with keytable[left].oprnd do
       saveparam := settemp(long, index_oprnd(abstract_offset, reg,
                          index + pseudoinst.oprnds[2]));
@@ -5528,7 +5524,7 @@ procedure indxx;
       end
     else
       begin
-      address(left);
+      address(left, 0);
 
 { DRB this doesn't really work as we don't check for oprnd alignment,
   the range of the index, etc etc.  Good enough for preliminary testing.
@@ -5586,7 +5582,7 @@ procedure indxindrx;
 }
 
   begin {indxindrx}
-    address(left);
+    address(left, 0);
     loadreg(left, 0);
     setvalue(index_oprnd(abstract_offset, keytable[left].oprnd.reg, 0));
   end {indxindrx};
@@ -5653,7 +5649,7 @@ procedure aindxx;
 procedure addrx;
 
   begin {addrx}
-    address(left);
+    address(left, 0);
     lock(left);
     settargetorreg; 
     unlock(left);
@@ -5778,7 +5774,6 @@ procedure callroutinex(s: boolean {signed function value} );
 
   begin {callroutinex}
     paramlist_started := false; {reset the switch}
-    regparam_target := 0; {we are done filling params}
 
     markscratchregs;
 
@@ -5899,7 +5894,7 @@ begin {casebranchx}
   keytable[key].refcount := 0; {so we can loadreg etc }
   default := len;
 
-  address(target);
+  address(target, 0);
   scratchreg := getreg;
   scratch := settemp(word, reg_oprnd(scratchreg));
   lock(scratch);
@@ -6019,7 +6014,7 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
     regkey: keyindex;
 
   begin {jumpcond}
-    address(right);
+    address(right, 0);
     labeltarget := settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1]));
     if keytable[right].oprnd.mode = cond then
       c := keytable[right].oprnd.condition
@@ -6054,7 +6049,7 @@ var
   c: conds;
 
 begin {condvalue}
-  address(left);
+  address(left, 0);
   settargetorreg;
   with keytable[left].oprnd do
     if inv then c := invertcond[condition]
