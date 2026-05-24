@@ -1,5 +1,6 @@
 { Keeping one test to make sure the old testlib code still compiles
-  and works.
+  and works though all the other tests are being modified to use
+  write[ln].
 }
 
 %include 'testlib';
