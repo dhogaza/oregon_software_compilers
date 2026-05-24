@@ -176,8 +176,7 @@ puthexln:
 # Line: 64, Stmt: 1
 # Line: 65, Stmt: 2
 	str	x0,[x29,-8]
-	ldr	x15,[x29,-8]
-	mov	x0,x15
+	ldr	x0,[x29,-8]
 	bl	puthex
 	bl	putln
 .L20:
@@ -248,8 +247,7 @@ putintln:
 # Line: 99, Stmt: 1
 # Line: 100, Stmt: 2
 	str	x0,[x29,-8]
-	ldr	x15,[x29,-8]
-	mov	x0,x15
+	ldr	x0,[x29,-8]
 	bl	putint
 	bl	putln
 .L29:
@@ -318,8 +316,7 @@ putboolln:
 # Line: 113, Stmt: 1
 # Line: 114, Stmt: 2
 	str	x0,[x29,-8]
-	ldr	x15,[x29,-8]
-	mov	x0,x15
+	ldr	x0,[x29,-8]
 	bl	putbool
 	mov	x0,10
 	bl	_putchar
@@ -340,8 +337,7 @@ putcharln:
 # Line: 120, Stmt: 1
 # Line: 121, Stmt: 2
 	str	x0,[x29,-8]
-	ldr	x15,[x29,-8]
-	mov	x0,x15
+	ldr	x0,[x29,-8]
 	bl	_putchar
 	bl	putln
 .L35:
@@ -695,8 +691,7 @@ putcharln:
 .L94:
 	mov	x0,63
 	bl	_putchar
-	ldr	x15,[x29,-8]
-	mov	x0,x15
+	ldr	x0,[x29,-8]
 	bl	_putchar
 	b	.L96
 .L96:

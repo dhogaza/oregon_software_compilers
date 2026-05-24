@@ -128,8 +128,8 @@
 	ldr	x15,[x28,-8]
 	ldr	x15,[x15,16]
 	str	x15,[x29,-32]
-	ldr	x0,[x29,-40]
-	add	x14,x15,w0, sxtw 2
+	ldr	x14,[x29,-40]
+	add	x14,x15,w14, sxtw 2
 	sub	x0,x14,4
 	add	x15,x15,w25, sxtw 2
 	sub	x1,x15,4
@@ -159,21 +159,17 @@
 	cmp	w0,w1
 	b.ge	.L22
 .L23:
-	ldr	x15,[x29,-24]
-	mov	x0,x15
-	ldr	x15,[x29,-32]
-	mov	x1,x15
+	ldr	x0,[x29,-24]
+	ldr	x1,[x29,-32]
 	mov	x28,x29
 	bl	.P4  // split
 	ldr	x28,[x29,-8]
 	mov	x27,x0
-	ldr	x15,[x29,-24]
-	mov	x0,x15
+	ldr	x0,[x29,-24]
 	sub	w1,w27,1
 	bl	.P3  // quicksortrecur
 	add	w0,w27,1
-	ldr	x15,[x29,-32]
-	mov	x1,x15
+	ldr	x1,[x29,-32]
 	bl	.P3  // quicksortrecur
 .L21:
 .L22:

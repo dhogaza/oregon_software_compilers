@@ -70,9 +70,8 @@
 	mov	x1,3
 	mov	x2,x1
 	bl	_p_wts_o 
-	adrp	x15,.L32766@PAGE
-	ldrsw	x15,[x15,.L32766+32@PAGEOFF]
-	mov	x0,x15
+	adrp	x0,.L32766@PAGE
+	ldrsw	x0,[x0,.L32766+32@PAGEOFF]
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 

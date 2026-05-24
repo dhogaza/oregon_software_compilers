@@ -119,8 +119,8 @@
 	str	x0,[x29,-16]
 	mov	x28,xzr
 .L6:
-	ldr	x0,[x29,-16]
-	lsr	w16,w0,w28
+	ldr	x15,[x29,-16]
+	lsr	w16,w15,w28
 	ands	w16,w16,1
 	cset	w0,ne
 	mov	x1,5
@@ -154,8 +154,8 @@
 	str	x0,[x29,-16]
 	mov	x28,xzr
 .L10:
-	ldr	x0,[x29,-16]
-	lsr	x16,x0,x28
+	ldr	x15,[x29,-16]
+	lsr	x16,x15,x28
 	ands	x16,x16,1
 	cset	w0,ne
 	mov	x1,5
