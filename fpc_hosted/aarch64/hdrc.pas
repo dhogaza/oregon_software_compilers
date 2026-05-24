@@ -477,8 +477,8 @@ type
                               index register using an adp <label> instruction
                               than to reload it from a stored value on the
                               stack using ldr.}
-      brinst: insts; {use this instruction for 'true' branch}
       saves: tempsaveptr; {list of save operations if a stack temp}
+      modifiable: boolean; {if false don't replace with register}
     end;
 
   keytabletype = array [lowesttemp..keysize] of keyx;
@@ -556,8 +556,9 @@ var
 
   level: levelindex; {current block nesting levels}
 
-  formatcount: integer; {number of field-width expressions in writearg}
+  regtargethack, fpregtargethack: boolean;
 
+  formatcount: integer; {number of field-width expressions in writearg}
   fileoffset: integer; {0 if default file for read/write, 2 if specified}
 
   bsslabel, rodatalabel: integer;

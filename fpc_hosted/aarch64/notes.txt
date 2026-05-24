@@ -1,6 +1,10 @@
 
 -- random stuff
 
+  -- track regparams that are saved at the beginning of a routine and
+     merge those saves with the callee-saved registers to facilitate use
+     of stp.  Must remember not to bother reloading them!  Minor improvement.
+
   -- maybe index shouldn't materialize globaladdresses that can be regened
      immediately.  Can we set to nomode then just regen adrp on the
      spot?  Does this generate better or worse code?  adrp optimiztion can
@@ -8,6 +12,12 @@
 ---
 
 *** current bugs
+
+   -- weird stuff with x0 ???
+
+   -- the fp offset issue attemped (?) fix might be wrong (or right).  The
+      spoffset used to set fp should merely be the amount subtracted from the
+      stack on entry -blocksize or something like that.  Think a bit.
 
    -- 64-bit arithmetic doesn't work, not suprisingly.
 
@@ -26,16 +36,20 @@
 
 --- current work
 
-  -- move testlib.pas to the lib main directly as the source is identical for linux
-     and darwin thanks to "nonpascal", a total hack.  Need to come up with a better
-     way for this someday perhaps. "libc" perhaps.  And of course we need a header
-     file that can be included.
+  -- allocate space for regparams in analys just as we do for those that must be
+     stored in memory for use by inner routines.  Wastes some space but will allow
+     shorter entry/exit code in some cases.
 
-  -- build testlib object in linux/darwin subdirectories and make a shell script that
-     compiles and links using the compiled code. Break out _p_ stuff and precompile them,
-     so every addition doesn't break regression, but compile the putln etc stuff as
-     now as those are good compiler tests.
+  -- simply save at regparam time but don't allocate space for them.  Some kind of
+     dummy address the the regtemp allocator will recognize. Requires being able
+     to scavenge space from the stack as well as delete unused str instructions.
 
+     Scavenging space might simply involve using maxsstackoffset as a field of a
+     context entry, copied during savelabel, during restorelabel set outer context
+     max stackoffset to the current one if the current one is greater.
+
+  -- what happens if regparams are inserted normally rather than level 1?  We get
+     copyaccesses and all that and should work better???
 
   -- std routine parameters
 

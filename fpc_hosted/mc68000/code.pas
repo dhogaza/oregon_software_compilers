@@ -16787,6 +16787,8 @@ procedure codeone;
   begin {codeone}
     if travcode then
       begin
+if switcheverplus[test] then
+dumppseudo;
       key := pseudoinst.key;
       len := pseudoinst.len;
       left := pseudoinst.oprnds[1];

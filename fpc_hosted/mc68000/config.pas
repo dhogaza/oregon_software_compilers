@@ -56,7 +56,7 @@ type
                  Tandy, Sun, HP9300, Munix, Regulus, Wicat, CandD, Perpos, Ctix, Nti,
                  Venix, UniFlex, VMEV2, UniPlusV2, Ncr, LMI, gmf, domainix,
                  pcix, inix86, inix286, MSxenix, umax, atxenix, ultrix,
-                 morebsd, NEC, uspare5, uspare6, linux, last_host);
+                 morebsd, NEC, uspare5, uspare6, linux, darwin, last_host);
 
   shortint = integer; {DRB fpc defaults to 8 bits}
   integer = longint; {DRB fpc defaults to 16 bits}
@@ -120,6 +120,7 @@ const
   defaulttargetrealsize = singlesize; {default real size is single precision}
   defaulttargetintsize = 4; {target integer size in HOST addressing units}
   shorttargetintsize = 2; {16 bit integer size in TARGET addressing units}
+  longtargetintsize = 8; {64 bit integer size in TARGET addressing units}
   defaultptrsize = 4; {size of a pointer in addressing units}
   farptrsize = 4; {no difference for the 68k}
   longptrsize = defaultptrsize; {only different on the iapx86}
@@ -336,6 +337,7 @@ const
   setalign = 2; {alignment requirement for a set}
   intalign = 2; {alignment for an integer}
   shortintalign = 2; {alignment for a short integer}
+  longintalign = 4; {alignment for a long int}
 
   charsize = unitsize; {size of a character}
   charalign = unitsize; {alignment for a character}
