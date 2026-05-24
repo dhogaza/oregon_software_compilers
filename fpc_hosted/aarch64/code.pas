@@ -2408,7 +2408,7 @@ procedure makedstaddressable(k: keyindex);
 
   begin
     with keytable[k], oprnd do
-      if (mode = register) then
+      if (mode = register) and (reg >= firstreg) and (reg <= lastreg) then
         begin
         regvalid := true;
         regsaved := false;
