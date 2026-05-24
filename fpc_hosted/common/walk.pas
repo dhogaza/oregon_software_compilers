@@ -340,19 +340,16 @@ procedure unnestparams(root: nodeindex {tree to visit});
     if bigcompilerversion then ptr := @(bignodetable[root]);
     op := ptr^.op;
     if ptr^.action = visit then
-      if (op in [regtargetop, realregtargetop, ptrregtargetop]) and
-         (ptr^.oprnds[3] = 0) then
-        unnestparams(ptr^.slink)
-      else if op in [call, unscall, callparam, unscallparam] then
-          walknode(root, k, 0, false)
-        else
-          begin
-          for j := 1 to 3 do
-            if ptr^.nodeoprnd[j] then
-              unnestparams(ptr^.oprnds[j]);
-          if (ptr^.op < intop) and (ptr^.slink <> 0) then
-            unnestparams(ptr^.slink);
-          end;
+      if op in [call, unscall, callparam, unscallparam] then
+        walknode(root, k, 0, false)
+      else
+        begin
+        for j := 1 to 3 do
+          if ptr^.nodeoprnd[j] then
+            unnestparams(ptr^.oprnds[j]);
+        if (ptr^.op < intop) and (ptr^.slink <> 0) then
+          unnestparams(ptr^.slink);
+        end;
   end {unnestparams} ;
 
 
@@ -1181,13 +1178,14 @@ with target = 0.
 }
 
 
-      begin
+      begin {setbindfilenode}
         shortvisit(l, true);
+        if targetmachine = aarch64 then unnestparams(l);
         walkvalue(l, lkey, targetkey);
         mapkey;
         genpseudo(setbinfile, len, key, refcount, copycount, lkey, 0,
                   targetkey);
-      end {unarynode} ;
+      end {setbinfilenode} ;
 
 
     procedure unmappedunarynode(op: operatortype; {root operation}
@@ -1491,7 +1489,9 @@ with target = 0.
       begin {callparamnode}
         walknode(l, lkey, 0, true);
         shortvisit(r, false);
+        if targetmachine = aarch64 then unnestparams(r);
         walknode(r, rkey, 0, true);
+
         mapkey;
         if bigcompilerversion then rootp := @(bignodetable[root]);
         if op = unscallparam then
@@ -1609,7 +1609,7 @@ with target = 0.
 
   DRB
 
-  The regtemp refcount is hardwired to one because no other node
+  The regtarget refcount is hardwired to one because no other node
   references the top-level move.  regtargetnode, used in parameter
   list, gets its single reference from being linked to in the list.
 }
@@ -1619,8 +1619,8 @@ with target = 0.
 
       begin {regreturnnode}
         mapkey;
-        genpseudo(psop, len, key, 1, copycount, r, 0, 0);
         walkvalue(l, lkey, key);
+        genpseudo(psop, len, key, 1, copycount, r, 0, 0);
         tk := newkey;
         context[contextsp].high := tk;
         keytable[tk] := 0;
@@ -1642,6 +1642,7 @@ with target = 0.
        tk: keyindex;
 
       begin {regtargetnode}
+        if targetmachine = aarch64 then unnestparams(r);
         walknode(l, lkey, 0, true);
         mapkey;
         genpseudo(psop, len, key, refcount, copycount, regid, 0, 0);
@@ -1801,8 +1802,7 @@ with target = 0.
 
 
       begin
-        if targetmachine = aarch64 then
-          unnestparams(l);
+        if targetmachine = aarch64 then unnestparams(l);
         unnestsets(l);
         walknode(r, rkey, 0, true);
         mapkey;
@@ -1824,6 +1824,7 @@ with target = 0.
 
       begin {wrnode}
         shortvisit(l, false);
+        if targetmachine = aarch64 then unnestparams(l);
         refcount := refcount - 1;
         unarynode(wr, rootp^.form);
         clearkeys;
@@ -1839,6 +1840,7 @@ with target = 0.
 
       begin
         shortvisit(l, false);
+        if targetmachine = aarch64 then unnestparams(l);
         refcount := refcount - 1;
         if rootp^.form = arrays then unarynode(rd, arrays)
         else
@@ -1926,6 +1928,9 @@ with target = 0.
 
       begin
         shortvisit(r, false);
+{
+        if targetmachine = aarch64 then unnestparams(r);
+}
 
         if not (switcheverplus[fpc68881] and (standardids(rootp^.oprnds[1]) in
            [facosid, fasinid, fatanid, fatanhid, fcoshid, fetoxm1id, fgetexpid,
@@ -3117,12 +3122,19 @@ stinks}
         ptr: nodeptr; {used to access expr node for new call}
         targetflag: 0..2; {flag to pass the type of number used}
 
-
       begin
         genstmtbrk;
         with currentstmt do
           begin
-          shortvisit(expr1, false);
+          { read/write[ln] is really a series of fake syscalls so this
+            prewalking should happen in wrnode and rdnode
+          }
+          if (expr2 <> ord(writeid)) and (expr2 <> ord(writelnid)) and
+             (expr2 <> ord(readid)) and (expr2 <> ord(readlnid)) then
+            begin
+            shortvisit(expr1, false);
+            if targetmachine = aarch64 then unnestparams(expr1);
+            end;
           targetflag := 0;
           if (expr2 = ord(valprocid)) or (expr2 = ord(strid)) then
             begin
@@ -3154,6 +3166,7 @@ stinks}
       begin {walkblk}
         genpseudo(blockcode, currentstmt.fileline, 0, 0, 0, regtemps, ptrtemps,
                   realtemps);
+        for i := 0 to nodehashsize do walknodelist(context[0].opmap[i]);
         for i := 0 to nodehashsize do walknodelist(context[1].opmap[i]);
         genstmtbrk;
         contextsp := 2;

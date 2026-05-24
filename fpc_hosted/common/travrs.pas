@@ -1870,6 +1870,16 @@ procedure build;
         dominates := false;
         firstblock := nil;
         end;
+
+      with context[0] do
+        begin
+        opmap := context[2].opmap;
+        searchlevel := 0;
+        joinflag := false;
+        dominates := false;
+        firstblock := nil;
+        end;
+
       shorteval := false;
 
       locallabels := nil;
@@ -2625,7 +2635,7 @@ procedure build;
             if not litflag and not (deadcode and
                (removedeadcode in genset)) then
               begin
-              if (l <> 1) then
+              if (l > 1) then
                 begin
                 originallink := p;
                 for j := l + 1 to contextlevel do
@@ -2745,7 +2755,7 @@ procedure build;
             end {Getclass} ;
 
 
-          begin {Compare}
+          begin {compare}
             if bigcompilerversion then p := @(bignodetable[nindex]);
             equal := p^.valid and (n.op = p^.op) and (n.form = p^.form) and
                      (n.len = p^.len);
@@ -2764,7 +2774,7 @@ procedure build;
                              (n.oprndlist[1].i = getclass(1)) and
                              (n.oprndlist[3].i = getclass(3));
                 end;
-          end {Compare} ;
+          end {compare} ;
 
 
         function addnode: nodeindex;
@@ -4493,7 +4503,8 @@ procedure build;
                 end;
               intop:
                 begin {this and other literals are entered in context 1}
-                buildintoprnds(1);
+                buildintoprnds(0);
+{DRB}
                 insertnode(1);
                 end;
               fptrop:
