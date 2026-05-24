@@ -1437,6 +1437,7 @@ procedure setcommonkey;
         alignment := byte;
         oprnd := nomode_oprnd;
         regenoprnd := nomode_oprnd;
+        modifiable := true;
         end;
       len := pseudoinst.len;
       refcount := pseudoinst.refcount;
@@ -1474,7 +1475,6 @@ procedure setkeyvalue(k: keyindex);
       setvalue(oprnd);
       keytable[key].signed := signed;
       keytable[key].signlimit := signlimit;
-      keytable[key].brinst := brinst;
       end;
   end {setkeyvalue} ;
 
@@ -2195,8 +2195,9 @@ procedure allowmodify(var k: keyindex; {operand to be modified}
 }
 
 
-  begin
-    if forcecopy or (k <= context[contextsp].keymark) or precedeslastbranch(k) then
+  begin {allowmodify}
+    if not keytable[k].modifiable or forcecopy or
+       (k <= context[contextsp].keymark) or precedeslastbranch(k) then
       begin
       if tempkey = lowesttemp then compilerabort(interntemp);
       tempkey := tempkey - 1;
@@ -4344,30 +4345,9 @@ procedure dointx;
     keytable[key].len := pseudoinst.len;
     keytable[key].signed := true;
     keytable[key].oprnd := intconst_oprnd(pseudoinst.oprnds[1]);
-{
-    context[contextsp].keymark := key;
-}
+    keytable[key].modifiable := false;
   end {dointx} ;
 
-
-{
-procedure dofptrx;
-
-{ Access a constant function pointer.  The procref is in oprnds[1].
-}
-
-
-  begin {dofptrx}
-    keytable[key].len := pseudoinst.len;
-    keytable[key].signed := false;
-    keytable[key].oprnd.m := proccall;
-    keytable[key].oprnd.offset := pseudoinst.oprnds[1];
-    keytable[key].knowneven := true;
-{
-    context[contextsp].keymark := key;
-}
-  end {dofptrx} ;
-}
 
 {
 procedure dorealx;
@@ -4440,9 +4420,7 @@ procedure dorealx;
           offset1 := kluge.damn[false];
           end;
         end;        
-{
-    context[contextsp].keymark := key;
-}
+    keytable[key].modifiable := false;
   end {dorealx} ;
 }
 
@@ -4461,10 +4439,8 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
   begin
     with keytable[key], oprnd do
       begin
-{
       if (left <= 1) or (left >= level - 1) then
-        context[contextsp].keymark := key;
-}
+        modifiable := false;
       if ownflag then
         begin
         write('own data not yet implemented');
@@ -4703,7 +4679,7 @@ procedure setinsertx;
     lock(target);
     bitkey := settemp(long, reg_oprnd(getreg));
     lock(bitkey);
-    if keytable[left].oprnd.mode = register then
+    if (right = 0) and (keytable[left].oprnd.mode = register) then
       insertkey := left
     else
       begin
@@ -4799,6 +4775,7 @@ procedure setinsertx;
       begin
       lock(left);
       rightregkey := settemp(long, reg_oprnd(getreg));
+      unlock(left);
       genmoveaddress(right, rightregkey);
       gen3(lastnode,
           buildinst(asrinst, true, false), ip0key, left,
@@ -5343,7 +5320,8 @@ procedure regtargetx;
 
   begin {regtargetx}
     regparam_target := pseudoinst.key;
-    markreg(pseudoinst.oprnds[1]);
+    if not regtargethack then
+      markreg(pseudoinst.oprnds[1]);
     setvalue(reg_oprnd(pseudoinst.oprnds[1]));
     regused[pseudoinst.oprnds[1]] := true;
     if pseudoinst.oprnds[1] >= firstreg then
@@ -5517,7 +5495,6 @@ var
   saveparam: keyindex;
 
 begin {regparamx}
-if pseudoinst.oprnds[3] = 1 then regparamindex := key;
   setvalue(reg_oprnd(pseudoinst.oprnds[3]));
   regused[pseudoinst.oprnds[3]] := true;
   if left <> 0 then
@@ -5856,9 +5833,15 @@ and
     { later need to deal with x0/x1 pairs.
     }
     if proctable[pseudoinst.oprnds[1]].realfunction then
-      setvalue(fpreg_oprnd(0))
+      begin
+      setvalue(fpreg_oprnd(0));
+      fpregtargethack := pseudobuff.op = realregtarget;
+      end
     else if (len <= long) then
+      begin
       setvalue(reg_oprnd(0));
+      regtargethack := pseudobuff.op = regtarget;
+      end;
 
     removeparamtemps(pseudoinst.oprnds[2]);
 
@@ -6505,18 +6488,13 @@ procedure codeone;
     adjusttemps;
 }
 
+    { This prevents stumbling on an old key later.
+    }
+
     while (keytable[lastkey].refcount = 0) and
           (lastkey >= context[contextsp].keymark) do
       lastkey := lastkey - 1;
 
-    { This prevents stumbling on an old key later.
-    }
-{    key := lastkey;
-
-    while key >= context[contextsp].keymark do
-      begin
-      key := key - 1;
-      end;}
     if switcheverplus[test] then
       begin
       dumppseudo(macfile);
