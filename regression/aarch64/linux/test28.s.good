@@ -5,8 +5,8 @@
 #
 .P2:
 	sub	sp,sp,64
-	stp	x30,x29,[sp,40]
-	add	x29,sp,40
+	stp	x30,x29,[sp,48]
+	add	x29,sp,48
 	stp	x27,x28,[x29,-16]
 # Line: 25, Stmt: 1
 # Line: 26, Stmt: 2
@@ -24,7 +24,7 @@
 .L2:
 .L4:
 	ldp	x27,x28,[x29,-16]
-	ldp	x30,x29,[sp,40]
+	ldp	x30,x29,[sp,48]
 	add	sp,sp,64
 	ret
 	.text

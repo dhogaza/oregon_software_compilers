@@ -24,8 +24,8 @@
 	.global main
 main:
 	sub	sp,sp,112
-	stp	x30,x29,[sp,88]
-	add	x29,sp,88
+	stp	x30,x29,[sp,96]
+	add	x29,sp,96
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
 	str	x24,[x29,-40]
@@ -56,18 +56,19 @@ main:
 	stp	x16,x17,[x10],16
 	ldr	x16,[x11],16
 	str	x16,[x10],16
+	mov	x10,x26
 .L32764:
-	cmp	w26,w25
+	cmp	w10,w25
 	b.hi	.L32763
 	mov	x11,1
-	add	x10,x13,:lo12:.L32766+56
-	asr	x16,x26,3
-	and	x17,x26,7
+	add	x9,x13,:lo12:.L32766+56
+	asr	x16,x10,3
+	and	x17,x10,7
 	lsl	x11,x11,x17
-	ldrb	w17,[x10, x16]
+	ldrb	w17,[x9, x16]
 	orr	x17,x17,x11
-	strb	w17,[x10, x16]
-	add	w26,w26,1
+	strb	w17,[x9, x16]
+	add	w10,w10,1
 	b	.L32764
 .L32763:
 	adrp	x11,.L32765
@@ -134,6 +135,6 @@ main:
 	ldp	x27,x28,[x29,-16]
 	ldp	x25,x26,[x29,-32]
 	ldr	x24,[x29,-40]
-	ldp	x30,x29,[sp,88]
+	ldp	x30,x29,[sp,96]
 	add	sp,sp,112
 	ret
