@@ -290,7 +290,7 @@ type
 
   {branch instructions}
 
-  b, bcond, bl, br, cbz, cbnz,
+  b, bcond, bl, blr, br, cbz, cbnz,
 
   {miscellaneous instructions}
 
@@ -307,8 +307,8 @@ type
   oprnd_modes = (nomode, register, fpregister, tworeg, shift_reg, extend_reg,
                  imm12, imm16, immbitmask, relative, pre_index, post_index,
                  abstract_offset, signed_offset, unsigned_offset, label_offset,
-                 reg_offset, literal, labeltarget, datalabel, proclabel, proccall,
-                 libcall, cond, intconst, realconst);
+                 reg_offset, literal, labeltarget, datalabel, extprocref,
+                 localprocref, proccall, libcall, cond, intconst, realconst);
 
   oprnd_mode_set = set of oprnd_modes;
 
@@ -339,9 +339,10 @@ type
       reg_offset: (shift: bits2; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
       cond: (condition: conds);
-      labeltarget, label_offset, datalabel, proclabel:
+      labeltarget, label_offset, datalabel:
          (labelno: unsigned; lowbits: boolean; labeloffset: integer);
-      proccall: (proclabelno: unsigned; entry_offset: integer);
+      proccall, extprocref, localprocref:
+         (proclabelno: unsigned; entry_offset: integer; proclowbits: boolean);
       libcall: (libroutine: libroutines);
       intconst: (int_value: integer);
     end;

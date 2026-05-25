@@ -335,9 +335,7 @@ procedure copysfile;
     begin {write_constants}
     while i > 0 do
       begin
-
       write(macfile, chr(9),'.byte', chr(9));
-
       k := 1;
       repeat
         if k > 1 then { separate words with commas }
@@ -488,6 +486,7 @@ begin
     b: write(macfile, 'b');
     bcond: write(macfile, 'b.');
     bl: write(macfile, 'bl');
+    blr: write(macfile, 'blr');
     br: write(macfile, 'br');
     cbnz: write(macfile, 'cbnz');
     cbz: write(macfile, 'cbz');
@@ -630,9 +629,35 @@ begin
         writeprocname(o.proclabelno)
       end;
     libcall: writelibname(o.libroutine);
-    proclabel:;
-    datalabel:
+    localprocref:
       begin
+      write(macfile, '.P', o.proclabelno);
+      write(macfile, '  // ');
+      if (unixtarget = darwin) and (proctable[o.proclabelno].calllinkage = nonpascalcall) then
+        write(macfile, '_');
+      writeprocname(o.proclabelno)
+      end;
+    extprocref:
+      if o.proclowbits then
+        begin
+        if unixtarget = linux then
+          write(macfile, ':lo12:');
+        { check for darwin award }
+        if (unixtarget = darwin) and (proctable[o.proclabelno].calllinkage = nonpascalcall) then
+          write(macfile, '_');
+        writeprocname(o.proclabelno);
+        if unixtarget = darwin then
+          write(macfile, '@PAGEOFF');
+        end
+      else
+        begin
+        if (unixtarget = darwin) and (proctable[o.proclabelno].calllinkage = nonpascalcall) then
+          write(macfile, '_');
+        writeprocname(o.proclabelno);
+        if unixtarget = darwin then
+          write(macfile, '@PAGE');
+        end;
+    datalabel:
       if o.lowbits then
         begin
         if unixtarget = linux then
@@ -649,8 +674,7 @@ begin
           write(macfile, '+',o.labeloffset and $FFFFF000:1);
         if unixtarget = darwin then
           write(macfile, '@PAGE');
-        end
-      end;
+        end;
     labeltarget:
       write(macfile, '.L', o.labelno);
     label_offset:

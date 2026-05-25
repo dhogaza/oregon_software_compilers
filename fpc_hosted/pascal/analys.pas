@@ -2482,13 +2482,13 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
         if bigcompilerversion then p := @(bigtable[routineindex]);
         {DRB need to sort this out in allocparam}
         p^.lastinsection := true;
-        p^.offset := paramsize;
         p^.length := procparamsize;
-        paramsize := paramsize + procparamsize;
         p^.nextparamlink := tabletop;
         intleveldummy := routinekind = funcparam;
         getfunctiontype(intleveldummy, false, returntype);
         p^.vartype := returntype;
+        alloconeparam(routineindex, 0, routinekind, paramsize, blocksize,
+                      regparams, stackalign, procparamsize);
         lastid := t;
         changeparamids(routineindex + 1, tabletop, deadscope);
         verify([rpar, semicolon], begparamhdr + neverskipset, badparamerr);

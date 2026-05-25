@@ -696,18 +696,18 @@ function literal_oprnd(lit: integer): oprndtype;
     literal_oprnd := o;
   end;
 
-function proclabel_oprnd(labelno: integer; lowbits: boolean): oprndtype;
+function procref_oprnd(mode:oprnd_modes; proclabelno: integer;
+                       proclowbits: boolean): oprndtype;
 
   var
     o:oprndtype;
   begin
     o.reg := noreg;
     o.reg2 := noreg;
-    o.mode := proclabel;
-    o.labelno := labelno;
-    o.lowbits := lowbits;
-    o.labeloffset := 0;
-    proclabel_oprnd := o;
+    o.mode := mode;
+    o.proclabelno := proclabelno;
+    o.proclowbits := proclowbits;
+    procref_oprnd := o;
   end;
 
 function datalabel_oprnd(labelno: integer; lowbits: boolean;
@@ -2772,14 +2772,14 @@ procedure genldr(var after: nodeptr;
 
 procedure genstr(var after: nodeptr;
                  len: addressrange;
-                 dst, src: keyindex);
+                 src, dst: keyindex);
 
   { gen a ldr instruction and fix offset field if necessary and possible.
     sp offsets are finalized after a routine has finished compilation.
   }
 
   begin {genstr}
-    gen2(after, strinst(len), dst, src);
+    gen2(after, strinst(len), src, dst);
     if (after^.oprnds[2].mode = abstract_offset) and
        (after^.oprnds[2].reg <> sp)  then
       if after^.oprnds[2].index > 0 then
@@ -4821,6 +4821,7 @@ procedure wrcommon(libroutine: libroutines; {formatting routine to call}
     if formatcount = 0 then
       begin
       { whee hardcoding parameter registers!}
+      markreg(firstreg);
       gensimplemove(lastnode,
                     settemp(long, intconst_oprnd(deffmt)),
                     settemp(long, reg_oprnd(firstreg)));
@@ -5332,6 +5333,7 @@ procedure regtargetx;
   begin {regtargetx}
     if not regtargethack then
       markreg(pseudoinst.oprnds[1]);
+    regtargethack := false;
     setvalue(reg_oprnd(pseudoinst.oprnds[1]));
     regused[pseudoinst.oprnds[1]] := true;
     if pseudoinst.oprnds[1] >= firstreg then
@@ -5437,7 +5439,7 @@ procedure pshprocx;
 
   var
     addrkey: keyindex;
-    stackkey: keyindex;
+    stackkey, ip0key, procrefkey: keyindex;
 
   begin {pshprocx}
     address(left, 0);
@@ -5447,6 +5449,21 @@ procedure pshprocx;
     genmoveaddress(left, addrkey);
     stackkey := settemp(long, keytable[key].oprnd);
     gensimplemove(lastnode, addrkey, stackkey);
+    keytable[stackkey].oprnd.index := keytable[stackkey].oprnd.index + long;
+    ip0key := settemp(long, reg_oprnd(ip0));
+    if proctable[pseudoinst.oprnds[2]].externallinkage then
+      begin
+      procrefkey := settemp(long, procref_oprnd(extprocref, pseudoinst.oprnds[2], false));
+      gen2(lastnode, buildinst(adrp, true, false), ip0key, procrefkey);
+      keytable[procrefkey].oprnd.proclowbits := true;
+      gen3(lastnode, buildinst(add, true, false), ip0key, ip0key, procrefkey);
+      end
+    else
+      begin
+      procrefkey := settemp(long, procref_oprnd(localprocref, pseudoinst.oprnds[2], false));
+      gen2(lastnode, buildinst(adr, true, false), ip0key, procrefkey);
+      end;
+    genstr(lastnode, long, ip0key, stackkey);
     dontchangevalue := dontchangevalue - 1;
   end {pshprocx};
 
@@ -5785,6 +5802,8 @@ procedure callroutinex(s: boolean {signed function value} );
     savetempkey: keyindex; {to restore tempkey when we are done}
     slkey: keyindex; {tempkey holding static link descriptor}
     framekey: keyindex; {tempkey holding address of base of current frame}
+    paramkey: keyindex; {tempkey holding procedure param address}
+    ip0key: keyindex; {tempkey holding address of procedure param's procedure}
     param: integer; {parameter count for creating unix standard list}
     notcopied: 0..1; {1 if last parameter was already the right size}
     i: keyindex; {"from" key for copying parameters}
@@ -5814,7 +5833,6 @@ procedure callroutinex(s: boolean {signed function value} );
 
     if pseudoinst.oprnds[3] <= 0 then
       begin
-
       { direct call }
       linkreg := proctable[pseudoinst.oprnds[1]].intlevelrefs;
       if linkreg then
@@ -5826,16 +5844,24 @@ procedure callroutinex(s: boolean {signed function value} );
         end;
       gen1(lastnode, buildinst(bl, false, false),
            settemp(long, proccall_oprnd(pseudoinst.oprnds[1], max(0, levelhack))));
+      if linkreg and ((pseudoinst.oprnds[3] > 0) or (level > 2) and
+         (levelhack <> 0)) then
+        gensimplemove(lastnode, settemp(long,
+                      index_oprnd(signed_offset, fp, staticlinkoffset)), slkey);
+
       end
     else
       begin
       { proc/func parameter }
+      regused[sl] := true;
+      address(left, 0);
+      paramkey := settemp(long, keytable[left].oprnd);
+      genldr(lastnode, long, false, slkey, paramkey);
+      keytable[paramkey].oprnd.index := keytable[paramkey].oprnd.index + long;
+      ip0key := settemp(long, reg_oprnd(ip0));
+      genldr(lastnode, long, false, ip0key, paramkey);
+      gen1(lastnode, buildinst(blr, true, false), ip0key);
       end;
-
-    if linkreg and ((pseudoinst.oprnds[3] > 0) or (level > 2) and
-       (levelhack <> 0)) then
-      gensimplemove(lastnode, settemp(long, index_oprnd(signed_offset, fp, staticlinkoffset)), slkey);
-
     tempkey := savetempkey;
 
     { for stack parameters }
