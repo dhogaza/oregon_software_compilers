@@ -5834,7 +5834,8 @@ procedure callroutinex(s: boolean {signed function value} );
     if pseudoinst.oprnds[3] <= 0 then
       begin
       { direct call }
-      linkreg := proctable[pseudoinst.oprnds[1]].intlevelrefs;
+      linkreg := proctable[pseudoinst.oprnds[1]].intlevelrefs and
+                 (proctable[pseudoinst.oprnds[1]].level > 2);
       if linkreg then
         begin
         regused[sl] := true;
@@ -5844,10 +5845,6 @@ procedure callroutinex(s: boolean {signed function value} );
         end;
       gen1(lastnode, buildinst(bl, false, false),
            settemp(long, proccall_oprnd(pseudoinst.oprnds[1], max(0, levelhack))));
-      if linkreg and ((pseudoinst.oprnds[3] > 0) or (level > 2) and
-         (levelhack <> 0)) then
-        gensimplemove(lastnode, settemp(long,
-                      index_oprnd(signed_offset, fp, staticlinkoffset)), slkey);
 
       end
     else
@@ -5862,6 +5859,12 @@ procedure callroutinex(s: boolean {signed function value} );
       genldr(lastnode, long, false, ip0key, paramkey);
       gen1(lastnode, buildinst(blr, true, false), ip0key);
       end;
+
+    if linkreg and ((pseudoinst.oprnds[3] > 0) or (level > 2) and
+       (levelhack <> 0)) then
+      gensimplemove(lastnode, settemp(long,
+                    index_oprnd(signed_offset, fp, staticlinkoffset)), slkey);
+
     tempkey := savetempkey;
 
     { for stack parameters }

@@ -2486,8 +2486,7 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
         p^.nextparamlink := tabletop;
         intleveldummy := routinekind = funcparam;
         getfunctiontype(intleveldummy, false, returntype);
-        p^.vartype := returntype;
-        alloconeparam(routineindex, 0, routinekind, paramsize, blocksize,
+        alloconeparam(routineindex, returntype, routinekind, paramsize, blocksize,
                       regparams, stackalign, procparamsize);
         lastid := t;
         changeparamids(routineindex + 1, tabletop, deadscope);
