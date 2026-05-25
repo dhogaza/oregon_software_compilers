@@ -630,6 +630,7 @@ begin
         writeprocname(o.proclabelno)
       end;
     libcall: writelibname(o.libroutine);
+    proclabel:;
     datalabel:
       begin
       if o.lowbits then

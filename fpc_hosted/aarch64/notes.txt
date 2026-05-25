@@ -31,21 +31,12 @@
 
 --- current work
 
-  -- regparams
-     allocate space for regparams in analys just as we do for those that must be
-     stored in memory for use by inner routines.  Wastes some space but will allow
-     shorter entry/exit code in some cases????
+  -- procedure params
 
-     simply save at regparam time but don't allocate space for them.  Some kind of
-     dummy address the the regtemp allocator will recognize. Requires being able
-     to scavenge space from the stack as well as delete unused str instructions.??
+     writeprocref(procno, offset): either write .P label or the procname for an
+     external.  Will make writing proclabel simpler.
 
-     Scavenging space might simply involve using maxsstackoffset as a field of a
-     context entry, copied during savelabel, during restorelabel set outer context
-     max stackoffset to the current one if the current one is greater.
-
-     what happens if regparams are inserted normally rather than level 1?  We get
-     copyaccesses and all that and should work better???
+     proclabel is like datalabel but with proc reference.
 
   -- std routine parameters
 

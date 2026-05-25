@@ -696,8 +696,22 @@ function literal_oprnd(lit: integer): oprndtype;
     literal_oprnd := o;
   end;
 
+function proclabel_oprnd(labelno: integer; lowbits: boolean): oprndtype;
+
+  var
+    o:oprndtype;
+  begin
+    o.reg := noreg;
+    o.reg2 := noreg;
+    o.mode := proclabel;
+    o.labelno := labelno;
+    o.lowbits := lowbits;
+    o.labeloffset := 0;
+    proclabel_oprnd := o;
+  end;
+
 function datalabel_oprnd(labelno: integer; lowbits: boolean;
-                           labeloffset: integer): oprndtype;
+                         labeloffset: integer): oprndtype;
 
   var
     o:oprndtype;
@@ -5419,6 +5433,23 @@ procedure pshaddrx;
     dontchangevalue := dontchangevalue - 1;
   end {pshaddrx};
 
+procedure pshprocx;
+
+  var
+    addrkey: keyindex;
+    stackkey: keyindex;
+
+  begin {pshprocx}
+    address(left, 0);
+    lock(left);
+    addrkey := settemp(long, reg_oprnd(getreg));
+    unlock(left);
+    genmoveaddress(left, addrkey);
+    stackkey := settemp(long, keytable[key].oprnd);
+    gensimplemove(lastnode, addrkey, stackkey);
+    dontchangevalue := dontchangevalue - 1;
+  end {pshprocx};
+
 procedure movemultiple(src, dst: keyindex);
 
 { must handle very long operands as this craps out at
@@ -5688,24 +5719,6 @@ procedure loopholefnx;
     keytable[key].signed := (pseudoinst.oprnds[2] = 0);
   end; {loopholefnx}
 
-procedure makestacktarget;
-
-{DRB: obsolete?}
-{ Create a slot on the stack for the current key
-
-  Code checks length of the temp, if it is longer than
-  long * 2 then we know it is not being pushed as a
-  parameter.  In which case we can reuse an existing slot
-  if one is available.
-
-  A true kludge.
-
-}
-
-
-  begin {makestacktarget}
-  end {makestackstarget} ;
-
 procedure stacktargetx;
 
 { Sets up a key to be used as a target for code generation when the actual
@@ -5804,11 +5817,6 @@ procedure callroutinex(s: boolean {signed function value} );
 
       { direct call }
       linkreg := proctable[pseudoinst.oprnds[1]].intlevelrefs;
-{we use static link when calling top level procs in aarch64 for
- gotos to the global level ...
-and
-                 (proctable[pseudoinst.oprnds[1]].level > 2);}
-
       if linkreg then
         begin
         regused[sl] := true;
@@ -6364,12 +6372,12 @@ procedure codeone;
       pshint, pshptr: pshintptrx;
       pshlitint, pshlitptr, pshlitfptr: pshlitintptrx;
       pshaddr: pshaddrx;
+      pshproc: pshprocx;
 {
       pshfptr: pshfptrx;
       pshlitreal: pshlitrealx;
       pshreal: pshx;
       pshstraddr: pshstraddrx;
-      pshproc: pshprocx;
       pshstr: pshstrx;
 }
       pshstruct: pshstructx;

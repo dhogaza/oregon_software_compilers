@@ -307,7 +307,7 @@ type
   oprnd_modes = (nomode, register, fpregister, tworeg, shift_reg, extend_reg,
                  imm12, imm16, immbitmask, relative, pre_index, post_index,
                  abstract_offset, signed_offset, unsigned_offset, label_offset,
-                 reg_offset, literal, labeltarget, datalabel, proccall,
+                 reg_offset, literal, labeltarget, datalabel, proclabel, proccall,
                  libcall, cond, intconst, realconst);
 
   oprnd_mode_set = set of oprnd_modes;
@@ -339,7 +339,7 @@ type
       reg_offset: (shift: bits2; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
       cond: (condition: conds);
-      labeltarget, label_offset, datalabel:
+      labeltarget, label_offset, datalabel, proclabel:
          (labelno: unsigned; lowbits: boolean; labeloffset: integer);
       proccall: (proclabelno: unsigned; entry_offset: integer);
       libcall: (libroutine: libroutines);

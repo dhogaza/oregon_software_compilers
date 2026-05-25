@@ -4320,7 +4320,12 @@ procedure statement(follow: tokenset {legal following symbols} );
               proctable[display[level].blockref].intlevelrefs := true;
             genlit(actualptr^.procref);
             oprndstk[sp].oprndlen := procparamsize;
+            { DRB always on the stack for the moment even for aarch64.  Pascal
+              proc params could be treated like quad-length structs in the
+              future.
+            }
             genunary(pushproc, resultptr^.typ);
+            stackparamcount := stackparamcount + 1;
             gettoken
             end;
         end {callparam} ;
