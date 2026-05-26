@@ -8064,7 +8064,8 @@ procedure body;
     begin {functionreturn}
       if bigcompilerversion then
         procptr := @(bigtable[display[level].blockname]);
-      if procptr^.allocated and (procptr^.varalloc = normalalloc) then
+      if procptr^.allocated and (procptr^.varalloc = normalalloc) and
+         (paramalloc(procptr, resultptr) <> normalalloc) then
         begin
         newexprstmt(simple);
         newresulttype(procptr^.vartype);

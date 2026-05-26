@@ -3078,7 +3078,8 @@ procedure block;
         procdefinition;
         end;
     until not (token in blockheadset);
-    if not firstprocdefined or (level <= 1) then fixupparamoffsets(true);
+    if not firstprocdefined or (level <= 1) then
+      fixupparamoffsets(true);
     listundeftypes;
     listundefprocs;
     genstmt(begblk);
