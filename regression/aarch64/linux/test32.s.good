@@ -20,8 +20,9 @@
 #	eq
 #
 .P1:
-	stp	x30,x29,[sp,-32]!
-	add	x29,sp,xzr
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
 # Line: 8, Stmt: 1
 # Line: 9, Stmt: 2
 	cmp	w0,w1
@@ -29,7 +30,8 @@
 	strb	w15,[x29,16]
 	ldrb	w0,[x29,16]
 .L2:
-	ldp	x30,x29,[sp],32
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
 	ret
 	.text
 	.align 2
@@ -37,8 +39,9 @@
 #	ne
 #
 .P2:
-	stp	x30,x29,[sp,-32]!
-	add	x29,sp,xzr
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
 # Line: 14, Stmt: 1
 # Line: 15, Stmt: 2
 	cmp	w0,w1
@@ -46,7 +49,8 @@
 	strb	w15,[x29,16]
 	ldrb	w0,[x29,16]
 .L3:
-	ldp	x30,x29,[sp],32
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
 	ret
 	.text
 	.align 2
@@ -54,8 +58,9 @@
 #	lt
 #
 .P3:
-	stp	x30,x29,[sp,-32]!
-	add	x29,sp,xzr
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
 # Line: 20, Stmt: 1
 # Line: 21, Stmt: 2
 	cmp	w0,w1
@@ -63,7 +68,8 @@
 	strb	w15,[x29,16]
 	ldrb	w0,[x29,16]
 .L4:
-	ldp	x30,x29,[sp],32
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
 	ret
 	.text
 	.align 2
@@ -71,8 +77,9 @@
 #	gt
 #
 .P4:
-	stp	x30,x29,[sp,-32]!
-	add	x29,sp,xzr
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
 # Line: 26, Stmt: 1
 # Line: 27, Stmt: 2
 	cmp	w0,w1
@@ -80,7 +87,8 @@
 	strb	w15,[x29,16]
 	ldrb	w0,[x29,16]
 .L5:
-	ldp	x30,x29,[sp],32
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
 	ret
 	.text
 	.align 2
@@ -88,8 +96,9 @@
 #	le
 #
 .P5:
-	stp	x30,x29,[sp,-32]!
-	add	x29,sp,xzr
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
 # Line: 32, Stmt: 1
 # Line: 33, Stmt: 2
 	cmp	w0,w1
@@ -97,7 +106,8 @@
 	strb	w15,[x29,16]
 	ldrb	w0,[x29,16]
 .L6:
-	ldp	x30,x29,[sp],32
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
 	ret
 	.text
 	.align 2
@@ -105,8 +115,9 @@
 #	ge
 #
 .P6:
-	stp	x30,x29,[sp,-32]!
-	add	x29,sp,xzr
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
 # Line: 38, Stmt: 1
 # Line: 39, Stmt: 2
 	cmp	w0,w1
@@ -114,12 +125,17 @@
 	strb	w15,[x29,16]
 	ldrb	w0,[x29,16]
 .L7:
-	ldp	x30,x29,[sp],32
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
 	ret
 	.bss
 	.align 3
 .L32766:
 	.space 56
+	.bss
+	.align 3
+.L32764:
+	.space 16
 	.text
 	.align 2
 #
@@ -129,6 +145,9 @@
 main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
+	mov	x17,sp
+	adrp	x16,.L32764
+	str	x17,[x16,:lo12:.L32764]
 # Line: 42, Stmt: 1
 	adrp	x0,.L32765
 	add	x0,x0,:lo12:.L32765+5
