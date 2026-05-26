@@ -58,15 +58,15 @@
 	ldr	x13,[x14,.L32765+8@PAGEOFF]
 	adrp	x14,.L32766@PAGE
 	ldrb	w11,[x14,.L32766+37@PAGEOFF]
-.L32764:
+.L32763:
 	cmp	w11,9
-	b.hi	.L32763
+	b.hi	.L32762
 	mov	x12,1
 	lsl	x12,x12,x11
 	orr	x13,x13,x12
 	add	w11,w11,1
-	b	.L32764
-.L32763:
+	b	.L32763
+.L32762:
 	str	x13,[x15,.L32766+48@PAGEOFF]
 	adrp	x15,.L32766@PAGE
 	mov	x0,3
@@ -93,15 +93,15 @@
 	ldrb	w11,[x12,.L32765+48@PAGEOFF]
 	ldrb	w10,[x15,.L32766+34@PAGEOFF]
 	ldrb	w13,[x13,.L32766+35@PAGEOFF]
-.L32762:
+.L32761:
 	cmp	w10,w13
-	b.hi	.L32761
+	b.hi	.L32760
 	mov	x12,1
 	lsl	w12,w12,w10
 	orr	w11,w11,w12
 	add	w10,w10,1
-	b	.L32762
-.L32761:
+	b	.L32761
+.L32760:
 	strb	w11,[x14,.L32766+33@PAGEOFF]
 .L3:
 	ldp	x30,x29,[sp],16

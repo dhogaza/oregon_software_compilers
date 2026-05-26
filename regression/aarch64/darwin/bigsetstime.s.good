@@ -57,9 +57,9 @@ _main:
 	ldr	x16,[x11],16
 	str	x16,[x10],16
 	mov	x10,x25
-.L32764:
+.L32763:
 	cmp	w10,w24
-	b.hi	.L32763
+	b.hi	.L32762
 	mov	x11,1
 	add	x9,x13,.L32766+56@PAGEOFF
 	asr	x16,x10,3
@@ -69,8 +69,8 @@ _main:
 	orr	x17,x17,x11
 	strb	w17,[x9, x16]
 	add	w10,w10,1
-	b	.L32764
-.L32763:
+	b	.L32763
+.L32762:
 	adrp	x11,.L32765@PAGE
 	add	x11,x11,.L32765+48@PAGEOFF
 	add	x10,x12,.L32766+80@PAGEOFF

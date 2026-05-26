@@ -73,6 +73,11 @@ const
 
   max_oprnds = 4;
 
+{offsets from the library bss storage area
+}
+  libinitsp = 0;
+  libdatasize = quad;
+
 type
 
   regtypes = (general, floating);
@@ -393,7 +398,8 @@ type
           (stmtno: unsigned; {statement number (for debugger)}
            sourceline: unsigned; {line number (for walkback)}
            filename: stringtableindex; {stringfile index of file name} );
-        bssnode: (bsssize: addressrange; {for globals} );
+        bssnode: (bsssize: addressrange; {for globals}
+                  bsslabel: unsigned);
         commentnode: (comment: string);
     end;
 
@@ -562,7 +568,7 @@ var
   formatcount: integer; {number of field-width expressions in writearg}
   fileoffset: integer; {0 if default file for read/write, 2 if specified}
 
-  bsslabel, rodatalabel: integer;
+  globaldatalabel, libdatalabel, rodatalabel: integer;
 
   labeltable: array [labelindex] of
       record {links label numbers to nodes, plus useful data}

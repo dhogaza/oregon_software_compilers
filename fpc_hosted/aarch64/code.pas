@@ -4463,7 +4463,7 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
         compilerabort(inconsistent);
         end
       else if left = 1 then
-        setvalue(datalabel_oprnd(bsslabel, false, 0))
+        setvalue(datalabel_oprnd(globaldatalabel, false, 0))
       else if left = level then
         setvalue(index_oprnd(abstract_offset, fp, 0))
       else if left = level - 1 then
@@ -5029,7 +5029,7 @@ procedure blockcodex;
     context[1].keymark := lastkey + 1;
     context[0] := context[1];
     lastfpreg := maxreg - target;
-    lastreg := sl - left - 1;
+    lastreg := sl - left;
     firstreg := 0;
     firstfpreg := 0;
     lineoffset := pseudoinst.len;
@@ -5038,6 +5038,10 @@ procedure blockcodex;
       begin
       p := newnode(lastnode, bssnode);
       p^.bsssize := globalsize;
+      p^.bsslabel := globaldatalabel;
+      p := newnode(lastnode, bssnode);
+      p^.bsssize := libdatasize;
+      p^.bsslabel := libdatalabel;
       end;
 
     p := newnode(lastnode, textnode);
@@ -5070,8 +5074,8 @@ procedure putblock;
     blockcost: integer; {max bytes allocated on the stack}
     spoffset: integer; {size of stack save area}
     p, p1: nodeptr;
-    savetempkey, fptemp, sptemp, linktemp, ip0temp, spoffsettemp,
-    saveregtemp, savereg2temp, saveregoffsettemp, spadjusttemp: keyindex;
+    savetempkey, fptemp, sptemp, linktemp, ip0temp, ip1temp, spoffsettemp,
+    saveregtemp, savereg2temp, saveregoffsettemp, spadjusttemp, labelkey: keyindex;
     regcost, regcount, fpregcost, fpregcount: integer;
     reglist, fpreglist:
       array [regindex] of
@@ -5152,6 +5156,7 @@ procedure putblock;
     sptemp := settemp(long, reg_oprnd(sp));
     fptemp := settemp(long, reg_oprnd(fp));
     ip0temp := settemp(long, reg_oprnd(ip0));
+    ip1temp := settemp(long, reg_oprnd(ip1));
 
     blockcost := (blksize + regcost + maxstackoffset + quad - 1) and -quad;
     spoffset := blockcost - blksize;
@@ -5189,6 +5194,16 @@ procedure putblock;
            settemp(long, reg_oprnd(keytable[spoffsettemp].oprnd.reg)))
     else
       makeoffsetptr(p1, spoffset, sp, fp);
+
+    if blockref = 0 then
+      begin
+      gen2(p1, buildinst(mov, true, false), ip1temp, sptemp);
+      labelkey := settemp(long, datalabel_oprnd(libdatalabel, false, libinitsp));
+      gen2(p1, buildinst(adrp, true, false), ip0temp, labelkey);
+      keytable[labelkey].oprnd.lowbits := true;
+      genstr(p1, long, ip1temp,
+             settemp(long, label_offset_oprnd(ip0, libdatalabel, libinitsp)));
+      end;
 
     { procedure exit code. Restore callee-saved registers, link and frame pointer
       registers, and shrink stack.
@@ -5834,7 +5849,8 @@ procedure callroutinex(s: boolean {signed function value} );
        gotos to the global level ...
       }
 
-      linkreg := proctable[pseudoinst.oprnds[1]].intlevelrefs;
+      linkreg := proctable[pseudoinst.oprnds[1]].intlevelrefs and
+                 (proctable[pseudoinst.oprnds[1]].level > 2);
 
       if linkreg then
         begin
@@ -6127,7 +6143,7 @@ procedure pascallabelx;
 
   var
     t: integer; {amount to fudge sp (no static link at level 2)}
-    stackoffsetkey, spkey, slkey, fpkey: keyindex;
+    stackoffsetkey, spkey, slkey, fpkey, ip0temp, ip1temp, labelkey: keyindex;
 
   begin {pascallabelx}
     clearcontext;
@@ -6137,13 +6153,27 @@ procedure pascallabelx;
       for t := 0 to sl - ord(level <> 1)  do regused[t] := true;
       jumpx(pseudoinst.oprnds[1]);
       definelabel(pseudoinst.oprnds[1] - 1);
-      { magic value to be fixed up in finalizestackoffsets }
-      stackoffsetkey := settemp(long, imm12_oprnd(undefinedaddr, false));
       spkey := settemp(long, reg_oprnd(sp));
-      slkey := settemp(long, reg_oprnd(sl));
-      fpkey := settemp(long, reg_oprnd(fp));
-      gen3(lastnode, buildinst(sub, true, false), spkey, slkey, stackoffsetkey);
-      gensimplemove(lastnode, slkey, fpkey);
+      if level = 1 then 
+        begin
+        { restore from the initial value saved at program start}
+        ip0temp := settemp(long, reg_oprnd(ip0));
+        ip1temp := settemp(long, reg_oprnd(ip1));
+        labelkey := settemp(long, datalabel_oprnd(libdatalabel, false, libinitsp));
+        gen2(lastnode, buildinst(adrp, true, false), ip0temp, labelkey);
+        keytable[labelkey].oprnd.lowbits := true;
+        genldr(lastnode, long, false, ip1temp,
+               settemp(long, label_offset_oprnd(ip0, libdatalabel, libinitsp)));
+        gen2(lastnode, buildinst(mov, true, false), spkey, ip1temp);
+        end
+      else begin
+        { magic value to be fixed up in finalizestackoffsets }
+        stackoffsetkey := settemp(long, imm12_oprnd(undefinedaddr, false));
+        slkey := settemp(long, reg_oprnd(sl));
+        fpkey := settemp(long, reg_oprnd(fp));
+        gen3(lastnode, buildinst(sub, true, false), spkey, slkey, stackoffsetkey);
+        gensimplemove(lastnode, slkey, fpkey);
+        end;
 
 {
         if level = 2 then t := 0
@@ -6570,8 +6600,9 @@ procedure initcode;
 
   begin {initcode}
 
-    bsslabel := newlabel;
+    globaldatalabel := newlabel;
     rodatalabel := newlabel;
+    libdatalabel := newlabel;
 
     invertcond[eq] := ne;     invertcond[ne] := eq;     invertcond[lt] := ge;
     invertcond[gt] := le;     invertcond[ge] := lt;     invertcond[le] := gt;

@@ -1,11 +1,12 @@
 
 -- random stuff
 
-
-  -- maybe index shouldn't materialize globaladdresses that can be regened
-     immediately.  Can we set to nomode then just regen adrp on the
-     spot?  Does this generate better or worse code?  adrp optimiztion can
-     be optimized by peephole regstuffing.
+   -- Sacrificing sl for use as a regparam for now as the allocator in travrs doesn't
+      know about gotos that require the static link on aarch64. Or perhaps the goto code
+      should be smarter about top-level procedures so it doesn't eat the static link for
+      top-level procedures (which is what the mc68000 version and all the other codegens
+      I no longer have access to did).  Regardless, with so many registers, this is a
+      minor point, more aesthetic than important.
 ---
 
 *** current bugs
