@@ -202,12 +202,12 @@ procedure assignregs;
             with regvars[j] do
               begin
               if registercandidate and
-                 (worth - 3 * ord(parameter) > bestworth) and
+                 (worth - assignparampenalty * ord(parameter) > bestworth) and
                  (regkind in acceptable) then
                 begin
                 if disjoint(varlife) then
                   begin
-                  bestworth := worth - 3 * ord(parameter);
+                  bestworth := worth - assignparampenalty * ord(parameter);
                   bestvar := j;
                   end;
                 end;

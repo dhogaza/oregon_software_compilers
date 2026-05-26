@@ -815,6 +815,8 @@ procedure possibletemp(p:entryptr);
       if (f^.typ in [reals, doubles]) or
          ((f^.typ in [bools, chars, ints, ptrs, scalars, subranges, sets]) and
          (f^.size <= defaultptrsize)) then
+        if not (p^.namekind in [param, varparam, confparam, varconfparam,
+                                             boundid]) then
         begin
         tempvars := tempvars + 1;
         localvar.offset := p^.offset;

@@ -206,6 +206,7 @@ const
   assignreg = 5;
   assignptrreg = 0;
   assignrealreg = 7;
+  assignparampenalty = 0;
 
   maxtrackvar = 64; {maximum number of register candidates for a block}
   regtablelimit = 4095; {last entry in register candidate hash table. MUST be

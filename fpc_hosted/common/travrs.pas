@@ -1995,8 +1995,8 @@ procedure build;
 
           { currently, only C front-end supports register parameters }
           case language of
-            pascal, modula2: parameter := false;
-            c: parameter := localvar.is_param;
+            modula2: parameter := false;
+            pascal, c: parameter := localvar.is_param;
             end;
 
           { mark this spot as allocated }
