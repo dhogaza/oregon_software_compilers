@@ -132,6 +132,10 @@
 	.align 3
 .L32766:
 	.space 56
+	.bss
+	.align 3
+.L32764:
+	.space 16
 	.text
 	.align 2
 #
@@ -141,6 +145,9 @@
 _main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
+	mov	x17,sp
+	adrp	x16,.L32764@PAGE
+	str	x17,[x16,.L32764@PAGEOFF]
 # Line: 42, Stmt: 1
 	adrp	x0,.L32765@PAGE
 	add	x0,x0,.L32765+5@PAGEOFF

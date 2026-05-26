@@ -2,6 +2,10 @@
 	.align 3
 .L32766:
 	.space 1000056
+	.bss
+	.align 3
+.L32764:
+	.space 16
 	.text
 	.align 2
 #
@@ -12,71 +16,74 @@ _main:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,48]
 	add	x29,sp,48
-	stp	x26,x27,[x29,-16]
-	stp	x24,x25,[x29,-32]
-	str	x23,[x29,-40]
+	mov	x17,sp
+	adrp	x16,.L32764@PAGE
+	str	x17,[x16,.L32764@PAGEOFF]
+	stp	x27,x28,[x29,-16]
+	stp	x25,x26,[x29,-32]
+	str	x24,[x29,-40]
 # Line: 15, Stmt: 1
 # Line: 16, Stmt: 2
-	mov	x27,1
+	mov	x28,1
 .L6:
-	mov	x26,xzr
-	mov	x24,xzr
+	mov	x27,xzr
+	mov	x25,xzr
 .L7:
 	adrp	x15,.L32766@PAGE
 	add	x15,x15,.L32766@PAGEOFF
-	add	x15,x15,w24, sxtw 0
+	add	x15,x15,w25, sxtw 0
 	mov	w16,1
 	strb	w16,[x15,32]
-	add	w24,w24,1
+	add	w25,w25,1
 	movz	x16,16960
 	movk	x16,15,lsl 16
-	cmp	w24,w16
+	cmp	w25,w16
 	b.le	.L7
 .L8:
-	mov	x24,xzr
+	mov	x25,xzr
 .L9:
 	adrp	x15,.L32766@PAGE
 	add	x15,x15,.L32766@PAGEOFF
-	add	x15,x15,w24, sxtw 0
+	add	x15,x15,w25, sxtw 0
 	ldrb	w15,[x15,32]
 	cbz	w15,.L10
 .L11:
-	add	w25,w24,w24
-	add	w25,w25,3
-	add	w23,w24,w25
+	add	w26,w25,w25
+	add	w26,w26,3
+	add	w24,w25,w26
 .L3:
 	movz	x16,16960
 	movk	x16,15,lsl 16
-	cmp	w23,w16
+	cmp	w24,w16
 	b.gt	.L12
 .L13:
 	adrp	x15,.L32766@PAGE
 	add	x15,x15,.L32766@PAGEOFF
-	add	x15,x15,w23, sxtw 0
+	add	x15,x15,w24, sxtw 0
 	strb	wzr,[x15,32]
-	add	w23,w23,w25
+	add	w24,w24,w26
 	b	.L3
 .L12:
-	add	w26,w26,1
+	add	w27,w27,1
 .L10:
-	add	w24,w24,1
+	add	w25,w25,1
 	movz	x16,16960
 	movk	x16,15,lsl 16
-	cmp	w24,w16
+	cmp	w25,w16
 	b.le	.L9
 .L14:
-	add	w27,w27,1
-	cmp	w27,100
+	add	w28,w28,1
+	cmp	w28,100
 	b.le	.L6
 .L15:
-	mov	x0,x26
+	mov	x0,x27
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 .L2:
-	ldp	x26,x27,[x29,-16]
-	ldp	x24,x25,[x29,-32]
-	ldr	x23,[x29,-40]
+	ldp	x27,x28,[x29,-16]
+	ldp	x25,x26,[x29,-32]
+	ldr	x24,[x29,-40]
 	ldp	x30,x29,[sp,48]
 	add	sp,sp,64
 	ret

@@ -7,23 +7,23 @@
 	sub	sp,sp,64
 	stp	x30,x29,[sp,40]
 	add	x29,sp,40
-	stp	x26,x27,[x29,-16]
+	stp	x27,x28,[x29,-16]
 # Line: 25, Stmt: 1
 # Line: 26, Stmt: 2
-	mov	x27,97
-	mov	x26,x1
+	mov	x28,97
+	mov	x27,x1
 .L3:
-	cmp	w26,w2
+	cmp	w27,w2
 	b.gt	.L4
 .L5:
-	sub	w15,w26,w1
-	strb	w27,[x0, w15, sxtw]
+	sub	w15,w27,w1
+	strb	w28,[x0, w15, sxtw]
+	add	w28,w28,1
 	add	w27,w27,1
-	add	w26,w26,1
 	b	.L3
 .L2:
 .L4:
-	ldp	x26,x27,[x29,-16]
+	ldp	x27,x28,[x29,-16]
 	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret
@@ -36,31 +36,31 @@
 	sub	sp,sp,64
 	stp	x30,x29,[sp,40]
 	add	x29,sp,40
-	str	x27,[x29,-8]
+	str	x28,[x29,-8]
 	str	x1,[x29,-16]
 # Line: 42, Stmt: 1
 # Line: 43, Stmt: 2
-	mov	x27,x1
+	mov	x28,x1
 	str	x0,[x29,-24]
 	str	x2,[x29,-32]
 .L7:
 	ldr	x0,[x29,-24]
 	ldr	x1,[x29,-16]
 	ldr	x2,[x29,-32]
-	cmp	w27,w2
+	cmp	w28,w2
 	b.gt	.L8
 .L9:
-	sub	w15,w27,w1
+	sub	w15,w28,w1
 	ldr	x14,[x29,-24]
 	ldrb	w0,[x14, w15, sxtw]
 	bl	_putchar
-	add	w27,w27,1
+	add	w28,w28,1
 	b	.L7
 .L8:
 	mov	x0,10
 	bl	_putchar
 .L6:
-	ldr	x27,[x29,-8]
+	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret
@@ -73,31 +73,31 @@
 	sub	sp,sp,64
 	stp	x30,x29,[sp,40]
 	add	x29,sp,40
-	str	x27,[x29,-8]
+	str	x28,[x29,-8]
 	str	x1,[x29,-16]
 # Line: 57, Stmt: 1
 # Line: 58, Stmt: 2
-	mov	x27,x1
+	mov	x28,x1
 	str	x0,[x29,-24]
 	str	x2,[x29,-32]
 .L11:
 	ldr	x0,[x29,-24]
 	ldr	x1,[x29,-16]
 	ldr	x2,[x29,-32]
-	cmp	w27,w2
+	cmp	w28,w2
 	b.gt	.L12
 .L13:
-	sub	w15,w27,w1
+	sub	w15,w28,w1
 	ldr	x14,[x29,-24]
 	ldrb	w0,[x14, w15, sxtw]
 	bl	_putchar
-	add	w27,w27,1
+	add	w28,w28,1
 	b	.L11
 .L12:
 	mov	x0,10
 	bl	_putchar
 .L10:
-	ldr	x27,[x29,-8]
+	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret
@@ -105,6 +105,10 @@
 	.align 3
 .L32766:
 	.space 96
+	.bss
+	.align 3
+.L32764:
+	.space 16
 	.text
 	.align 2
 #
@@ -115,6 +119,9 @@ _main:
 	sub	sp,sp,112
 	stp	x30,x29,[sp,96]
 	add	x29,sp,96
+	mov	x17,sp
+	adrp	x16,.L32764@PAGE
+	str	x17,[x16,.L32764@PAGEOFF]
 # Line: 67, Stmt: 1
 	adrp	x15,.L32766@PAGE
 	add	x0,x15,.L32766+32@PAGEOFF

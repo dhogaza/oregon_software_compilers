@@ -103,13 +103,13 @@
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
-	adrp	x27,.L32762@PAGE
-	ldrsw	x0,[x27,.L32762+32@PAGEOFF]
+	adrp	x28,.L32762@PAGE
+	ldrsw	x0,[x28,.L32762+32@PAGEOFF]
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 	mov	w16,4321
-	str	w16,[x27,.L32762+32@PAGEOFF]
+	str	w16,[x28,.L32762+32@PAGEOFF]
 	adrp	x0,.L32761@PAGE
 	add	x0,x0,.L32761+50@PAGEOFF
 	mov	x1,21
@@ -135,8 +135,8 @@
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
-	adrp	x27,.L32762@PAGE
-	ldrsw	x0,[x27,.L32762+32@PAGEOFF]
+	adrp	x28,.L32762@PAGE
+	ldrsw	x0,[x28,.L32762+32@PAGEOFF]
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -153,6 +153,10 @@
 	.align 3
 .L32762:
 	.space 40
+	.bss
+	.align 3
+.L32760:
+	.space 16
 	.text
 	.align 2
 #
@@ -162,6 +166,9 @@
 _main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
+	mov	x17,sp
+	adrp	x16,.L32760@PAGE
+	str	x17,[x16,.L32760@PAGEOFF]
 # Line: 47, Stmt: 1
 	bl	.P1  // outer
 .L8:
