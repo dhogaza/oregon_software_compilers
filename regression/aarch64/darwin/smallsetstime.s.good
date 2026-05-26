@@ -183,11 +183,11 @@ _main:
 	adrp	x12,.L32766@PAGE
 	adrp	x11,.L32766@PAGE
 	adrp	x10,.L32766@PAGE
-	mov	x28,1
+	mov	x26,1
 .L16:
 	mov	x27,1
 .L17:
-	mov	x26,1
+	mov	x28,1
 .L18:
 	mov	w16,10
 	strb	w16,[x15,.L32766+36@PAGEOFF]
@@ -210,8 +210,8 @@ _main:
 	adrp	x13,.L32766@PAGE
 	adrp	x14,.L32766@PAGE
 	adrp	x15,.L32766@PAGE
-	add	w26,w26,1
-	cmp	w26,650
+	add	w28,w28,1
+	cmp	w28,650
 	b.le	.L18
 .L19:
 	adrp	x10,.L32766@PAGE
@@ -230,8 +230,8 @@ _main:
 	adrp	x13,.L32766@PAGE
 	adrp	x14,.L32766@PAGE
 	adrp	x15,.L32766@PAGE
-	add	w28,w28,1
-	cmp	w28,650
+	add	w26,w26,1
+	cmp	w26,650
 	b.le	.L16
 .L21:
 .L12:

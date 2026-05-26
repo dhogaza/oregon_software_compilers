@@ -64,7 +64,7 @@ _main:
 	str	x26,[x29,-24]
 # Line: 90, Stmt: 1
 # Line: 91, Stmt: 2
-	mov	x26,74
+	mov	x28,74
 	adrp	x15,.L32766@PAGE
 	adrp	x14,.L32765@PAGE
 	add	x14,x14,.L32765@PAGEOFF
@@ -78,8 +78,8 @@ _main:
 	bl	_p_wts_o 
 	adrp	x15,.L32766@PAGE
 	add	x14,x15,.L32766+32@PAGEOFF
-	asr	x16,x26,3
-	and	x17,x26,7
+	asr	x16,x28,3
+	and	x17,x28,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
@@ -104,9 +104,9 @@ _main:
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
-	mov	x26,94
+	mov	x28,94
 	mov	x27,5
-	mov	x28,189
+	mov	x26,189
 	adrp	x15,.L32766@PAGE
 	adrp	x14,.L32765@PAGE
 	add	x14,x14,.L32765+48@PAGEOFF
@@ -117,7 +117,7 @@ _main:
 	str	x16,[x13],16
 	mov	x13,x27
 .L32763:
-	cmp	w13,w26
+	cmp	w13,w28
 	b.hi	.L32762
 	mov	x14,1
 	add	x12,x15,.L32766+48@PAGEOFF
@@ -205,8 +205,8 @@ _main:
 	bl	_p_wts_o 
 	adrp	x15,.L32766@PAGE
 	add	x14,x15,.L32766+48@PAGEOFF
-	asr	x16,x28,3
-	and	x17,x28,7
+	asr	x16,x26,3
+	and	x17,x26,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
@@ -319,8 +319,8 @@ _main:
 	bl	_p_wts_o 
 	adrp	x15,.L32766@PAGE
 	add	x14,x15,.L32766+48@PAGEOFF
-	asr	x16,x26,3
-	and	x17,x26,7
+	asr	x16,x28,3
+	and	x17,x28,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
@@ -551,8 +551,8 @@ _main:
 	str	x16,[x14],16
 	mov	x15,1
 	sub	x14,x29,216
-	asr	x16,x28,3
-	and	x17,x28,7
+	asr	x16,x26,3
+	and	x17,x26,7
 	lsl	x15,x15,x17
 	ldrb	w17,[x14, x16]
 	orr	x17,x17,x15

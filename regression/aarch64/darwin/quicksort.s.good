@@ -76,9 +76,9 @@
 	ldr	x15,[x28,-8]
 	ldr	x15,[x15,16]
 	add	x15,x15,w0, sxtw 2
-	ldrsw	x27,[x15,-4]
+	ldrsw	x25,[x15,-4]
 	add	w26,w0,1
-	mov	x25,x1
+	mov	x27,x1
 	ldr	x15,[x28,-8]
 	ldr	x15,[x15,16]
 	str	x15,[x29,-48]
@@ -90,7 +90,7 @@
 	ldr	x1,[x29,-32]
 	ldr	x14,[x29,-56]
 	ldr	x15,[x29,-48]
-	cmp	w26,w25
+	cmp	w26,w27
 	b.gt	.L11
 .L12:
 .L9:
@@ -98,24 +98,24 @@
 	b.gt	.L13
 	add	x13,x14,w26, sxtw 2
 	ldrsw	x13,[x13,-4]
-	cmp	w13,w27
+	cmp	w13,w25
 	b.ge	.L13
 .L14:
 	add	w26,w26,1
 	b	.L9
 .L13:
 .L8:
-	add	x13,x15,w25, sxtw 2
-	cmp	w25,w0
+	add	x13,x15,w27, sxtw 2
+	cmp	w27,w0
 	b.le	.L16
 	ldrsw	x12,[x13,-4]
-	cmp	w12,w27
+	cmp	w12,w25
 	b.lt	.L16
 .L17:
-	sub	w25,w25,1
+	sub	w27,w27,1
 	b	.L8
 .L16:
-	cmp	w26,w25
+	cmp	w26,w27
 	b.ge	.L19
 .L20:
 	add	x12,x15,w26, sxtw 2
@@ -131,10 +131,10 @@
 	ldr	x14,[x29,-40]
 	add	x14,x15,w14, sxtw 2
 	sub	x0,x14,4
-	add	x15,x15,w25, sxtw 2
+	add	x15,x15,w27, sxtw 2
 	sub	x1,x15,4
 	bl	.P5  // swap
-	str	w25,[x29,16]
+	str	w27,[x29,16]
 	ldrsw	x0,[x29,16]
 .L7:
 	ldp	x26,x27,[x29,-16]
@@ -239,25 +239,25 @@ _main:
 	adrp	x15,.L32766@PAGE
 	add	x0,x15,.L32766+40@PAGEOFF
 	bl	.P2  // quicksort
-	mov	x28,1
-	mov	x27,2
+	mov	x27,1
+	mov	x28,2
 .L26:
-	cbz	w28,.L27
+	cbz	w27,.L27
 	movz	x16,34464
 	movk	x16,1,lsl 16
-	cmp	w27,w16
+	cmp	w28,w16
 	b.gt	.L27
 .L28:
 	adrp	x15,.L32766@PAGE
 	add	x15,x15,.L32766@PAGEOFF
-	add	x14,x15,w27, sxtw 2
-	add	x15,x15,w27, sxtw 2
+	add	x14,x15,w28, sxtw 2
+	add	x15,x15,w28, sxtw 2
 	ldrsw	x14,[x14,36]
 	ldrsw	x15,[x15,32]
 	cmp	w14,w15
 	cset	w15,ge
-	mov	x28,x15
-	add	w27,w27,1
+	mov	x27,x15
+	add	w28,w28,1
 	b	.L26
 .L27:
 	adrp	x0,.L32765@PAGE
@@ -265,7 +265,7 @@ _main:
 	mov	x1,19
 	mov	x2,x1
 	bl	_p_wts_o 
-	mov	x0,x28
+	mov	x0,x27
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
