@@ -5,8 +5,8 @@
 #
 .P1:
 	sub	sp,sp,80
-	stp	x30,x29,[sp,48]
-	add	x29,sp,48
+	stp	x30,x29,[sp,40]
+	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
 	str	x24,[x29,-40]
@@ -72,13 +72,17 @@
 	ldp	x27,x28,[x29,-16]
 	ldp	x25,x26,[x29,-32]
 	ldr	x24,[x29,-40]
-	ldp	x30,x29,[sp,48]
+	ldp	x30,x29,[sp,40]
 	add	sp,sp,80
 	ret
 	.bss
 	.align 3
 .L32766:
 	.space 1000040
+	.bss
+	.align 3
+.L32764:
+	.space 16
 	.text
 	.align 2
 #
@@ -88,6 +92,9 @@
 main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
+	mov	x17,sp
+	adrp	x16,.L32764
+	str	x17,[x16,:lo12:.L32764]
 # Line: 36, Stmt: 1
 	bl	.P1  // p
 .L16:

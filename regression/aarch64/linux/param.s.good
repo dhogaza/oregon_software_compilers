@@ -72,6 +72,10 @@
 	.align 3
 .L32766:
 	.space 40
+	.bss
+	.align 3
+.L32764:
+	.space 16
 	.text
 	.align 2
 #
@@ -82,6 +86,9 @@ main:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
 	add	x29,sp,32
+	mov	x17,sp
+	adrp	x16,.L32764
+	str	x17,[x16,:lo12:.L32764]
 # Line: 14, Stmt: 1
 	adrp	x15,.L32766
 	mov	w16,3

@@ -5,8 +5,8 @@
 #
 .P2:
 	sub	sp,sp,64
-	stp	x30,x29,[sp,48]
-	add	x29,sp,48
+	stp	x30,x29,[sp,40]
+	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
 # Line: 25, Stmt: 1
 # Line: 26, Stmt: 2
@@ -24,7 +24,7 @@
 .L2:
 .L4:
 	ldp	x27,x28,[x29,-16]
-	ldp	x30,x29,[sp,48]
+	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret
 	.text
@@ -34,8 +34,8 @@
 #
 .P3:
 	sub	sp,sp,64
-	stp	x30,x29,[sp,32]
-	add	x29,sp,32
+	stp	x30,x29,[sp,40]
+	add	x29,sp,40
 	str	x28,[x29,-8]
 	str	x1,[x29,-16]
 # Line: 42, Stmt: 1
@@ -61,7 +61,7 @@
 	bl	putchar
 .L6:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,32]
+	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret
 	.text
@@ -71,8 +71,8 @@
 #
 .P4:
 	sub	sp,sp,64
-	stp	x30,x29,[sp,32]
-	add	x29,sp,32
+	stp	x30,x29,[sp,40]
+	add	x29,sp,40
 	str	x28,[x29,-8]
 	str	x1,[x29,-16]
 # Line: 57, Stmt: 1
@@ -98,13 +98,17 @@
 	bl	putchar
 .L10:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,32]
+	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret
 	.bss
 	.align 3
 .L32766:
 	.space 96
+	.bss
+	.align 3
+.L32764:
+	.space 16
 	.text
 	.align 2
 #
@@ -115,6 +119,9 @@ main:
 	sub	sp,sp,112
 	stp	x30,x29,[sp,96]
 	add	x29,sp,96
+	mov	x17,sp
+	adrp	x16,.L32764
+	str	x17,[x16,:lo12:.L32764]
 # Line: 67, Stmt: 1
 	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+32
@@ -218,11 +225,11 @@ main:
 	add	x15,x15,:lo12:.L32766+44
 	sub	x14,x29,40
 	mov	x16,5
-.L32764:
+.L32763:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32764
+	cbnz	x16,.L32763
 	sub	x0,x29,40
 	mov	x1,xzr
 	mov	x2,4
@@ -241,11 +248,11 @@ main:
 	add	x15,x15,:lo12:.L32766+50
 	sub	x14,x29,48
 	mov	x16,6
-.L32763:
+.L32762:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32763
+	cbnz	x16,.L32762
 	sub	x0,x29,48
 	mov	x1,xzr
 	mov	x2,5
@@ -264,11 +271,11 @@ main:
 	add	x15,x15,:lo12:.L32766+56
 	sub	x14,x29,56
 	mov	x16,7
-.L32762:
+.L32761:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32762
+	cbnz	x16,.L32761
 	sub	x0,x29,56
 	mov	x1,xzr
 	mov	x2,6
@@ -287,11 +294,11 @@ main:
 	add	x15,x15,:lo12:.L32766+64
 	sub	x14,x29,64
 	mov	x16,8
-.L32761:
+.L32760:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32761
+	cbnz	x16,.L32760
 	sub	x0,x29,64
 	mov	x1,xzr
 	mov	x2,7
@@ -310,11 +317,11 @@ main:
 	add	x15,x15,:lo12:.L32766+72
 	sub	x14,x29,80
 	mov	x16,9
-.L32760:
+.L32759:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32760
+	cbnz	x16,.L32759
 	sub	x0,x29,80
 	mov	x1,xzr
 	mov	x2,8
@@ -333,11 +340,11 @@ main:
 	add	x15,x15,:lo12:.L32766+82
 	sub	x14,x29,96
 	mov	x16,10
-.L32759:
+.L32758:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32759
+	cbnz	x16,.L32758
 	sub	x0,x29,96
 	mov	x1,xzr
 	mov	x2,9

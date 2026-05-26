@@ -24,14 +24,16 @@
 #	func
 #
 .P1:
-	stp	x30,x29,[sp,-32]!
-	add	x29,sp,xzr
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
 # Line: 11, Stmt: 1
 # Line: 12, Stmt: 2
 	strb	w0,[x29,16]
 	ldrb	w0,[x29,16]
 .L2:
-	ldp	x30,x29,[sp],32
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
 	ret
 	.text
 	.align 2
@@ -56,15 +58,15 @@
 	ldr	x13,[x14,:lo12:.L32765+8]
 	adrp	x14,.L32766
 	ldrb	w11,[x14,:lo12:.L32766+37]
-.L32764:
+.L32763:
 	cmp	w11,9
-	b.hi	.L32763
+	b.hi	.L32762
 	mov	x12,1
 	lsl	x12,x12,x11
 	orr	x13,x13,x12
 	add	w11,w11,1
-	b	.L32764
-.L32763:
+	b	.L32763
+.L32762:
 	str	x13,[x15,:lo12:.L32766+48]
 	adrp	x15,.L32766
 	mov	x0,3
@@ -91,15 +93,15 @@
 	ldrb	w11,[x12,:lo12:.L32765+48]
 	ldrb	w10,[x15,:lo12:.L32766+34]
 	ldrb	w13,[x13,:lo12:.L32766+35]
-.L32762:
+.L32761:
 	cmp	w10,w13
-	b.hi	.L32761
+	b.hi	.L32760
 	mov	x12,1
 	lsl	w12,w12,w10
 	orr	w11,w11,w12
 	add	w10,w10,1
-	b	.L32762
-.L32761:
+	b	.L32761
+.L32760:
 	strb	w11,[x14,:lo12:.L32766+33]
 .L3:
 	ldp	x30,x29,[sp],16
@@ -111,8 +113,8 @@
 #
 .P3:
 	sub	sp,sp,48
-	stp	x30,x29,[sp,16]
-	add	x29,sp,16
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
 	str	x28,[x29,-8]
 # Line: 25, Stmt: 1
 # Line: 26, Stmt: 2
@@ -136,7 +138,7 @@
 	bl	_p_wtln_o 
 .L4:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,16]
+	ldp	x30,x29,[sp,24]
 	add	sp,sp,48
 	ret
 	.text
@@ -146,8 +148,8 @@
 #
 .P4:
 	sub	sp,sp,48
-	stp	x30,x29,[sp,16]
-	add	x29,sp,16
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
 	str	x28,[x29,-8]
 # Line: 33, Stmt: 1
 # Line: 34, Stmt: 2
@@ -171,13 +173,17 @@
 	bl	_p_wtln_o 
 .L8:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,16]
+	ldp	x30,x29,[sp,24]
 	add	sp,sp,48
 	ret
 	.bss
 	.align 3
 .L32766:
 	.space 56
+	.bss
+	.align 3
+.L32764:
+	.space 16
 	.text
 	.align 2
 #
@@ -187,6 +193,9 @@
 main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
+	mov	x17,sp
+	adrp	x16,.L32764
+	str	x17,[x16,:lo12:.L32764]
 # Line: 39, Stmt: 1
 	adrp	x15,.L32766
 	mov	w16,10

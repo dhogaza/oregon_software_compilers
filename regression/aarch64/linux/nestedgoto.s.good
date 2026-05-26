@@ -153,6 +153,10 @@
 	.align 3
 .L32762:
 	.space 40
+	.bss
+	.align 3
+.L32760:
+	.space 16
 	.text
 	.align 2
 #
@@ -162,6 +166,9 @@
 main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
+	mov	x17,sp
+	adrp	x16,.L32760
+	str	x17,[x16,:lo12:.L32760]
 # Line: 47, Stmt: 1
 	bl	.P1  // outer
 .L8:

@@ -14,8 +14,8 @@
 #
 .P1:
 	sub	sp,sp,48
-	stp	x30,x29,[sp,16]
-	add	x29,sp,16
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
 	str	x28,[x29,-8]
 # Line: 20, Stmt: 1
 # Line: 21, Stmt: 2
@@ -34,7 +34,7 @@
 .L5:
 .L2:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,16]
+	ldp	x30,x29,[sp,24]
 	add	sp,sp,48
 	ret
 	.text
@@ -44,8 +44,8 @@
 #
 .P5:
 	sub	sp,sp,48
-	stp	x30,x29,[sp,16]
-	add	x29,sp,16
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
 # Line: 52, Stmt: 1
 # Line: 53, Stmt: 2
 	ldrsw	x16,[x0]
@@ -55,7 +55,7 @@
 	ldrsw	x16,[x29,16]
 	str	w16,[x1]
 .L6:
-	ldp	x30,x29,[sp,16]
+	ldp	x30,x29,[sp,24]
 	add	sp,sp,48
 	ret
 	.text
@@ -149,8 +149,8 @@
 #
 .P3:
 	sub	sp,sp,64
-	stp	x30,x29,[sp,32]
-	add	x29,sp,32
+	stp	x30,x29,[sp,40]
+	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
 # Line: 81, Stmt: 1
 # Line: 83, Stmt: 2
@@ -174,7 +174,7 @@
 .L21:
 .L22:
 	ldp	x27,x28,[x29,-16]
-	ldp	x30,x29,[sp,32]
+	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret
 	.text
@@ -184,8 +184,8 @@
 #
 .P2:
 	sub	sp,sp,32
-	stp	x30,x29,[sp,16]
-	add	x29,sp,16
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
 	str	x28,[x29,-8]
 	str	x0,[x29,16]
 # Line: 90, Stmt: 1
@@ -197,13 +197,17 @@
 	bl	.P3  // quicksortrecur
 .L24:
 	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,16]
+	ldp	x30,x29,[sp,8]
 	add	sp,sp,32
 	ret
 	.bss
 	.align 3
 .L32766:
 	.space 400040
+	.bss
+	.align 3
+.L32764:
+	.space 16
 	.text
 	.align 2
 #
@@ -214,6 +218,9 @@ main:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
 	add	x29,sp,32
+	mov	x17,sp
+	adrp	x16,.L32764
+	str	x17,[x16,:lo12:.L32764]
 	stp	x27,x28,[x29,-16]
 # Line: 94, Stmt: 1
 	adrp	x0,.L32765
