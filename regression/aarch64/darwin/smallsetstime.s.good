@@ -15,14 +15,16 @@
 #	func
 #
 .P1:
-	stp	x30,x29,[sp,-32]!
-	add	x29,sp,xzr
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
 # Line: 16, Stmt: 1
 # Line: 17, Stmt: 2
 	strb	w0,[x29,16]
 	ldrb	w0,[x29,16]
 .L2:
-	ldp	x30,x29,[sp],32
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
 	ret
 	.text
 	.align 2
@@ -104,22 +106,22 @@
 	sub	sp,sp,48
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-	str	x28,[x29,-8]
+	str	x27,[x29,-8]
 # Line: 31, Stmt: 1
 # Line: 32, Stmt: 2
-	mov	x28,xzr
+	mov	x27,xzr
 .L6:
-	add	x15,x29,w28, uxtb 0
-	lsr	w16,w0,w28
+	add	x15,x29,w27, uxtb 0
+	lsr	w16,w0,w27
 	ands	w16,w16,1
 	cset	w14,ne
 	strb	w14,[x15,18]
-	add	w28,w28,1
-	cmp	w28,7
+	add	w27,w27,1
+	cmp	w27,7
 	b.ls	.L6
 .L7:
 .L4:
-	ldr	x28,[x29,-8]
+	ldr	x27,[x29,-8]
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,48
 	ret
@@ -132,22 +134,22 @@
 	sub	sp,sp,48
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-	str	x28,[x29,-8]
+	str	x27,[x29,-8]
 # Line: 39, Stmt: 1
 # Line: 40, Stmt: 2
-	mov	x28,xzr
+	mov	x27,xzr
 .L10:
-	add	x15,x29,w28, uxtb 0
-	lsr	x16,x0,x28
+	add	x15,x29,w27, uxtb 0
+	lsr	x16,x0,x27
 	ands	x16,x16,1
 	cset	w14,ne
 	strb	w14,[x15,18]
-	add	w28,w28,1
-	cmp	w28,10
+	add	w27,w27,1
+	cmp	w27,10
 	b.ls	.L10
 .L11:
 .L8:
-	ldr	x28,[x29,-8]
+	ldr	x27,[x29,-8]
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,48
 	ret
@@ -165,8 +167,8 @@ _main:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
 	add	x29,sp,32
-	stp	x27,x28,[x29,-16]
-	str	x26,[x29,-24]
+	stp	x26,x27,[x29,-16]
+	str	x25,[x29,-24]
 # Line: 44, Stmt: 1
 	adrp	x15,.L32766@PAGE
 	adrp	x14,.L32766@PAGE
@@ -174,11 +176,11 @@ _main:
 	adrp	x12,.L32766@PAGE
 	adrp	x11,.L32766@PAGE
 	adrp	x10,.L32766@PAGE
-	mov	x28,1
-.L16:
 	mov	x27,1
-.L17:
+.L16:
 	mov	x26,1
+.L17:
+	mov	x25,1
 .L18:
 	mov	w16,10
 	strb	w16,[x15,.L32766+36@PAGEOFF]
@@ -201,8 +203,8 @@ _main:
 	adrp	x13,.L32766@PAGE
 	adrp	x14,.L32766@PAGE
 	adrp	x15,.L32766@PAGE
-	add	w26,w26,1
-	cmp	w26,650
+	add	w25,w25,1
+	cmp	w25,650
 	b.le	.L18
 .L19:
 	adrp	x10,.L32766@PAGE
@@ -211,8 +213,8 @@ _main:
 	adrp	x13,.L32766@PAGE
 	adrp	x14,.L32766@PAGE
 	adrp	x15,.L32766@PAGE
-	add	w27,w27,1
-	cmp	w27,650
+	add	w26,w26,1
+	cmp	w26,650
 	b.le	.L17
 .L20:
 	adrp	x10,.L32766@PAGE
@@ -221,13 +223,13 @@ _main:
 	adrp	x13,.L32766@PAGE
 	adrp	x14,.L32766@PAGE
 	adrp	x15,.L32766@PAGE
-	add	w28,w28,1
-	cmp	w28,650
+	add	w27,w27,1
+	cmp	w27,650
 	b.le	.L16
 .L21:
 .L12:
-	ldp	x27,x28,[x29,-16]
-	ldr	x26,[x29,-24]
+	ldp	x26,x27,[x29,-16]
+	ldr	x25,[x29,-24]
 	ldp	x30,x29,[sp,32]
 	add	sp,sp,48
 	ret

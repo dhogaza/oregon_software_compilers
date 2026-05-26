@@ -24,14 +24,16 @@
 #	func
 #
 .P1:
-	stp	x30,x29,[sp,-32]!
-	add	x29,sp,xzr
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
 # Line: 11, Stmt: 1
 # Line: 12, Stmt: 2
 	strb	w0,[x29,16]
 	ldrb	w0,[x29,16]
 .L2:
-	ldp	x30,x29,[sp],32
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
 	ret
 	.text
 	.align 2
@@ -111,16 +113,16 @@
 #
 .P3:
 	sub	sp,sp,48
-	stp	x30,x29,[sp,16]
-	add	x29,sp,16
-	str	x28,[x29,-8]
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
+	str	x27,[x29,-8]
 # Line: 25, Stmt: 1
 # Line: 26, Stmt: 2
 	str	x0,[x29,-16]
-	mov	x28,xzr
+	mov	x27,xzr
 .L6:
 	ldr	x15,[x29,-16]
-	lsr	w16,w15,w28
+	lsr	w16,w15,w27
 	ands	w16,w16,1
 	cset	w0,ne
 	mov	x1,5
@@ -129,14 +131,14 @@
 	mov	x1,1
 	bl	_p_wtc_o 
 	ldr	x0,[x29,-16]
-	add	w28,w28,1
-	cmp	w28,7
+	add	w27,w27,1
+	cmp	w27,7
 	b.ls	.L6
 .L7:
 	bl	_p_wtln_o 
 .L4:
-	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,16]
+	ldr	x27,[x29,-8]
+	ldp	x30,x29,[sp,24]
 	add	sp,sp,48
 	ret
 	.text
@@ -146,16 +148,16 @@
 #
 .P4:
 	sub	sp,sp,48
-	stp	x30,x29,[sp,16]
-	add	x29,sp,16
-	str	x28,[x29,-8]
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
+	str	x27,[x29,-8]
 # Line: 33, Stmt: 1
 # Line: 34, Stmt: 2
 	str	x0,[x29,-16]
-	mov	x28,xzr
+	mov	x27,xzr
 .L10:
 	ldr	x15,[x29,-16]
-	lsr	x16,x15,x28
+	lsr	x16,x15,x27
 	ands	x16,x16,1
 	cset	w0,ne
 	mov	x1,5
@@ -164,14 +166,14 @@
 	mov	x1,1
 	bl	_p_wtc_o 
 	ldr	x0,[x29,-16]
-	add	w28,w28,1
-	cmp	w28,10
+	add	w27,w27,1
+	cmp	w27,10
 	b.ls	.L10
 .L11:
 	bl	_p_wtln_o 
 .L8:
-	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,16]
+	ldr	x27,[x29,-8]
+	ldp	x30,x29,[sp,24]
 	add	sp,sp,48
 	ret
 	.bss

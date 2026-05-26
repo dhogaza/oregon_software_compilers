@@ -54,31 +54,31 @@ putln:
 	.global putstring
 putstring:
 	sub	sp,sp,64
-	stp	x30,x29,[sp,32]
-	add	x29,sp,32
-	str	x28,[x29,-8]
+	stp	x30,x29,[sp,40]
+	add	x29,sp,40
+	str	x27,[x29,-8]
 	str	x1,[x29,-16]
 # Line: 27, Stmt: 1
 # Line: 28, Stmt: 2
 	str	x0,[x29,-24]
 	str	x2,[x29,-32]
-	mov	x28,x1
+	mov	x27,x1
 .L6:
-	cmp	w28,w2
+	cmp	w27,w2
 	b.gt	.L5
-	sub	w15,w28,w1
+	sub	w15,w27,w1
 	ldr	x14,[x29,-24]
 	ldrb	w0,[x14, w15, sxtw]
 	bl	_putchar
 	ldr	x0,[x29,-24]
 	ldr	x1,[x29,-16]
 	ldr	x2,[x29,-32]
-	adds	w28,w28,1
+	adds	w27,w27,1
 	b.vc	.L6
 .L5:
 .L3:
-	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,32]
+	ldr	x27,[x29,-8]
+	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret
 	.text
@@ -89,32 +89,32 @@ putstring:
 	.global putstringln
 putstringln:
 	sub	sp,sp,64
-	stp	x30,x29,[sp,32]
-	add	x29,sp,32
-	str	x28,[x29,-8]
+	stp	x30,x29,[sp,40]
+	add	x29,sp,40
+	str	x27,[x29,-8]
 	str	x1,[x29,-16]
 # Line: 33, Stmt: 1
 # Line: 34, Stmt: 2
 	str	x0,[x29,-24]
 	str	x2,[x29,-32]
-	mov	x28,x1
+	mov	x27,x1
 .L10:
-	cmp	w28,w2
+	cmp	w27,w2
 	b.gt	.L9
-	sub	w15,w28,w1
+	sub	w15,w27,w1
 	ldr	x14,[x29,-24]
 	ldrb	w0,[x14, w15, sxtw]
 	bl	_putchar
 	ldr	x0,[x29,-24]
 	ldr	x1,[x29,-16]
 	ldr	x2,[x29,-32]
-	adds	w28,w28,1
+	adds	w27,w27,1
 	b.vc	.L10
 .L9:
 	bl	putln
 .L7:
-	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,32]
+	ldr	x27,[x29,-8]
+	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret
 	.text
@@ -125,42 +125,42 @@ putstringln:
 	.global puthex
 puthex:
 	sub	sp,sp,64
-	stp	x30,x29,[sp,32]
-	add	x29,sp,32
-	str	x28,[x29,-8]
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
+	str	x27,[x29,-8]
 # Line: 44, Stmt: 1
 # Line: 45, Stmt: 2
-	mov	x28,xzr
+	mov	x27,xzr
 .L12:
 .L15:
 	and	w15,w0,15
 	cmp	w15,9
 	b.ls	.L16
 .L17:
-	add	x14,x29,w28, sxtw 0
+	add	x14,x29,w27, sxtw 0
 	sub	w13,w15,10
 	add	w13,w13,65
 	strb	w13,[x14,16]
 	b	.L18
 .L16:
-	add	x14,x29,w28, sxtw 0
+	add	x14,x29,w27, sxtw 0
 	add	w13,w15,48
 	strb	w13,[x14,16]
 .L18:
-	add	w28,w28,1
+	add	w27,w27,1
 	lsr	w0,w0,4
 	cbnz	w0,.L15
 .L13:
 .L14:
-	sub	w28,w28,1
-	add	x15,x29,w28, sxtw 0
+	sub	w27,w27,1
+	add	x15,x29,w27, sxtw 0
 	ldrb	w0,[x15,16]
 	bl	_putchar
-	cbnz	w28,.L14
+	cbnz	w27,.L14
 .L11:
 .L19:
-	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,32]
+	ldr	x27,[x29,-8]
+	ldp	x30,x29,[sp,24]
 	add	sp,sp,64
 	ret
 	.text
@@ -191,9 +191,9 @@ puthexln:
 	.global putint
 putint:
 	sub	sp,sp,64
-	stp	x30,x29,[sp,32]
-	add	x29,sp,32
-	str	x28,[x29,-8]
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
+	str	x27,[x29,-8]
 	str	x0,[x29,-16]
 # Line: 76, Stmt: 1
 # Line: 77, Stmt: 2
@@ -207,31 +207,31 @@ putint:
 	mov	x0,x15
 	str	x0,[x29,-16]
 .L26:
-	mov	x28,xzr
+	mov	x27,xzr
 .L22:
 .L25:
-	add	x15,x29,w28, sxtw 0
+	add	x15,x29,w27, sxtw 0
 	ldr	x14,[x29,-16]
 	mov	x13,10
 	sdiv	w11,w14,w13
 	msub	w10,w11,w13,w14
 	add	w14,w10,48
 	strb	w14,[x15,16]
-	add	w28,w28,1
+	add	w27,w27,1
 	mov	x0,x11
 	str	x0,[x29,-16]
 	cbnz	w0,.L25
 .L23:
 .L24:
-	sub	w28,w28,1
-	add	x15,x29,w28, sxtw 0
+	sub	w27,w27,1
+	add	x15,x29,w27, sxtw 0
 	ldrb	w0,[x15,16]
 	bl	_putchar
-	cbnz	w28,.L24
+	cbnz	w27,.L24
 .L21:
 .L28:
-	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,32]
+	ldr	x27,[x29,-8]
+	ldp	x30,x29,[sp,24]
 	add	sp,sp,64
 	ret
 	.text
