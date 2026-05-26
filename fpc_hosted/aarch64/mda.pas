@@ -176,9 +176,7 @@ function roundpackedsize(spacesize: addressrange; {rounded space}
 }
 
 
-procedure possibletemp(off: addressrange;
-                       vartype: index;
-                       debugrec: integer);
+procedure possibletemp(p: entryptr);
 
 {
     Purpose:
@@ -775,9 +773,7 @@ function roundpackedsize(spacesize: addressrange; {rounded space}
 
 
 
-procedure possibletemp(off: addressrange;
-                       vartype: index;
-                       debugrec: integer);
+procedure possibletemp(p:entryptr);
 
 {
     Purpose:
@@ -811,15 +807,17 @@ procedure possibletemp(off: addressrange;
   begin {possibletemp}
     if tempvars < maxtrackvar then
       begin
-      if bigcompilerversion then f := @(bigtable[vartype]);
+      if bigcompilerversion then f := @(bigtable[p^.vartype]);
       if (f^.typ in [reals, doubles]) or
          ((f^.typ in [bools, chars, ints, ptrs, scalars, subranges, sets]) and
          (f^.size <= defaultptrsize)) then
         begin
         tempvars := tempvars + 1;
-        localvar.offset := off;
+        localvar.offset := p^.offset;
         localvar.typ := f^.typ;
-        localvar.debugrecord := debugrec;
+        localvar.debugrecord := p^.dbgsymbol;
+        localvar.is_param := p^.namekind in [param, varparam, confparam, varconfparam,
+                                             boundid];
         write(locals, localvar);
         end;
       end;

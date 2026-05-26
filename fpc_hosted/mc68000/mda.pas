@@ -183,9 +183,7 @@ function roundpackedsize(spacesize: addressrange; {rounded space}
 }
 
 
-procedure possibletemp(off: addressrange;
-                       vartype: index;
-                       debugrec: integer);
+procedure possibletemp(p: entryptr);
 
 {
     Purpose:
@@ -757,13 +755,36 @@ function roundpackedsize(spacesize: addressrange; {rounded space}
 
 
 
-procedure possibletemp(off: addressrange;
-                       vartype: index;
-                       debugrec: integer);
+procedure possibletemp(p:entryptr);
 
 {
     Purpose:
       Determine if tha var at off is eligible for assignment to register
+
+    Inputs:
+      off: offset from local data area of the possible temp.
+      vartype: symbol table index to the var's type identifier.
+      debugrec: offset in the symbol file where var's allocation is
+                described.
+
+    Outputs:
+      If conditions are met then file "locals" has record appended.
+
+    Algorithm:
+      Straight forward.
+
+    Sideeffects:
+      None
+
+    Last Modified: 9/12/86
+
+}
+
+
+{
+    Purpose:
+      Determine if tha var or function return value at off is eligible for
+      assignment to register
 
     Inputs:
       off: offset from local data area of the possible temp.
@@ -792,16 +813,18 @@ procedure possibletemp(off: addressrange;
   begin {possibletemp}
     if tempvars < maxtrackvar then
       begin
-      if bigcompilerversion then f := @(bigtable[vartype]);
+      if bigcompilerversion then f := @(bigtable[p^.vartype]);
       if ((f^.typ = reals) and not switcheverplus[doublereals]) or
          (switcheverplus[fpc68881] and (f^.typ in [reals, doubles])) or
          ((f^.typ in [bools, chars, ints, ptrs, scalars, subranges]) and
          (f^.size <= targetintsize)) then
         begin
         tempvars := tempvars + 1;
-        localvar.offset := off;
+        localvar.offset := p^.offset;
         localvar.typ := f^.typ;
-        localvar.debugrecord := debugrec;
+        localvar.debugrecord := p^.dbgsymbol;
+        localvar.is_param := p^.namekind in [param, varparam, confparam, varconfparam,
+                                             boundid];
         write(locals, localvar);
         end;
       end;

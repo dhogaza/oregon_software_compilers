@@ -152,7 +152,7 @@ procedure exitblock(level: levelindex {level of block being exited} );
           { tell travrs about any var that may be assigned to a register }
           if not p^.form and p^.allocated and
              regok and p^.registercandidate then
-               possibletemp(p^.offset, p^.vartype, p^.dbgsymbol);
+               possibletemp(p);
           end;
 
       { signal the end of local vars for this block }
