@@ -28,6 +28,9 @@ program ad;
 
 uses config, hdr, a_t;
 
+var
+  localvar: localvartype;
+
 procedure assert(s: string; b: boolean);
 begin
   if not b then
@@ -66,6 +69,20 @@ function getintfileint: unsignedint;
         end;
     getintfileint := fudge.int;
   end {getintfileint} ;
+
+procedure localvars;
+
+  begin {localvars}
+  writeln;
+  writeln;
+  read(locals, localvar);
+  while localvar.typ <> none do
+    begin
+    writeln('offset: ', localvar.offset:1,' size: ', localvar.size:1,
+    ' is_param: ', localvar.is_param);
+    read(locals, localvar);
+    end;
+  end {localvars};
 
 
 { Initialization data is passed in the intermediate file as a series of
@@ -709,6 +726,7 @@ procedure statement;
         begin
         read(tempfiletwo, tempfilebuf);
         write(' sym:', getintfileint: 1);
+        localvars;
         end;
 
       begblk:
@@ -752,11 +770,11 @@ procedure statement;
   end {statement} ;
 
 begin {ad}
+
   assign(tempfiletwo, 'temptwo.tmp');
   reset(tempfiletwo);
   assign(locals, 'locals.tmp');
   reset(locals);
-
 
   read(tempfiletwo, tempfilebuf);
   while not eof(tempfiletwo) and
@@ -767,5 +785,7 @@ begin {ad}
     end;
 
   close(tempfiletwo);
+  close(locals);
   close(output);
+
 end {ad} .
