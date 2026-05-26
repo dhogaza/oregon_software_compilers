@@ -5363,8 +5363,8 @@ procedure regtempx;
 
   begin
     address(left, 0);
-    setvalue(reg_oprnd(lastreg + pseudoinst.oprnds[3]));
-    regused[lastreg + pseudoinst.oprnds[3]] := true;
+    setvalue(reg_oprnd(sl - pseudoinst.oprnds[3] + 1));
+    regused[sl - pseudoinst.oprnds[3] + 1] := true;
   end {regtempx} ;
 
 procedure dovarx(s: boolean {signed variable reference} );
