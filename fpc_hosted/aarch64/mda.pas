@@ -183,9 +183,11 @@ procedure possibletemp(p: entryptr);
       Determine if tha var at off is eligible for assignment to register
 
     Inputs:
-      off: offset from local data area of the possible temp.
+      p points to:
+
+      offset from local data area of the possible temp.
       vartype: symbol table index to the var's type identifier.
-      debugrec: offset in the symbol file where var's allocation is
+      dbgsymbol: offset in the symbol file where var's allocation is
                 described.
 
     Outputs:
@@ -781,9 +783,11 @@ procedure possibletemp(p:entryptr);
       assignment to register
 
     Inputs:
-      off: offset from local data area of the possible temp.
+      p points to:
+
+      offset from local data area of the possible temp.
       vartype: symbol table index to the var's type identifier.
-      debugrec: offset in the symbol file where var's allocation is
+      dbgsymbol: offset in the symbol file where var's allocation is
                 described.
 
     Outputs:
