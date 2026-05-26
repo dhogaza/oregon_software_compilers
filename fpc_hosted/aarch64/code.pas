@@ -5029,7 +5029,7 @@ procedure blockcodex;
     context[1].keymark := lastkey + 1;
     context[0] := context[1];
     lastfpreg := maxreg - target;
-    lastreg := sl - left;
+    lastreg := sl - left - 1;
     firstreg := 0;
     firstfpreg := 0;
     lineoffset := pseudoinst.len;
@@ -5153,19 +5153,12 @@ procedure putblock;
     fptemp := settemp(long, reg_oprnd(fp));
     ip0temp := settemp(long, reg_oprnd(ip0));
 
-    { fix this better }
-    if level = 1 then
-      blockcost := quad + regcost + maxstackoffset
-    else
-      blockcost := blksize + regcost + maxstackoffset;
-
-    blockcost := (blockcost + quad - 1) and -quad;
-
-    finalizestackoffsets(firstnode, lastnode, maxstackoffset, regcost);
-
-    spoffset := (regcost + maxstackoffset + quad -1) and -quad;
+    blockcost := (blksize + regcost + maxstackoffset + quad - 1) and -quad;
+    spoffset := blockcost - blksize;
     spoffsettemp := settemp(long, index_oprnd(unsigned_offset, sp, spoffset));
     saveregoffsettemp := settemp(long, index_oprnd(signed_offset, fp, 0));
+
+    finalizestackoffsets(firstnode, lastnode, maxstackoffset, regcost);
 
     { for using STP/LDP to save callee-saved registers }
     saveregtemp := settemp(long, reg_oprnd(0));
@@ -5316,7 +5309,9 @@ procedure blockentryx;
       begin
       blockref := oprnds[1];
       paramsize := oprnds[2];
-      blksize := oprnds[3];
+      if blockref = 0 then
+       blksize := quad
+      else blksize := oprnds[3];
       end;
 
     level := proctable[blockref].level;
@@ -5834,8 +5829,13 @@ procedure callroutinex(s: boolean {signed function value} );
     if pseudoinst.oprnds[3] <= 0 then
       begin
       { direct call }
-      linkreg := proctable[pseudoinst.oprnds[1]].intlevelrefs and
-                 (proctable[pseudoinst.oprnds[1]].level > 2);
+
+      {we use static link when calling top level procs in aarch64 for
+       gotos to the global level ...
+      }
+
+      linkreg := proctable[pseudoinst.oprnds[1]].intlevelrefs;
+
       if linkreg then
         begin
         regused[sl] := true;
@@ -5843,6 +5843,8 @@ procedure callroutinex(s: boolean {signed function value} );
         if levelhack < 0 then
           gensimplemove(lastnode, framekey, slkey);
         end;
+      if proctable[pseudoinst.oprnds[1]].level <= 2 then
+        levelhack := 0;
       gen1(lastnode, buildinst(bl, false, false),
            settemp(long, proccall_oprnd(pseudoinst.oprnds[1], max(0, levelhack))));
 

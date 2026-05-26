@@ -297,7 +297,8 @@ function paramalloc(paramptr, typeptr: entryptr): allockind;
     else paramalloc := normalalloc;
   end; {paramalloc}
 
-function  allocparamoffset(var blocksize, length: addressrange; overflowed: boolean): addressrange;
+function  allocparamoffset(var blocksize, length: addressrange;
+                           overflowed: boolean): addressrange;
   begin {allocparamoffset}
     allocparamoffset := blocksize;
     if maxlong - blocksize > length then
