@@ -694,7 +694,8 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 
       var
         lp: nodeptr; {used to access left operand}
-        possibletemp: boolean; {true if local var and possible temp loc}
+        possibletemp: boolean; {true if local var or reg param and possible
+                                temp loc}
         offset: addressrange; {variable offset if possibletemp}
         j: 0..regtablelimit; { var for temp search }
         third: integer; {third operand, zero or temp number}
@@ -708,7 +709,9 @@ procedure walknode(root: nodeindex; {root of tree to walk}
         paramflag := l = localparamnode;
         with lp^ do
           if action = revisit then
-            possibletemp := (p = indx) and (op = levop) and (oprnds[1] = level)
+            possibletemp := (p = indx) and
+                            (op = levop) and (oprnds[1] = level) or
+                            (op in [regparamop, realregparamop, ptrregparamop])
           else possibletemp := false;
 
         walknode(l, lkey, 0, true);
@@ -722,8 +725,8 @@ procedure walknode(root: nodeindex; {root of tree to walk}
               and dodefine in travrs.
             }
           j := (offset div targetintsize) mod (regtablelimit + 1);
-          while ((regvars[j].offset <> offset) or
-                (regvars[j].parameter <> paramflag)) and
+          while ((regvars[j].offset <> offset){ or
+                (regvars[j].parameter <> paramflag)}) and
                 (regvars[j].worth >= 0) do
             j := (j + 1) mod (regtablelimit + 1);
           if regvars[j].regid <> 0 then

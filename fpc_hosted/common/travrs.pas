@@ -1077,9 +1077,7 @@ procedure build;
             in doreference, killasreg, initbuild and walk:indxnode.
           }
         i := (varoffset div targetintsize) mod (regtablelimit + 1);
-        while ((regvars[i].offset <> varoffset) or
-              (regvars[i].parameter <> varisparam)) and
-              (regvars[i].worth >= 0) do
+        while (regvars[i].offset <> varoffset) and (regvars[i].worth >= 0) do
           i := (i + 1) mod (regtablelimit + 1);
         with regvars[i], varlife do
           begin

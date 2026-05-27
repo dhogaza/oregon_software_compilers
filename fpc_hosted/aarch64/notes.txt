@@ -26,10 +26,10 @@
 
   -- allowing the assignment of regparams to regtemps
 
-     now that analys passes regparams to travrs for possible allocation as
-     regtemps, travrs ignores them.  Doesn't get assigned a worth or a usage
-     window.
-
+    can just do what hoist does.  Make a separate walk of the tree just for modifying
+    indx nodes to regtemps.  This code can then fiddle the underlying regparamop node
+    to put in the tracking information.  indxop generated in body needs to put
+    out the offset field, too ...
   -- std routine parameters
 
      pushing of strings -> moving strings to param registers ugh...

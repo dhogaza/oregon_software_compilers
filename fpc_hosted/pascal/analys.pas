@@ -146,14 +146,21 @@ procedure exitblock(level: levelindex {level of block being exited} );
     with display[level] do
       begin
         genint(0);
-        for i := oldtabletop + 1 to tabletop do
-          begin
-          if bigcompilerversion then p := @(bigtable[i]);
-          { tell travrs about any var that may be assigned to a register }
-          if not p^.form and (p^.namekind = varname) and p^.allocated and
-             regok and p^.registercandidate then
-               possibletemp(p);
-          end;
+        { display[0] references the entire symbol table, while the only
+          thing to really be found there are forms for standard vars,
+          etc.   Rather than track down why display[0].tabletop is set
+          incorrectly we'll just skip it to save time.  Params are written
+          to the local variables file elsewhere so are ignored here.
+        }
+        if level > 0 then
+          for i := oldtabletop + 1 to tabletop do
+            begin
+            if bigcompilerversion then p := @(bigtable[i]);
+            { tell travrs about any var that may be assigned to a register }
+            if not p^.form and (p^.namekind = varname) and p^.allocated and
+               regok and p^.registercandidate then
+                 possibletemp(p);
+            end;
 
       { signal the end of local vars for this block }
 

@@ -1787,7 +1787,6 @@ procedure genunary(op: operatortype; {operation to generate}
 
 
   begin {genunary}
-
     if sp >= 0 then
       begin
 
@@ -3026,12 +3025,14 @@ begin {regparams}
           begin
           genlit(0);
           pushdummy;
-          genlit(0);
+          genlit(p^.offset);
           { add it to the list of vars to consider for regtemp
             allocation.  Should only do this if there are procedure
             calls but that comes later.
           }
+{
           possibletemp(p);
+}
           end
         else
           begin
@@ -3782,7 +3783,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                     begin
                     genlit(0);
                     pushdummy;
-                    genlit(0);
+                    genlit(offset);
                     genlit(regid);
                     oprndstk[sp].oprndlen := length;
                     case varalloc of
