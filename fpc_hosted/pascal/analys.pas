@@ -150,7 +150,7 @@ procedure exitblock(level: levelindex {level of block being exited} );
           begin
           if bigcompilerversion then p := @(bigtable[i]);
           { tell travrs about any var that may be assigned to a register }
-          if not p^.form and p^.allocated and
+          if not p^.form and (p^.namekind = varname) and p^.allocated and
              regok and p^.registercandidate then
                possibletemp(p);
           end;
@@ -3010,8 +3010,8 @@ procedure procdefinition;
           cseregiontable[procref, true].high := 0;
           end;
         level := level + 1;
-      if functiondefinition then
-        allocfunction(procptr, display[level].blocksize);
+        if functiondefinition then
+          allocfunction(procptr, display[level].blocksize);
         block;
         level := level - 1;
         if not procptr^.modified then

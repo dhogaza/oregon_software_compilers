@@ -825,6 +825,7 @@ procedure possibletemp(p:entryptr);
         begin
         tempvars := tempvars + 1;
         localvar.offset := p^.offset;
+        localvar.size := p^.length;
         localvar.typ := f^.typ;
         localvar.debugrecord := p^.dbgsymbol;
         localvar.is_param := p^.namekind in [param, varparam, confparam, varconfparam,

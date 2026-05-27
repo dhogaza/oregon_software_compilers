@@ -3022,16 +3022,21 @@ begin {regparams}
         begin
         debugstmt(simple, 0, 0, 0);
         intstate := opstate;
-        if not p^.registercandidate then
-          begin
-          getlevel(level, true);
-          genlit(p^.offset);
-          end
-        else
+        if p^.registercandidate then
           begin
           genlit(0);
           pushdummy;
           genlit(0);
+          { add it to the list of vars to consider for regtemp
+            allocation.  Should only do this if there are procedure
+            calls but that comes later.
+          }
+          possibletemp(p);
+          end
+        else
+          begin
+          getlevel(level, true);
+          genlit(p^.offset);
           end;
         genlit(p^.regid);
         oprndstk[sp].oprndlen := p^.length;

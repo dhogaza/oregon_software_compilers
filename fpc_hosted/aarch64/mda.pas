@@ -581,7 +581,10 @@ procedure allocfunction(procptr: entryptr;
       procptr^.varalloc := normalalloc;
       procptr^.offset := blocksize;
       blocksize := blocksize + procptr^.length;
+{DRB
       procptr^.registercandidate := true;
+}
+      procptr^.registercandidate := false;
       procptr^.regid := 0;
       end;
   end; {allocfunction}
@@ -815,11 +818,10 @@ procedure possibletemp(p:entryptr);
       if (f^.typ in [reals, doubles]) or
          ((f^.typ in [bools, chars, ints, ptrs, scalars, subranges, sets]) and
          (f^.size <= defaultptrsize)) then
-        if not (p^.namekind in [param, varparam, confparam, varconfparam,
-                                             boundid]) then
         begin
         tempvars := tempvars + 1;
         localvar.offset := p^.offset;
+        localvar.size := p^.length;
         localvar.typ := f^.typ;
         localvar.debugrecord := p^.dbgsymbol;
         localvar.is_param := p^.namekind in [param, varparam, confparam, varconfparam,
