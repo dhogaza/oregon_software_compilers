@@ -1677,7 +1677,18 @@ procedure build;
               read(tempfiletwo, tempfilebuf);
               fileline := getintfileint;
               read(tempfiletwo, tempfilebuf);
-              proctable[blockref].leaf := true; {until proven otherwise}
+
+              { Leaf proc detection only added in 2026 (gulp) for aarch64.
+                In the past the systems we supported used a callee-saved
+                register scheme and call instructions placed the PC on the
+                stack typically.  We implemented a switch to remove frame
+                pointers to increase performance on real time and process
+                control systems which on aarch64 will be done by default
+                for leafs. So there wasn't much benefit, as simple as it
+                is to detect them.
+              }
+              proctable[blockref].leaf := targetmachine = aarch64;
+
               if newtravrsinterface then
                 begin
                 level := new_proctable[procref div (pts + 1)]^[procref mod
