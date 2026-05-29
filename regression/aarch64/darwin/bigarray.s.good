@@ -11,42 +11,40 @@
 #	fill
 #
 .P1:
-	sub	sp,sp,80
-	stp	x30,x29,[sp,56]
-	add	x29,sp,56
-	stp	x27,x28,[x29,-16]
+	sub	sp,sp,64
+	stp	x30,x29,[sp,40]
+	add	x29,sp,40
 # Line: 13, Stmt: 1
 # Line: 14, Stmt: 2
-	mov	x27,1
+	mov	x14,1
 .L5:
-	movz	x14,14460
-	movk	x14,1,lsl 16
-	mul	w15,w27,w14
-	mov	x13,20000
-	mul	w14,w27,w13
-	mov	x28,1
+	movz	x12,14460
+	movk	x12,1,lsl 16
+	mul	w13,w14,w12
+	mov	x11,20000
+	mul	w12,w14,w11
+	mov	x15,1
 .L6:
-	add	x13,x0,w15, sxtw 0
-	add	x13,x13,w28, sxtw 2
-	add	w12,w14,w28
+	add	x11,x0,w13, sxtw 0
+	add	x11,x11,w15, sxtw 2
+	add	w10,w12,w15
 	movz	x17,14464
 	movk	x17,1,lsl 16
-	sub	x17,x13,x17
-	str	w12,[x17]
-	add	w28,w28,1
+	sub	x17,x11,x17
+	str	w10,[x17]
+	add	w15,w15,1
 	movz	x16,19999
-	cmp	w28,w16
+	cmp	w15,w16
 	b.le	.L6
 .L7:
-	add	w27,w27,1
+	add	w14,w14,1
 	movz	x16,19999
-	cmp	w27,w16
+	cmp	w14,w16
 	b.le	.L5
 .L8:
 .L2:
-	ldp	x27,x28,[x29,-16]
-	ldp	x30,x29,[sp,56]
-	add	sp,sp,80
+	ldp	x30,x29,[sp,40]
+	add	sp,sp,64
 	ret
 	.text
 	.align 2

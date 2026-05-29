@@ -4,28 +4,26 @@
 #	fill
 #
 .P2:
-	sub	sp,sp,64
-	stp	x30,x29,[sp,40]
-	add	x29,sp,40
-	stp	x27,x28,[x29,-16]
+	sub	sp,sp,48
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
 # Line: 25, Stmt: 1
 # Line: 26, Stmt: 2
-	mov	x27,97
-	mov	x28,x1
+	mov	x14,97
+	mov	x15,x1
 .L3:
-	cmp	w28,w2
+	cmp	w15,w2
 	b.gt	.L4
 .L5:
-	sub	w15,w28,w1
-	strb	w27,[x0, w15, sxtw]
-	add	w27,w27,1
-	add	w28,w28,1
+	sub	w13,w15,w1
+	strb	w14,[x0, w13, sxtw]
+	add	w14,w14,1
+	add	w15,w15,1
 	b	.L3
 .L2:
 .L4:
-	ldp	x27,x28,[x29,-16]
-	ldp	x30,x29,[sp,40]
-	add	sp,sp,64
+	ldp	x30,x29,[sp,24]
+	add	sp,sp,48
 	ret
 	.text
 	.align 2

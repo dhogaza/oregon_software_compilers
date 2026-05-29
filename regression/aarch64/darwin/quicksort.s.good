@@ -13,29 +13,27 @@
 #	initarray
 #
 .P1:
-	sub	sp,sp,48
-	stp	x30,x29,[sp,24]
-	add	x29,sp,24
-	str	x28,[x29,-8]
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
 # Line: 20, Stmt: 1
 # Line: 21, Stmt: 2
-	mov	x28,1
+	mov	x15,1
 .L4:
-	add	x15,x0,w28, sxtw 2
-	movz	x13,34464
-	movk	x13,1,lsl 16
-	sub	w14,w13,w28
-	str	w14,[x15,-4]
-	add	w28,w28,1
+	add	x14,x0,w15, sxtw 2
+	movz	x12,34464
+	movk	x12,1,lsl 16
+	sub	w13,w12,w15
+	str	w13,[x14,-4]
+	add	w15,w15,1
 	movz	x16,34464
 	movk	x16,1,lsl 16
-	cmp	w28,w16
+	cmp	w15,w16
 	b.le	.L4
 .L5:
 .L2:
-	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,24]
-	add	sp,sp,48
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
 	ret
 	.text
 	.align 2

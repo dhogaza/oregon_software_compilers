@@ -5074,7 +5074,8 @@ procedure blockcodex;
       are still available if needed.}
     if proctable[blockref].leaf then
       begin
-      lastreg := sl;
+      { yep leaf procs can reference surrounding scopes, it's a Pascal thing }
+      lastreg := sl - ord(proctable[blockref].intlevelrefs);
       lastscratchreg := ip0 - left - 1;
       end
     else

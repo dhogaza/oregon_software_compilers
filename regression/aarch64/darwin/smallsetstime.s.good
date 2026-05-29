@@ -106,22 +106,20 @@
 	sub	sp,sp,48
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-	str	x28,[x29,-8]
 # Line: 31, Stmt: 1
 # Line: 32, Stmt: 2
-	mov	x28,xzr
+	mov	x15,xzr
 .L6:
-	add	x15,x29,w28, uxtb 0
-	lsr	w16,w0,w28
+	add	x14,x29,w15, uxtb 0
+	lsr	w16,w0,w15
 	ands	w16,w16,1
-	cset	w14,ne
-	strb	w14,[x15,18]
-	add	w28,w28,1
-	cmp	w28,7
+	cset	w13,ne
+	strb	w13,[x14,18]
+	add	w15,w15,1
+	cmp	w15,7
 	b.ls	.L6
 .L7:
 .L4:
-	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,48
 	ret
@@ -134,22 +132,20 @@
 	sub	sp,sp,48
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-	str	x28,[x29,-8]
 # Line: 39, Stmt: 1
 # Line: 40, Stmt: 2
-	mov	x28,xzr
+	mov	x15,xzr
 .L10:
-	add	x15,x29,w28, uxtb 0
-	lsr	x16,x0,x28
+	add	x14,x29,w15, uxtb 0
+	lsr	x16,x0,x15
 	ands	x16,x16,1
-	cset	w14,ne
-	strb	w14,[x15,18]
-	add	w28,w28,1
-	cmp	w28,10
+	cset	w13,ne
+	strb	w13,[x14,18]
+	add	w15,w15,1
+	cmp	w15,10
 	b.ls	.L10
 .L11:
 .L8:
-	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,48
 	ret
