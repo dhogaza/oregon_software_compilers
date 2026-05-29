@@ -594,8 +594,8 @@ var
 
   regused, fpregused: array [regindex] of boolean; {set if currently used}
 
-  lastreg, lastfpreg: regindex; {last registers available for
-                                 scratch use in this block}
+  lastreg, lastfpreg, lastscratchreg, lastscratchfpreg: regindex;
+    {last registers available for scratch use in this block}
 
   firstreg, firstfpreg: regindex; {first registers currently available for scratch
                                    use in this block}

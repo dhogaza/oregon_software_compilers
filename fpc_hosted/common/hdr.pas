@@ -378,8 +378,9 @@ type
       isprocparam: boolean; {true if proc is used as a parametric procedure}
       bodydefined: boolean; {true if this proc has a body}
       intlevelrefs: boolean; {true if proc needs static link}
+      leaf: boolean; {true if this is a leaf procedure that makes no calls, weird
+                      pseudoop requiring library support, etc}
       externallinkage: boolean; {true if proc was defined external}
-      any_calls: boolean; {this proc calls other user procs}
       struct_calls: boolean; {this proc calls others with struct returns}
       struct_ret: boolean; {this proc returns a struct value}
       referenced: boolean; {true if ever referenced (after travrs)}

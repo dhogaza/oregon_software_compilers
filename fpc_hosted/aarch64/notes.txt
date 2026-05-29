@@ -3,6 +3,12 @@
 
 *** current bugs
 
+   -- code like add x0,x0,foo leads to x0's saved location on the stack
+      begin marked "used" even if we never load from the saved location.
+
+      hmmm assigning frequently used regparams to regtemps solves most of
+      this.
+
    -- the fp offset issue attemped (?) fix might be wrong (or right).  The
       spoffset used to set fp should merely be the amount subtracted from the
       stack on entry -blocksize or something like that.  Think a bit.
@@ -19,9 +25,6 @@
 
   -- regenoprnd stuff all messed up? adrp and makeaddressable not only for global level?
 
-  -- varop nodes for reg parameters all have level 0, offset 0 and has got to screw
-     up some stuff???  Certainly makes it harder to assign to regtemp.
-
 --- current work
 
   -- allowing the assignment of regparams to regtemps
@@ -30,6 +33,17 @@
     indx nodes to regtemps.  This code can then fiddle the underlying regparamop node
     to put in the tracking information.  indxop generated in body needs to put
     out the offset field, too ...
+
+  -- leaf procs
+
+    assigning registers to regtemps in a leaf proc has no penalty.
+
+    --[no]leafframe (default noleafframe) which eventually will lead to
+      --noframe.  Add flag to indicate if stack offsets need to be adjusted
+      rather than using +/- offset.  With stack params of course not being
+      adjusted.  We will still allocate two ptrs slots on the stack in code
+      for simplicity's sake.
+
   -- std routine parameters
 
      pushing of strings -> moving strings to param registers ugh...

@@ -334,7 +334,6 @@ function newproc: proctableindex;
       charlen := 0;
       globaldeath := false;
       externallinkage := false;
-      any_calls := false; {unused by P-2}
       struct_calls := false;
       struct_ret := false;
       bodydefined := false;

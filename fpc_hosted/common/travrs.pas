@@ -1677,6 +1677,7 @@ procedure build;
               read(tempfiletwo, tempfilebuf);
               fileline := getintfileint;
               read(tempfiletwo, tempfilebuf);
+              proctable[blockref].leaf := true; {until proven otherwise}
               if newtravrsinterface then
                 begin
                 level := new_proctable[procref div (pts + 1)]^[procref mod
@@ -3850,7 +3851,7 @@ procedure build;
                   ptr^.slink := reverse(ptr^.slink, 0);
                   end
                 end;
-
+              proctable[blockref].leaf := false;
             end {callnode} ;
 
 
@@ -4395,6 +4396,13 @@ procedure build;
                           strcatid, strcpyid, strncpyid, strncatid];
                 collectoprnds(2);
                 insertnormal;
+                case targetmachine of
+                  aarch64:
+                    if not (cnvts in [predid, succid, oddid, absid, sqrid, truncid,
+                                      roundid, ioerrorid, iostatusid]) then
+                      proctable[blockref].leaf := false;
+                  otherwise;
+                  end;
                 end;
               lsslit, leqlit, eqlit, neqlit, gtrlit, geqlit, lssop, leqop,
               neqop, eqop, gtrop, geqop, inop:
@@ -6497,6 +6505,7 @@ procedure build;
           if bigcompilerversion then ptr := @(bignodetable[thisstmt]);
           ptr^.expr1 := temp;
           if killinput then clobberinput;
+          proctable[blockref].leaf := false;
         end {buildsyscallstmt} ;
 
 

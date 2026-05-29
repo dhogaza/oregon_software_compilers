@@ -1885,6 +1885,18 @@ procedure addtempsave(k: keyindex; first, last: nodeptr);
     keytable[k].saves := p;
   end {addtempsave};
 
+function volatilereg(r: regindex): boolean;
+
+{ Returns true if the register is volatile, in other words not allocated
+  permanently to a regtemp, not one of io0-pr or fp or sp etc.
+}
+
+
+  begin {volatilereg}
+    volatilereg := (r >= firstreg) and (r <= lastscratchreg) or
+                   (r > pr) and (r <= lastreg);
+  end {volatilereg};
+
 function savereg(r: regindex {register to save}) : keyindex;
 
 { Save the given register on the runtime stack.  This routine is quite clever
@@ -1947,13 +1959,6 @@ function savereg(r: regindex {register to save}) : keyindex;
                settemp(long, reg_oprnd(r)),
                savekey);
       addtempsave(savekey, lastnode, lastnode);
-{
-if switcheverplus[test] and (keytable[key].first <> nil) then
-begin
-writeln(macfile, 'savekey:', savekey);
-write_nodes(tempsave^.first, tempsave^.last);
-end;
-}
       end;
     savereg := savekey;
   end {savereg} ;
@@ -1980,7 +1985,7 @@ procedure markreg(r: regindex {register to clobber} );
 
   begin {markreg}
     regused[r] := true;
-    if (r >= firstreg) and (r <= lastreg) then
+    if volatilereg(r) then
       begin
       saved := false;
       registers[r] := 0;
@@ -2044,7 +2049,7 @@ procedure markscratchregs;
     r: regindex;
 
   begin {markscratchregs}
-    for r := firstreg to pr - 1 do
+    for r := firstreg to lastscratchreg do
       markreg(r);
   end {markscratchregs};
 
@@ -2061,8 +2066,8 @@ function regvalue(r: regindex): unsigned;
 
   begin {regvalue}
     regvalue := registers[r] + ord(context[contextsp].bump[r]) * 4 +
-                ord((r > pr) and not regused[r]) * 2 + ord(r < ip0) +
-                maxint * ord((r >= ip0) and (r <= pr));
+                ord((r > pr) and not regused[r]) * 2 + ord(r <= lastscratchreg) +
+                maxint * ord((r > lastscratchreg) and (r <= pr));
   end {regvalue} ;
 
 function countreg: regindex;
@@ -2100,7 +2105,7 @@ function bestreg(reg: regindex {register to check} ): boolean;
 
   begin {bestreg}
     cnt := countreg;
-    bestreg := (reg <= lastreg) and (reg >= firstreg) and
+    bestreg := not volatilereg(reg) and
                (regvalue(reg) <= cnt);
   end {bestreg} ;
 
@@ -2133,8 +2138,8 @@ procedure savedstkey(k: keyindex);
     p: nodeptr;
   begin
     with keytable[k],oprnd do
-      if (mode = register) and regvalid and not regsaved and (reg >= firstreg) and
-         (reg <= lastreg) and keytable[properreg].validtemp then
+      if (mode = register) and regvalid and not regsaved and volatilereg(reg) and
+         keytable[properreg].validtemp then
         begin
         gen2(lastnode, buildinst(str, true, false), k, properreg);
         addtempsave(properreg, lastnode, lastnode);
@@ -2161,14 +2166,14 @@ procedure savekey(k: keyindex {operand to save} );
           bumptempcount(k, -refcount);
           with oprnd do
             begin
-              if regvalid and not regsaved and (reg <= lastreg) and
-                 (reg >= firstreg) and (reg <> noreg) then
+              if regvalid and not regsaved and (reg <> noreg) and
+                volatilereg(reg) then
                 begin
                 properreg := savereg(reg);
                 regsaved := true;
                 end;
               if reg2valid and not reg2saved and (reg2 <> noreg) and
-                 (reg2 >= firstreg) and (reg2 <= lastreg) then
+                 volatilereg(reg2) then
                 begin
                 { don't reuse the temp slot we just allocated!}
                 bumptempcount(k, refcount);
@@ -2422,7 +2427,11 @@ procedure makedstaddressable(k: keyindex);
 
   begin
     with keytable[k], oprnd do
-      if (mode = register) and (reg <= lastreg) then
+      { tricky as we allow moves to reg param targets and the function
+        return register, so can't use volatilereg(reg) here.
+      }
+      if (mode = register) and
+         (reg <= lastscratchreg) or (reg > pr) and (reg <= lastreg) then
         begin
         regvalid := true;
         regsaved := false;
@@ -5029,7 +5038,19 @@ procedure blockcodex;
     context[1].keymark := lastkey + 1;
     context[0] := context[1];
     lastfpreg := maxreg - target;
-    lastreg := sl - left;
+    { leaf procedures won't eat scratch registers through calls
+      so we can assign regtemps to them.  Callee-saved registers
+      are still available if needed.}
+    if proctable[blockref].leaf then
+      begin
+      lastreg := sl;
+      lastscratchreg := ip0 - left - 1;
+      end
+    else
+      begin
+      lastreg := sl - left;
+      lastscratchreg := ip0 - 1;
+      end;
     firstreg := 0;
     firstfpreg := 0;
     lineoffset := pseudoinst.len;
@@ -5363,8 +5384,16 @@ procedure regtempx;
 
   begin
     address(left, 0);
-    setvalue(reg_oprnd(sl - pseudoinst.oprnds[3] + 1));
-    regused[sl - pseudoinst.oprnds[3] + 1] := true;
+    if proctable[blockref].leaf then
+      begin
+      setvalue(reg_oprnd(ip0 - pseudoinst.oprnds[3]));
+      regused[ip0 - pseudoinst.oprnds[3]] := true;
+      end
+    else
+      begin
+      setvalue(reg_oprnd(sl - pseudoinst.oprnds[3] + 1));
+      regused[sl - pseudoinst.oprnds[3] + 1] := true;
+      end;
   end {regtempx} ;
 
 procedure dovarx(s: boolean {signed variable reference} );
