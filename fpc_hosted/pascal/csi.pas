@@ -49,7 +49,7 @@ implementation
     quals = (blanks, bstepq, byteallocq, caseq, codeconstq, commonvarsq,
              cpu8086q, cpu80286q, checkq, debugq, defineq, detailsq,
              doubleq, editlistq, eisq, environq, errorsq, fisq, floatsafeq,
-             fppq, framepointerq, genmaskq, groupownq, includelistq,
+             fppq, framepointerq, leafframepointerq, genmaskq, groupownq, includelistq,
              largemodelq, level0q, librequestq, listq, longlibq, macroq,
              mainq, cpu68000q, cpu68020q, fpc68881q, objectq, oldpackingq,
              oldreswordsq, ownq, pascal1q, pdp11q, picq, profileq,
@@ -220,6 +220,7 @@ implementation
       qualtable[defineq] := 'DEFINE';
       qualtable[environq] := 'ENVIRONMENT';
       qualtable[framepointerq] := 'FRAMEPOINTER';
+      qualtable[leafframepointerq] := 'LEAFFRAMEPOINTER';
       qualtable[oldreswordsq] := 'OLDRESWORDS';
 
       if targetopsys = unix then
@@ -512,6 +513,7 @@ implementation
         nofound := true;
 	qual := rightstr(qual, length(param) - 2);
         end;
+writeln(qual, ' nofound ', nofound);
 
       findqual(qual, thisqual, ambiguous);
 
@@ -539,6 +541,7 @@ implementation
         cmdquals := cmdquals + [thisqual];
       if nofound then qualsset := qualsset - [thisqual]
       else qualsset := qualsset + [thisqual];
+writeln('nofound ', nofound, ' thisqual ', thisqual);
 
       { Handle switch-specified file names }
 
@@ -644,6 +647,7 @@ implementation
       trans[fpc68881q] := fpc68881;
       trans[fppq] := fpp;
       trans[framepointerq] := framepointer;
+      trans[leafframepointerq] := leafframepointer;
       trans[genmaskq] := genmask;
       trans[groupownq] := groupown;
       trans[includelistq] := noswitch;
@@ -835,6 +839,10 @@ procedure csi;
 
     case targetmachine of
       mc68000:
+        { ignore leafframepointerq because we only implement leafs for
+          aarch64.  Plus this is a really stopid place for this code and it
+          might be redundant.
+        }
         if not (framepointerq in qualsset) then
           begin
           returnlinksize := ptrsize;

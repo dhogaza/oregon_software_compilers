@@ -3225,6 +3225,7 @@ procedure initscanner;
       initoneswitch(caseswitch,    'case          ', 1);
       initoneswitch(multidef,      'multidef      ', 1);
       initoneswitch(framepointer,  'framepointer  ', 1);
+      initoneswitch(leafframepointer, 'leafframepointer', 1);
       case targetmachine of
         vax:
           initoneswitch(pdp11data,     'pdp11         ', 1);

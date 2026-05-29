@@ -113,7 +113,8 @@ type
             floatsafe,     {lord only knows but I doubt he cares}
             fpc68881,      {(68K) code for 68881}
             fpp,           {(PDP-11, MS-DOS) FPP floating point}
-            framepointer,  {use dedicated frame pointer}
+            framepointer,  {use dedicated frame pointer except for leaf procs}
+            leafframepointer, {use dedicated frame pointer for leafs}
             genmask,       {specify code optimization options}
             groupown,      {(iAPX-86) allocate own section in DGROUP}
             ident_switch,  {???}
