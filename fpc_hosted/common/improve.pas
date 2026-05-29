@@ -214,7 +214,14 @@ procedure assignregs;
               end;
             j := j + 1;
             end;
-          if regioncount < 0 then bestworth := max(bestworth - 2, 0);
+          if regioncount < 0 then
+            { on aarch64 regtemps in leaf procs are assigned to caller-saved
+              registers so there is no load/store penalty associated with them.
+            }
+            if targetmachine = aarch64 then
+              bestworth := max(bestworth - 2 * ord(not proctable[blockref].leaf),  0)
+            else
+              bestworth := max(bestworth - 2,  0);
           if (bestworth > 0) then
             begin
             {found one to allocate }
