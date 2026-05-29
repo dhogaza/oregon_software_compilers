@@ -340,7 +340,7 @@ type
       imm16: (imm16_value: bits16; imm16_shift: 0..48);
       immbitmask: (bitmask_value: unsigned);
       pre_index, post_index, abstract_offset, signed_offset,
-      unsigned_offset: (index: integer);
+      unsigned_offset: (index: integer; spabsolute: boolean);
       reg_offset: (shift: bits2; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
       cond: (condition: conds);

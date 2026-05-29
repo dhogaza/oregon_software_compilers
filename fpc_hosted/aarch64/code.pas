@@ -508,6 +508,13 @@ function is_bitmask(d: cardinal; size: integer): boolean;
   end;
 end;
 
+function hasframeptr: boolean;
+
+  begin {hasframeptr}
+    hasframeptr := not proctable[blockref].leaf or
+                             switcheverplus[leafframepointer];
+  end {hadframepointer};
+
 function regmoveok(n: integer): boolean;
 
   var
@@ -633,7 +640,8 @@ function extend_reg_oprnd(reg: regindex; reg_extend: reg_extends; extend_shift: 
     extend_reg_oprnd := o;
   end;
 
-function index_oprnd(mode: oprnd_modes; reg: regindex; index: integer): oprndtype;
+function index_oprnd(mode: oprnd_modes; reg: regindex; index: integer;
+                     spabsolute: boolean): oprndtype;
 
   var
     o:oprndtype;
@@ -642,6 +650,7 @@ function index_oprnd(mode: oprnd_modes; reg: regindex; index: integer): oprndtyp
     o.reg2 := noreg;
     o.mode := mode;
     o.index := index;
+    o.spabsolute := spabsolute;
     index_oprnd := o;
   end;
 
@@ -1788,7 +1797,7 @@ function newtemp(size: addressrange {size of temp to allocate} ): keyindex;
         refcount := 0;
         first := nil;
         last := nil;
-        oprnd := index_oprnd(abstract_offset, sp, -stackoffset);
+        oprnd := index_oprnd(abstract_offset, sp, -stackoffset, false);
         end;
       end;
     newtemp := stackcounter;
@@ -1825,7 +1834,7 @@ function newparamtemp(size: addressrange {size of temp to allocate} ): keyindex;
         refcount := 0;
         first := nil;
         last := nil;
-        oprnd := index_oprnd(abstract_offset, sp, paramoffset);
+        oprnd := index_oprnd(abstract_offset, sp, paramoffset, true);
         end;
       end;
     paramoffset := paramoffset + size;
@@ -2521,7 +2530,7 @@ procedure initblock;
     stackcounter := stackbase;
     stackoffset := 0;
     maxstackoffset := 0;
-    keytable[stackcounter].oprnd := index_oprnd(abstract_offset, sp, 0);
+    keytable[stackcounter].oprnd := index_oprnd(abstract_offset, sp, 0, false);
 
     openarray_base := nil; { Modula2 only, but initialization needed for all }
     firstbr := nil;
@@ -2613,7 +2622,7 @@ procedure initblock;
   generating code for pseudoinstructions looks like:
 
   gen3(lastnode, buildinst(ldp, true, false), savereg2temp, saveregtemp,
-       settemp(long, index_oprnd(signed_offset, sp, -32)));
+       settemp(long, index_oprnd(signed_offset, sp, -32, false)));
   handle_offset9_oprnd(lastnode^.prevnode, true, ip0, lastnode^.oprnds[3]);
 }
 
@@ -3119,7 +3128,9 @@ procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
           else if (inst.inst = add) and (oprnds[2].mode = register) and
              (oprnds[2].reg = sp) and (oprnds[3].mode = imm12) then
             begin
-              if oprnds[3].imm12_value - savedregspace >= -4095 then
+{ sp offsets will be wrong here }
+              if hasframeptr and
+                (oprnds[3].imm12_value - savedregspace >= -4095) then
                 begin
                 inst.inst := sub;
                 oprnds[2].reg := fp;
@@ -3141,7 +3152,7 @@ procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
             if (oprnds[oprnd_cnt].mode = abstract_offset) and
                (oprnds[oprnd_cnt].reg = sp) then
               if inst.inst in [ldp, stp] then
-                if oprnds[3].index - savedregspace >= -512 then
+                if hasframeptr and (oprnds[3].index - savedregspace >= -512) then
                   begin
                   oprnds[3].mode := signed_offset;
                   oprnds[3].reg := fp;
@@ -3150,14 +3161,15 @@ procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
                 else
                   begin
                   after := firstnode^.prevnode;
-                  oprnds[3].index := oprnds[3].index + amount;
+                  if not oprnds[3].spabsolute then
+                    oprnds[3].index := oprnds[3].index + amount;
                   handle_offset9_oprnd(after, true, ip0, oprnds[3]);
                   firstnode := after^.nextnode;
                   end
               else if inst.inst in [first_ls..last_ls] then
-                if oprnds[2].index >= 0 then
+                if oprnds[2].spabsolute then
                   oprnds[2].mode := unsigned_offset { assume < 4095 params }
-                else if oprnds[2].index - savedregspace >= -256 then
+                else if hasframeptr and (oprnds[2].index - savedregspace >= -256) then
                   begin
                   oprnds[2].mode := signed_offset;
                   oprnds[2].reg := fp;
@@ -3166,7 +3178,10 @@ procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
                 else
                   begin
                   after := firstnode^.prevnode;
-                  oprnds[2].index := oprnds[2].index + amount;
+                  if not oprnds[2].spabsolute then
+                    if oprnds[2].index >= 0 then
+                      oprnds[2].index := oprnds[2].index + amount + savedregspace
+                    else oprnds[2].index := oprnds[2].index + amount;
                   handle_offset12_oprnd(after, ip0, long, oprnds[2]);
                   firstnode := after^.nextnode;
                   end
@@ -4486,17 +4501,20 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
       else if left = 1 then
         setvalue(datalabel_oprnd(globaldatalabel, false, 0))
       else if left = level then
-        setvalue(index_oprnd(abstract_offset, fp, 0))
+        if hasframeptr then
+          setvalue(index_oprnd(abstract_offset, fp, 0, false))
+        else
+          setvalue(index_oprnd(abstract_offset, sp, -quad, false))
       else if left = level - 1 then
-        setvalue(index_oprnd(abstract_offset, sl, 0))
+        setvalue(index_oprnd(abstract_offset, sl, 0, false))
       else
         begin
         address(target, 0);
         reg := getreg;
         gensimplemove(lastnode, settemp(long, index_oprnd(abstract_offset,
-                      keytable[target].oprnd.reg, -long)),
+                      keytable[target].oprnd.reg, -long, false)),
                       settemp(long, reg_oprnd(reg)));
-        setvalue(index_oprnd(abstract_offset, reg, 0));
+        setvalue(index_oprnd(abstract_offset, reg, 0, false));
         end;
       len := long;
       end;
@@ -5085,7 +5103,7 @@ procedure blockcodex;
       if intlevelrefs then
         begin
         t1 := settemp(long, reg_oprnd(sl));
-        t2 := settemp(long, index_oprnd(signed_offset, sl, -long));
+        t2 := settemp(long, index_oprnd(signed_offset, sl, -long, false));
         for i := 1 to levelspread - 1 do
           gen2(lastnode, buildinst(ldr, true, false), t1, t2);
         end;
@@ -5145,8 +5163,8 @@ procedure putblock;
 
     { eventually peephole optimizations happen now }
 
-    { We only save registers x19 ... and we do this indexing
-      negatively off the fp to make sure the index is in range.
+    { We only save registers x19 ... and if the proc has a frame we
+       we do this indexing negatively off the fp to make sure the index is in range.
       The static link must be the first register saved if used.
      }
     regcost := 0;
@@ -5192,12 +5210,18 @@ procedure putblock;
     ip0temp := settemp(long, reg_oprnd(ip0));
     ip1temp := settemp(long, reg_oprnd(ip1));
 
+{ DRB no space for frame and return pointer}
+if not hasframeptr then
+blksize := blksize - quad;
     blockcost := (blksize + regcost + maxstackoffset + quad - 1) and -quad;
     spoffset := blockcost - blksize;
-    spoffsettemp := settemp(long, index_oprnd(unsigned_offset, sp, spoffset));
-    saveregoffsettemp := settemp(long, index_oprnd(signed_offset, fp, 0));
+    spoffsettemp := settemp(long, index_oprnd(unsigned_offset, sp, spoffset, true));
+    saveregoffsettemp := settemp(long, index_oprnd(signed_offset, fp, 0, false));
 
-    finalizestackoffsets(firstnode, lastnode, maxstackoffset, regcost);
+    if hasframeptr then
+      finalizestackoffsets(firstnode, lastnode, maxstackoffset, regcost)
+    else
+      finalizestackoffsets(firstnode, lastnode, spoffset, regcost);
 
     { for using STP/LDP to save callee-saved registers }
     saveregtemp := settemp(long, reg_oprnd(0));
@@ -5216,18 +5240,23 @@ procedure putblock;
     else
       begin
       makeoffsetptr(p1, -blockcost, sp, sp);
-      handle_offset9_oprnd(p1, true, ip0, keytable[spoffsettemp].oprnd);
+      if hasframeptr then
+        handle_offset9_oprnd(p1, true, ip0, keytable[spoffsettemp].oprnd);
       end;
 
-    gen3(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
+    if hasframeptr then
+      begin
+      gen3(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
 
-    if (keytable[spoffsettemp].oprnd.reg <> sp) and
-       (keytable[spoffsettemp].oprnd.index = 0) then
+      if (keytable[spoffsettemp].oprnd.reg <> sp) and
+         (keytable[spoffsettemp].oprnd.index = 0) then
 { can this possibly work in all cases? }
-      gen2(p1, buildinst(mov, true, false), fptemp,
-           settemp(long, reg_oprnd(keytable[spoffsettemp].oprnd.reg)))
-    else
-      makeoffsetptr(p1, spoffset, sp, fp);
+        gen2(p1, buildinst(mov, true, false), fptemp,
+             settemp(long, reg_oprnd(keytable[spoffsettemp].oprnd.reg)))
+      else
+        makeoffsetptr(p1, spoffset, sp, fp);
+
+      end;
 
     if blockref = 0 then
       begin
@@ -5272,7 +5301,7 @@ procedure putblock;
       keytable[spoffsettemp].oprnd.mode := post_index;
       keytable[spoffsettemp].oprnd.index := blockcost;
       end
-    else
+    else if hasframeptr then
       begin
       keytable[spoffsettemp].oprnd.mode := unsigned_offset;
       keytable[spoffsettemp].oprnd.reg := sp;
@@ -5280,7 +5309,8 @@ procedure putblock;
       handle_offset9_oprnd(lastnode, true, ip0, keytable[spoffsettemp].oprnd);
       end;
 
-    gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
+    if hasframeptr then
+      gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
 
     if not prepost then
       makeoffsetptr(lastnode, blockcost, sp, sp);
@@ -5364,6 +5394,7 @@ procedure blockentryx;
       end;
 
     level := proctable[blockref].level;
+{DRB need to look into needsframeptr}
     blockusesframe := switcheverplus[framepointer]
 	or ((language = modula2) and proctable[blockref].needsframeptr);
   end {blockentryx} ;
@@ -5606,7 +5637,7 @@ begin {regparamx}
     address(left, 0);
     with keytable[left].oprnd do
       saveparam := settemp(long, index_oprnd(abstract_offset, reg,
-                         index + pseudoinst.oprnds[2]));
+                         index + pseudoinst.oprnds[2], false));
     gensimplemove(lastnode, key, saveparam);
     setkeyvalue(saveparam);
     end;
@@ -5662,7 +5693,7 @@ procedure indxx;
           genmoveaddress(left, newkey);
 {DRB: handle long offsets }
           setvalue(index_oprnd(abstract_offset,
-                   keytable[newkey].oprnd.reg, pseudoinst.oprnds[2]));
+                   keytable[newkey].oprnd.reg, pseudoinst.oprnds[2], false));
           keytable[key].regenoprnd.mode := nomode;
           end;
         abstract_offset:
@@ -5670,7 +5701,7 @@ procedure indxx;
           setkeyvalue(left);
           keytable[key].oprnd.index :=
             keytable[key].oprnd.index + pseudoinst.oprnds[2];
-          if keytable[key].oprnd.reg in [sl, fp] then
+          if keytable[key].oprnd.reg in [sp, sl, fp] then
             keytable[key].regenoprnd := keytable[key].oprnd;
           end;
       end
@@ -5692,7 +5723,7 @@ procedure indxindrx;
   begin {indxindrx}
     address(left, 0);
     loadreg(left, 0);
-    setvalue(index_oprnd(abstract_offset, keytable[left].oprnd.reg, 0));
+    setvalue(index_oprnd(abstract_offset, keytable[left].oprnd.reg, 0, false));
   end {indxindrx};
 
 procedure aindxx;
@@ -5735,7 +5766,8 @@ procedure aindxx;
       lock(right);
       regkey := settemp(long, reg_oprnd(getreg));
       genmoveaddress(left, regkey);
-      lefttemp := settemp(long, index_oprnd(abstract_offset, keytable[regkey].oprnd.reg, 0));
+      lefttemp := settemp(long, index_oprnd(abstract_offset, keytable[regkey].oprnd.reg,
+                                            0, false));
       changevalue(left, lefttemp);
       unlock(right);
       end;
@@ -5923,7 +5955,7 @@ procedure callroutinex(s: boolean {signed function value} );
     if linkreg and ((pseudoinst.oprnds[3] > 0) or (level > 2) and
        (levelhack <> 0)) then
       gensimplemove(lastnode, settemp(long,
-                    index_oprnd(signed_offset, fp, staticlinkoffset)), slkey);
+                    index_oprnd(signed_offset, fp, staticlinkoffset, false)), slkey);
 
     tempkey := savetempkey;
 
@@ -6301,7 +6333,7 @@ procedure pascalgotox;
 
 
       slregkey := settemp(long, reg_oprnd(sl));
-      slindrkey := settemp(long, index_oprnd(abstract_offset, sl, -long));
+      slindrkey := settemp(long, index_oprnd(abstract_offset, sl, -long, false));
       for i := level downto pseudoinst.oprnds[2] + 2 do
         gensimplemove(lastnode, slindrkey, slregkey);
       closerange;

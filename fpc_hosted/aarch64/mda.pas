@@ -295,6 +295,9 @@ function paramalloc(paramptr, typeptr: entryptr): allockind;
     if typeptr^.typ in [reals, doubles] then paramalloc := realregparam
     else if paramptr^.length <= ptrsize then paramalloc := regparam
     else paramalloc := normalalloc;
+{
+paramalloc := normalalloc;
+}
   end; {paramalloc}
 
 function  allocparamoffset(var blocksize, length: addressrange;
