@@ -1885,10 +1885,21 @@ procedure addtempsave(k: keyindex; first, last: nodeptr);
     keytable[k].saves := p;
   end {addtempsave};
 
+function volatileorparamreg(r: regindex): boolean;
+
+{ Returns true if the register is not allocated
+  permanently to a regtemp, not one of io0-pr or fp or sp etc.
+}
+
+
+  begin {volatileorparamreg}
+    volatileorparamreg := (r <= lastscratchreg) or (r > pr) and (r <= lastreg);
+  end {volatileorparamreg};
+
 function volatilereg(r: regindex): boolean;
 
-{ Returns true if the register is volatile, in other words not allocated
-  permanently to a regtemp, not one of io0-pr or fp or sp etc.
+{ Returns true if the register is volatile, in other words not a regparam or
+  allocated permanently to a regtemp, not one of io0-pr or fp or sp etc.
 }
 
 
@@ -2430,8 +2441,7 @@ procedure makedstaddressable(k: keyindex);
       { tricky as we allow moves to reg param targets and the function
         return register, so can't use volatilereg(reg) here.
       }
-      if (mode = register) and
-         (reg <= lastscratchreg) or (reg > pr) and (reg <= lastreg) then
+      if (mode = register) and volatileorparamreg(reg) then
         begin
         regvalid := true;
         regsaved := false;
@@ -3245,22 +3255,23 @@ procedure enterloop;
         savelastbranch := context[contextsp].lastbranch;
 
         for i := 0 to lastreg do
-          with regstate[i] do
-            begin
-            reloadfirst := nil; { not reloaded yet }
-            killed := false;
-            used := registers[i] > 0;
-            if used then context[contextsp].bump[i] := true;
-            active := context[contextsp].bump[i];
-            if active then
+          if volatileorparamreg(i) then
+            with regstate[i] do
               begin
-              stackcopy := savereg(i);
-              { DRB: temporary hack }
-              if stackcopy >= stackcounter then
-                keytable[stackcopy].refcount := keytable[stackcopy].refcount +
-                                              1;
-              end;
-            end; {with}
+              reloadfirst := nil; { not reloaded yet }
+              killed := false;
+              used := registers[i] > 0;
+              if used then context[contextsp].bump[i] := true;
+              active := context[contextsp].bump[i];
+              if active then
+                begin
+                stackcopy := savereg(i);
+                { DRB: temporary hack }
+                if stackcopy >= stackcounter then
+                  keytable[stackcopy].refcount := keytable[stackcopy].refcount +
+                                                1;
+                end;
+              end; {with}
 {
         for i := 0 to lastfpreg do
           with fpregstate[i] do
@@ -3603,41 +3614,42 @@ procedure restoreloopx;
         tempreg := settemp(long, reg_oprnd(0)); {dummy}
 
         for i := 0 to lastreg do
-          with regstate[i] do
-            if active then
-              begin
-              if killed then
+          if volatileorparamreg(i) then
+            with regstate[i] do
+              if active then
                 begin
-                keytable[stackcopy].tempflag := true;
-                { if not restored at top of loop (i.e. for loop) do it now }
-                if reloadfirst = nil then
+                if killed then
                   begin
-                  markreg(i); { tell current user }
-                  keytable[tempreg].oprnd.reg := i;
-                  if (keytable[stackcopy].oprnd.mode = register) and
-                     (keytable[stackcopy].regenoprnd.mode <> nomode) then
+                  keytable[stackcopy].tempflag := true;
+                  { if not restored at top of loop (i.e. for loop) do it now }
+                  if reloadfirst = nil then
                     begin
-                    gen2(lastnode, buildinst(adrp, true, false), tempreg,
-                         settemp(long, keytable[stackcopy].regenoprnd));
-                    gen2(lastnode, ldrinst(keytable[stackcopy].len, keytable[stackcopy].signed),
-                         tempreg,
-                         settemp(long, label_offset_oprnd(keytable[tempreg].oprnd.reg,
-                                       keytable[stackcopy].regenoprnd.labelno,
-                                       keytable[stackcopy].regenoprnd.labeloffset)))
-                    end
-                  else if keytable[stackcopy].oprnd.mode = label_offset then
-                    gen2(lastnode, buildinst(adrp, true, false), tempreg,
-                         settemp(long, keytable[stackcopy].regenoprnd))
-                  else
-                    gen2(lastnode, ldrinst(long, true), tempreg, stackcopy);
-                  end;
-                end
-              else if reloadfirst <> nil then deletenodes(reloadfirst, reloadlast);
-              { DRB: temporary hack }
-              if stackcopy >= stackcounter then
-                keytable[stackcopy].refcount := keytable[stackcopy].refcount -
-                                              1;
-              end;
+                    markreg(i); { tell current user }
+                    keytable[tempreg].oprnd.reg := i;
+                    if (keytable[stackcopy].oprnd.mode = register) and
+                       (keytable[stackcopy].regenoprnd.mode <> nomode) then
+                      begin
+                      gen2(lastnode, buildinst(adrp, true, false), tempreg,
+                           settemp(long, keytable[stackcopy].regenoprnd));
+                      gen2(lastnode, ldrinst(keytable[stackcopy].len, keytable[stackcopy].signed),
+                           tempreg,
+                           settemp(long, label_offset_oprnd(keytable[tempreg].oprnd.reg,
+                                         keytable[stackcopy].regenoprnd.labelno,
+                                         keytable[stackcopy].regenoprnd.labeloffset)))
+                      end
+                    else if keytable[stackcopy].oprnd.mode = label_offset then
+                      gen2(lastnode, buildinst(adrp, true, false), tempreg,
+                           settemp(long, keytable[stackcopy].regenoprnd))
+                    else
+                      gen2(lastnode, ldrinst(long, true), tempreg, stackcopy);
+                    end;
+                  end
+                else if reloadfirst <> nil then deletenodes(reloadfirst, reloadlast);
+                { DRB: temporary hack }
+                if stackcopy >= stackcounter then
+                  keytable[stackcopy].refcount := keytable[stackcopy].refcount -
+                                                1;
+                end;
 
 {
         keytable[tempreg].oprnd.m := fpreg;
@@ -3746,7 +3758,7 @@ procedure defforindexx(sgn, { true if signed induction var }
       begin
       nonvolatile := target <> 0;
       globalreg := (keytable[right].oprnd.mode = register) and
-                   (keytable[right].oprnd.reg >= lastreg);
+                   not volatilereg(keytable[right].oprnd.reg);
     if globalreg then
       setkeyvalue(right)
     else
@@ -4638,9 +4650,10 @@ begin {setarithmetic}
     rightregkey := settemp(long, reg_oprnd(getreg));
     genmoveaddress(right, rightregkey);
     lock(rightregkey);
-    unlock(right);
+{    unlock(right);}
     keyregkey := settemp(long, reg_oprnd(getreg));
     genmoveaddress(key, keyregkey);
+    unlock(key);
     unlock(leftregkey);
     unlock(rightregkey);
     keytable[leftregkey].oprnd.mode := post_index;
