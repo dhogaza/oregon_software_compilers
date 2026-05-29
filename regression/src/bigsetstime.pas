@@ -83,7 +83,6 @@ type n256 = (n256b1,n256b2,n256b3,n256b4,n256b5,n256b6,n256b7,n256b8,
 const count = 5000;
 
 var
-  i,j: integer;
   v128: s128;
   v192, v192x: s192;
   v256: s256;
@@ -91,18 +90,33 @@ var
   i128: n128;
   i192, i192x, i192xx: n192;
 
+  b1, b2, b3: boolean;
+
+procedure sets;
+
+  var
+    i,j: integer;
+
+  begin {sets}
+    for i := 1 to count do
+      for j := 1 to count do
+        begin
+        i128 := n128b75;
+        v128 := [n128b5];
+        i192 := n192b95;
+        i192x := n192b6;
+        i192xx := n192b190;
+        v192 := [i192x..i192];
+        v192x := [n192b6, n192b90, n192b192];
+        v192 := (v192 + v192x) * v192;
+        b1 := n192b90 in v192;
+        b2 := not (n192b192 in v192);
+        b3 := not (n192b1 in (v192 - [n192b1]));
+        v192 := v192 + [n192b1];
+        end;
+  end {sets};
+
 begin
-  for i := 1 to count do
-    for j := 1 to count do
-      begin
-      i128 := n128b75;
-      v128 := [n128b5];
-      i192 := n192b95;
-      i192x := n192b6;
-      i192xx := n192b190;
-      v192 := [i192x..i192];
-      v192x := [n192b6, n192b90, n192b192];
-      v192 := (v192 + v192x) * v192;
-      v192 := v192 + [n192b1];
-      end;
+  sets;
+  writeln('expect all true b1: ', b1, ' b2: ', b2, ' b3: ', b3);
 end.
