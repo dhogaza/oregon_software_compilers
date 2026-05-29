@@ -513,7 +513,6 @@ implementation
         nofound := true;
 	qual := rightstr(qual, length(param) - 2);
         end;
-writeln(qual, ' nofound ', nofound);
 
       findqual(qual, thisqual, ambiguous);
 
@@ -541,7 +540,6 @@ writeln(qual, ' nofound ', nofound);
         cmdquals := cmdquals + [thisqual];
       if nofound then qualsset := qualsset - [thisqual]
       else qualsset := qualsset + [thisqual];
-writeln('nofound ', nofound, ' thisqual ', thisqual);
 
       { Handle switch-specified file names }
 
