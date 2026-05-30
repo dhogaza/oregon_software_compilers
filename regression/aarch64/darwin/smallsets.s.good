@@ -24,16 +24,13 @@
 #	func
 #
 .P1:
-	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	sub	sp,sp,16
 # Line: 11, Stmt: 1
 # Line: 12, Stmt: 2
-	strb	w0,[x29,16]
-	ldrb	w0,[x29,16]
+	strb	w0,[sp,8]
+	ldrb	w0,[sp,8]
 .L2:
-	ldp	x30,x29,[sp,8]
-	add	sp,sp,32
+	add	sp,sp,16
 	ret
 	.text
 	.align 2

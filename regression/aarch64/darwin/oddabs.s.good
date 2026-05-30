@@ -18,18 +18,15 @@
 #	oddf
 #
 .P1:
-	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	sub	sp,sp,16
 # Line: 3, Stmt: 1
 # Line: 4, Stmt: 2
 	ands	wzr,w0,1
 	cset	w15,ne
-	strb	w15,[x29,16]
-	ldrb	w0,[x29,16]
+	strb	w15,[sp,8]
+	ldrb	w0,[sp,8]
 .L2:
-	ldp	x30,x29,[sp,8]
-	add	sp,sp,32
+	add	sp,sp,16
 	ret
 	.text
 	.align 2
@@ -37,18 +34,15 @@
 #	absf
 #
 .P2:
-	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	sub	sp,sp,16
 # Line: 9, Stmt: 1
 # Line: 10, Stmt: 2
 	cmp	w0,wzr
 	cneg	w15,w0,mi
-	str	w15,[x29,16]
-	ldrsw	x0,[x29,16]
+	str	w15,[sp,8]
+	ldrsw	x0,[sp,8]
 .L3:
-	ldp	x30,x29,[sp,8]
-	add	sp,sp,32
+	add	sp,sp,16
 	ret
 	.bss
 	.align 3

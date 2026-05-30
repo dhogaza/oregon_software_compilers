@@ -13,9 +13,7 @@
 #	initarray
 #
 .P1:
-	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	sub	sp,sp,16
 # Line: 20, Stmt: 1
 # Line: 21, Stmt: 2
 	mov	x15,1
@@ -32,8 +30,7 @@
 	b.le	.L4
 .L5:
 .L2:
-	ldp	x30,x29,[sp,8]
-	add	sp,sp,32
+	add	sp,sp,16
 	ret
 	.text
 	.align 2
@@ -41,20 +38,15 @@
 #	swap
 #
 .P5:
-	sub	sp,sp,48
-	stp	x30,x29,[sp,24]
-	add	x29,sp,24
+	sub	sp,sp,32
 # Line: 52, Stmt: 1
 # Line: 53, Stmt: 2
-	ldrsw	x16,[x0]
-	str	w16,[x29,16]
+	ldrsw	x15,[x0]
 	ldrsw	x16,[x1]
 	str	w16,[x0]
-	ldrsw	x16,[x29,16]
-	str	w16,[x1]
+	str	w15,[x1]
 .L6:
-	ldp	x30,x29,[sp,24]
-	add	sp,sp,48
+	add	sp,sp,32
 	ret
 	.text
 	.align 2

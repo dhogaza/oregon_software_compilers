@@ -19,14 +19,13 @@
 #	p2
 #
 .P3:
-	stp	x30,x29,[sp,-16]!
-	add	x29,sp,xzr
+	add	sp,sp,xzr
 # Line: 11, Stmt: 1
 # Line: 12, Stmt: 2
 	ldr	x28,[x28,-8]
 	b	.L32763
 .L2:
-	ldp	x30,x29,[sp],16
+	add	sp,sp,xzr
 	ret
 	.text
 	.align 2
@@ -53,12 +52,11 @@
 #	p
 #
 .P4:
-	stp	x30,x29,[sp,-16]!
-	add	x29,sp,xzr
+	add	sp,sp,xzr
 # Line: 21, Stmt: 1
 	b	.L32765
 .L4:
-	ldp	x30,x29,[sp],16
+	add	sp,sp,xzr
 	ret
 	.text
 	.align 2

@@ -23,10 +23,8 @@
 #	sets
 #
 .P1:
-	sub	sp,sp,128
-	stp	x30,x29,[sp,104]
-	add	x29,sp,104
-	str	x28,[x29,-8]
+	sub	sp,sp,112
+	str	x28,[sp,96]
 # Line: 100, Stmt: 1
 	adrp	x13,.L32766@PAGE
 	adrp	x12,.L32766@PAGE
@@ -88,7 +86,7 @@
 	str	x16,[x2],16
 	add	x1,x8,.L32766+48@PAGEOFF
 	add	x0,x7,.L32766+72@PAGEOFF
-	sub	x28,x29,32
+	add	x28,sp,80
 	ldp	x16,x17,[x1],16
 	ldp	x3,x2,[x0],16
 	orr	x16,x16,x3
@@ -98,7 +96,7 @@
 	ldr	x17,[x0],16
 	orr	x16,x16,x17
 	str	x16,[x28],16
-	sub	x2,x29,32
+	add	x2,sp,80
 	add	x1,x8,.L32766+48@PAGEOFF
 	add	x0,x8,.L32766+48@PAGEOFF
 	ldp	x16,x17,[x2],16
@@ -131,14 +129,14 @@
 	strb	w28,[x5,.L32766+133@PAGEOFF]
 	adrp	x28,.L32765@PAGE
 	add	x28,x28,.L32765+72@PAGEOFF
-	sub	x3,x29,56
+	add	x3,sp,56
 	ldp	x16,x17,[x28],16
 	stp	x16,x17,[x3],16
 	ldr	x16,[x28],16
 	str	x16,[x3],16
 	add	x2,x8,.L32766+48@PAGEOFF
-	sub	x1,x29,56
-	sub	x0,x29,80
+	add	x1,sp,56
+	add	x0,sp,32
 	ldp	x16,x17,[x2],16
 	ldp	x28,x3,[x1],16
 	bic	x16,x16,x28
@@ -149,7 +147,7 @@
 	bic	x16,x16,x17
 	str	x16,[x0],16
 	mov	x28,xzr
-	sub	x3,x29,80
+	add	x3,sp,32
 	asr	x16,x28,3
 	and	x17,x28,7
 	ldrb	w16,[x3, x16]
@@ -160,13 +158,13 @@
 	strb	w28,[x4,.L32766+134@PAGEOFF]
 	adrp	x28,.L32765@PAGE
 	add	x28,x28,.L32765+96@PAGEOFF
-	sub	x3,x29,104
+	add	x3,sp,8
 	ldp	x16,x17,[x28],16
 	stp	x16,x17,[x3],16
 	ldr	x16,[x28],16
 	str	x16,[x3],16
 	add	x2,x8,.L32766+48@PAGEOFF
-	sub	x1,x29,104
+	add	x1,sp,8
 	add	x0,x8,.L32766+48@PAGEOFF
 	ldp	x16,x17,[x2],16
 	ldp	x28,x3,[x1],16
@@ -188,9 +186,8 @@
 	b.le	.L5
 .L8:
 .L2:
-	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,104]
-	add	sp,sp,128
+	ldr	x28,[sp,96]
+	add	sp,sp,112
 	ret
 	.bss
 	.align 3

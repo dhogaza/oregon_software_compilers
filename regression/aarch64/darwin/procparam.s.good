@@ -14,18 +14,15 @@
 #	f
 #
 .P2:
-	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	sub	sp,sp,16
 # Line: 4, Stmt: 1
 # Line: 5, Stmt: 2
 	ands	wzr,w0,1
 	cset	w15,ne
-	strb	w15,[x29,16]
-	ldrb	w0,[x29,16]
+	strb	w15,[sp,8]
+	ldrb	w0,[sp,8]
 .L2:
-	ldp	x30,x29,[sp,8]
-	add	sp,sp,32
+	add	sp,sp,16
 	ret
 	.text
 	.align 2

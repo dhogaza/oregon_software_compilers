@@ -15,16 +15,13 @@
 #	func
 #
 .P1:
-	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	sub	sp,sp,16
 # Line: 16, Stmt: 1
 # Line: 17, Stmt: 2
-	strb	w0,[x29,16]
-	ldrb	w0,[x29,16]
+	strb	w0,[sp,8]
+	ldrb	w0,[sp,8]
 .L2:
-	ldp	x30,x29,[sp,8]
-	add	sp,sp,32
+	add	sp,sp,16
 	ret
 	.text
 	.align 2
@@ -103,14 +100,13 @@
 #	putnumset
 #
 .P3:
-	sub	sp,sp,48
-	stp	x30,x29,[sp,16]
-	add	x29,sp,16
+	sub	sp,sp,32
 # Line: 31, Stmt: 1
 # Line: 32, Stmt: 2
 	mov	x15,xzr
 .L6:
-	add	x14,x29,w15, uxtb 0
+	add	x14,sp,0
+	add	x14,x14,w15, uxtb 0
 	lsr	w16,w0,w15
 	ands	w16,w16,1
 	cset	w13,ne
@@ -120,8 +116,7 @@
 	b.ls	.L6
 .L7:
 .L4:
-	ldp	x30,x29,[sp,16]
-	add	sp,sp,48
+	add	sp,sp,32
 	ret
 	.text
 	.align 2
@@ -129,14 +124,13 @@
 #	putalphaset
 #
 .P4:
-	sub	sp,sp,48
-	stp	x30,x29,[sp,16]
-	add	x29,sp,16
+	sub	sp,sp,32
 # Line: 39, Stmt: 1
 # Line: 40, Stmt: 2
 	mov	x15,xzr
 .L10:
-	add	x14,x29,w15, uxtb 0
+	add	x14,sp,0
+	add	x14,x14,w15, uxtb 0
 	lsr	x16,x0,x15
 	ands	x16,x16,1
 	cset	w13,ne
@@ -146,8 +140,7 @@
 	b.ls	.L10
 .L11:
 .L8:
-	ldp	x30,x29,[sp,16]
-	add	sp,sp,48
+	add	sp,sp,32
 	ret
 	.bss
 	.align 3

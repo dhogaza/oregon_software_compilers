@@ -11,9 +11,7 @@
 #	fill
 #
 .P1:
-	sub	sp,sp,64
-	stp	x30,x29,[sp,40]
-	add	x29,sp,40
+	sub	sp,sp,48
 # Line: 14, Stmt: 1
 # Line: 15, Stmt: 2
 	mov	x14,1
@@ -38,8 +36,7 @@
 	b.le	.L5
 .L8:
 .L2:
-	ldp	x30,x29,[sp,40]
-	add	sp,sp,64
+	add	sp,sp,48
 	ret
 	.text
 	.align 2

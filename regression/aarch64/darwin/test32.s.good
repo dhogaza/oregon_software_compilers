@@ -20,18 +20,15 @@
 #	eq
 #
 .P1:
-	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	sub	sp,sp,16
 # Line: 8, Stmt: 1
 # Line: 9, Stmt: 2
 	cmp	w0,w1
 	cset	w15,eq
-	strb	w15,[x29,16]
-	ldrb	w0,[x29,16]
+	strb	w15,[sp,8]
+	ldrb	w0,[sp,8]
 .L2:
-	ldp	x30,x29,[sp,8]
-	add	sp,sp,32
+	add	sp,sp,16
 	ret
 	.text
 	.align 2
@@ -39,18 +36,15 @@
 #	ne
 #
 .P2:
-	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	sub	sp,sp,16
 # Line: 14, Stmt: 1
 # Line: 15, Stmt: 2
 	cmp	w0,w1
 	cset	w15,ne
-	strb	w15,[x29,16]
-	ldrb	w0,[x29,16]
+	strb	w15,[sp,8]
+	ldrb	w0,[sp,8]
 .L3:
-	ldp	x30,x29,[sp,8]
-	add	sp,sp,32
+	add	sp,sp,16
 	ret
 	.text
 	.align 2
@@ -58,18 +52,15 @@
 #	lt
 #
 .P3:
-	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	sub	sp,sp,16
 # Line: 20, Stmt: 1
 # Line: 21, Stmt: 2
 	cmp	w0,w1
 	cset	w15,lt
-	strb	w15,[x29,16]
-	ldrb	w0,[x29,16]
+	strb	w15,[sp,8]
+	ldrb	w0,[sp,8]
 .L4:
-	ldp	x30,x29,[sp,8]
-	add	sp,sp,32
+	add	sp,sp,16
 	ret
 	.text
 	.align 2
@@ -77,18 +68,15 @@
 #	gt
 #
 .P4:
-	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	sub	sp,sp,16
 # Line: 26, Stmt: 1
 # Line: 27, Stmt: 2
 	cmp	w0,w1
 	cset	w15,gt
-	strb	w15,[x29,16]
-	ldrb	w0,[x29,16]
+	strb	w15,[sp,8]
+	ldrb	w0,[sp,8]
 .L5:
-	ldp	x30,x29,[sp,8]
-	add	sp,sp,32
+	add	sp,sp,16
 	ret
 	.text
 	.align 2
@@ -96,18 +84,15 @@
 #	le
 #
 .P5:
-	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	sub	sp,sp,16
 # Line: 32, Stmt: 1
 # Line: 33, Stmt: 2
 	cmp	w0,w1
 	cset	w15,le
-	strb	w15,[x29,16]
-	ldrb	w0,[x29,16]
+	strb	w15,[sp,8]
+	ldrb	w0,[sp,8]
 .L6:
-	ldp	x30,x29,[sp,8]
-	add	sp,sp,32
+	add	sp,sp,16
 	ret
 	.text
 	.align 2
@@ -115,18 +100,15 @@
 #	ge
 #
 .P6:
-	sub	sp,sp,32
-	stp	x30,x29,[sp,8]
-	add	x29,sp,8
+	sub	sp,sp,16
 # Line: 38, Stmt: 1
 # Line: 39, Stmt: 2
 	cmp	w0,w1
 	cset	w15,ge
-	strb	w15,[x29,16]
-	ldrb	w0,[x29,16]
+	strb	w15,[sp,8]
+	ldrb	w0,[sp,8]
 .L7:
-	ldp	x30,x29,[sp,8]
-	add	sp,sp,32
+	add	sp,sp,16
 	ret
 	.bss
 	.align 3
