@@ -1178,6 +1178,52 @@ procedure gen4(var after: nodeptr; i: insttype;
     gen4p(after, i, o1, o2, o3, o4);
   end {gen4} ;
 
+procedure genadrp(var after: nodeptr; scavenge: boolean; var regkey: keyindex;
+                  labelkey: keyindex);
+
+{ Generate an adrp intruction or if possible, reuse the result of a previous adrp
+  instruction.
+
+  If scavenge is true, we will reuse a previous adrp to any register, while if
+  false, we will only reuse a previous adrp to the regkey register, because the
+  result has to be in that register for loop register restoration and the
+  like, so we'd have to generate a "mov regkey reg, found reg" anyway, which is
+  no faster than an adp instruction.
+}
+
+  var p: nodeptr;
+    found: boolean;
+    maskedoffset, labelno, labeloffset:integer;
+    reg: regindex;
+
+  begin {genadrp}
+    labelno := keytable[labelkey].oprnd.labelno;
+    labeloffset := keytable[labelkey].oprnd.labeloffset;
+    maskedoffset := labeloffset and $FFFFF000;
+    reg := keytable[regkey].oprnd.reg;
+    p := after;
+    found := false;
+
+    while not (found or
+      (p^.kind in [labelnode, labeldeltanode, labelrefnode, proclabelnode]) or
+      (p^.kind = instnode) and (p^.inst.inst in [b, bcond, bl, blr, br, cbz, cbnz])) do
+      begin
+        if (p^.kind = instnode) and (p^.inst.inst = adrp) and
+           (p^.oprnds[2].mode = datalabel) and
+           (p^.oprnds[2].labelno = labelno) and
+           (p^.oprnds[2].labeloffset and $FFFFF000 = maskedoffset) and
+           (scavenge or (p^.oprnds[1].reg = reg)) then
+          found := true
+        else p := p^.prevnode;
+      end;
+
+    if found then
+      keytable[regkey].oprnd.reg := p^.oprnds[1].reg
+    else
+      gen2(after, buildinst(adrp, true, false), regkey, labelkey);
+
+  end {genadrp};
+
 procedure genbr(var after: nodeptr; inst: insts; labelno: integer);
 
   begin {genbr}
@@ -5710,15 +5756,15 @@ procedure indxx;
            Need to study clang output.
           }
           begin
-          r := getreg;
           newkey := settemp(long, reg_oprnd(getreg));
           labelkey := settemp(long,datalabel_oprnd(keytable[left].oprnd.labelno,
                               false, keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
           keytable[key].regenoprnd := keytable[labelkey].oprnd;
-          gen2(lastnode, buildinst(adrp, true, false), newkey, labelkey);
+          genadrp(lastnode, true, newkey, labelkey);
           keytable[labelkey].oprnd.lowbits := true;
-          setvalue(label_offset_oprnd(r, keytable[labelkey].oprnd.labelno,
-                                      keytable[labelkey].oprnd.labeloffset));
+          setvalue(label_offset_oprnd(keytable[newkey].oprnd.reg,
+                     keytable[labelkey].oprnd.labelno,
+                     keytable[labelkey].oprnd.labeloffset));
 {DRB: hmmm ... }
           keytable[key].regsaved := true;
           end;

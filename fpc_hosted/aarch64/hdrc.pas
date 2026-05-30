@@ -352,14 +352,6 @@ type
       intconst: (int_value: integer);
     end;
 
-{ The instruction node ("node") is used to hold instructions generated and
-  book-keeping data needed to keep track addressing as the stack is
-  modified.  The actual code is emitted from the data in this node by
-  "putmac" or "putobj".
-
-  See the Program Logic Manual for an explanation of the uses of these fields
-}
-
   nodeptr = ^node; {used to reference the node contents}
   nodekinds = (instnode, oprndnode, labelnode, labeldeltanode, errornode, stmtnode,
                datanode, labelrefnode, proclabelnode, textnode, rodatanode, bssnode,
