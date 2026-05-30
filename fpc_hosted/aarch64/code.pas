@@ -1207,7 +1207,7 @@ procedure genadrp(var after: nodeptr; scavenge: boolean; var regkey: keyindex;
     while not (found or
       (p^.kind in [labelnode, labeldeltanode, labelrefnode, proclabelnode]) or
       (p^.kind = instnode) and
-      (p^.inst.inst in [b, bcond, bl, blr, br, cbz, cbnz]) or
+      (p^.inst.inst in [b, bl, blr, br]) or
       (p^.inst.inst <> adrp) and (p^.oprnds[1].reg = reg)) do
       begin
         if (p^.kind = instnode) and (p^.inst.inst = adrp) and
@@ -2422,16 +2422,13 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
         if (mode = register) and (regenoprnd.mode <> nomode) then
           begin
           genadrp(lastnode, false, t, settemp(long, regenoprnd));
-          gen2(lastnode, ldrinst(len, signed),
-               settemp(len, reg_oprnd(reg)),
+          gen2(lastnode, ldrinst(len, signed), t,
                settemp(long, label_offset_oprnd(reg, regenoprnd.labelno, regenoprnd.labeloffset)))
           end
         else if mode = label_offset then
           genadrp(lastnode, false, t, settemp(long, regenoprnd))
         else
-          gen2(lastnode, buildinst(ldr, true, false),
-               settemp(long, reg_oprnd(reg)),
-               properreg);
+          gen2(lastnode, buildinst(ldr, true, false), t, properreg);
         end;
       if restorereg2 then
         begin
@@ -3086,7 +3083,7 @@ procedure genmoveaddress(src, dst: keyindex);
 }
 
   var
-    labelkey: keyindex; {for label_offset}
+    labelkey, regkey: keyindex; {for label_offset}
 
   begin {genmoveaddress}
     if keytable[dst].oprnd.mode <> register then
@@ -3104,9 +3101,17 @@ procedure genmoveaddress(src, dst: keyindex);
         end;
       datalabel:
         begin
-        genadrp(lastnode, false, dst, src);
+        { the idea here is to have adrp target a different reg than is referenced
+          by dst, to give adrp optimization a higher chance of finding a match.  There
+          is no reason to worry about being cramped for free registers on this
+          machine.
+        }
+        lock(dst);
+        tempkey := settemp(long, reg_oprnd(getreg));
+        unlock(dst);
+        genadrp(lastnode, false, tempkey, src);
         keytable[src].oprnd.lowbits := true;
-        gen3(lastnode, buildinst(add, true, false), dst, dst, src);
+        gen3(lastnode, buildinst(add, true, false), dst, tempkey, src);
         keytable[src].oprnd.lowbits := false;
         end;
       abstract_offset:
