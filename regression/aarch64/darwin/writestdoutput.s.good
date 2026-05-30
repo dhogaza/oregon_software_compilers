@@ -28,8 +28,8 @@ _main:
 # Line: 7, Stmt: 1
 # Line: 8, Stmt: 2
 	adrp	x15,.L32766@PAGE
-	adrp	x14,.L32765@PAGE
-	add	x14,x14,.L32765+1@PAGEOFF
+	adrp	x13,.L32765@PAGE
+	add	x14,x13,.L32765+1@PAGEOFF
 	add	x13,x15,.L32766+38@PAGEOFF
 	ldrb	w16,[x14],1
 	strb	w16,[x13],1
@@ -56,8 +56,8 @@ _main:
 	mov	x1,1
 	bl	_p_wtc_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+5@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+5@PAGEOFF
 	mov	x1,3
 	mov	x2,1
 	bl	_p_wts_o 

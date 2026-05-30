@@ -28,8 +28,8 @@
 	add	w28,w14,4095
 	add	w15,w28,1,lsl 12
 	str	w15,[x29,28]
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+1@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+1@PAGEOFF
 	mov	x1,3
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -37,8 +37,8 @@
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+5@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+5@PAGEOFF
 	mov	x1,3
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -47,8 +47,8 @@
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+9@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+9@PAGEOFF
 	mov	x1,3
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -56,8 +56,8 @@
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+13@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+13@PAGEOFF
 	mov	x1,3
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -65,8 +65,8 @@
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+17@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+17@PAGEOFF
 	mov	x1,3
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -89,8 +89,8 @@
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
 # Line: 27, Stmt: 1
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+21@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+21@PAGEOFF
 	mov	x1,3
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -98,8 +98,8 @@
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+25@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+25@PAGEOFF
 	mov	x1,3
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -107,8 +107,8 @@
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+29@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+29@PAGEOFF
 	mov	x1,3
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -116,8 +116,8 @@
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+33@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+33@PAGEOFF
 	mov	x1,3
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -125,8 +125,8 @@
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+37@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+37@PAGEOFF
 	mov	x1,3
 	mov	x2,x1
 	bl	_p_wts_o 

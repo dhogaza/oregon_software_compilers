@@ -268,8 +268,8 @@ putbool:
 # Line: 107, Stmt: 2
 	cbz	w0,.L31
 .L32:
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+1@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+1@PAGEOFF
 	sub	x14,x29,16
 	ldrb	w16,[x15],1
 	strb	w16,[x14],1
@@ -285,8 +285,8 @@ putbool:
 	bl	putstring
 	b	.L33
 .L31:
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+6@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+6@PAGEOFF
 	sub	x14,x29,16
 	mov	x16,5
 .L32763:
@@ -723,8 +723,8 @@ _main:
 	adrp	x16,.L32764@PAGE
 	str	x17,[x16,.L32764@PAGEOFF]
 # Line: 83, Stmt: 1
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+12@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+12@PAGEOFF
 	sub	x14,x29,40
 	mov	x16,40
 .L32758:
@@ -736,8 +736,8 @@ _main:
 	mov	x1,1
 	mov	x2,40
 	bl	putstringln
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+53@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+53@PAGEOFF
 	sub	x14,x29,48
 	ldrb	w16,[x15],1
 	strb	w16,[x14],1
@@ -751,8 +751,8 @@ _main:
 	bl	putstring
 	mov	x0,xzr
 	bl	putintln
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+57@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+57@PAGEOFF
 	sub	x14,x29,56
 	mov	x16,6
 .L32757:
@@ -766,8 +766,8 @@ _main:
 	bl	putstring
 	mov	x0,1234
 	bl	putintln
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+64@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+64@PAGEOFF
 	sub	x14,x29,64
 	mov	x16,7
 .L32756:
@@ -781,8 +781,8 @@ _main:
 	bl	putstring
 	mov	x0,65535
 	bl	putintln
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+72@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+72@PAGEOFF
 	sub	x14,x29,72
 	mov	x16,7
 .L32755:
@@ -796,8 +796,8 @@ _main:
 	bl	putstring
 	mov	w0,65536
 	bl	putintln
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+80@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+80@PAGEOFF
 	sub	x14,x29,80
 	mov	x16,7
 .L32754:
@@ -811,8 +811,8 @@ _main:
 	bl	putstring
 	mov	w0,65537
 	bl	putintln
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+88@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+88@PAGEOFF
 	sub	x14,x29,88
 	mov	x16,7
 .L32753:
@@ -827,8 +827,8 @@ _main:
 	movz	x0,3
 	movk	x0,1,lsl 16
 	bl	putintln
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+96@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+96@PAGEOFF
 	sub	x14,x29,96
 	ldrb	w16,[x15],1
 	strb	w16,[x14],1
@@ -845,8 +845,8 @@ _main:
 	movz	x0,65535
 	movk	x0,65535,lsl 16
 	bl	putintln
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+101@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+101@PAGEOFF
 	sub	x14,x29,104
 	mov	x16,8
 .L32752:
@@ -860,8 +860,8 @@ _main:
 	bl	putstring
 	mov	w0,4294901760
 	bl	putintln
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+110@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+110@PAGEOFF
 	sub	x14,x29,112
 	mov	x16,8
 .L32751:
@@ -875,8 +875,8 @@ _main:
 	bl	putstring
 	mov	w0,4294901759
 	bl	putintln
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+119@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+119@PAGEOFF
 	sub	x14,x29,120
 	mov	x16,8
 .L32750:
@@ -891,8 +891,8 @@ _main:
 	movz	x0,65533
 	movk	x0,65534,lsl 16
 	bl	putintln
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+128@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+128@PAGEOFF
 	sub	x14,x29,136
 	mov	x16,12
 .L32749:
@@ -906,8 +906,8 @@ _main:
 	bl	putstring
 	mov	w0,2004318071
 	bl	putintln
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+141@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+141@PAGEOFF
 	sub	x14,x29,184
 	mov	x16,48
 .L32748:
@@ -920,8 +920,8 @@ _main:
 	mov	x2,48
 	bl	putstringln
 	bl	putln
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+190@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+190@PAGEOFF
 	sub	x14,x29,208
 	mov	x16,22
 .L32747:
@@ -951,8 +951,8 @@ _main:
 	bl	.P13  // p1
 	mov	x0,56
 	bl	.P13  // p1
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+213@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+213@PAGEOFF
 	sub	x14,x29,248
 	mov	x16,39
 .L32746:
@@ -964,8 +964,8 @@ _main:
 	mov	x1,1
 	mov	x2,39
 	bl	putstringln
-	adrp	x15,.L32765@PAGE
-	add	x15,x15,.L32765+253@PAGEOFF
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+253@PAGEOFF
 	sub	x14,x29,304
 	mov	x16,50
 .L32745:

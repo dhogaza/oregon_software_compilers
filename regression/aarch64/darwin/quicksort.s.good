@@ -213,8 +213,8 @@ _main:
 	str	x17,[x16,.L32764@PAGEOFF]
 	stp	x27,x28,[x29,-16]
 # Line: 94, Stmt: 1
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+1@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+1@PAGEOFF
 	mov	x1,8
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -238,8 +238,8 @@ _main:
 	cmp	w28,w16
 	b.gt	.L27
 .L28:
-	adrp	x15,.L32766@PAGE
-	add	x15,x15,.L32766@PAGEOFF
+	adrp	x14,.L32766@PAGE
+	add	x15,x14,.L32766@PAGEOFF
 	add	x14,x15,w28, sxtw 2
 	add	x15,x15,w28, sxtw 2
 	ldrsw	x14,[x14,36]
@@ -250,8 +250,8 @@ _main:
 	add	w28,w28,1
 	b	.L26
 .L27:
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+10@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+10@PAGEOFF
 	mov	x1,19
 	mov	x2,x1
 	bl	_p_wts_o 

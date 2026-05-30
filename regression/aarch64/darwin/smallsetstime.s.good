@@ -35,13 +35,11 @@
 	adrp	x15,.L32766@PAGE
 	adrp	x14,.L32765@PAGE
 	ldr	x13,[x14,.L32765@PAGEOFF]
-	adrp	x14,.L32766@PAGE
-	ldrb	w11,[x14,.L32766+36@PAGEOFF]
-	mov	x12,1
-	lsl	x12,x12,x11
-	orr	x13,x13,x12
+	ldrb	w12,[x15,.L32766+36@PAGEOFF]
+	mov	x14,1
+	lsl	x14,x14,x12
+	orr	x13,x13,x14
 	str	x13,[x15,.L32766+40@PAGEOFF]
-	adrp	x15,.L32766@PAGE
 	adrp	x14,.L32765@PAGE
 	ldr	x13,[x14,.L32765+8@PAGEOFF]
 	adrp	x14,.L32766@PAGE
@@ -167,11 +165,6 @@ _main:
 	str	x26,[x29,-24]
 # Line: 44, Stmt: 1
 	adrp	x15,.L32766@PAGE
-	adrp	x14,.L32766@PAGE
-	adrp	x13,.L32766@PAGE
-	adrp	x12,.L32766@PAGE
-	adrp	x11,.L32766@PAGE
-	adrp	x10,.L32766@PAGE
 	mov	x26,1
 .L16:
 	mov	x27,1
@@ -181,11 +174,11 @@ _main:
 	mov	w16,10
 	strb	w16,[x15,.L32766+36@PAGEOFF]
 	mov	w16,2
-	strb	w16,[x14,.L32766+37@PAGEOFF]
+	strb	w16,[x15,.L32766+37@PAGEOFF]
 	mov	w16,1
-	strb	w16,[x13,.L32766+34@PAGEOFF]
+	strb	w16,[x15,.L32766+34@PAGEOFF]
 	mov	w16,4
-	strb	w16,[x12,.L32766+35@PAGEOFF]
+	strb	w16,[x15,.L32766+35@PAGEOFF]
 	bl	.P2  // initsets
 	adrp	x15,.L32766@PAGE
 	ldrb	w0,[x15,.L32766+32@PAGEOFF]
@@ -193,31 +186,16 @@ _main:
 	adrp	x15,.L32766@PAGE
 	ldr	x0,[x15,.L32766+40@PAGEOFF]
 	bl	.P4  // putalphaset
-	adrp	x10,.L32766@PAGE
-	adrp	x11,.L32766@PAGE
-	adrp	x12,.L32766@PAGE
-	adrp	x13,.L32766@PAGE
-	adrp	x14,.L32766@PAGE
 	adrp	x15,.L32766@PAGE
 	add	w28,w28,1
 	cmp	w28,650
 	b.le	.L18
 .L19:
-	adrp	x10,.L32766@PAGE
-	adrp	x11,.L32766@PAGE
-	adrp	x12,.L32766@PAGE
-	adrp	x13,.L32766@PAGE
-	adrp	x14,.L32766@PAGE
 	adrp	x15,.L32766@PAGE
 	add	w27,w27,1
 	cmp	w27,650
 	b.le	.L17
 .L20:
-	adrp	x10,.L32766@PAGE
-	adrp	x11,.L32766@PAGE
-	adrp	x12,.L32766@PAGE
-	adrp	x13,.L32766@PAGE
-	adrp	x14,.L32766@PAGE
 	adrp	x15,.L32766@PAGE
 	add	w26,w26,1
 	cmp	w26,650

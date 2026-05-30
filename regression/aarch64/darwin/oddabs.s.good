@@ -65,8 +65,8 @@ _main:
 	adrp	x16,.L32764@PAGE
 	str	x17,[x16,.L32764@PAGEOFF]
 # Line: 13, Stmt: 1
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+1@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+1@PAGEOFF
 	mov	x1,8
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -75,8 +75,8 @@ _main:
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+10@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+10@PAGEOFF
 	mov	x1,8
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -85,8 +85,8 @@ _main:
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+19@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+19@PAGEOFF
 	mov	x1,12
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -95,8 +95,8 @@ _main:
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+32@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+32@PAGEOFF
 	mov	x1,14
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -106,8 +106,8 @@ _main:
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+47@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+47@PAGEOFF
 	mov	x1,8
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -116,8 +116,8 @@ _main:
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+56@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+56@PAGEOFF
 	mov	x1,12
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -126,8 +126,8 @@ _main:
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+69@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+69@PAGEOFF
 	mov	x1,9
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -137,8 +137,8 @@ _main:
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+79@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+79@PAGEOFF
 	mov	x1,17
 	mov	x2,x1
 	bl	_p_wts_o 

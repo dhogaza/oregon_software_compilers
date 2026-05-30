@@ -76,8 +76,8 @@
 	adrp	x15,.L32762@PAGE
 	mov	w16,1234
 	str	w16,[x15,.L32762+32@PAGEOFF]
-	adrp	x0,.L32761@PAGE
-	add	x0,x0,.L32761+1@PAGEOFF
+	adrp	x15,.L32761@PAGE
+	add	x0,x15,.L32761+1@PAGEOFF
 	mov	x1,21
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -95,8 +95,8 @@
 	sub	sp,x28,80
 	mov	x29,x28
 .L32766:
-	adrp	x0,.L32761@PAGE
-	add	x0,x0,.L32761+29@PAGEOFF
+	adrp	x28,.L32761@PAGE
+	add	x0,x28,.L32761+29@PAGEOFF
 	mov	x1,20
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -108,8 +108,8 @@
 	bl	_p_wtln_o 
 	mov	w16,4321
 	str	w16,[x28,.L32762+32@PAGEOFF]
-	adrp	x0,.L32761@PAGE
-	add	x0,x0,.L32761+50@PAGEOFF
+	adrp	x28,.L32761@PAGE
+	add	x0,x28,.L32761+50@PAGEOFF
 	mov	x1,21
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -127,8 +127,8 @@
 	sub	sp,x28,80
 	mov	x29,x28
 .L32764:
-	adrp	x0,.L32761@PAGE
-	add	x0,x0,.L32761+78@PAGEOFF
+	adrp	x28,.L32761@PAGE
+	add	x0,x28,.L32761+78@PAGEOFF
 	mov	x1,20
 	mov	x2,x1
 	bl	_p_wts_o 

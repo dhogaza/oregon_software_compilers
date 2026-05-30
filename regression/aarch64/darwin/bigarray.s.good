@@ -113,8 +113,8 @@
 	cmp	w26,w16
 	b.le	.L12
 .L17:
-	adrp	x0,.L32765@PAGE
-	add	x0,x0,.L32765+1@PAGEOFF
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+1@PAGEOFF
 	mov	x1,7
 	mov	x2,x1
 	bl	_p_wts_o 
