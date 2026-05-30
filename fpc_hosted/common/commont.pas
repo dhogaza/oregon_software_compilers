@@ -33,6 +33,8 @@ uses config, hdr, hdrt, a_t, t_c, code;
 
 { Tree build/improve/walk }
 
+function nodeisparam(n: nodeindex): boolean;
+
 function newlabel: labelrange;
 
 { Create a new pseudo-code label.
@@ -89,6 +91,17 @@ procedure genrealop(o: pseudoop; {operator}
 
 
 implementation
+
+function nodeisparam(n: nodeindex): boolean;
+
+  var
+    ptr: nodeptr;
+
+  begin {nodeisparam}
+    if bigcompilerversion then ptr := @(bignodetable[n]);
+    nodeisparam := (n = localparamnode) or
+                   (ptr^.op in [regparamop, realregparamop, ptrregparamop]);
+  end {nodeisparam};
 
 function newlabel: labelrange;
 

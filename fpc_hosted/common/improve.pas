@@ -44,6 +44,8 @@ procedure improve;
 
 implementation
 
+type visitexprtype = function(n: nodeindex): boolean;
+
 procedure assignregs;
 {
     Purpose:
@@ -247,17 +249,43 @@ procedure assignregs;
         end;
     end {allocateregs} ;
 
+  procedure insertregtemps;
+
+{
+    Purpose:
+      Replace indxops with regtmps if that address has been assigned
+      to a variable.
+
+    Inputs:
+      Head of a list of basic blocks.
+
+    Outputs:
+      None:
+
+    Algorithm:
+      Walk basic blocks, statements, and expressions recursively and for
+      each expression in the DAG, look for indxops that reference either
+      a levelop or a [real/ptr]regop.  If this corresponds to a variable or
+      parameter that has been assigned to a regtemp, replace.
+
+    Sideeffects:
+      Current procedure is modified.  Hopefully for the better.
+
+}
+
+    begin {insertregtemps}
+    end {insertregtemps};
 
   begin {assignregs}
     if switcheverplus[tblock] and (tblocknum = blockref) then
       begin
       { show register lifetimes }
-      writeln('  off typ worth lmin lmax fmin fmax');
+      writeln('  off param  typ worth lmin lmax fmin fmax');
       for i := 0 to regtablelimit do
         if regvars[i].registercandidate then
           begin
           with regvars[i], varlife do
-            writeln(offset: 5, ord(regkind): 3, worth: 7, lonmin: 5, lonmax: 5,
+            writeln(offset: 5, parameter:6, ord(regkind): 3, worth: 7, lonmin: 5, lonmax: 5,
                     fonmin: 5, fonmax: 5);
           end;
       end;
@@ -401,13 +429,13 @@ procedure assignregs;
           begin
           if regid <> 0 then
             begin
-            writeln('id ', regid: 2, ' typ ', ord(regkind): 1, ' off ', offset:
-                    1, ' lon ', lonmin: 1, ' ', lonmax: 1, ' fon ', fonmin: 1,
-                    ' ', fonmax: 1);
+            writeln('id ', regid: 2, ' typ ', ord(regkind): 1, ' param ', parameter: 1,
+                    ' off ', offset: 1, ' lon ', lonmin: 1, ' ', lonmax: 1, ' fon ',
+                    fonmin: 1, ' ', fonmax: 1);
             end;
           end;
       end;
-
+    insertregtemps;
   end {assignregs} ;
 
 

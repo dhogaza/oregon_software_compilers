@@ -1077,7 +1077,9 @@ procedure build;
             in doreference, killasreg, initbuild and walk:indxnode.
           }
         i := (varoffset div targetintsize) mod (regtablelimit + 1);
-        while (regvars[i].offset <> varoffset) and (regvars[i].worth >= 0) do
+        while ((regvars[i].offset <> varoffset) or
+               (regvars[i].parameter <> varisparam)) and
+               (regvars[i].worth >= 0) do
           i := (i + 1) mod (regtablelimit + 1);
         with regvars[i], varlife do
           begin
@@ -1128,7 +1130,6 @@ procedure build;
       ptr, ptr1: nodeptr; { for access to bit map nodes }
       varlev: levelindex; { varaible level }
       varoffset: addressrange; { location at varlev }
-      varisparam: boolean; { true if variable is a parameter }
       now, prev: nodeindex; { for walking read chain }
       found: boolean; { loop exit flag }
 
@@ -1143,10 +1144,9 @@ procedure build;
       if ptr1^.action = copy then
         if bigcompilerversion then ptr1 := @(bignodetable[ptr1^.directlink]);
 
-      varisparam := (ptr1^.oprnds[1] = localparamnode);
-
       ptr^.invariant := false;
-      ptr^.regcandidate := bumpvarcount(varlev, varisparam, varoffset);
+      ptr^.regcandidate := bumpvarcount(varlev, nodeisparam(ptr1^.oprnds[1]),
+                                        varoffset);
 
       { if in a loop, add this to the writes for the loop, and kill the reads }
 
@@ -1236,8 +1236,6 @@ procedure build;
       ptr, ptr1: nodeptr; { for access to nodes }
       varlev: levelindex; { variable level }
       varoffset: addressrange; { location at varlev }
-      varisparam: boolean; { true if variable is a parameter }
-
 
     begin {doreference}
 
@@ -1249,9 +1247,8 @@ procedure build;
       if ptr1^.action = copy then
         if bigcompilerversion then ptr1 := @(bignodetable[ptr1^.directlink]);
 
-      varisparam := (ptr1^.oprnds[1] = localparamnode);
-
-      ptr^.regcandidate := bumpvarcount(varlev, varisparam, varoffset);
+      ptr^.regcandidate := bumpvarcount(varlev, nodeisparam(ptr1^.oprnds[1]),
+                                        varoffset);
 
       { if in a loop, determine if modified in it yet }
         { If we have overflowed loopstack, then since invariant is
@@ -1440,8 +1437,6 @@ procedure build;
           if bigcompilerversion then
             ptr1 := @(bignodetable[ptr1^.directlink]);
 
-        varisparam := (ptr1^.oprnds[1] = localparamnode);
-
           { This hashes the variable's offset.  Really should be a
             function call.  However, it would be called in several
             high bandwidth places, and would produce an unneeded
@@ -1450,7 +1445,7 @@ procedure build;
             }
         i := (varoffset div targetintsize) mod (regtablelimit + 1);
         while ((regvars[i].offset <> varoffset) or
-              (regvars[i].parameter <> varisparam)) and
+              (regvars[i].parameter <> nodeisparam(ptr^.oprnds[1]))) and
               (regvars[i].worth >= 0) do
           i := (i + 1) mod (regtablelimit + 1);
         if regvars[i].worth >= 0 then
