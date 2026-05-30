@@ -5216,7 +5216,7 @@ procedure putblock;
       blksize := blksize - quad;
     blockcost := (blksize + regcost + maxstackoffset + quad - 1) and -quad;
     spoffset := blockcost - blksize;
-    spoffsettemp := settemp(long, index_oprnd(unsigned_offset, sp, spoffset, true));
+    spoffsettemp := settemp(long, index_oprnd(abstract_offset, sp, spoffset, true));
 
     if hasframeptr then
       saveregoffsettemp := settemp(long, index_oprnd(signed_offset, fp, 0, false))
@@ -5235,7 +5235,7 @@ procedure putblock;
 
     { set up the frame for this block }
 
-    prepost := (spoffset = 0) and (blockcost < 256);
+    prepost := hasframeptr and (spoffset = 0) and (blockcost < 504);
     p1 := codeproctable[blockref].proclabelnode;
 
     if prepost then
@@ -5244,13 +5244,13 @@ procedure putblock;
       keytable[spoffsettemp].oprnd.index := -blockcost;
       end
     else
-      begin
       makeoffsetptr(p1, -blockcost, sp, sp);
-      end;
 
     if hasframeptr then
       begin
       gen3(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
+      if not prepost then
+        handle_offset12_oprnd(p1^.prevnode, ip0, long, p1^.oprnds[3]);
 
       if (keytable[spoffsettemp].oprnd.reg <> sp) and
          (keytable[spoffsettemp].oprnd.index = 0) then
@@ -5335,14 +5335,17 @@ procedure putblock;
       end
     else if hasframeptr then
       begin
-      keytable[spoffsettemp].oprnd.mode := unsigned_offset;
+      keytable[spoffsettemp].oprnd.mode := abstract_offset;
       keytable[spoffsettemp].oprnd.reg := sp;
       keytable[spoffsettemp].oprnd.index := spoffset;
-      handle_offset9_oprnd(lastnode, true, ip0, keytable[spoffsettemp].oprnd);
       end;
 
     if hasframeptr then
+      begin
       gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
+      if not prepost then
+        handle_offset12_oprnd(lastnode^.prevnode, ip0, long, lastnode^.oprnds[3]);
+      end;
 
     if not prepost then
       makeoffsetptr(lastnode, blockcost, sp, sp);
