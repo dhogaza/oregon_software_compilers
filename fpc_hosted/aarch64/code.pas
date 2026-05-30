@@ -2791,7 +2791,7 @@ procedure genldr(var after: nodeptr;
   begin {genldr}
     gen2(after, ldrinst(len, signed), dst, src);
     if (after^.oprnds[2].mode = abstract_offset) and
-       (after^.oprnds[2].reg <> sp)  then
+       ((after^.oprnds[2].spabsolute) or (after^.oprnds[2].reg <> sp))  then
       if after^.oprnds[2].index > 0 then
         handle_offset12_oprnd(after^.prevnode, ip1, len, after^.oprnds[2])
       else
@@ -2809,7 +2809,7 @@ procedure genstr(var after: nodeptr;
   begin {genstr}
     gen2(after, strinst(len), src, dst);
     if (after^.oprnds[2].mode = abstract_offset) and
-       (after^.oprnds[2].reg <> sp)  then
+       ((after^.oprnds[2].spabsolute) or (after^.oprnds[2].reg <> sp))  then
       if after^.oprnds[2].index > 0 then
         handle_offset12_oprnd(after^.prevnode, ip1, len, after^.oprnds[2])
       else
@@ -5212,12 +5212,17 @@ procedure putblock;
     ip1temp := settemp(long, reg_oprnd(ip1));
 
 { DRB no space for frame and return pointer}
-if not hasframeptr then
-blksize := blksize - quad;
+    if not hasframeptr then
+      blksize := blksize - quad;
     blockcost := (blksize + regcost + maxstackoffset + quad - 1) and -quad;
     spoffset := blockcost - blksize;
     spoffsettemp := settemp(long, index_oprnd(unsigned_offset, sp, spoffset, true));
-    saveregoffsettemp := settemp(long, index_oprnd(signed_offset, fp, 0, false));
+
+    if hasframeptr then
+      saveregoffsettemp := settemp(long, index_oprnd(signed_offset, fp, 0, false))
+    else
+      saveregoffsettemp := settemp(long, index_oprnd(abstract_offset, sp,
+                                   spoffset, true));
 
     if hasframeptr then
       finalizestackoffsets(firstnode, lastnode, maxstackoffset, regcost)
@@ -5241,8 +5246,6 @@ blksize := blksize - quad;
     else
       begin
       makeoffsetptr(p1, -blockcost, sp, sp);
-      if hasframeptr then
-        handle_offset9_oprnd(p1, true, ip0, keytable[spoffsettemp].oprnd);
       end;
 
     if hasframeptr then
@@ -5269,25 +5272,53 @@ blksize := blksize - quad;
              settemp(long, label_offset_oprnd(ip0, libdatalabel, libinitsp)));
       end;
 
-    { procedure exit code. Restore callee-saved registers, link and frame pointer
+    { Procedure exit code. Restore callee-saved registers, link and frame pointer
       registers, and shrink stack.
+
+      If this is a leaf proc, this is complicated by the fact that we have to
+      index up from sp which might be further away than 12 bits.  The code uses
+      genstr/genldr to handle generating the extracode to reference these.  It
+      is even worse for stp/ldp which can only index 504 bytes above the sp. If
+      spoffset is greater than this the code just punts and issues genstr/genldr.
+      This should be rare as leaf procs will have regtemps allocated to scratch
+      registers and are unlikely to be complex enough to both use many callee-saved
+      registers and generate enough local stack storage to fall out of range of
+      stp/ldp.
+
+      This will work if I ever implement complete frame pointer removal, i.e.
+      the noframepointer option.  In that case the code generator will have
+      to check proctable for those procs which really need an fp (calling a
+      nested proc that makes intermediate level references).
+
     } 
 
     i := 0;
     while i <= regcount do
       begin
       keytable[saveregtemp].oprnd.reg := reglist[i].r;
-      if i = regcount then
+      if (i = regcount) or (spoffset > 504) then
         begin
-        keytable[saveregoffsettemp].oprnd.index := reglist[i].index;
-        gen2(p1, buildinst(str, true, false), saveregtemp, saveregoffsettemp);
-        gen2(lastnode, buildinst(ldr, true, false), saveregtemp, saveregoffsettemp);
+        if hasframeptr then
+          keytable[saveregoffsettemp].oprnd.index := reglist[i].index
+        else
+          begin
+          keytable[saveregoffsettemp].oprnd.mode := abstract_offset;
+          keytable[saveregoffsettemp].oprnd.index := spoffset + reglist[i].index;
+          end;
+        genstr(p1, long, saveregtemp, saveregoffsettemp);
+        genldr(lastnode, long, false, saveregtemp, saveregoffsettemp);
         i := i + 1;
         end
       else
         begin
         keytable[savereg2temp].oprnd.reg := reglist[i + 1].r;
-        keytable[saveregoffsettemp].oprnd.index := reglist[i + 1].index;;
+        if hasframeptr then
+          keytable[saveregoffsettemp].oprnd.index := reglist[i + 1].index
+        else
+          begin
+          keytable[saveregoffsettemp].oprnd.mode := signed_offset;
+          keytable[saveregoffsettemp].oprnd.index := spoffset + reglist[i + 1].index;
+          end;
         { ordering important to make sure sl is in the right place if needed }
         gen3(p1, buildinst(stp, true, false), savereg2temp, saveregtemp,
              saveregoffsettemp);
