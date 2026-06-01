@@ -58,17 +58,18 @@
 	stp	x30,x29,[sp,80]
 	add	x29,sp,80
 	stp	x26,x27,[x29,-16]
-	str	x25,[x29,-24]
-	str	x1,[x29,-32]
-	str	x0,[x29,-40]
+	stp	x24,x25,[x29,-32]
+	str	x23,[x29,-40]
+	mov	x23,x1
+	mov	x24,x0
 # Line: 58, Stmt: 1
 # Line: 61, Stmt: 2
 	ldr	x15,[x28,-8]
 	ldr	x15,[x15,16]
-	add	x15,x15,w0, sxtw 2
+	add	x15,x15,w24, sxtw 2
 	ldrsw	x25,[x15,-4]
-	add	w26,w0,1
-	mov	x27,x1
+	add	w26,w24,1
+	mov	x27,x23
 	ldr	x15,[x28,-8]
 	ldr	x15,[x15,16]
 	str	x15,[x29,-48]
@@ -76,15 +77,13 @@
 	ldr	x14,[x14,16]
 	str	x14,[x29,-56]
 .L10:
-	ldr	x0,[x29,-40]
-	ldr	x1,[x29,-32]
 	ldr	x14,[x29,-56]
 	ldr	x15,[x29,-48]
 	cmp	w26,w27
 	b.gt	.L11
 .L12:
 .L9:
-	cmp	w26,w1
+	cmp	w26,w23
 	b.gt	.L13
 	add	x13,x14,w26, sxtw 2
 	ldrsw	x13,[x13,-4]
@@ -96,7 +95,7 @@
 .L13:
 .L8:
 	add	x13,x15,w27, sxtw 2
-	cmp	w27,w0
+	cmp	w27,w24
 	b.le	.L16
 	ldrsw	x12,[x13,-4]
 	cmp	w12,w25
@@ -117,9 +116,8 @@
 .L11:
 	ldr	x15,[x28,-8]
 	ldr	x15,[x15,16]
-	str	x15,[x29,-32]
-	ldr	x14,[x29,-40]
-	add	x14,x15,w14, sxtw 2
+	str	x15,[x29,-48]
+	add	x14,x15,w24, sxtw 2
 	sub	x0,x14,4
 	add	x15,x15,w27, sxtw 2
 	sub	x1,x15,4
@@ -128,7 +126,8 @@
 	ldrsw	x0,[x29,16]
 .L7:
 	ldp	x26,x27,[x29,-16]
-	ldr	x25,[x29,-24]
+	ldp	x24,x25,[x29,-32]
+	ldr	x23,[x29,-40]
 	ldp	x30,x29,[sp,80]
 	add	sp,sp,112
 	ret
@@ -142,28 +141,30 @@
 	stp	x30,x29,[sp,40]
 	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
+	stp	x25,x26,[x29,-32]
+	mov	x27,x1
+	mov	x25,x0
 # Line: 81, Stmt: 1
 # Line: 83, Stmt: 2
-	str	x0,[x29,-24]
-	str	x1,[x29,-32]
-	cmp	w0,w1
+	cmp	w25,w27
 	b.ge	.L22
 .L23:
-	ldr	x0,[x29,-24]
-	ldr	x1,[x29,-32]
+	mov	x0,x25
+	mov	x1,x27
 	mov	x28,x29
 	bl	.P4  // split
 	ldr	x28,[x29,-8]
-	mov	x27,x0
-	ldr	x0,[x29,-24]
-	sub	w1,w27,1
+	mov	x26,x0
+	mov	x0,x25
+	sub	w1,w26,1
 	bl	.P3  // quicksortrecur
-	add	w0,w27,1
-	ldr	x1,[x29,-32]
+	add	w0,w26,1
+	mov	x1,x27
 	bl	.P3  // quicksortrecur
 .L21:
 .L22:
 	ldp	x27,x28,[x29,-16]
+	ldp	x25,x26,[x29,-32]
 	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret

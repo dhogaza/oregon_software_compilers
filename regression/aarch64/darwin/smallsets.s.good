@@ -110,14 +110,13 @@
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
-	str	x28,[x29,-8]
+	stp	x27,x28,[x29,-16]
+	mov	x27,x0
 # Line: 25, Stmt: 1
 # Line: 26, Stmt: 2
-	str	x0,[x29,-16]
 	mov	x28,xzr
 .L6:
-	ldr	x15,[x29,-16]
-	lsr	w16,w15,w28
+	lsr	w16,w27,w28
 	ands	w16,w16,1
 	cset	w0,ne
 	mov	x1,5
@@ -125,14 +124,13 @@
 	mov	x0,32
 	mov	x1,1
 	bl	_p_wtc_o 
-	ldr	x0,[x29,-16]
 	add	w28,w28,1
 	cmp	w28,7
 	b.ls	.L6
 .L7:
 	bl	_p_wtln_o 
 .L4:
-	ldr	x28,[x29,-8]
+	ldp	x27,x28,[x29,-16]
 	ldp	x30,x29,[sp,24]
 	add	sp,sp,48
 	ret
@@ -145,14 +143,13 @@
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
-	str	x28,[x29,-8]
+	stp	x27,x28,[x29,-16]
+	mov	x27,x0
 # Line: 33, Stmt: 1
 # Line: 34, Stmt: 2
-	str	x0,[x29,-16]
 	mov	x28,xzr
 .L10:
-	ldr	x15,[x29,-16]
-	lsr	x16,x15,x28
+	lsr	x16,x27,x28
 	ands	x16,x16,1
 	cset	w0,ne
 	mov	x1,5
@@ -160,14 +157,13 @@
 	mov	x0,32
 	mov	x1,1
 	bl	_p_wtc_o 
-	ldr	x0,[x29,-16]
 	add	w28,w28,1
 	cmp	w28,10
 	b.ls	.L10
 .L11:
 	bl	_p_wtln_o 
 .L8:
-	ldr	x28,[x29,-8]
+	ldp	x27,x28,[x29,-16]
 	ldp	x30,x29,[sp,24]
 	add	sp,sp,48
 	ret
