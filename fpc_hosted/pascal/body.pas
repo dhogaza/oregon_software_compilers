@@ -3030,9 +3030,7 @@ begin {regparams}
             allocation.  Should only do this if there are procedure
             calls but that comes later.
           }
-{
           possibletemp(p);
-}
           end
         else
           begin

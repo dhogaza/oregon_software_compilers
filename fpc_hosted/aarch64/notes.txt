@@ -29,29 +29,25 @@
 
   -- allowing the assignment of regparams to regtemps
 
-    can just do what hoist does.  Make a separate walk of the tree just for modifying
-    indx nodes to regtemps.  This code can then fiddle the underlying regparamop node
-    to put in the tracking information.  indxop generated in body needs to put
-    out the offset field, too ...
+     can just do what hoist does.  Make a separate walk of the tree just for modifying
+     indx nodes to regtemps.  This code can then fiddle the underlying regparamop node
+     to put in the tracking information.  indxop generated in body needs to put
+     out the offset field, too ...
 
-    --[no]leafframe (default noleafframe) which eventually will lead to
-      --noframe.  Add flag to indicate if stack offsets need to be adjusted
-      rather than using +/- offset.  With stack params of course not being
-      adjusted.  We will still allocate two ptrs slots on the stack in code
-      for simplicity's sake.
+  -- error calls
 
-  -- std routine parameters
+     don't mark param regs when loading them.  don't mark scratch registers when
+     calling them.  they do not return. 
 
-     pushing of strings -> moving strings to param registers ugh...
+  -- cstring support
 
-     alloc one param for the length and then if regparam do some hacked up
-     shit to get the length?  Target code something like:
+     pad string constants with \0 (length byte, data, \0). conversion to cstring
+     just bump string address by one byte.
 
-     move address to Xn+1
-     mov [Xn+1,1], Xn
-     add xn, xn, 1
+  -- basic extended strings.
 
-     should be able to do this in body ... maybe helper for the len
+     if we were to implement with (maxlen, len, data, \0) then we could implement
+     generic string parameters with code checking for overflow.
 
   -- FILES
 
@@ -73,6 +69,8 @@
      This is going to be complex.  Figuring how to represent files is going to be
      quite the trip on its own. The library code can probably be written in Pascal
      interfacing to the C library.  Or the C library more likely ...
+
+
 
   --
 
@@ -97,10 +95,6 @@
      essentially exclusively to caller-saved regs but everything should be tested
      thoroughly before increasing use of callee-saved because it hammers register
      spilling, operand regeneration without using saved registers, etc.
-
-    [reg, reg] take advantage of shifting when possible, i.e. load 16 bit
-    constant then shift a bit to the left (by the length of the data being
-    referenced?) to save an instruction.
 
 -- next priorities:
 

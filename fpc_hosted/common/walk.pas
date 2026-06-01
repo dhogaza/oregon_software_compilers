@@ -667,9 +667,9 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 }
 
 
-    procedure regparamnode(p: pseudoop {operator for root node} );
+    procedure regnode(p: pseudoop {operator for root node} );
 
-{ Walk and generate code for some flavor of register param.
+{ Walk and generate code for some flavor of register node (regparam, regtemp, etc)
 }
 
       begin
@@ -677,7 +677,7 @@ procedure walknode(root: nodeindex; {root of tree to walk}
         mapkey;
         genpseudo(p, len, key, refcount, copycount, lkey, rootp^.oprnds[2],
                   rootp^.oprnds[3]);
-      end {regparamnode} ;
+      end {regnode} ;
 
 
     procedure indxnode(p: pseudoop {operator for root node} );
@@ -713,6 +713,7 @@ procedure walknode(root: nodeindex; {root of tree to walk}
                             (op = levop) and (oprnds[1] = level) or
                             (op in [regparamop, realregparamop, ptrregparamop])
           else possibletemp := false;
+possibletemp := false;
 
         walknode(l, lkey, 0, true);
 
@@ -1683,7 +1684,7 @@ with target = 0.
       end {stacknode} ;
 
 
-    procedure stackregparamnode(op: operatortype; {root operator}
+    procedure stackregnode(op: operatortype; {root operator}
                                 form: types {operand form} );
 
 { Walk and generate code for a node which pushes a value on the stack
@@ -2238,7 +2239,7 @@ with target = 0.
           unscallparam: callparamnode(op);
           reserve: reservenode;
           pushaddr, pushstraddr: pushaddrnode(op, form);
-          bldfmt: stackregparamnode(op, none);
+          bldfmt: stackregnode(op, none);
           pushproc: pushprocnode;
           pushfinal: pushfinalnode;
           pushvalue, pushlitvalue, pushfptr: stacknode(op, form);
@@ -2307,9 +2308,12 @@ with target = 0.
           fileparamop: fileparamnode;
           defforindexop, defunsforindexop: defforindexnode(true);
           defforlitindexop, defunsforlitindexop: defforindexnode(false);
-          regparamop: regparamnode(regparam);
-          ptrregparamop: regparamnode(ptrregparam);
-          realregparamop: regparamnode(realregparam);
+          regparamop: regnode(regparam);
+          ptrregparamop: regnode(ptrregparam);
+          realregparamop: regnode(realregparam);
+          regtempop: regnode(regtemp);
+          ptrtempop: regnode(ptrtemp);
+          realtempop: regnode(realtemp);
           indxop: indxnode(indx);
           pindxop: indxnode(pindx);
           vindxop, parmop: vindxnode;
