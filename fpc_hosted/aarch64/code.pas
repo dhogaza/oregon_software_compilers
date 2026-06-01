@@ -5710,19 +5710,29 @@ procedure regparamx;
 
 var
   o: oprndtype;
-  saveparam: keyindex;
+  tempkey: keyindex;
 
 begin {regparamx}
-  setvalue(reg_oprnd(pseudoinst.oprnds[3]));
-  regused[pseudoinst.oprnds[3]] := true;
-  if left <> 0 then
+  if (left = -1) then
     begin
-    address(left, 0);
-    with keytable[left].oprnd do
-      saveparam := settemp(long, index_oprnd(abstract_offset, reg,
-                         index + pseudoinst.oprnds[2], false));
-    gensimplemove(lastnode, key, saveparam);
-    setkeyvalue(saveparam);
+    tempkey := settemp(long, reg_oprnd(pseudoinst.oprnds[3]));
+    setvalue(reg_oprnd(sl - pseudoinst.oprnds[2] + 1));
+    regused[sl - pseudoinst.oprnds[2] + 1] := true;
+    gensimplemove(lastnode, tempkey, key);
+    end
+  else
+    begin
+    setvalue(reg_oprnd(pseudoinst.oprnds[3]));
+    regused[pseudoinst.oprnds[3]] := true;
+    if left <> 0 then
+      begin
+      address(left, 0);
+      with keytable[left].oprnd do
+        tempkey := settemp(long, index_oprnd(abstract_offset, reg,
+                           index + pseudoinst.oprnds[2], false));
+      gensimplemove(lastnode, key, tempkey);
+      setkeyvalue(tempkey);
+      end;
     end;
 end {regparamx};
 

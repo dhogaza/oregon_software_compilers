@@ -204,6 +204,7 @@ procedure assignregs;
             with regvars[j] do
               begin
               if registercandidate and
+                 not (parameter and (proctable[blockref].leaf)) and
                  (worth - assignparampenalty * ord(parameter) > bestworth) and
                  (regkind in acceptable) then
                 begin
@@ -281,22 +282,24 @@ procedure assignregs;
 
       procedure applytoindexnode(expr: nodeindex);
         var
+          left: nodeindex;
           exprp,leftp: nodeptr;
           possibletemp: boolean; {true if local var or regparam and possible
                                   temp loc}
           offset: addressrange; {variable offset if possibletemp}
           j: 0..regtablelimit; { var for temp search }
           third: integer; {third operand, zero or temp number}
-          paramflag: boolean; {true if indexing parameter level}
 
         begin {applytoindexnode}
           exprp := @(bignodetable[expr]);
-          leftp := @(bignodetable[exprp^.oprnds[1]]);
+          left := exprp^.oprnds[1];
+          leftp := @(bignodetable[left]);
+          if nodeisparam(left) then
+            offset := leftp^.oprnds[2]
+          else offset := exprp^.oprnds[2];
           third := 0;
-          offset := exprp^.oprnds[2];
-          paramflag := (exprp^.oprnds[1] = localparamnode) or
-             (leftp^.op in [regparamop, realregparamop, ptrregparamop]);
-          if (leftp^.op = levop) and (leftp^.oprnds[1] = level) or paramflag then
+          if (leftp^.op = levop) and (leftp^.oprnds[1] = level) or
+            nodeisparam(left) then
           begin
             { This hashes the var's offset, really should be a function call.
               However it would be called in several high bandwidth places and
@@ -306,20 +309,23 @@ procedure assignregs;
             }
           j := (offset div targetintsize) mod (regtablelimit + 1);
           while ((regvars[j].offset <> offset) or
-                (regvars[j].parameter <> paramflag)) and
+                (regvars[j].parameter <> nodeisparam(left))) and
                 (regvars[j].worth >= 0) do
             j := (j + 1) mod (regtablelimit + 1);
           if regvars[j].regid <> 0 then
             begin
-            exprp^.oprnds[2] := 0;
-            exprp^.oprnds[3] := regvars[j].regid;
             if leftp^.op in [regparamop, realregparamop, ptrregparamop] then
+              begin
+              leftp^.oprnds[1] := -1;
               leftp^.oprnds[2] := regvars[j].regid;
+              end;
             case regvars[j].regkind of
               reg, bytereg: exprp^.op := regtempop;
               realreg: exprp^.op := realtempop;
               ptrreg: exprp^.op := ptrtempop;
               end;
+            exprp^.oprnds[2] := 0;
+            exprp^.oprnds[3] := regvars[j].regid;
             end;
           end;
 

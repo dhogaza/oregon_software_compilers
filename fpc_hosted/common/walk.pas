@@ -673,7 +673,15 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 }
 
       begin
-        walknode(l, lkey, 0, true);
+        { lkey of -1 is used to tell the codgen that this regparam is meant
+          to be saved in a regtemp reg in order to avoid having to shuffle
+          it back-and-forth to a stack temp.  This is either a kludge or
+          outright abuse of the node, take your pick.
+        }
+        if l > 0 then
+          walknode(l, lkey, 0, true)
+        else
+          lkey := l;
         mapkey;
         genpseudo(p, len, key, refcount, copycount, lkey, rootp^.oprnds[2],
                   rootp^.oprnds[3]);

@@ -1,6 +1,26 @@
 
 -- random stuff
 
+i in [a..b] with no non-emptyset constant component can be transformed into:
+
+if (i>=a) and (i<=b)
+
+by improve which, after all, is what we do generally to stay away from the "in"
+operator when we know that it will be slower than the compare code.
+
+implmentation in codegen could be something like ...
+
+	ldr	x0, i
+	cmp	x0, <a>
+        cset ip0 0 or 1
+      	cmp	x0, <b>
+        cset ip1 zero or 1
+        ands, wzr, ip0, ip1
+ 
+if seeking value, wzr is replaced with a register.
+
+CSEs and sets ... 
+
 *** current bugs
 
    -- code like add x0,x0,foo leads to x0's saved location on the stack
@@ -22,6 +42,9 @@
 
   -- set arithmetic with the empty set fails unless the other set oprnds are 32 bit.
      front end limitation.
+
+     Might be fixable in improve's smooth functionality.  Or if necessary an additional
+     set-fixer-upper procedure.
 
   -- regenoprnd stuff all messed up? adrp and makeaddressable not only for global level?
 

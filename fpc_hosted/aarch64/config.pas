@@ -202,11 +202,10 @@ const
 
   { Define the maximum numbers of scalars and reals to assign to registers }
 
-  { DRB: numbers for AARCH64 are a WAG }
-  assignreg = 5;
-  assignptrreg = 0;
-  assignrealreg = 7;
-  assignparampenalty = 0;
+  assignreg = 6; { if reg allcation gets better for CSEs may lower this }
+  assignptrreg = 0; { aarch64 has no specialized address registers }
+  assignrealreg = 5;
+  assignparampenalty = 0; { this is additional to the cost of caller-saving }
 
   maxtrackvar = 64; {maximum number of register candidates for a block}
   regtablelimit = 4095; {last entry in register candidate hash table. MUST be
