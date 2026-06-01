@@ -684,67 +684,23 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 
 { Walk and generate code for "indx" or "pindx" operations.
 
-  These operations compute the address of a variable, and this routine
-  checks to see if the variable should be assigned to a register.
-  Analys made an estimate of the best local vars to assign to registers,
-  and if the operation describes a local var the displacement is
-  checked against the list from analys and assigned to the temp register
-  if it matches.
+  These operations compute the address of a variable. It used to
+  checksto see if the variable should be assigned to a register.  However
+  that has been moved to improve, where it can be made to work with
+  regetemps referencing regparams.
+
+  Probably doesn't need to be its own procedure any more.
 }
 
-      var
-        lp: nodeptr; {used to access left operand}
-        possibletemp: boolean; {true if local var or reg param and possible
-                                temp loc}
-        offset: addressrange; {variable offset if possibletemp}
-        j: 0..regtablelimit; { var for temp search }
-        third: integer; {third operand, zero or temp number}
-        paramflag: boolean; {true if indexing parameter level}
+    var
+      offset: addressrange;
 
 
       begin
-        if bigcompilerversion then lp := @(bignodetable[l]);
-        third := 0;
         offset := rootp^.oprnds[2];
-        paramflag := l = localparamnode;
-        with lp^ do
-          if action = revisit then
-            possibletemp := (p = indx) and
-                            (op = levop) and (oprnds[1] = level) or
-                            (op in [regparamop, realregparamop, ptrregparamop])
-          else possibletemp := false;
-possibletemp := false;
-
         walknode(l, lkey, 0, true);
-
-        if possibletemp then
-          begin
-            { This hashes the var's offset, really should be a function call.
-              However it would be called in several high bandwidth places and
-              places an unneeded speed penalty on this phase.
-              This code is replicated in procedures: doreference, killasreg
-              and dodefine in travrs.
-            }
-          j := (offset div targetintsize) mod (regtablelimit + 1);
-          while ((regvars[j].offset <> offset){ or
-                (regvars[j].parameter <> paramflag)}) and
-                (regvars[j].worth >= 0) do
-            j := (j + 1) mod (regtablelimit + 1);
-          if regvars[j].regid <> 0 then
-            begin
-            { assigned to a register }
-            third := regvars[j].regid;
-            case regvars[j].regkind of
-              reg, bytereg: p := regtemp;
-              realreg: p := realtemp;
-              ptrreg: p := ptrtemp;
-              end;
-            end;
-          end;
-
         mapkey;
-        genpseudo(p, len, key, refcount, copycount, lkey, offset, third);
-
+        genpseudo(p, len, key, refcount, copycount, lkey, offset, 0);
       end {indxnode} ;
 
 
