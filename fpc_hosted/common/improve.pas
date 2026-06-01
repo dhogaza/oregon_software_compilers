@@ -290,7 +290,6 @@ procedure assignregs;
           paramflag: boolean; {true if indexing parameter level}
 
         begin {applytoindexnode}
-writeln('applytoindexnode');
           exprp := @(bignodetable[expr]);
           leftp := @(bignodetable[exprp^.oprnds[1]]);
           third := 0;
@@ -327,20 +326,19 @@ writeln('applytoindexnode');
         end {applytoindexnode};
 
     begin {applytoexprnode}
-      if bigcompilerversion then exprp := @(bignodetable[expr]);
-      if exprp^.op = indxop then
-        applytoindexnode(expr)
-      else
-        for i := 1 to maxoprnd do
-          if exprp^.nodeoprnd[i] then
-            applytoexprnode(exprp^.oprnds[i]);
+      if expr <> 0 then
+        begin
+        if bigcompilerversion then exprp := @(bignodetable[expr]);
+        if (exprp^.op < intop) and (exprp^.slink <> 0) then
+          applytoexprnode(exprp^.slink);
+        if exprp^.op = indxop then
+          applytoindexnode(expr)
+        else
+          for i := 1 to maxoprnd do
+            if exprp^.nodeoprnd[i] then
+              applytoexprnode(exprp^.oprnds[i]);
+        end;
     end {applytoexprnode};
-
-    procedure applytonodelist(firstnode: nodeindex);
-
-    begin {applytonodelist}
-writeln('applytonodelist ', firstnode);
-    end {applytonodelist};
 
     procedure applytostmtlist(firststmt: nodeindex);
 
@@ -362,52 +360,18 @@ writeln('applytonodelist ', firstnode);
       currentstmt := p^;
       with currentstmt do
         begin
-writeln('applytostmt ', currentstmt.stmtkind);
         case stmtkind of
-{
-          blkhdr: walkblk;
-          rpthdr, loophdr: genstmtbrk;
-          untilhdr: walkuntil;
-}
-          whilehdr, ifhdr: applytoexprnode(expr1); {what about true and false node?}
-{
-
-          whilebothdr, loopbothdr:
+          blkhdr, labelhdr, gotohdr, nohdr, caseerrhdr, loopbrkhdr, cswbrkhdr,
+          loopconthdr, swbrkhdr, caselabhdr, casegroup, whilebothdr, loopbothdr,
+          loophdr: { no expressions };
+          casehdr: applytoexprnode(selector);
+          whilehdr, rpthdr, ifhdr, foruphdr, fordnhdr, withhdr, simplehdr,
+          syscallhdr, untilhdr, cforhdr, cforbothdr, returnhdr, forbothdr:
             begin
-            if currentstmt.looptop^.clearop then
-              genpseudo(restoreloop, 0, 0, 0, 0, 0, 0, 0);
-              { looplabel is below any hoisting in the loop which is where
-                we want to go if present }
-            if currentstmt.looptop^.looplabel = 0 then
-              genpseudo(jump, 0, 0, 0, 0, getlabel(currentstmt.looptop), level,
-                        0)
-            else
-              genpseudo(jump, 0, 0, 0, 0, currentstmt.looptop^.looplabel, level,
-                        0);
-            if has_break then genpseudo(pascallabel, 0, 0, 0, 0, 0, 0, 0);
+            applytoexprnode(expr1);
+            applytoexprnode(expr2);
             end;
-
-          casehdr: walkcase;
-          foruphdr, fordnhdr: walkfortop;
-          forbothdr: walkforbot;
-          withhdr: walkwith;
-}
-          simplehdr: applytoexprnode(expr1);
-{
-          labelhdr: walklabel;
-          gotohdr: walkgoto;
-          loopbrkhdr: walkbrkcont(true);
-          swbrkhdr: walkbrkcont(false);
-          cswbrkhdr: walkbrkcont(true);
-          loopconthdr: walkbrkcont(true);
-          cforhdr: walkwhileif;
-          cforbothdr: walkcforbot;
-          returnhdr: walkreturn;
-          syscallhdr: walksyscall;
-          caseerrhdr: genpseudo(caseerr, 0, 0, 0, 0, 0, 0, 0);
-          nohdr: { dead statement } ;
-          otherwise writeln('ouch!!', ord(stmtkind))
-}
+          otherwise writeln('statement missing from applytostmt ', ord(stmtkind))
           end;
         end;
       end {applytostmt};
@@ -416,7 +380,6 @@ writeln('applytostmt ', currentstmt.stmtkind);
       p: nodeptr; { for access to statement node }
 
     begin {applytostmtlist}
-writeln('applytostmtlist ', firststmt);
       while firststmt <> 0 do
         begin
         if bigcompilerversion then p := @(bignodetable[firststmt]);
