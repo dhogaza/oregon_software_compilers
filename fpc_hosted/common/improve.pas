@@ -281,6 +281,28 @@ procedure assignregs;
       i: oprndindex;
 
       procedure applytoindexnode(expr: nodeindex);
+{
+    Purpose:
+      See if this indx node can be replaced with a regtemp node.
+
+    Inputs:
+      An expr which is known to be an index node
+
+    Outputs:
+      None
+
+    Algorithm:
+      Inspects the indx node to see if its offset and param status matches
+      any register that's been permanently allocated to a variable or
+      parameter.  This will migrate regparams to regtemps (to avoid having
+      to explicitly save them during proc calls) but will not migrate
+      params stored on the stack.
+
+    Sideeffects:
+      May transform the index node into a regtemp node.
+}
+
+
         var
           left: nodeindex;
           exprp,leftp: nodeptr;
@@ -328,7 +350,6 @@ procedure assignregs;
             exprp^.oprnds[3] := regvars[j].regid;
             end;
           end;
-
         end {applytoindexnode};
 
     begin {applytoexprnode}
