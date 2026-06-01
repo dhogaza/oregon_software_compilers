@@ -779,7 +779,7 @@ procedure walknode(root: nodeindex; {root of tree to walk}
             and dodefine in travrs.
           }
           j := (trav_offset div targetintsize) mod (regtablelimit + 1);
-          while (regvars[j].offset <> trav_offset) and
+          while ((regvars[j].offset <> trav_offset) or regvars[j].parameter) and
                 (regvars[j].worth >= 0) do
             j := (j + 1) mod (regtablelimit + 1);
           if regvars[j].regid <> 0 then

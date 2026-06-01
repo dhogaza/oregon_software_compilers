@@ -1998,7 +1998,7 @@ procedure build;
           offset := localvar.offset;
           debugrecord := localvar.debugrecord;
 
-          { currently, only C front-end supports register parameters }
+          { currently, only Pascal and C front-ends support register parameters }
           case language of
             modula2: parameter := false;
             pascal, c: parameter := localvar.is_param;
