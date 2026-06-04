@@ -188,6 +188,7 @@ procedure assignregs;
       bestworth: shortint; { most useful var with disjoint register life }
       allocated: boolean; { true if a register allocated on this path }
       varalloc: allockind; {kind of allocation}
+      penalty: shortint; { load/store cost of allocating this var }
 
 
     begin {allocateregs}
@@ -195,6 +196,7 @@ procedure assignregs;
         begin
         regioncount := - 1;
         allocated := false;
+        penalty := assigninitialpenalty;
         { find a register to assign }
         repeat
           bestworth := 0;
@@ -222,13 +224,14 @@ procedure assignregs;
               registers so there is no load/store penalty associated with them.
             }
             if targetmachine = aarch64 then
-              bestworth := max(bestworth - 2 * ord(not proctable[blockref].leaf),  0)
+              bestworth := max(bestworth - penalty * ord(not proctable[blockref].leaf),  0)
             else
-              bestworth := max(bestworth - 2,  0);
+              bestworth := max(bestworth - penalty,  0);
           if (bestworth > 0) then
             begin
             {found one to allocate }
             allocated := true;
+            penalty := 0;
             regvars[bestvar].worth := 0;
             regvars[bestvar].regid := i;
             regioncount := regioncount + 1;

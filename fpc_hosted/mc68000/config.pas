@@ -205,6 +205,8 @@ const
   assignreg = 3;
   assignptrreg = 2;
   assignrealreg = 3;  { 68020/68881 only }
+
+  assigninitialpenalty = 2; { cost of saving/restoring reg }
   assignparampenalty = 3;
 
   maxtrackvar = 30; {maximum number of register candidates for a block}

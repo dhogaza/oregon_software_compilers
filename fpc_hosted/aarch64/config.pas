@@ -205,7 +205,9 @@ const
   assignreg = 6; { if reg allcation gets better for CSEs may lower this }
   assignptrreg = 0; { aarch64 has no specialized address registers }
   assignrealreg = 5;
-  assignparampenalty = 0; { this is additional to the cost of caller-saving }
+
+  assigninitialpenalty = 2; { cost of saving/restoring reg }
+  assignparampenalty = 0; { this is additional to the initial cost }
 
   maxtrackvar = 64; {maximum number of register candidates for a block}
   regtablelimit = 4095; {last entry in register candidate hash table. MUST be

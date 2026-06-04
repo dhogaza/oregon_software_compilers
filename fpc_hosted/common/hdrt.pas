@@ -291,6 +291,8 @@ type
       worth: shortint; { value of this var }
     end;
 
+  regvararray = array [0..regtablelimit] of simplevars;
+
 var
 
   truelabel, falselabel: labelrange; {for short circuit boolean evaluaton}
@@ -380,7 +382,7 @@ var
   walkdepth: shortint; {depth of progress into tree}
 
   visitstate: boolean; { state of "visited" blocks on current search }
-  regvars: array [0..regtablelimit] of simplevars; { register var hash table}
+  regvars: regvararray; { register var hash table}
   foncount: fonrange; { flow order number }
   loopfactor: shortint; { value assigned to localworth of variables }
   loopdepth: 0..maxloopdepth; { current loop depth }
