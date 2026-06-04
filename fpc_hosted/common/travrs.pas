@@ -1058,7 +1058,9 @@ procedure build;
                         varisparam: boolean; {true if var is a parameter}
                         varoffset: addressrange {offset of var} ): boolean;
 
-{ bump the useage count of a register candidate variable.
+{ bump the useage count of a register candidate variable.  This takes into account
+  that parameters are implicitly defined at the beginning of a proc, not at
+  its first reference.
 }
 
     var
@@ -1089,7 +1091,9 @@ procedure build;
             bumpvarcount := true;
             worth := worth + loopfactor;
             { set lifetime bounds }
-            if lonmin = 0 then lonmin := laststmtnode;
+            if lonmin = 0 then
+              if varisparam then lonmin := 1
+              else lonmin := laststmtnode;
             if laststmtnode > lonmax then lonmax := laststmtnode;
             if foncount < fonmin then fonmin := foncount;
             if foncount > fonmax then fonmax := foncount;
