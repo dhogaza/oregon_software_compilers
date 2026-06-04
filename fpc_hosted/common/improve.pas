@@ -186,18 +186,57 @@ procedure assignregs;
       i, j: shortint; {induction vars }
       bestvar: reghashindex; { best var to assign this pass }
       bestworth: shortint; { most useful var with disjoint register life }
+      totalworth: shortint; { if totalworth > assigninitialpenalty, assign to this reg }
       allocated: boolean; { true if a register allocated on this path }
       varalloc: allockind; {kind of allocation}
-      penalty: shortint; { load/store cost of allocating this var }
+      tempregvars: regvararray; { used by first pass of allocation }
 
 
     begin {allocateregs}
+
+      tempregvars := regvars;
       for i := regcount + 1 to maxregs do
         begin
         regioncount := - 1;
         allocated := false;
-        penalty := assigninitialpenalty;
+        totalworth := 0;
+
+        repeat
+          bestworth := 0;
+          j := 0;
+          while j <= regtablelimit do
+            begin
+            with tempregvars[j] do
+              begin
+              if registercandidate and
+                 not (parameter and (proctable[blockref].leaf)) and
+                 (worth - assignparampenalty * ord(parameter) > bestworth) and
+                 (regkind in acceptable) then
+                begin
+                if disjoint(varlife) then
+                  begin
+                  bestworth := worth - assignparampenalty * ord(parameter);
+                  bestvar := j;
+                  end;
+                end;
+              end;
+            j := j + 1;
+            end;
+          if (bestworth > 0) then
+            begin
+            tempregvars[bestvar].worth := 0;
+            tempregvars[bestvar].regid := i;
+            regioncount := regioncount + 1;
+            reglife[regioncount] := tempregvars[bestvar].varlife;
+            totalworth := totalworth + bestworth;
+{writeln(i, bestvar:6, bestworth:6, totalworth:6);}
+            end;
+        until bestworth = 0;
+
         { find a register to assign }
+if totalworth > assigninitialpenalty * ord(not proctable[blockref].leaf)
+then
+begin
         repeat
           bestworth := 0;
           j := 0;
@@ -221,17 +260,16 @@ procedure assignregs;
             end;
           if regioncount < 0 then
             { on aarch64 regtemps in leaf procs are assigned to caller-saved
-              registers so there is no load/store penalty associated with them.
+              registers so there is no load/store assigninitialpenalty associated with them.
             }
             if targetmachine = aarch64 then
-              bestworth := max(bestworth - penalty * ord(not proctable[blockref].leaf),  0)
+              bestworth := max(bestworth - assigninitialpenalty * ord(not proctable[blockref].leaf),  0)
             else
-              bestworth := max(bestworth - penalty,  0);
+              bestworth := max(bestworth - assigninitialpenalty,  0);
           if (bestworth > 0) then
             begin
             {found one to allocate }
             allocated := true;
-            penalty := 0;
             regvars[bestvar].worth := 0;
             regvars[bestvar].regid := i;
             regioncount := regioncount + 1;
@@ -250,6 +288,7 @@ procedure assignregs;
             end;
         until bestworth = 0;
         if allocated then regcount := regcount + 1;
+end;
         end;
     end {allocateregs} ;
 
