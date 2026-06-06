@@ -2377,7 +2377,7 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
 
   var
     restorereg, restorereg2: boolean;
-    i,t: keyindex;
+    i,t, t1: keyindex;
     found: boolean;
     recallkey: keyindex;
 
@@ -2418,12 +2418,19 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
         else
           reg := getreg;
         t := settemp(long, reg_oprnd(reg));
+        t1 := settemp(long, regenoprnd);
         recall_reg(reg, properreg);
         if (mode = register) and (regenoprnd.mode <> nomode) then
-          begin
-          genadrp(lastnode, false, t, settemp(long, regenoprnd));
-          gen2(lastnode, ldrinst(len, signed), t,
-               settemp(long, label_offset_oprnd(reg, regenoprnd.labelno, regenoprnd.labeloffset)))
+          case regenoprnd.mode of
+            datalabel:
+              begin
+              genadrp(lastnode, false, t, t1);
+              gen2(lastnode, ldrinst(len, signed), t,
+                   settemp(long, label_offset_oprnd(reg, regenoprnd.labelno, regenoprnd.labeloffset)))
+              end;
+            abstract_offset:
+              gensimplemove(lastnode, t1, t);
+            otherwise writeln('bad regnoprnd ', regenoprnd.mode);
           end
         else if mode = label_offset then
           genadrp(lastnode, false, t, settemp(long, regenoprnd))
@@ -5116,14 +5123,14 @@ procedure blockcodex;
     context[1].savedstackcounter := stackcounter;
     context[1].keymark := lastkey + 1;
     context[0] := context[1];
-    lastfpreg := maxreg - target;
+    lastfpreg := maxfpreg - target;
     { leaf procedures won't eat scratch registers through calls
       so we can assign regtemps to them.  Callee-saved registers
       are still available if needed.}
     if proctable[blockref].leaf then
       begin
       { yep leaf procs can reference surrounding scopes, it's a Pascal thing }
-      lastreg := sl - ord(proctable[blockref].intlevelrefs);
+      lastreg := sl - ord(proctable[blockref].intlevelrefs) - 1;
       lastscratchreg := ip0 - left - 1;
       end
     else
@@ -5784,14 +5791,22 @@ procedure indxx;
           begin
           newkey := settemp(long, reg_oprnd(getreg));
           genmoveaddress(left, newkey);
+          settemp(long, index_oprnd(abstract_offset,
+                  keytable[newkey].oprnd.reg, pseudoinst.oprnds[2], false));
 {DRB: handle long offsets }
-          setvalue(index_oprnd(abstract_offset,
-                   keytable[newkey].oprnd.reg, pseudoinst.oprnds[2], false));
-          keytable[key].regenoprnd.mode := nomode;
+          setallfields(tempkey);
           end;
         abstract_offset:
           begin
+{
           setkeyvalue(left);
+}
+          setallfields(left);
+if (key = 23) and (left = 4) then
+begin
+writeln('key ', keytable[key].oprnd.mode, keytable[key].oprnd.reg, keytable[key].regvalid);
+writeln('left ', keytable[left].regvalid);
+end;
           keytable[key].oprnd.index :=
             keytable[key].oprnd.index + pseudoinst.oprnds[2];
           if keytable[key].oprnd.reg in [sp, sl, fp] then
