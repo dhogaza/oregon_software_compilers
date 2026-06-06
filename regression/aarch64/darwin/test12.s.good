@@ -163,11 +163,11 @@
 	add	sp,sp,32
 	ret
 	.bss
-	.align 3
+	.align 12
 .L32766:
 	.space 32
 	.bss
-	.align 3
+	.align 12
 .L32764:
 	.space 16
 	.text
