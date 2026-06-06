@@ -23,7 +23,8 @@ CSEs and sets ...
 
 *** current bugs
 
-   -- writestdout test fails on linux?
+   -- genadrp needs to track clobbered vars while walking backwards so
+      we don't scavenge an adrp whose target reg is later written into.
 
    -- code like add x0,x0,foo leads to x0's saved location on the stack
       begin marked "used" even if we never load from the saved location.

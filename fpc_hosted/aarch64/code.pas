@@ -5135,7 +5135,7 @@ procedure blockcodex;
       end
     else
       begin
-      lastreg := sl - left - 1;
+      lastreg := sl - left;
       lastscratchreg := ip0 - 1;
       end;
     firstreg := 0;
