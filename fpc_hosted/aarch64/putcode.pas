@@ -371,7 +371,7 @@ procedure copysfile;
         writeln(macfile, chr(9), '.section', chr(9), '.rodata')
      else
         writeln(macfile, chr(9), '.section', chr(9), '__TEXT,__const');
-      writeln(macfile, chr(9), '.align 3');
+      writeln(macfile, chr(9), '.align 12');
       writeln(macfile, '.L', rodatalabel:1, ':'); { the label associated with constants }
       write_constants(i);
       end;
@@ -771,7 +771,7 @@ begin {write_node}
   bssnode:
     begin
     writeln(macfile, chr(9), '.bss');
-    writeln(macfile, chr(9), '.align 3');
+    writeln(macfile, chr(9), '.align 12');
     writeln(macfile, '.L', p^.bsslabel, ':');
     writeln(macfile, chr(9), '.space ', p^.bsssize);
     end;

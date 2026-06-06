@@ -2377,7 +2377,7 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
 
   var
     restorereg, restorereg2: boolean;
-    i,t: keyindex;
+    i,t, t1: keyindex;
     found: boolean;
     recallkey: keyindex;
 
@@ -2418,12 +2418,19 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
         else
           reg := getreg;
         t := settemp(long, reg_oprnd(reg));
+        t1 := settemp(long, regenoprnd);
         recall_reg(reg, properreg);
         if (mode = register) and (regenoprnd.mode <> nomode) then
-          begin
-          genadrp(lastnode, false, t, settemp(long, regenoprnd));
-          gen2(lastnode, ldrinst(len, signed), t,
-               settemp(long, label_offset_oprnd(reg, regenoprnd.labelno, regenoprnd.labeloffset)))
+          case regenoprnd.mode of
+            datalabel:
+              begin
+              genadrp(lastnode, false, t, t1);
+              gen2(lastnode, ldrinst(len, signed), t,
+                   settemp(long, label_offset_oprnd(reg, regenoprnd.labelno, regenoprnd.labeloffset)))
+              end;
+            abstract_offset:
+              gensimplemove(lastnode, t1, t);
+            otherwise writeln('bad regnoprnd ', regenoprnd.mode);
           end
         else if mode = label_offset then
           genadrp(lastnode, false, t, settemp(long, regenoprnd))
