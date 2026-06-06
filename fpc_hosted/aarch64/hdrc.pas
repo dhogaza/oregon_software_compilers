@@ -22,7 +22,7 @@ uses config, hdr, t_c;
 
 const
 
-  {AARCH64 general register assignments}
+  {AARCH64 register assignments}
 
   maxreg = 32;
 
@@ -36,6 +36,8 @@ const
   ip1 = 17;
   pr = 18; {platform register, can't touch}
   sr = 8; {structured return register}
+
+  maxfpreg = 32;
 
   {possible data length values}
 

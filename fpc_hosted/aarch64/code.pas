@@ -5123,7 +5123,7 @@ procedure blockcodex;
     context[1].savedstackcounter := stackcounter;
     context[1].keymark := lastkey + 1;
     context[0] := context[1];
-    lastfpreg := maxreg - target;
+    lastfpreg := maxfpreg - target;
     { leaf procedures won't eat scratch registers through calls
       so we can assign regtemps to them.  Callee-saved registers
       are still available if needed.}
@@ -5791,14 +5791,22 @@ procedure indxx;
           begin
           newkey := settemp(long, reg_oprnd(getreg));
           genmoveaddress(left, newkey);
+          settemp(long, index_oprnd(abstract_offset,
+                  keytable[newkey].oprnd.reg, pseudoinst.oprnds[2], false));
 {DRB: handle long offsets }
-          setvalue(index_oprnd(abstract_offset,
-                   keytable[newkey].oprnd.reg, pseudoinst.oprnds[2], false));
-          keytable[key].regenoprnd.mode := nomode;
+          setallfields(tempkey);
           end;
         abstract_offset:
           begin
+{
           setkeyvalue(left);
+}
+          setallfields(left);
+if (key = 23) and (left = 4) then
+begin
+writeln('key ', keytable[key].oprnd.mode, keytable[key].oprnd.reg, keytable[key].regvalid);
+writeln('left ', keytable[left].regvalid);
+end;
           keytable[key].oprnd.index :=
             keytable[key].oprnd.index + pseudoinst.oprnds[2];
           if keytable[key].oprnd.reg in [sp, sl, fp] then
