@@ -5259,7 +5259,7 @@ procedure putblock;
     ip0temp := settemp(long, reg_oprnd(ip0));
     ip1temp := settemp(long, reg_oprnd(ip1));
 
-{ DRB no space for frame and return pointer}
+{ DRB allocate no space for frame and return pointer}
     if not hasframeptr then
       blksize := blksize - quad;
     blockcost := (blksize + regcost + maxstackoffset + quad - 1) and -quad;
