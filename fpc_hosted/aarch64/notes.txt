@@ -23,18 +23,8 @@ CSEs and sets ...
 
 *** current bugs
 
-   -- genadrp needs to track clobbered vars while walking backwards so
-      we don't scavenge an adrp whose target reg is later written into.
-
    -- code like add x0,x0,foo leads to x0's saved location on the stack
       begin marked "used" even if we never load from the saved location.
-
-      hmmm assigning frequently used regparams to regtemps solves most of
-      this.
-
-   -- the fp offset issue attemped (?) fix might be wrong (or right).  The
-      spoffset used to set fp should merely be the amount subtracted from the
-      stack on entry -blocksize or something like that.  Think a bit.
 
    -- 64-bit arithmetic doesn't work, not suprisingly.
 
@@ -49,16 +39,7 @@ CSEs and sets ...
      Might be fixable in improve's smooth functionality.  Or if necessary an additional
      set-fixer-upper procedure.
 
-  -- regenoprnd stuff all messed up? adrp and makeaddressable not only for global level?
-
 --- current work
-
-  -- allowing the assignment of regparams to regtemps
-
-     can just do what hoist does.  Make a separate walk of the tree just for modifying
-     indx nodes to regtemps.  This code can then fiddle the underlying regparamop node
-     to put in the tracking information.  indxop generated in body needs to put
-     out the offset field, too ...
 
   -- error calls
 
