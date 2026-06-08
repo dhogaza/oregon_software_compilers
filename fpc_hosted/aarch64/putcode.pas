@@ -342,7 +342,7 @@ procedure copysfile;
           write(macfile, ',');
         v := 0;
         m := 1;
-        while (m and {maxaddr} $FF <> 0) and (i > 0) do
+        while (m and $FF <> 0) and (i > 0) do
         begin
           v := v + getstringfile * m;
           m := m * 256;
