@@ -2078,7 +2078,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           containsfile := false;
           elementtype := chartypeindex;
           stringtype := false;
-          arraymembers := value.cvalue.intvalue + 1;
+          arraymembers := value.cvalue.intvalue + 1 + ord(nullterminatedstrings);
           indextype := t;
           size := arraymembers div (bitsperunit div stringeltsize);
           if arraymembers mod (bitsperunit div stringeltsize) <> 0 then
