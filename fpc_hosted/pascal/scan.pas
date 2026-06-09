@@ -1435,7 +1435,7 @@ procedure scantoken;
       with nexttoken do {check length and set returned token}
         if (stringpos = 0) and switcheverplus[standard] then
           warnat(zerostring, line, left)
-        else if stringpos = 1 then
+        else if stringpos <= 1 then
           begin
           token := charconst;
           if stringpos = 0 then intvalue := 0
