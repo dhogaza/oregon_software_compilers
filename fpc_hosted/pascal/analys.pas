@@ -3537,7 +3537,7 @@ procedure initanalys;
           size := longtargetintsize;
           align := longintalign;
           end;
-        enterstandardid(int64id, typename, targetintsize, intindex);
+        enterstandardid(int64id, typename, longtargetintsize, longintindex);
         end;
 
       {define 'shortint' subrange}
