@@ -28,7 +28,7 @@ CSEs and sets ...
 
    -- 64-bit arithmetic doesn't work, not suprisingly.
 
-   -- sets with > 8 elements and < 17 elements are allocated 64 bits.  No 16 or 32
+   -- sets with > 8 elements and < 17 elements are allocated 64 bits.  Not 16 or 32
       bits probably because of copying allocation stuff from mc68000 mda. More curious
       than crucial.  But we really should be able to do length/align 1/1, 2/2, 4/4 and
       8/8 sets.
@@ -46,15 +46,57 @@ CSEs and sets ...
      don't mark param regs when loading them.  don't mark scratch registers when
      calling them.  they do not return. 
 
-  -- cstring support
+  -- things needed to really start implementing the library
 
-     pad string constants with \0 (length byte, data, \0). conversion to cstring
-     just bump string address by one byte.
+    1. cstring support
 
-  -- basic extended strings.
+       driven by nullterminatedstrings config flag.  Consts now terminate with a
+       null, and the size of tring[] types reflect this. The len stored in the 0th
+       element of the array does not included the null byte.
 
-     if we were to implement with (maxlen, len, data, \0) then we could implement
-     generic string parameters with code checking for overflow.
+    2. basic extended strings.
+
+       implemented with (len, data, \0), codegen needs to take this into
+       account.
+
+       M68K codegen goes to great lengths to optimize performace.   Probably not
+       really necessary.
+
+       provide cstring(string) that just bumps address by one which I think is also
+       how a string is converted to a Pascal packed array of char but need to investigate.
+
+    3. const params, passing structs and arrays by reference, might be a big help
+       for library and probably not that difficult to implement.
+
+       void foo(const char*) in C could be defined along the lines of
+
+       procedure foo(const str:cstring); nonpascal;
+
+       ... foo(cstring(str)) ...
+ 
+       That is incomplete.
+
+       Can we just do something like:
+
+       type cstring = ^char;
+
+       procedure foo(cstr: cstring); nonpascal;
+
+       function tocstring(str: string[255): cstring;
+
+         begin
+         tocstring := loophole(cstring, succ(ref(str)));
+         end;
+
+       { const disallow assignment so could pass by reference to 'a quoted string'
+         etc without making a copy on the stack.
+       }
+       procedure usefoo((const?) str: string[255]);
+       begin
+         foo(tocstring(str));
+       end;
+
+       introduces all of the danger of cstrings to the pascal source.
 
   -- FILES
 
