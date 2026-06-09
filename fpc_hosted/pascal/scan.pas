@@ -1429,8 +1429,16 @@ procedure scantoken;
           end;
       until (ch <> quotech) or endofline;
 
-      stringpos := stringpos - 1;
-      stringbuf[curstringbuf, 0] := chr(stringpos);
+      if nullterminatedstrings then
+        begin
+        stringbuf[curstringbuf, stringpos] := chr(0);
+        stringbuf[curstringbuf, 0] := chr(stringpos - 1);
+        end
+      else
+        begin
+        stringpos := stringpos - 1;
+        stringbuf[curstringbuf, 0] := chr(stringpos);
+        end;
 
       with nexttoken do {check length and set returned token}
         if (stringpos = 0) and switcheverplus[standard] then
