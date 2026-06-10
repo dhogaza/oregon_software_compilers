@@ -15,6 +15,14 @@
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 4, Stmt: 1
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
 # Line: 5, Stmt: 2
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+1@PAGEOFF
@@ -47,6 +55,14 @@
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 10, Stmt: 1
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
 # Line: 11, Stmt: 2
 	str	x0,[x29,-8]
 	adrp	x15,.L32765@PAGE
@@ -90,9 +106,11 @@ _main:
 	adrp	x16,.L32764@PAGE
 	str	x17,[x16,.L32764@PAGEOFF]
 # Line: 14, Stmt: 1
+# Line: 16, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	mov	w16,3
 	str	w16,[x15,.L32766+32@PAGEOFF]
+# Line: 18, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	mov	x2,3
@@ -110,6 +128,7 @@ _main:
 	mov	x16,12
 	str	x16,[sp,24]
 	bl	.P1  // foo
+# Line: 19, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	mov	x2,3
@@ -127,10 +146,12 @@ _main:
 	mov	x16,12
 	str	x16,[sp,24]
 	bl	.P2  // bar
+# Line: 21, Stmt: 0
 	mov	x15,3
 	cmp	w15,3
 	b.ne	.L5
 .L6:
+# Line: 22, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	mov	x2,3
@@ -150,6 +171,7 @@ _main:
 	bl	.P1  // foo
 	b	.L7
 .L5:
+# Line: 24, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	mov	x2,3
@@ -168,6 +190,7 @@ _main:
 	str	x16,[sp,24]
 	bl	.P2  // bar
 .L7:
+# Line: 26, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	mov	x2,3

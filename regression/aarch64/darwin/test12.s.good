@@ -11,11 +11,14 @@
 	str	x1,[x29,-16]
 	str	x0,[x29,-24]
 # Line: 5, Stmt: 1
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
 # Line: 6, Stmt: 2
 	mov	x28,x0
 .L4:
 	cmp	w28,w1
 	b.hi	.L3
+# Line: 6, Stmt: 0
 	mov	x0,x28
 	bl	_putchar
 	ldr	x0,[x29,-24]
@@ -23,20 +26,24 @@
 	adds	w28,w28,1
 	b.cc	.L4
 .L3:
+# Line: 7, Stmt: 0
 	mov	x0,10
 	bl	_putchar
+# Line: 9, Stmt: 0
 	ldr	x15,[x29,-16]
 	mov	x28,x15
 .L6:
 	ldr	x15,[x29,-24]
 	cmp	w28,w15
 	b.lo	.L5
+# Line: 9, Stmt: 0
 	mov	x0,x28
 	bl	_putchar
 	ldr	x15,[x29,-24]
 	subs	w28,w28,1
 	b.cs	.L6
 .L5:
+# Line: 10, Stmt: 0
 	mov	x0,10
 	bl	_putchar
 .L2:
@@ -55,24 +62,30 @@
 	add	x29,sp,8
 	str	x28,[x29,-8]
 # Line: 17, Stmt: 1
+# Line: 18, Stmt: 0
 	mov	x28,97
 .L8:
+# Line: 18, Stmt: 0
 	mov	x0,x28
 	bl	_putchar
 	add	w28,w28,1
 	cmp	w28,122
 	b.ls	.L8
 .L9:
+# Line: 19, Stmt: 0
 	mov	x0,10
 	bl	_putchar
+# Line: 20, Stmt: 0
 	mov	x28,122
 .L10:
+# Line: 20, Stmt: 0
 	mov	x0,x28
 	bl	_putchar
 	sub	w28,w28,1
 	cmp	w28,97
 	b.hs	.L10
 .L11:
+# Line: 21, Stmt: 0
 	mov	x0,10
 	bl	_putchar
 .L7:
@@ -93,11 +106,14 @@
 	str	x1,[x29,-16]
 	str	x0,[x29,-24]
 # Line: 27, Stmt: 1
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
 # Line: 28, Stmt: 2
 	mov	x28,x0
 .L14:
 	cmp	w28,w1
 	b.gt	.L13
+# Line: 28, Stmt: 0
 	add	w0,w28,48
 	bl	_putchar
 	ldr	x0,[x29,-24]
@@ -105,20 +121,24 @@
 	adds	w28,w28,1
 	b.vc	.L14
 .L13:
+# Line: 29, Stmt: 0
 	mov	x0,10
 	bl	_putchar
+# Line: 30, Stmt: 0
 	ldr	x15,[x29,-16]
 	mov	x28,x15
 .L16:
 	ldr	x15,[x29,-24]
 	cmp	w28,w15
 	b.lt	.L15
+# Line: 30, Stmt: 0
 	add	w0,w28,48
 	bl	_putchar
 	ldr	x15,[x29,-24]
 	subs	w28,w28,1
 	b.vc	.L16
 .L15:
+# Line: 31, Stmt: 0
 	mov	x0,10
 	bl	_putchar
 .L12:
@@ -137,24 +157,30 @@
 	add	x29,sp,8
 	str	x28,[x29,-8]
 # Line: 37, Stmt: 1
+# Line: 38, Stmt: 0
 	mov	x28,2
 .L18:
+# Line: 38, Stmt: 0
 	add	w0,w28,48
 	bl	_putchar
 	add	w28,w28,1
 	cmp	w28,9
 	b.le	.L18
 .L19:
+# Line: 39, Stmt: 0
 	mov	x0,10
 	bl	_putchar
+# Line: 40, Stmt: 0
 	mov	x28,9
 .L20:
+# Line: 40, Stmt: 0
 	add	w0,w28,48
 	bl	_putchar
 	sub	w28,w28,1
 	cmp	w28,2
 	b.ge	.L20
 .L21:
+# Line: 41, Stmt: 0
 	mov	x0,10
 	bl	_putchar
 .L17:
@@ -183,21 +209,29 @@ _main:
 	adrp	x16,.L32764@PAGE
 	str	x17,[x16,.L32764@PAGEOFF]
 # Line: 44, Stmt: 1
+# Line: 45, Stmt: 0
 	mov	x0,97
 	mov	x1,102
 	bl	.P2  // bar
+# Line: 47, Stmt: 0
 	mov	x0,45
 	bl	_putchar
+# Line: 47, Stmt: 0
 	mov	x0,10
 	bl	_putchar
+# Line: 48, Stmt: 0
 	bl	.P3  // foo
+# Line: 50, Stmt: 0
 	mov	x0,xzr
 	mov	x1,8
 	bl	.P4  // bar1
+# Line: 51, Stmt: 0
 	mov	x0,45
 	bl	_putchar
+# Line: 51, Stmt: 0
 	mov	x0,10
 	bl	_putchar
+# Line: 52, Stmt: 0
 	bl	.P5  // foo1
 .L22:
 	ldp	x30,x29,[sp],16

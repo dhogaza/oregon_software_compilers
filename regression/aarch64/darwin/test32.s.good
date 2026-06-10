@@ -22,10 +22,13 @@
 .P1:
 	sub	sp,sp,16
 # Line: 8, Stmt: 1
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
 # Line: 9, Stmt: 2
 	cmp	w0,w1
 	cset	w15,eq
 	strb	w15,[sp,8]
+# Line: 10, Stmt: 0
 	ldrb	w0,[sp,8]
 .L2:
 	add	sp,sp,16
@@ -38,10 +41,13 @@
 .P2:
 	sub	sp,sp,16
 # Line: 14, Stmt: 1
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
 # Line: 15, Stmt: 2
 	cmp	w0,w1
 	cset	w15,ne
 	strb	w15,[sp,8]
+# Line: 16, Stmt: 0
 	ldrb	w0,[sp,8]
 .L3:
 	add	sp,sp,16
@@ -54,10 +60,13 @@
 .P3:
 	sub	sp,sp,16
 # Line: 20, Stmt: 1
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
 # Line: 21, Stmt: 2
 	cmp	w0,w1
 	cset	w15,lt
 	strb	w15,[sp,8]
+# Line: 22, Stmt: 0
 	ldrb	w0,[sp,8]
 .L4:
 	add	sp,sp,16
@@ -70,10 +79,13 @@
 .P4:
 	sub	sp,sp,16
 # Line: 26, Stmt: 1
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
 # Line: 27, Stmt: 2
 	cmp	w0,w1
 	cset	w15,gt
 	strb	w15,[sp,8]
+# Line: 28, Stmt: 0
 	ldrb	w0,[sp,8]
 .L5:
 	add	sp,sp,16
@@ -86,10 +98,13 @@
 .P5:
 	sub	sp,sp,16
 # Line: 32, Stmt: 1
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
 # Line: 33, Stmt: 2
 	cmp	w0,w1
 	cset	w15,le
 	strb	w15,[sp,8]
+# Line: 34, Stmt: 0
 	ldrb	w0,[sp,8]
 .L6:
 	add	sp,sp,16
@@ -102,10 +117,13 @@
 .P6:
 	sub	sp,sp,16
 # Line: 38, Stmt: 1
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
 # Line: 39, Stmt: 2
 	cmp	w0,w1
 	cset	w15,ge
 	strb	w15,[sp,8]
+# Line: 40, Stmt: 0
 	ldrb	w0,[sp,8]
 .L7:
 	add	sp,sp,16
@@ -131,162 +149,194 @@ _main:
 	adrp	x16,.L32764@PAGE
 	str	x17,[x16,.L32764@PAGEOFF]
 # Line: 42, Stmt: 1
+# Line: 43, Stmt: 0
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+5@PAGEOFF
 	mov	x1,24
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
+# Line: 44, Stmt: 0
 	bl	_p_wtln_o 
+# Line: 45, Stmt: 0
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+30@PAGEOFF
 	mov	x1,9
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
+# Line: 46, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	bl	.P3  // lt
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 47, Stmt: 0
 	mov	x0,2
 	mov	x1,2
 	bl	.P3  // lt
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 48, Stmt: 0
 	mov	x0,3
 	mov	x1,2
 	bl	.P3  // lt
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 49, Stmt: 0
 	bl	_p_wtln_o 
+# Line: 51, Stmt: 0
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+40@PAGEOFF
 	mov	x1,12
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
+# Line: 52, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	bl	.P4  // gt
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 53, Stmt: 0
 	mov	x0,2
 	mov	x1,2
 	bl	.P4  // gt
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 54, Stmt: 0
 	mov	x0,3
 	mov	x1,2
 	bl	.P4  // gt
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 55, Stmt: 0
 	bl	_p_wtln_o 
+# Line: 57, Stmt: 0
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+53@PAGEOFF
 	mov	x1,18
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
+# Line: 58, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	bl	.P5  // le
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 59, Stmt: 0
 	mov	x0,2
 	mov	x1,2
 	bl	.P5  // le
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 60, Stmt: 0
 	mov	x0,3
 	mov	x1,2
 	bl	.P5  // le
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 61, Stmt: 0
 	bl	_p_wtln_o 
+# Line: 63, Stmt: 0
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+72@PAGEOFF
 	mov	x1,21
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
+# Line: 64, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	bl	.P6  // ge
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 65, Stmt: 0
 	mov	x0,2
 	mov	x1,2
 	bl	.P6  // ge
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 66, Stmt: 0
 	mov	x0,3
 	mov	x1,2
 	bl	.P6  // ge
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 67, Stmt: 0
 	bl	_p_wtln_o 
+# Line: 69, Stmt: 0
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+94@PAGEOFF
 	mov	x1,8
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
+# Line: 70, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	bl	.P1  // eq
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 71, Stmt: 0
 	mov	x0,2
 	mov	x1,2
 	bl	.P1  // eq
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 72, Stmt: 0
 	mov	x0,3
 	mov	x1,2
 	bl	.P1  // eq
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 73, Stmt: 0
 	bl	_p_wtln_o 
+# Line: 75, Stmt: 0
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+103@PAGEOFF
 	mov	x1,12
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
+# Line: 76, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	bl	.P2  // ne
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 77, Stmt: 0
 	mov	x0,2
 	mov	x1,2
 	bl	.P2  // ne
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 78, Stmt: 0
 	mov	x0,3
 	mov	x1,2
 	bl	.P2  // ne
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
+# Line: 79, Stmt: 0
 	bl	_p_wtln_o 
 .L8:
 	ldp	x30,x29,[sp],16

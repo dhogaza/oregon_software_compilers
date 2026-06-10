@@ -37,25 +37,31 @@ _main:
 	strb	w16,[x13],1
 	ldrb	w16,[x14],1
 	strb	w16,[x13],1
+# Line: 9, Stmt: 0
 	mov	x0,121
 	mov	x1,1
 	bl	_p_wtc_o 
 	mov	x0,122
 	mov	x1,1
 	bl	_p_wtc_o 
+# Line: 10, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	mov	w16,3
 	str	w16,[x15,.L32766+32@PAGEOFF]
+# Line: 11, Stmt: 0
 	mov	x0,97
 	mov	x1,3
 	bl	_p_wtc_o 
+# Line: 12, Stmt: 0
 	mov	x0,100
 	mov	x1,4
 	bl	_p_wti_o 
+# Line: 13, Stmt: 0
 	mov	x0,33
 	mov	x1,1
 	bl	_p_wtc_o 
 	bl	_p_wtln_o 
+# Line: 14, Stmt: 0
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+5@PAGEOFF
 	mov	x1,3
@@ -67,6 +73,7 @@ _main:
 	mov	x2,4
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
+# Line: 15, Stmt: 0
 	mov	x0,xzr
 	mov	x1,5
 	bl	_p_wtb_o 

@@ -13,6 +13,7 @@
 .P1:
 	sub	sp,sp,48
 # Line: 14, Stmt: 1
+# Line: 0, Stmt: 0
 # Line: 15, Stmt: 2
 	mov	x14,1
 .L5:
@@ -20,8 +21,10 @@
 	mul	w13,w14,w12
 	mov	x11,100
 	mul	w12,w14,w11
+# Line: 16, Stmt: 0
 	mov	x15,1
 .L6:
+# Line: 17, Stmt: 0
 	add	x11,x0,w13, sxtw 0
 	add	x11,x11,w15, sxtw 2
 	add	w10,w12,w15
@@ -50,8 +53,10 @@
 	stp	x27,x28,[x29,-16]
 	str	x26,[x29,-24]
 # Line: 24, Stmt: 1
+# Line: 0, Stmt: 0
 # Line: 25, Stmt: 2
 	mov	x27,xzr
+# Line: 26, Stmt: 0
 	str	x0,[x29,-32]
 	mov	x26,1
 .L12:
@@ -59,11 +64,13 @@
 	mul	w15,w26,w14
 	mov	x13,100
 	mul	w14,w26,w13
+# Line: 27, Stmt: 0
 	str	x0,[x29,-40]
 	str	x15,[x29,-48]
 	str	x14,[x29,-56]
 	mov	x28,1
 .L13:
+# Line: 28, Stmt: 0
 	add	x13,x0,w15, sxtw 0
 	add	x13,x13,w28, sxtw 2
 	add	w12,w14,w28
@@ -73,7 +80,9 @@
 	cmp	w11,w12
 	b.eq	.L14
 .L15:
+# Line: 30, Stmt: 0
 	add	w27,w27,1
+# Line: 31, Stmt: 0
 	mov	x0,x26
 	mov	x1,1
 	bl	_p_wti_o 
@@ -103,6 +112,7 @@
 	cmp	w26,99
 	b.le	.L12
 .L17:
+# Line: 33, Stmt: 0
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+1@PAGEOFF
 	mov	x1,7
@@ -139,9 +149,11 @@ _main:
 	adrp	x16,.L32764@PAGE
 	str	x17,[x16,.L32764@PAGEOFF]
 # Line: 36, Stmt: 1
+# Line: 37, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	add	x0,x15,.L32766+32@PAGEOFF
 	bl	.P1  // fill
+# Line: 38, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	add	x0,x15,.L32766+32@PAGEOFF
 	bl	.P2  // verify

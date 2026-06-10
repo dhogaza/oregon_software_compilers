@@ -16,10 +16,12 @@
 .P2:
 	sub	sp,sp,16
 # Line: 4, Stmt: 1
+# Line: 0, Stmt: 0
 # Line: 5, Stmt: 2
 	ands	wzr,w0,1
 	cset	w15,ne
 	strb	w15,[sp,8]
+# Line: 6, Stmt: 0
 	ldrb	w0,[sp,8]
 .L2:
 	add	sp,sp,16
@@ -35,6 +37,7 @@ ext:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 10, Stmt: 1
+# Line: 0, Stmt: 0
 # Line: 11, Stmt: 2
 	str	x0,[x29,-8]
 	adrp	x15,.L32765@PAGE
@@ -61,12 +64,14 @@ ext:
 	add	x29,sp,8
 	str	x28,[x29,-8]
 # Line: 16, Stmt: 1
+# Line: 17, Stmt: 0
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+7@PAGEOFF
 	mov	x1,13
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
+# Line: 18, Stmt: 0
 	mov	x0,1
 	ldr	x28,[x29,24]
 	ldr	x16,[x29,32]
@@ -91,6 +96,8 @@ ext:
 	add	x29,sp,16
 	str	x28,[x29,-8]
 # Line: 22, Stmt: 1
+# Line: 0, Stmt: 0
+# Line: 0, Stmt: 0
 # Line: 23, Stmt: 2
 	str	x0,[x29,-16]
 	ldr	x0,[x29,-16]
@@ -98,11 +105,12 @@ ext:
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
+# Line: 24, Stmt: 0
 	mov	x0,1
 	ldr	x28,[x29,16]
 	ldr	x16,[x29,24]
 	blr	x16
-	ldr	x28,[x29,-8]
+# Line: 25, Stmt: 0
 	ldr	x0,[x29,-16]
 	mov	x1,12
 	bl	_p_wti_o 
@@ -122,6 +130,7 @@ ext:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 34, Stmt: 1
+# Line: 0, Stmt: 0
 # Line: 35, Stmt: 2
 	str	x0,[x29,-8]
 	adrp	x15,.L32765@PAGE
@@ -155,14 +164,17 @@ ext:
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
 # Line: 38, Stmt: 1
+# Line: 39, Stmt: 0
 	mov	w16,5
 	str	w16,[x29,16]
+# Line: 40, Stmt: 0
 	adrp	x14,.L32766@PAGE
 	add	x15,x14,.L32766@PAGEOFF
 	str	x15,[sp]
 	adr	x16,.P2  // f
 	str	x16,[sp,8]
 	bl	.P3  // funcparam
+# Line: 41, Stmt: 0
 	mov	x0,1
 	add	x15,x29,8
 	str	x15,[sp]
@@ -185,6 +197,7 @@ ext:
 	add	x29,sp,16
 	str	x28,[x29,-8]
 # Line: 44, Stmt: 1
+# Line: 45, Stmt: 0
 	mov	x28,x29
 	bl	.P6  // p1
 .L8:
@@ -214,7 +227,9 @@ _main:
 	adrp	x16,.L32764@PAGE
 	str	x17,[x16,.L32764@PAGEOFF]
 # Line: 48, Stmt: 1
+# Line: 49, Stmt: 0
 	bl	.P5  // p0
+# Line: 50, Stmt: 0
 	mov	x0,3
 	adrp	x14,.L32766@PAGE
 	add	x15,x14,.L32766@PAGEOFF
@@ -224,6 +239,7 @@ _main:
 	str	x16,[sp,8]
 	mov	x1,4
 	bl	.P4  // procparam
+# Line: 51, Stmt: 0
 	adrp	x14,.L32766@PAGE
 	add	x15,x14,.L32766@PAGEOFF
 	str	x15,[sp]

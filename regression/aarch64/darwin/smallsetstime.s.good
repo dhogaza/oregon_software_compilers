@@ -17,8 +17,10 @@
 .P1:
 	sub	sp,sp,16
 # Line: 16, Stmt: 1
+# Line: 0, Stmt: 0
 # Line: 17, Stmt: 2
 	strb	w0,[sp,8]
+# Line: 18, Stmt: 0
 	ldrb	w0,[sp,8]
 .L2:
 	add	sp,sp,16
@@ -32,6 +34,7 @@
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
 # Line: 21, Stmt: 1
+# Line: 22, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	adrp	x14,.L32765@PAGE
 	ldr	x13,[x14,.L32765@PAGEOFF]
@@ -40,6 +43,7 @@
 	lsl	x14,x14,x12
 	orr	x13,x13,x14
 	str	x13,[x15,.L32766+40@PAGEOFF]
+# Line: 23, Stmt: 0
 	adrp	x14,.L32765@PAGE
 	ldr	x13,[x14,.L32765+8@PAGEOFF]
 	ldrb	w12,[x15,.L32766+37@PAGEOFF]
@@ -53,6 +57,7 @@
 	b	.L32763
 .L32762:
 	str	x13,[x15,.L32766+48@PAGEOFF]
+# Line: 24, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	mov	x0,3
 	bl	.P1  // func
@@ -72,6 +77,7 @@
 	orr	w14,w14,w13
 	adrp	x13,.L32766@PAGE
 	strb	w14,[x13,.L32766+32@PAGEOFF]
+# Line: 25, Stmt: 0
 	adrp	x14,.L32765@PAGE
 	ldrb	w12,[x14,.L32765+48@PAGEOFF]
 	ldrb	w11,[x15,.L32766+34@PAGEOFF]
@@ -97,9 +103,11 @@
 .P3:
 	sub	sp,sp,32
 # Line: 31, Stmt: 1
+# Line: 0, Stmt: 0
 # Line: 32, Stmt: 2
 	mov	x15,xzr
 .L6:
+# Line: 33, Stmt: 0
 	add	x14,sp,0
 	add	x14,x14,w15, uxtb 0
 	lsr	w16,w0,w15
@@ -121,9 +129,11 @@
 .P4:
 	sub	sp,sp,32
 # Line: 39, Stmt: 1
+# Line: 0, Stmt: 0
 # Line: 40, Stmt: 2
 	mov	x15,xzr
 .L10:
+# Line: 41, Stmt: 0
 	add	x14,sp,0
 	add	x14,x14,w15, uxtb 0
 	lsr	x16,x0,x15
@@ -162,24 +172,34 @@ _main:
 	str	x26,[x29,-24]
 # Line: 44, Stmt: 1
 	adrp	x15,.L32766@PAGE
+# Line: 45, Stmt: 0
 	mov	x26,1
 .L16:
+# Line: 46, Stmt: 0
 	mov	x27,1
 .L17:
+# Line: 47, Stmt: 0
 	mov	x28,1
 .L18:
+# Line: 49, Stmt: 0
 	mov	w16,10
 	strb	w16,[x15,.L32766+36@PAGEOFF]
+# Line: 50, Stmt: 0
 	mov	w16,2
 	strb	w16,[x15,.L32766+37@PAGEOFF]
+# Line: 51, Stmt: 0
 	mov	w16,1
 	strb	w16,[x15,.L32766+34@PAGEOFF]
+# Line: 52, Stmt: 0
 	mov	w16,4
 	strb	w16,[x15,.L32766+35@PAGEOFF]
+# Line: 53, Stmt: 0
 	bl	.P2  // initsets
+# Line: 54, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	ldrb	w0,[x15,.L32766+32@PAGEOFF]
 	bl	.P3  // putnumset
+# Line: 55, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	ldr	x0,[x15,.L32766+40@PAGEOFF]
 	bl	.P4  // putalphaset
