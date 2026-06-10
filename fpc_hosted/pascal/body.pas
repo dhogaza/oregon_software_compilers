@@ -1199,13 +1199,14 @@ procedure returnresult(overflowed: boolean);
 
 
 procedure dumpconst(constantlen: addressrange; {length of const to be dumped}
-                    dumplen: boolean {dump length in stringfile if true} );
+                    dumpextra: boolean {dump length and optional null in stringfile if true} );
 
 { Dump a constant which is stored as an integer into the string file.
   This is required in two cases: when a structured constant is subjected
   to selection ("[", ".") or when a char or structured constant is
-  converted to a string.  If "dumplen" is true the length itself becomes
-  the first byte.
+  converted to a string.  If "dumpextra" is true the length itself becomes
+  the first byte and if nullterminatedstrings is true a null char is appended
+  to the end..
 }
 
   var
@@ -1224,7 +1225,7 @@ procedure dumpconst(constantlen: addressrange; {length of const to be dumped}
       if representation = ints then
         begin
         kludge.i := intvalue;
-        if dumplen then representation := strings
+        if dumpextra then representation := strings
         else
           begin
           if scanalys then
@@ -1249,16 +1250,18 @@ procedure dumpconst(constantlen: addressrange; {length of const to be dumped}
 
         i := 1;
         j := hostintsize * hostfileunits;
-        if dumplen then
+        if dumpextra then
           begin
           putbyte(constantlen);
-          oprndlen := oprndlen + 1;
+          oprndlen := oprndlen + 1 + ord(nullterminatedstrings);
           end;
         if constantlen < hostintsize * hostfileunits then
           if hostintlowbytefirst then j := constantlen {do left part}
           else i := j + 1 - constantlen; {do right part}
         if reversebytes then for k := j downto i do putbyte(kludge.b[k])
         else for k := i to j do putbyte(kludge.b[k]);
+        if nullterminatedstrings and dumpextra then
+          putbyte(0);
         end;
   end {dumpconst} ;
 
@@ -1530,7 +1533,7 @@ procedure foldchrarraystr;
           if stringconstflag then
             begin
             pos := pos - 1;
-            oprndlen := oprndlen + 1;
+            oprndlen := oprndlen + 1 + ord(nullterminatedstrings);
             end
           else foldedunary := false;
       end

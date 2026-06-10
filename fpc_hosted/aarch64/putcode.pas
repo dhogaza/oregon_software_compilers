@@ -494,6 +494,7 @@ begin
     cmp: write(macfile, 'cmp');
     cmn: write(macfile, 'cmn');
     cneg: write(macfile, 'cneg');
+    csel: write(macfile, 'csel');
     cset: write(macfile, 'cset');
     eon: write(macfile, 'eors');
     eor: write(macfile, 'eor');

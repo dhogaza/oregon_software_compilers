@@ -285,8 +285,8 @@ type
   first_a, add, sub, mul, madd, msub, sdiv, udiv, cmp, cmn, 
   orinst, orn, andinst, ands, bic, eor, eon, neg, last_a,
 
-  {bit manipulation}
-  cset, cinv, mvn, cneg,
+  csel, cset, cinv, mvn, cneg,
+
   {move instructions}
 
   first_mov, movz, mov, movn, movk, last_mov,

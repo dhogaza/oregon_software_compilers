@@ -1416,6 +1416,9 @@ function equivaddr(l, r: keyindex): boolean;
          reg_offset: same := (shift = oprnd.shift) and
                              (extend = oprnd.extend) and
                              (signed = oprnd.signed);
+         labeltarget, label_offset, datalabel:
+           same := (labelno = oprnd.labelno) and (lowbits = oprnd.lowbits) and
+                   (labeloffset = oprnd.labeloffset);
          otherwise same := true;
          end;
       end;
@@ -5650,13 +5653,11 @@ procedure pshprocx;
 
 procedure movemultiple(src, dst: keyindex);
 
-{ must handle very long operands as this craps out at
-  65535 bytes at the moment.  Not that we really want
-  to encourage moving such large structures.
-
-  There's a lot of improvement to be had here for moving
+{ There's a lot of improvement to be had here for moving
   if we're unrolling, i.e. adding to index fields directly
-  when possible.  We aren't constrained as we are with ldp.
+  when possible, a generalization of the code that moves sets.
+
+  Needs alignment data ...
 }
 
 var
@@ -5682,8 +5683,8 @@ var
     if l <= 4 then
       while l > 0 do
         begin
-        gen2(lastnode, ldrinst(byte, false), ip0key, srcregkey);
-        gen2(lastnode, strinst(byte), ip0key, dstregkey);
+        genldr(lastnode, byte, false, ip0key, srcregkey);
+        genstr(lastnode, byte, ip0key, dstregkey);
         l := l - 1;
         end
     else
@@ -5691,8 +5692,8 @@ var
       gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), ip0key);
       labelkey := settemp(long, labeltarget_oprnd(lastlabel));
       definelastlabel;
-      gen2(lastnode, ldrinst(byte, false), ip1key, srcregkey);
-      gen2(lastnode, strinst(byte), ip1key, dstregkey);
+      genldr(lastnode, byte, false, ip1key, srcregkey);
+      genstr(lastnode, byte, ip1key, dstregkey);
       gen3(lastnode, buildinst(sub, true, true), ip0key, ip0key,
                      settemp(long, imm12_oprnd(1, false)));
       gen2(lastnode, buildinst(cbnz, true, false), ip0key, labelkey);
@@ -5705,6 +5706,83 @@ begin {movstructx}
   addressboth;
   movemultiple(right, left);
 end {movstructx};
+
+procedure movstrx;
+
+{ Generate code to move a string.
+
+  Though these are maintained with a trailing null character, we don't trust this
+  to be true, so count bytes rather than potentially moving an undetermined number of
+  bytes if the source string is not initialized.
+
+  We use the min(max dst length, src length byte) to limit how many bytes we move.
+  This guarantees that assigning an unitialized string won't overflow the storage
+  allocated for the destination.
+
+}
+
+var
+  leftregkey, rightregkey, ip0key, ip1key, onekey, labelkey: keyindex;
+
+begin {movstrx}
+  if equivaddr(left, right) then derefboth
+  else
+    begin
+    ip0key := settemp(byte, reg_oprnd(ip0));
+    ip1key := settemp(byte, reg_oprnd(ip1));
+    onekey := settemp(word, imm12_oprnd(1, false));
+    addressboth;
+    lock(left);
+    rightregkey := settemp(long, reg_oprnd(getreg));
+    genmoveaddress(right, rightregkey);
+    unlock(left);
+    lock(rightregkey);
+    leftregkey := settemp(long, reg_oprnd(getreg));
+    genmoveaddress(left, leftregkey);
+    unlock(rightregkey);
+
+    keytable[rightregkey].oprnd.mode := post_index;
+    keytable[rightregkey].oprnd.index := byte;
+    keytable[leftregkey].oprnd.mode := post_index;
+    keytable[leftregkey].oprnd.index := byte;
+
+    { Pick up the length of the source string.
+    }
+    genldr(lastnode, byte, false, ip0key, rightregkey);
+
+    { The first byte of the source string is the number of data bytes, exclusive
+      of the length byte and trailing null, so we take that into effect here.
+    }
+    gensimplemove(lastnode, settemp(long, intconst_oprnd(keytable[left].len - 2)),
+                            ip1key);
+
+    { compute how many bytes to move.
+    }
+    gen2(lastnode, buildinst(cmp, false, false), ip0key, ip1key);
+    gen4(lastnode, buildinst(csel, false, false), ip0key, ip0key, ip1key,
+                   settemp(0, cond_oprnd(lo)));
+
+    { Store the computed length as the first byte of the destination string.
+    }
+    genstr(lastnode, byte, ip0key, leftregkey);
+
+    { Move the data bytes, truncated if the source string is too long for the
+      destination string.
+    }
+    labelkey := settemp(long, labeltarget_oprnd(lastlabel));
+    definelastlabel;
+    genldr(lastnode, byte, false, ip1key, rightregkey);
+    genstr(lastnode, byte, ip1key, leftregkey);
+    gen3(lastnode, buildinst(sub, true, true), ip0key, ip0key,
+                   settemp(long, imm12_oprnd(1, false)));
+    gen2(lastnode, buildinst(cbnz, true, false), ip0key, labelkey);
+
+    { done moving data bytes, add a null
+    }
+    genstr(lastnode, byte, settemp(word, reg_oprnd(zero)), leftregkey);
+    end
+
+end {movstrx};
 
 
 procedure pshstructx;
@@ -5773,9 +5851,6 @@ procedure indxx;
       begin
       address(left, 0);
 
-{ DRB this doesn't really work as we don't check for oprnd alignment,
-  the range of the index, etc etc.  Good enough for preliminary testing.
-}
       case keytable[left].oprnd.mode of
         datalabel:
           {We would like to index the var with a label offset but one
@@ -6567,8 +6642,8 @@ procedure codeone;
 }
       movstruct, returnstruct: movstructx;
       movset: movsetx;
-{
       movstr: movstrx;
+{
       movcstruct: movcstructx;
       addstr: addstrx;
 }
