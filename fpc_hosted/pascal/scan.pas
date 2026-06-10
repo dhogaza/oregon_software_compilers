@@ -122,7 +122,7 @@ var
 
   procedure dumpstr(len: columnindex; {number of chars to dump}
                   buf: boolean; {which buffer}
-                  dumplen: boolean {true says to dump the length byte} );
+                  dumpextra: boolean {true says to dump length and optional null  bytes} );
 
   procedure putstringfile;
 
@@ -897,7 +897,7 @@ procedure getch;
   end {getch} ;
 
 
-procedure dumpstr (len: columnindex; buf, dumplen: boolean);
+procedure dumpstr(len: columnindex; buf, dumpextra: boolean);
 
 { Copy stringbuf[buf] to the string file.
 }
@@ -909,13 +909,13 @@ procedure dumpstr (len: columnindex; buf, dumplen: boolean);
   begin {dumpstr}
 
     seekstringfile(stringfilecount);
-    stringfilecount := stringfilecount + len;
+    stringfilecount := stringfilecount + len + ord(nullterminatedstrings);
 
-    if dumplen then
+    if dumpextra then
       begin
       stringblkptr^[nextstringfile] := ord(stringbuf[buf, 0]);
       putstringfile;
-      len := len - 1;
+      len := len - ord(not nullterminatedstrings);
       end;
 
     for i := 1 to len do
@@ -923,6 +923,7 @@ procedure dumpstr (len: columnindex; buf, dumplen: boolean);
       stringblkptr^[nextstringfile] := ord(stringbuf[buf, i]);
       putstringfile;
       end;
+
   end {dumpstr} ;
 
 
@@ -1430,15 +1431,9 @@ procedure scantoken;
       until (ch <> quotech) or endofline;
 
       if nullterminatedstrings then
-        begin
         stringbuf[curstringbuf, stringpos] := chr(0);
-        stringbuf[curstringbuf, 0] := chr(stringpos - 1);
-        end
-      else
-        begin
-        stringpos := stringpos - 1;
-        stringbuf[curstringbuf, 0] := chr(stringpos);
-        end;
+      stringpos := stringpos - 1;
+      stringbuf[curstringbuf, 0] := chr(stringpos);
 
       with nexttoken do {check length and set returned token}
         if (stringpos = 0) and switcheverplus[standard] then
