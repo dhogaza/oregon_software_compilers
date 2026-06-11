@@ -1520,14 +1520,17 @@ procedure foldchrarraystr;
   extended both) and I didn't invent them!
 }
 
+  var
+    datalen: addressrange;
 
   begin {foldchrarraystr}
     newstringtype(resulttype, strings, olen);
     newresulttype(resulttype);
-    olen := olen + 1;
+    datalen := olen;
+    olen := olen + 1 + ord(nullterminatedstrings);
     if constcheck(sp) then
       begin
-      dumpconst(olen - 1, true);
+      dumpconst(datalen, true);
       with oprndstk[sp], cvalue do
         if representation = arrays then
           if stringconstflag then
