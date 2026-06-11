@@ -5784,6 +5784,72 @@ begin {movstrx}
 
 end {movstrx};
 
+procedure chrstrx;
+
+  var
+    ip0key, ip1key: keyindex;
+
+begin {chrstrx}
+  {unpackshrink(left, len);}
+  address(left, 0);
+  settargetortemp(long);
+  ip0key := settemp(long, reg_oprnd(ip0));
+  genmoveaddress(key, ip0key);
+  keytable[ip0key].oprnd.mode := post_index;
+  keytable[ip0key].oprnd.index := byte;
+  ip1key := settemp(byte, reg_oprnd(ip1));
+  gensimplemove(lastnode, settemp(byte, intconst_oprnd(1)), ip1key);
+  genstr(lastnode, byte, ip1key, ip0key);
+  loadreg(left, key);
+  genstr(lastnode, byte, left, ip0key);
+  genstr(lastnode, byte, settemp(word, reg_oprnd(zero)), ip0key);
+end {chrstrx};
+
+procedure arraystrx;
+
+  var
+    ip0key, ip1key, countkey, tempregkey, labelkey: keyindex;
+
+
+begin {arraystrx}
+  {unpackshrink(left, len);}
+  address(left, 0);
+  settargetortemp(long);
+  lock(key);
+  ip0key := settemp(long, reg_oprnd(ip0));
+  ip1key := settemp(long, reg_oprnd(ip1));
+  countkey := settemp(long, reg_oprnd(getreg));
+  lock(countkey);
+  genmoveaddress(key, ip0key);
+  keytable[ip0key].oprnd.mode := post_index;
+  keytable[ip0key].oprnd.index := byte;
+  genmoveaddress(left, ip1key);
+  keytable[ip1key].oprnd.mode := post_index;
+  keytable[ip1key].oprnd.index := byte;
+  tempregkey := settemp(long, reg_oprnd(getreg));
+
+  { Set up count, which is also the stored length for the new string.
+  }
+  gensimplemove(lastnode, settemp(long, intconst_oprnd(len - 2)), countkey);
+  genstr(lastnode, byte, countkey, ip0key);
+
+  { Move the data bytes.
+  }
+  labelkey := settemp(long, labeltarget_oprnd(lastlabel));
+  definelastlabel;
+  genldr(lastnode, byte, false, tempregkey, ip1key);
+  genstr(lastnode, byte, tempregkey, ip0key);
+  gen3(lastnode, buildinst(sub, true, true), countkey, countkey,
+                 settemp(long, imm12_oprnd(1, false)));
+  gen2(lastnode, buildinst(cbnz, true, false), countkey, labelkey);
+
+  { Append null byte.
+  }
+  genstr(lastnode, byte, settemp(word, reg_oprnd(zero)), ip0key);
+  unlock(countkey);
+  unlock(key);
+end {arraystrx};
+
 
 procedure pshstructx;
 
@@ -6690,9 +6756,9 @@ procedure codeone;
       loopholefn, castptrint, castintptr, castfptrint, castintfptr:
 	loopholefnx;
       sysroutine: sysroutinex;
-{
       chrstr: chrstrx;
       arraystr: arraystrx;
+{
       flt: fltx;
 }
       pshint, pshptr: pshintptrx;
