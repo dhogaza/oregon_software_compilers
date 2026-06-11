@@ -7,7 +7,7 @@ type
   { For passing string/packed char array parameters to library functions.
     If compiled with array bounds checking enabled it will still work.
   }
-  stringarray = packed array [1..maxint] of char;
+  _p_stringarray = packed array [1..maxint] of char;
 
 {glibc}
 procedure exit(code: integer); nonpascal;
@@ -21,7 +21,7 @@ procedure _p_caseerr; external;
 procedure _p_wtc_o(ch: char; width: integer); external;
 procedure _p_wti_o(i: integer; width: integer); external;
 procedure _p_wtb_o(b: boolean; width: integer); external;
-procedure _p_wts_o(var str: stringarray; length: integer; width: integer); external;
+procedure _p_wts_o(var str: _p_stringarray; length: integer; width: integer); external;
 procedure _p_wtln_o; external;
 procedure _p_new(var p: _p_charptr; size: int64); external;
 procedure _p_dispos(var p: _p_charptr; size: int64); external;
