@@ -1940,6 +1940,41 @@ procedure genstdparamaddr(form: types; var regparams: regparamstype);
       end;
 end {genstdparamaddr};
 
+procedure genstdstrparam(var regparams: regparamstype);
+
+{ This procedure is the register parameter equivalent of the pushstraddrop
+  kludge for pushing a string address on the stack.  The issue is that
+  we need to pass the address of the string and its length.  Generating
+  this as one param operation for the address and another to grab the
+  length byte isn't very easy given the overall design, so this is ugly.
+
+  Especially in how the code generator is flagged that this is a special
+  standard string address operation.  The length is passed as a negative
+  value.  It works and that's all it needs to do.
+}
+
+  var
+    alloc: allockind;
+    regid: regrange;
+
+  begin {genstdstrparam}
+    allocstdparam(strings, regparams, alloc, regid);
+    if alloc = normalalloc then
+      begin
+      oprndstk[sp].oprndlen := ptrsize + defaulttargetintsize;
+      genunary(pushstraddr, strings)
+      end
+    else
+      begin
+      oprndstk[sp].oprndlen := ptrsize;
+{
+      genunary(addrop, ptrs);
+}
+      oprndstk[sp].oprndlen := -(ptrsize + defaulttargetintsize);
+      genregtargetop(regid, alloc, ptrs);
+      end;
+  end {genstdstrparam};
+
 procedure foldintplusminus(sign: integer {1 if add, -1 if sub} );
 
 { Fold integer addition or subtraction.  This can be done if both
@@ -6338,7 +6373,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                               regparams: regparamstype {for param allocation});
 
 { Push a string parameter onto the operand stack.  This actually generates
-  code to push a reference to the string, followed by a the string length.
+  code to push a reference to the string, followed by the string length.
 
   Both standard Pascal strings (packed array [1..n] of char) and extended
   strings (string[n]) are allowed.
@@ -6355,14 +6390,13 @@ procedure statement(follow: tokenset {legal following symbols} );
         if extendedstring then
           begin
           oprndstk[sp].oprndlen := ptrsize + defaulttargetintsize;
-          genunary(pushstraddr, strings);
+          genstdstrparam(regparams);
           end
         else
           begin
           stringlen := resultptr^.arraymembers;
           if constcheck(sp) then dumpconst(stringlen, false);
-          oprndstk[sp].oprndlen := ptrsize;
-          genstdparamaddr(ints, regparams);
+          genstdparamaddr(ptrs, regparams);
           genpushdefaultint(stringlen, regparams);
           end;
       end {pushstringparam} ;

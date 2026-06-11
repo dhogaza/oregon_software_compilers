@@ -428,7 +428,8 @@ procedure allocstdparam(form: types; var regparams: regparamstype;
 { allocate a paramater for a standard function or procedure.  These don't have
   symbol table entries so the information is generated dynamically when 
   these routines are parsed.  Aarch64 standard routines never need stack
-  allocation.
+  allocation.  Strings are allocated two registers and fixed up in the
+  code generator.
 }
 
   begin {allocstdparam}
@@ -442,7 +443,7 @@ procedure allocstdparam(form: types; var regparams: regparamstype;
       else
         begin
         regid := regparams;
-        regparams := regparams + 1;
+        regparams := regparams + 1 + ord(form = strings);
         alloc := regparam;
         end;
   end {allocstdparam};

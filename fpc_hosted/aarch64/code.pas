@@ -2422,8 +2422,9 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
       if restorereg then
         begin
         { DRB try to restore a register operand to its eventual resting
-          place }
-        if (mode = register) and (target <> 0) and
+          place.
+        }
+        if (target <> 0) and (mode = register) and
            (keytable[target].oprnd.mode = register) then
           reg := keytable[target].oprnd.reg
         else
@@ -3133,9 +3134,9 @@ procedure genmoveaddress(src, dst: keyindex);
         keytable[src].oprnd.lowbits := false;
         end;
       abstract_offset:
+{
         if index <> 0 then
-{should all register adjustments be made after generation?  This isn't working for
- sp which needs to be delayed. First peephole-though-not-quite-optimization?}
+}
           if reg <> sp then
             makeoffsetptr(lastnode, index, reg, keytable[dst].oprnd.reg)
           else
@@ -4938,13 +4939,13 @@ procedure wrcommon(libroutine: libroutines; {formatting routine to call}
     dontchangevalue := 0;
   end {wrcommon};
 
-procedure wrstx(stdstring: boolean {true if packed array[1..n] kind} );
+procedure wrstx;
 
 { Write a string to a text file.  The length and pointer parameters  are
   assumed to be already loaded into the proper registers.  We copy the
   length parameter as the width format parameter if none is explicitly
-  provided.
-
+  provided.  Note that this depends on our knowledge that the parameters
+  for write don't extend into the stack.
 }
 
   var lengthregkey, widthregkey: keyindex;
@@ -4955,10 +4956,6 @@ procedure wrstx(stdstring: boolean {true if packed array[1..n] kind} );
       lengthregkey := settemp(long, reg_oprnd(firstreg - 1));
       widthregkey := settemp(long, reg_oprnd(firstreg));
       gensimplemove(lastnode, lengthregkey, widthregkey);
-{
-      if stdstring then gensimplemove(stackcounter + 1, stackcounter)
-      else gensimplemove(stackcounter + 2, stackcounter);
-}
       end;
     calliosupport(libwritestring)
   end {wrstx} ;
@@ -5507,13 +5504,26 @@ procedure regtargetx;
 
 
   begin {regtargetx}
-    if not regtargethack then
+    if len < 0 then
+      begin
+      setvalue(tworeg_oprnd(pseudoinst.oprnds[1], pseudoinst.oprnds[1] + 1));
       markreg(pseudoinst.oprnds[1]);
-    regtargethack := false;
-    setvalue(reg_oprnd(pseudoinst.oprnds[1]));
-    regused[pseudoinst.oprnds[1]] := true;
-    if pseudoinst.oprnds[1] >= firstreg then
-      firstreg := pseudoinst.oprnds[1] + 1;
+      markreg(pseudoinst.oprnds[1] + 1);
+      regused[pseudoinst.oprnds[1]] := true;
+      regused[pseudoinst.oprnds[1] + 1] := true;
+      if pseudoinst.oprnds[1] >= firstreg then
+        firstreg := pseudoinst.oprnds[1] + 2;
+      end
+    else
+      begin
+      if not regtargethack then
+        markreg(pseudoinst.oprnds[1]);
+      regtargethack := false;
+      setvalue(reg_oprnd(pseudoinst.oprnds[1]));
+      regused[pseudoinst.oprnds[1]] := true;
+      if pseudoinst.oprnds[1] >= firstreg then
+        firstreg := pseudoinst.oprnds[1] + 1;
+      end;
   end {regtargetx} ;
 
 procedure regtempx;
@@ -5576,6 +5586,39 @@ procedure movintptrx;
     savedstkey(left);
     setallfields(left);
   end {movintptrx};
+
+procedure movptrx;
+
+  var
+    regkey, reg2key, ip0key, rightregkey, onekey: keyindex;
+
+  begin {movptrx}
+    if keytable[left].oprnd.mode = tworeg then
+      begin
+  
+      addressboth;
+
+      regkey := settemp(long, reg_oprnd(keytable[left].oprnd.reg));
+
+      reg2key := settemp(long, reg_oprnd(keytable[left].oprnd.reg2));
+      onekey := settemp(long, imm12_oprnd(1, false));
+      ip0key := settemp(long, reg_oprnd(ip0));
+      rightregkey := settemp(long, reg_oprnd(keytable[right].oprnd.reg));
+
+      { We know thes right operand is the result of an indxindr pseudoop,
+        because we know the ugly hack that the front end implements to make
+        this work.  This means the index value is zero.
+
+        So we can load the string length byte first, then move and implement
+        a poor man's genmoveaddress and the increment of that address in one
+        instruction.
+      }
+      genldr(lastnode, byte, false, reg2key, right);
+      gen3(lastnode, buildinst(add, true, false), regkey, rightregkey, onekey);
+
+      end
+    else movintptrx;
+  end {movptrx};
 
 procedure movlitintx;
 
@@ -5786,6 +5829,14 @@ end {movstrx};
 
 procedure chrstrx;
 
+  { Convert a character to an extended string.  While the code optistically
+    hopes to be given a target, in reality we're going to be shoving this
+    on the stack.  The form will be (1 (length), char, 0 (null terminator)).
+
+    The front end folds this operation on character constants, which is the
+    usual case.
+  }
+
   var
     ip0key, ip1key: keyindex;
 
@@ -5806,6 +5857,15 @@ begin {chrstrx}
 end {chrstrx};
 
 procedure arraystrx;
+
+  { Similar to chrstrx but with more data.   This is used to convert a Pascal standard
+    string (packed array[] of char) to an extended string (string[]). We push the length,
+    the data bytes, and a null terminator, almost certainly on the stack.
+
+    The front end folds this opertation if it is on  'constant string', which is the
+    usual case, which among other things I put too much effort into making this code
+    reasonably efficient than it deserves.
+  }
 
   var
     ip0key, ip1key, countkey, tempregkey, labelkey: keyindex;
@@ -5951,11 +6011,6 @@ procedure indxx;
           setkeyvalue(left);
 }
           setallfields(left);
-if (key = 23) and (left = 4) then
-begin
-writeln('key ', keytable[key].oprnd.mode, keytable[key].oprnd.reg, keytable[key].regvalid);
-writeln('left ', keytable[left].regvalid);
-end;
           keytable[key].oprnd.index :=
             keytable[key].oprnd.index + pseudoinst.oprnds[2];
           if keytable[key].oprnd.reg in [sp, sl, fp] then
@@ -6700,7 +6755,8 @@ procedure codeone;
       addr: addrx;
       setinsert: setinsertx;
       inset: insetx;
-      movint, returnint, movptr, returnptr, returnfptr: movintptrx;
+      movint, returnint, returnptr, returnfptr: movintptrx;
+      movptr: movptrx;
       movlitint, movlitptr: movlitintx;
 {
       movreal, returnreal: movrealx;
@@ -6790,9 +6846,9 @@ procedure codeone;
 }
       rdbin: callsupport(libget, true);
       wrbin: callsupport(libput, true);
-      wrst: wrstx(true);
+      wrst: wrstx;
+      wrxstr: wrstx;
 {
-      wrxstr: wrstx(false);
       wrreal: wrrealx;
 }
       wrint: wrcommon(libwriteint, 12);

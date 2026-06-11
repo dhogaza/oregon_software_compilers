@@ -23,6 +23,8 @@ CSEs and sets ...
 
 *** current bugs
 
+   -- cstring.pas in test breaks regcount 
+
    -- code like add x0,x0,foo leads to x0's saved location on the stack
       begin marked "used" even if we never load from the saved location.
 
