@@ -1,0 +1,17 @@
+test packed arrays of char and conversion to string
+
+expected abcde: abcde
+expected vwxyz: vwxyz
+expected vwxyz: 5 vwxyz  5
+
+test char conversion to string
+
+expected 0 1: 0  1
+expected b 1: b  1
+
+test strings directly
+
+expected abc 3: abc  3
+expected 0123456789abcdef: 0123456789abcdef
+expected 0123456789abcdef 16: 0123456789abcdef 16
+expected 0123456789abcdefabc 19: 0123456789abcdefabc 19
