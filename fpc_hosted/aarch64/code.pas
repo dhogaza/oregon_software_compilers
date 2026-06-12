@@ -5902,8 +5902,9 @@ procedure addstrx;
 { We generate a lot of inline code to execute concatenation.  If it were done in a
   built-in function all, rather than many, callee-saved registers would be marked as
   destroyed and this procedure/function would no longer be eligible to be a leaf proc.
-  The MC68000 version, which is the only code generator product that seems to have
-  source available, also does this inline.
+  The MC68000 version, which is the only code generator that seems to have source
+  available, also does this inline.  I wrote it so I must've thought it was worth
+  it.
 
   We don't trust the length bytes in either string to be accurate.  What we CAN trust
   is the maximum length of the add result passed by the front end.
@@ -5917,16 +5918,18 @@ procedure addstrx;
   The result might be garbage, but it will be well-formed garbage safely
   contained in the the space computed by the front end.
 
-Later we'll tackle the x := x + y form 
+  If the left and target operands are the same, for example when appending an extension
+  to a filename like this:
 
-add length byte to dstreg addr checking to make sure it is in range (if not,
-leave the string alone).  This will point to the null byte.  Move data bytes
-from right.  Add null.
+  x := x + '.pas';
+
+  We can just skip over x and append y, subject to the same truncation rules
+  applied to the general case.
 }
 
 var
-  leftregkey, rightregkey, dstregkey, countkey, maxsizekey,
-  onekey, tempregkey, tempreg2key, looplabelkey, skiplabelkey: keyindex;
+  leftregkey, rightregkey, dstregkey, countkey, maxsizekey, onekey,
+  tempregkey, tempreg2key, tempreg3key,looplabelkey, skiplabelkey: keyindex;
   maxsize: addressrange;
   appendtarget: boolean;
   skiplabel: labelindex;
@@ -5946,15 +5949,14 @@ begin {addstrx}
 
   appendtarget := equivaddr(left, key);
 
-{ if not appendtarget then a lot of stuff }
   lock(key);
   addressboth;
   lock(left);
   lock(right);
-
-  onekey := settemp(long, imm12_oprnd(1, false));
   leftregkey := settemp(long, reg_oprnd(getreg));
   lock(leftregkey);
+
+  onekey := settemp(long, imm12_oprnd(1, false));
   rightregkey := settemp(long, reg_oprnd(getreg));
   lock(rightregkey);
   dstregkey := settemp(long, reg_oprnd(getreg));
@@ -5965,7 +5967,11 @@ begin {addstrx}
   keytable[dstregkey].oprnd.index := byte;
   unlock(key);
 
-  genmoveaddress(left, leftregkey);
+  if appendtarget then
+    gensimplemove(lastnode, settemp(long, reg_oprnd(keytable[dstregkey].oprnd.reg)),
+                                                    leftregkey)
+  else
+    genmoveaddress(left, leftregkey);
   keytable[leftregkey].oprnd.mode := post_index;
   keytable[leftregkey].oprnd.index := byte;
   unlock(left);
@@ -5983,6 +5989,7 @@ begin {addstrx}
 
   { We are done allocating registers.
   }
+
   unlock(leftregkey);
   unlock(rightregkey);
   unlock(dstregkey);
@@ -6007,8 +6014,7 @@ begin {addstrx}
 
   genstr(lastnode, byte, maxsizekey, dstregkey);
 
-  { now move left bytes, limited by maxsize.  Countkey will contain the number of
-    bytes we can move from the left operand.
+  { Compute the number of bytes we can move or skip from left operand.
   }
 
   gen2(lastnode, buildinst(cmp, false, false), tempregkey, maxsizekey);
@@ -6020,18 +6026,29 @@ begin {addstrx}
   }
   gen3(lastnode, buildinst(sub, false, false), maxsizekey, maxsizekey, countkey);
 
-  { Now we can move the data bytes.
+  skiplabel := lastlabel;
+  lastlabel := lastlabel - 1;
+  skiplabelkey := settemp(0, labeltarget_oprnd(skiplabel));
+
+  { Now we can move or skip the data bytes.
   }
 
-  skiplabel := lastlabel;
-  skiplabelkey := settemp(0, labeltarget_oprnd(skiplabel));
-  lastlabel := lastlabel - 1;
-  looplabelkey := settemp(0, labeltarget_oprnd(lastlabel));
-  definelastlabel;
-  genldr(lastnode, byte, false, tempregkey, leftregkey);
-  genstr(lastnode, byte, tempregkey, dstregkey);
-  gen3(lastnode, buildinst(sub, false, false), countkey, countkey, onekey);
-  gen2(lastnode, buildinst(cbnz, false, false), countkey, looplabelkey);
+  if appendtarget then
+    begin
+    { Skip over the target's data bytes.
+    }
+    tempreg3key := settemp(long, reg_oprnd(keytable[dstregkey].oprnd.reg));
+    gen3(lastnode, buildinst(add, true, false), tempreg3key, tempreg3key, countkey);
+    end
+  else
+    begin
+    looplabelkey := settemp(0, labeltarget_oprnd(lastlabel));
+    definelastlabel;
+    genldr(lastnode, byte, false, tempregkey, leftregkey);
+    genstr(lastnode, byte, tempregkey, dstregkey);
+    gen3(lastnode, buildinst(sub, false, false), countkey, countkey, onekey);
+    gen2(lastnode, buildinst(cbnz, false, false), countkey, looplabelkey);
+    end;
 
   { Compute the number of bytes to move from the right operand.
   }
@@ -6062,6 +6079,11 @@ begin {addstrx}
 
 end {addstrx};
 
+procedure cmpstrx(cond: conds);
+
+begin {cmpstrx}
+  setvalue(cond_oprnd(cond));
+end {cmpstrx};
 
 procedure pshstructx;
 
@@ -7026,20 +7048,22 @@ procedure codeone;
       lssint, lssptr: cmpintptrx(lt, lo);
       gtrint, gtrptr: cmpintptrx(gt, hi);
 {
-      eqstruct: cmpstructx(beq);
-      neqstruct: cmpstructx(bne);
-      leqstruct: cmpstructx(ble);
-      geqstruct: cmpstructx(bge);
-      lssstruct: cmpstructx(blt);
-      gtrstruct: cmpstructx(bgt);
+      eqstruct: cmpstructx(eq);
+      neqstruct: cmpstructx(ne);
+      leqstruct: cmpstructx(ls);
+      geqstruct: cmpstructx(hs);
+      lssstruct: cmpstructx(lo);
+      gtrstruct: cmpstructx(hi);
+}
 
-      eqstr: cmpstrx(beq);
-      neqstr: cmpstrx(bne);
-      leqstr: cmpstrx(ble);
-      geqstr: cmpstrx(bge);
-      lssstr: cmpstrx(blt);
-      gtrstr: cmpstrx(bgt);
+      eqstr: cmpstrx(eq);
+      neqstr: cmpstrx(ne);
+      leqstr: cmpstrx(ls);
+      geqstr: cmpstrx(hs);
+      lssstr: cmpstrx(lo);
+      gtrstr: cmpstrx(hi);
 
+{
       eqlitreal: cmplitrealx(beq, libdeql, fbngl);
       neqlitreal: cmplitrealx(bne, libdeql, fbgl);
       lsslitreal: cmplitrealx(blt, libdlss, fblt);
