@@ -5599,23 +5599,11 @@ procedure movptrx;
       addressboth;
 
       regkey := settemp(long, reg_oprnd(keytable[left].oprnd.reg));
-
       reg2key := settemp(long, reg_oprnd(keytable[left].oprnd.reg2));
-      onekey := settemp(long, imm12_oprnd(1, false));
-      ip0key := settemp(long, reg_oprnd(ip0));
-      rightregkey := settemp(long, reg_oprnd(keytable[right].oprnd.reg));
-
-      { We know thes right operand is the result of an indxindr pseudoop,
-        because we know the ugly hack that the front end implements to make
-        this work.  This means the index value is zero.
-
-        So we can load the string length byte first, then move and implement
-        a poor man's genmoveaddress and the increment of that address in one
-        instruction.
-      }
       genldr(lastnode, byte, false, reg2key, right);
-      gen3(lastnode, buildinst(add, true, false), regkey, rightregkey, onekey);
-
+      genmoveaddress(right, regkey);
+      onekey := settemp(long, imm12_oprnd(1, false));
+      gen3(lastnode, buildinst(add, true, false), regkey, regkey, onekey);
       end
     else movintptrx;
   end {movptrx};
@@ -5816,8 +5804,7 @@ begin {movstrx}
     definelastlabel;
     genldr(lastnode, byte, false, ip1key, rightregkey);
     genstr(lastnode, byte, ip1key, leftregkey);
-    gen3(lastnode, buildinst(sub, true, true), ip0key, ip0key,
-                   settemp(long, imm12_oprnd(1, false)));
+    gen3(lastnode, buildinst(sub, true, true), ip0key, ip0key, onekey);
     gen2(lastnode, buildinst(cbnz, true, false), ip0key, labelkey);
 
     { done moving data bytes, add a null
@@ -5909,6 +5896,171 @@ begin {arraystrx}
   unlock(countkey);
   unlock(key);
 end {arraystrx};
+
+procedure addstrx;
+
+{ We generate a lot of inline code to execute concatenation.  If it were done in a
+  built-in function all, rather than many, callee-saved registers would be marked as
+  destroyed and this procedure/function would no longer be eligible to be a leaf proc.
+  The MC68000 version, which is the only code generator product that seems to have
+  source available, also does this inline.
+
+  We don't trust the length bytes in either string to be accurate.  What we CAN trust
+  is the maximum length of the add result passed by the front end.
+
+  We'll add the length of the two strings. The maximum number of bytes we'll
+  move will be (min(min(length(left) + length(right), addstr length), target length).
+
+  Usually we'll move length(left) + length(right) bytes because no one is really
+  going to mess with us, are they?
+
+  The result might be garbage, but it will be well-formed garbage safely
+  contained in the the space computed by the front end.
+
+Later we'll tackle the x := x + y form 
+
+add length byte to dstreg addr checking to make sure it is in range (if not,
+leave the string alone).  This will point to the null byte.  Move data bytes
+from right.  Add null.
+}
+
+var
+  leftregkey, rightregkey, dstregkey, countkey, maxsizekey,
+  onekey, tempregkey, tempreg2key, looplabelkey, skiplabelkey: keyindex;
+  maxsize: addressrange;
+  appendtarget: boolean;
+  skiplabel: labelindex;
+
+begin {addstrx}
+
+  { Compute the maximum number of data bytes we can move.
+  }
+  if (target <> 0) and (keytable[target].len < len) then
+    maxsize := keytable[target].len - 2
+  else maxsize := len - 2;
+
+  { And if we're building a temp allocate room for the length byte
+    and trailing null.
+  }
+  settargetortemp(maxsize + 2);
+
+  appendtarget := equivaddr(left, key);
+
+{ if not appendtarget then a lot of stuff }
+  lock(key);
+  addressboth;
+  lock(left);
+  lock(right);
+
+  onekey := settemp(long, imm12_oprnd(1, false));
+  leftregkey := settemp(long, reg_oprnd(getreg));
+  lock(leftregkey);
+  rightregkey := settemp(long, reg_oprnd(getreg));
+  lock(rightregkey);
+  dstregkey := settemp(long, reg_oprnd(getreg));
+  lock(dstregkey);
+
+  genmoveaddress(key, dstregkey);
+  keytable[dstregkey].oprnd.mode := post_index;
+  keytable[dstregkey].oprnd.index := byte;
+  unlock(key);
+
+  genmoveaddress(left, leftregkey);
+  keytable[leftregkey].oprnd.mode := post_index;
+  keytable[leftregkey].oprnd.index := byte;
+  unlock(left);
+
+  genmoveaddress(right, rightregkey);
+  keytable[rightregkey].oprnd.mode := post_index;
+  keytable[rightregkey].oprnd.index := byte;
+  unlock(right);
+
+  countkey := settemp(word, reg_oprnd(ip0));
+  maxsizekey := settemp(word, reg_oprnd(ip1));
+  tempregkey := settemp(word, reg_oprnd(getreg));
+  lock(tempregkey);
+  tempreg2key := settemp(word, reg_oprnd(getreg));
+
+  { We are done allocating registers.
+  }
+  unlock(leftregkey);
+  unlock(rightregkey);
+  unlock(dstregkey);
+  unlock(tempregkey);
+
+  genldr(lastnode, byte, false, tempregkey, leftregkey);
+  genldr(lastnode, byte, false, tempreg2key, rightregkey);
+  gen3(lastnode, buildinst(add, false, false), countkey, tempreg2key, tempregkey);
+
+  { Compute the maximum number of data bytes we can move.
+  }
+
+  gensimplemove(lastnode, settemp(long, intconst_oprnd(maxsize)), maxsizekey);
+
+  gen2(lastnode, buildinst(cmp, false, false), countkey, maxsizekey);
+  gen4(lastnode, buildinst(csel, false, false), maxsizekey, countkey, maxsizekey,
+       settemp(0, cond_oprnd(lo)));
+
+  { Maxsizekey now has the total number of data bytes we can move.  Store it in the
+    destination.  
+  }
+
+  genstr(lastnode, byte, maxsizekey, dstregkey);
+
+  { now move left bytes, limited by maxsize.  Countkey will contain the number of
+    bytes we can move from the left operand.
+  }
+
+  gen2(lastnode, buildinst(cmp, false, false), tempregkey, maxsizekey);
+  gen4(lastnode, buildinst(csel, false, false), countkey, tempregkey, maxsizekey,
+       settemp(0, cond_oprnd(lo)));
+
+  { Compute the number of bytes remaining after we move left's data bytes.  It
+    might be zero.
+  }
+  gen3(lastnode, buildinst(sub, false, false), maxsizekey, maxsizekey, countkey);
+
+  { Now we can move the data bytes.
+  }
+
+  skiplabel := lastlabel;
+  skiplabelkey := settemp(0, labeltarget_oprnd(skiplabel));
+  lastlabel := lastlabel - 1;
+  looplabelkey := settemp(0, labeltarget_oprnd(lastlabel));
+  definelastlabel;
+  genldr(lastnode, byte, false, tempregkey, leftregkey);
+  genstr(lastnode, byte, tempregkey, dstregkey);
+  gen3(lastnode, buildinst(sub, false, false), countkey, countkey, onekey);
+  gen2(lastnode, buildinst(cbnz, false, false), countkey, looplabelkey);
+
+  { Compute the number of bytes to move from the right operand.
+  }
+
+  gen2(lastnode, buildinst(cmp, false, false), tempreg2key, maxsizekey);
+  gen4(lastnode, buildinst(csel, false, false), countkey, tempreg2key, maxsizekey,
+       settemp(0, cond_oprnd(lo)));
+
+  { Stop if we can't move any of the right operand's data bytes!
+  }
+  gen2(lastnode, buildinst(cbz, false, false), countkey, skiplabelkey);
+
+  { Now move the right operand's data bytes.
+  }
+
+  looplabelkey := settemp(0, labeltarget_oprnd(lastlabel));
+  definelastlabel;
+  genldr(lastnode, byte, false, tempregkey, rightregkey);
+  genstr(lastnode, byte, tempregkey, dstregkey);
+  gen3(lastnode, buildinst(sub, false, false), countkey, countkey, onekey);
+  gen2(lastnode, buildinst(cbnz, false, false), countkey, looplabelkey);
+
+  { Done.  Append null.
+  }
+
+  definelabel(skiplabel);
+  genstr(lastnode, byte, settemp(word, reg_oprnd(zero)), dstregkey);
+
+end {addstrx};
 
 
 procedure pshstructx;
@@ -6767,8 +6919,8 @@ procedure codeone;
       movstr: movstrx;
 {
       movcstruct: movcstructx;
-      addstr: addstrx;
 }
+      addstr: addstrx;
       addint, addptr: integerarithmetic(add);
       subint, subptr: integerarithmetic(sub);
       mulint: integermultiply;
