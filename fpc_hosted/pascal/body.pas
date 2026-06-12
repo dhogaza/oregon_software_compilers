@@ -2060,8 +2060,9 @@ procedure foldstringplus;
 
   begin {foldstringplus}
     foldedbinary := false;
-    newlen := min(maxstrlen + 1,
-                  oprndstk[l].oprndlen + oprndstk[r].oprndlen - 1);
+    newlen := min(maxstrlen + 1 + ord(nullterminatedstrings),
+                  oprndstk[l].oprndlen + oprndstk[r].oprndlen - 1 -
+                  ord(nullterminatedstrings));
     newstringtype(resulttype, strings, newlen - 1); {newstringtype adds 1}
   end {foldstringplus} ;
 
