@@ -6081,7 +6081,93 @@ end {addstrx};
 
 procedure cmpstrx(cond: conds);
 
+var
+  leftregkey, rightregkey, dstregkey, countkey, maxsizekey, onekey,
+  tempregkey, tempreg2key, tempreg3key, tempreg4key, looplabelkey, skiplabelkey: keyindex;
+  maxsize: addressrange;
+  appendtarget: boolean;
+  skiplabel: labelindex;
+
 begin {cmpstrx}
+
+  { Maximum data bytes to compare, ignoring the length byte and trailing null bytes.
+  }
+  maxsize := min(keytable[left].len, keytable[right].len) - 2;
+
+  addressboth;
+  lock(left);
+  lock(right);
+  leftregkey := settemp(long, reg_oprnd(getreg));
+  lock(leftregkey);
+  rightregkey := settemp(long, reg_oprnd(getreg));
+  onekey := settemp(long, imm12_oprnd(1, false));
+  lock(rightregkey);
+  dstregkey := settemp(long, reg_oprnd(getreg));
+  lock(dstregkey);
+
+  genmoveaddress(left, leftregkey);
+  keytable[leftregkey].oprnd.mode := post_index;
+  keytable[leftregkey].oprnd.index := byte;
+  unlock(left);
+
+  genmoveaddress(right, rightregkey);
+  keytable[rightregkey].oprnd.mode := post_index;
+  keytable[rightregkey].oprnd.index := byte;
+  unlock(right);
+
+  countkey := settemp(word, reg_oprnd(ip0));
+  maxsizekey := settemp(word, reg_oprnd(ip1));
+  tempregkey := settemp(word, reg_oprnd(getreg));
+  lock(tempregkey);
+  tempreg2key := settemp(word, reg_oprnd(getreg));
+  lock(tempreg2key);
+  tempreg3key := settemp(word, reg_oprnd(getreg));
+  lock(tempreg3key);
+  tempreg4key := settemp(word, reg_oprnd(getreg));
+
+
+  { We are done allocating registers.
+  }
+
+  unlock(leftregkey);
+  unlock(rightregkey);
+  unlock(tempregkey);
+  unlock(tempreg2key);
+  unlock(tempreg3key);
+
+  genldr(lastnode, byte, false, tempregkey, leftregkey);
+  genldr(lastnode, byte, false, tempreg2key, rightregkey);
+  gensimplemove(lastnode, settemp(long, intconst_oprnd(maxsize)), maxsizekey);
+
+  { Compute the maximum number of data bytes to compare, to provide some protection
+    against the comparison loop running past the boundaries of the two operands.
+  }
+
+  gen2(lastnode, buildinst(cmp, false, false), tempregkey, tempreg2key);
+  gen4(lastnode, buildinst(csel, false, false), countkey, tempregkey, tempreg2key,
+       settemp(0, cond_oprnd(lo)));
+  gen4(lastnode, buildinst(csel, false, false), countkey, countkey, maxsizekey,
+       settemp(0, cond_oprnd(lo)));
+  skiplabel := lastlabel;
+  skiplabelkey := settemp(0, labeltarget_oprnd(skiplabel));
+  lastlabel := lastlabel - 1;
+  looplabelkey := settemp(0, labeltarget_oprnd(lastlabel));
+  definelastlabel;
+
+  genldr(lastnode, byte, false, tempreg3key, leftregkey);
+  genldr(lastnode, byte, false, tempreg4key, rightregkey);
+  gen2(lastnode, buildinst(cmp, false, false), tempreg3key, tempreg4key);
+  genbcond(lastnode, ne, skiplabel);
+  gen3(lastnode, buildinst(sub, false, false), countkey, countkey, onekey);
+  gen2(lastnode, buildinst(cbnz, false, false), countkey, looplabelkey);
+
+  { All of the chars we compared are the same.  Set result depending on the
+    length of the two operands.  If we exited the loop to skiplabel, the
+    last character comparison should be valid.
+  }
+
+  gen2(lastnode, buildinst(cmp, false, false), tempregkey, tempreg2key);
+  definelabel(skiplabel);
   setvalue(cond_oprnd(cond));
 end {cmpstrx};
 
