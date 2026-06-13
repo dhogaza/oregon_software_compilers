@@ -21,7 +21,6 @@
 .P1:
 	sub	sp,sp,16
 # Line: 3, Stmt: 1
-# Line: 0, Stmt: 0
 # Line: 4, Stmt: 2
 	ands	wzr,w0,1
 	cset	w15,ne
@@ -39,7 +38,6 @@
 .P2:
 	sub	sp,sp,16
 # Line: 9, Stmt: 1
-# Line: 0, Stmt: 0
 # Line: 10, Stmt: 2
 	cmp	w0,wzr
 	cneg	w15,w0,mi

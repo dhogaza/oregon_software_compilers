@@ -11,8 +11,6 @@
 	str	x1,[x29,-16]
 	str	x0,[x29,-24]
 # Line: 5, Stmt: 1
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
 # Line: 6, Stmt: 2
 	mov	x28,x0
 .L4:
@@ -106,8 +104,6 @@
 	str	x1,[x29,-16]
 	str	x0,[x29,-24]
 # Line: 27, Stmt: 1
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
 # Line: 28, Stmt: 2
 	mov	x28,x0
 .L14:

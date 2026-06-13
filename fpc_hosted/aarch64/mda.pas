@@ -478,6 +478,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       begin
       paramptr^.length := ptrsize;
       paramptr^.refparam := true;
+      paramptr^.registercandidate := true;
       end
     else paramptr^.length := length;
     alloc := paramalloc(paramptr, typeptr);

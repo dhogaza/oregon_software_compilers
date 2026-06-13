@@ -2556,7 +2556,8 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
         if (targetopsys = vms) and (currentstmt.textline < 0) and
            nowdebugging then
           exit_stmtno := currentstmt.stmtno
-        else if (targetmachine = aarch64) or (currentstmt.stmtno <> 0) then
+        else if (targetmachine = aarch64) and (currentstmt.textline <> 0) or
+                (currentstmt.stmtno <> 0) then
           genpseudo(stmtbrk, currentstmt.srcfileindx, 0, 0, 0,
                     currentstmt.stmtno, abs(currentstmt.textline),
                     ord(controlstmt) + ord(branchstmt) * 2 +

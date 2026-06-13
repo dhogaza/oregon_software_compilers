@@ -6,9 +6,6 @@
 .P2:
 	sub	sp,sp,32
 # Line: 25, Stmt: 1
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
 # Line: 26, Stmt: 2
 	mov	x14,97
 # Line: 27, Stmt: 0
@@ -44,9 +41,6 @@
 	mov	x26,x2
 	mov	x27,x1
 # Line: 42, Stmt: 1
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
 # Line: 43, Stmt: 2
 	mov	x28,x27
 	str	x0,[x29,-32]
@@ -88,9 +82,6 @@
 	mov	x26,x2
 	mov	x27,x1
 # Line: 57, Stmt: 1
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
 # Line: 58, Stmt: 2
 	mov	x28,x27
 	str	x0,[x29,-32]

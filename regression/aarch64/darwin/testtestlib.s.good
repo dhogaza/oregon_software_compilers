@@ -60,9 +60,6 @@ putstring:
 	stp	x27,x28,[x29,-16]
 	mov	x27,x1
 # Line: 27, Stmt: 1
-# Line: -6, Stmt: 0
-# Line: -6, Stmt: 0
-# Line: -6, Stmt: 0
 # Line: 28, Stmt: 2
 	str	x0,[x29,-24]
 	str	x2,[x29,-32]
@@ -98,9 +95,6 @@ putstringln:
 	stp	x27,x28,[x29,-16]
 	mov	x27,x1
 # Line: 33, Stmt: 1
-# Line: -6, Stmt: 0
-# Line: -6, Stmt: 0
-# Line: -6, Stmt: 0
 # Line: 34, Stmt: 2
 	str	x0,[x29,-24]
 	str	x2,[x29,-32]
@@ -138,7 +132,6 @@ puthex:
 	stp	x27,x28,[x29,-16]
 	mov	x27,x0
 # Line: 44, Stmt: 1
-# Line: -6, Stmt: 0
 # Line: 45, Stmt: 2
 	mov	x28,xzr
 .L12:
@@ -195,7 +188,6 @@ puthexln:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 64, Stmt: 1
-# Line: -6, Stmt: 0
 # Line: 65, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x0,[x29,-8]
@@ -219,7 +211,6 @@ putint:
 	stp	x27,x28,[x29,-16]
 	mov	x27,x0
 # Line: 76, Stmt: 1
-# Line: -6, Stmt: 0
 # Line: 77, Stmt: 2
 	cmp	w27,wzr
 	b.ge	.L26
@@ -274,7 +265,6 @@ putintln:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 99, Stmt: 1
-# Line: -6, Stmt: 0
 # Line: 100, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x0,[x29,-8]
@@ -296,7 +286,6 @@ putbool:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 106, Stmt: 1
-# Line: -6, Stmt: 0
 # Line: 107, Stmt: 2
 	cbz	w0,.L31
 .L32:
@@ -348,7 +337,6 @@ putboolln:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 113, Stmt: 1
-# Line: -6, Stmt: 0
 # Line: 114, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x0,[x29,-8]
@@ -371,7 +359,6 @@ putcharln:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 120, Stmt: 1
-# Line: -6, Stmt: 0
 # Line: 121, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x0,[x29,-8]
@@ -392,7 +379,6 @@ putcharln:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 10, Stmt: 1
-# Line: -124, Stmt: 0
 # Line: 11, Stmt: 2
 	cmp	w0,97
 	b.lo	.L65
@@ -595,7 +581,6 @@ putcharln:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 45, Stmt: 1
-# Line: -124, Stmt: 0
 # Line: 46, Stmt: 2
 	str	x0,[x29,-8]
 	cmp	w0,97

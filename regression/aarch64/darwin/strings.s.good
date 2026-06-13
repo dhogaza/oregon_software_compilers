@@ -44,7 +44,6 @@
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 13, Stmt: 1
-# Line: 0, Stmt: 0
 # Line: 14, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x15,[x29,-8]
@@ -67,7 +66,6 @@
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 19, Stmt: 1
-# Line: 0, Stmt: 0
 # Line: 20, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x15,[x29,-8]

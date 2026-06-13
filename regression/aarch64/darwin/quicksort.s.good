@@ -15,7 +15,6 @@
 .P1:
 	sub	sp,sp,16
 # Line: 20, Stmt: 1
-# Line: 0, Stmt: 0
 # Line: 21, Stmt: 2
 	mov	x15,1
 .L4:
@@ -42,8 +41,6 @@
 .P5:
 	sub	sp,sp,32
 # Line: 52, Stmt: 1
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
 # Line: 53, Stmt: 2
 	ldrsw	x15,[x0]
 # Line: 54, Stmt: 0
@@ -69,8 +66,6 @@
 	mov	x23,x1
 	mov	x24,x0
 # Line: 58, Stmt: 1
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
 # Line: 61, Stmt: 2
 	ldr	x15,[x28,-8]
 	ldr	x15,[x15,16]
@@ -165,8 +160,6 @@
 	mov	x27,x1
 	mov	x25,x0
 # Line: 81, Stmt: 1
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
 # Line: 83, Stmt: 2
 	cmp	w25,w27
 	b.ge	.L22
@@ -205,7 +198,6 @@
 	str	x28,[x29,-8]
 	str	x0,[x29,16]
 # Line: 90, Stmt: 1
-# Line: 0, Stmt: 0
 # Line: 91, Stmt: 2
 	mov	x0,1
 	movz	x1,34464

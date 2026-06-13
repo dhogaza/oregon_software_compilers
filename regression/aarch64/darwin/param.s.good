@@ -16,14 +16,6 @@
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 4, Stmt: 1
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
 # Line: 5, Stmt: 2
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+1@PAGEOFF
@@ -56,14 +48,6 @@
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 10, Stmt: 1
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
-# Line: 0, Stmt: 0
 # Line: 11, Stmt: 2
 	str	x0,[x29,-8]
 	adrp	x15,.L32765@PAGE

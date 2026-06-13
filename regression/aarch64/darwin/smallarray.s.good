@@ -13,7 +13,6 @@
 .P1:
 	sub	sp,sp,48
 # Line: 14, Stmt: 1
-# Line: 0, Stmt: 0
 # Line: 15, Stmt: 2
 	mov	x14,1
 .L5:
@@ -53,7 +52,6 @@
 	stp	x27,x28,[x29,-16]
 	str	x26,[x29,-24]
 # Line: 24, Stmt: 1
-# Line: 0, Stmt: 0
 # Line: 25, Stmt: 2
 	mov	x27,xzr
 # Line: 26, Stmt: 0

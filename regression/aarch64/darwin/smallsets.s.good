@@ -26,7 +26,6 @@
 .P1:
 	sub	sp,sp,16
 # Line: 11, Stmt: 1
-# Line: 0, Stmt: 0
 # Line: 12, Stmt: 2
 	strb	w0,[sp,8]
 # Line: 13, Stmt: 0
@@ -116,7 +115,6 @@
 	stp	x27,x28,[x29,-16]
 	mov	x27,x0
 # Line: 25, Stmt: 1
-# Line: 0, Stmt: 0
 # Line: 26, Stmt: 2
 	mov	x28,xzr
 .L6:
@@ -152,7 +150,6 @@
 	stp	x27,x28,[x29,-16]
 	mov	x27,x0
 # Line: 33, Stmt: 1
-# Line: 0, Stmt: 0
 # Line: 34, Stmt: 2
 	mov	x28,xzr
 .L10:
