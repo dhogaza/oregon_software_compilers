@@ -5814,6 +5814,11 @@ begin {movstrx}
 
 end {movstrx};
 
+procedure pshstrx;
+
+begin {pshstrx}
+end {pshstrx};
+
 procedure chrstrx;
 
   { Convert a character to an extended string.  While the code optistically
@@ -7086,8 +7091,8 @@ procedure codeone;
       pshlitreal: pshlitrealx;
       pshreal: pshx;
       pshstraddr: pshstraddrx;
-      pshstr: pshstrx;
 }
+      pshstr: pshstrx;
       pshstruct: pshstructx;
       pshset: pshsetx;
       setfile: setfilex;
