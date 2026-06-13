@@ -188,8 +188,8 @@ type
              constname:
                (consttype: index; {type for this constant}
                 constvalue: const_descr {value for this constant} );
-             varname, fieldname, param, varparam, procparam, funcparam,
-             confparam, varconfparam, boundid, undefname,
+             varname, fieldname, param, varparam, constparam, procparam,
+             funcparam, confparam, varconfparam, boundid, undefname,
              procname, funcname, forwardproc, forwardfunc, externalproc,
              externalfunc:
                (modified: boolean; {becomes true when value assigned}

@@ -99,7 +99,7 @@ type
 
   { symbol table entry types }
 
-  nametype = (noname, varparam, param, funcparam, procparam, confparam,
+  nametype = (noname, varparam, constparam, param, funcparam, procparam, confparam,
               varconfparam, boundid, typename, constname, scalarname, varname,
               fieldname, procname, funcname, forwardproc, forwardfunc,
               externalproc, externalfunc, undeftypename, undefname,
