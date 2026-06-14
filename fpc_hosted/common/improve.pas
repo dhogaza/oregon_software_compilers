@@ -285,6 +285,26 @@ procedure assignregs;
 
       procedure applytoregparamnode(expr: nodeindex);
 
+{
+    Purpose:
+      See if this regparam is worthy of being promoted to a callee-saved
+      register.  If so, the regparam node is modified to include that register
+      so the code generator can move on proc entry.
+
+    Inputs:
+      An expr which is known to be a regparam, ptrregparam, or realregparam  node
+
+    Outputs:
+      None
+
+    Algorithm:
+      Inspects the regparam node to see if it has been allocated to a callee-saved
+      register.
+
+    Sideeffects:
+      May transform the index node into a regtemp node.
+}
+
         var
           exprp: nodeptr;
           offset: addressrange;
@@ -313,6 +333,7 @@ procedure assignregs;
      
 
       procedure applytoindexnode(expr: nodeindex);
+
 {
     Purpose:
       See if this indx node can be replaced with a regtemp node.
@@ -324,11 +345,8 @@ procedure assignregs;
       None
 
     Algorithm:
-      Inspects the indx node to see if its offset and param status matches
-      any register that's been permanently allocated to a variable or
-      parameter.  This will migrate regparams to regtemps (to avoid having
-      to explicitly save them during proc calls) but will not migrate
-      params stored on the stack.
+      Inspects the indx node to see if its offset and matches any register that's
+      been permanently allocated to a variable.
 
     Sideeffects:
       May transform the index node into a regtemp node.

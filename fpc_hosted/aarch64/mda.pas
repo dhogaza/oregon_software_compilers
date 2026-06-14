@@ -817,9 +817,9 @@ procedure possibletemp(p:entryptr);
     if tempvars < maxtrackvar then
       begin
       if bigcompilerversion then f := @(bigtable[p^.vartype]);
-      if {(f^.typ in [reals, doubles]) or
-         ((f^.typ in [bools, chars, ints, ptrs, scalars, subranges, sets]) and
-         (f^.size <= defaultptrsize))} p^.registercandidate then
+      if (p^.refparam or
+         (f^.typ in [reals, doubles]) or (f^.size <= defaultptrsize)) and
+         p^.registercandidate then
         begin
         tempvars := tempvars + 1;
         localvar.offset := p^.offset;
