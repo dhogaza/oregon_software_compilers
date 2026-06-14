@@ -30,8 +30,8 @@
 # Line: 9, Stmt: 0
 	ldr	x15,[x29,-16]
 	mov	x28,x15
-.L6:
 	ldr	x15,[x29,-24]
+.L6:
 	cmp	w28,w15
 	b.lo	.L5
 # Line: 9, Stmt: 0
@@ -123,8 +123,8 @@
 # Line: 30, Stmt: 0
 	ldr	x15,[x29,-16]
 	mov	x28,x15
-.L16:
 	ldr	x15,[x29,-24]
+.L16:
 	cmp	w28,w15
 	b.lt	.L15
 # Line: 30, Stmt: 0

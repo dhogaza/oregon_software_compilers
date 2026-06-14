@@ -23,6 +23,11 @@ CSEs and sets ...
 
 *** current bugs
 
+   -- not so much a bug but a limitation.  Check for variable being a parameter
+      is messed up when the parameter is a register parameters.  Could be done
+      with the offset (boo hiss) but would be much better to figure out  more
+      information available from context.
+
    -- cstring.pas in test breaks regcount 
 
    -- code like add x0,x0,foo leads to x0's saved location on the stack

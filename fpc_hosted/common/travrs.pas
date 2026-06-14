@@ -1134,6 +1134,7 @@ procedure build;
       ptr, ptr1: nodeptr; { for access to bit map nodes }
       varlev: levelindex; { varaible level }
       varoffset: addressrange; { location at varlev }
+      varisparam: boolean;
       now, prev: nodeindex; { for walking read chain }
       found: boolean; { loop exit flag }
 
@@ -1149,8 +1150,9 @@ procedure build;
         if bigcompilerversion then ptr1 := @(bignodetable[ptr1^.directlink]);
 
       ptr^.invariant := false;
-      ptr^.regcandidate := bumpvarcount(varlev, nodeisparam(ptr1^.oprnds[1]),
-                                        varoffset);
+      varisparam := (ptr1^.oprnds[1] = localparamnode) or (varlev = level) and
+                    (varoffset >= maxlong - maxregparams - maxptrregparams - maxrealregparams);
+      ptr^.regcandidate := bumpvarcount(varlev, varisparam, varoffset);
 
       { if in a loop, add this to the writes for the loop, and kill the reads }
 
@@ -1240,6 +1242,7 @@ procedure build;
       ptr, ptr1: nodeptr; { for access to nodes }
       varlev: levelindex; { variable level }
       varoffset: addressrange; { location at varlev }
+      varisparam: boolean;
 
     begin {doreference}
 
@@ -1251,8 +1254,9 @@ procedure build;
       if ptr1^.action = copy then
         if bigcompilerversion then ptr1 := @(bignodetable[ptr1^.directlink]);
 
-      ptr^.regcandidate := bumpvarcount(varlev, nodeisparam(ptr1^.oprnds[1]),
-                                        varoffset);
+      varisparam := (ptr1^.oprnds[1] = localparamnode) or (varlev = level) and
+                    (varoffset >= maxlong - maxregparams - maxptrregparams - maxrealregparams);
+      ptr^.regcandidate := bumpvarcount(varlev, varisparam, varoffset);
 
       { if in a loop, determine if modified in it yet }
         { If we have overflowed loopstack, then since invariant is
@@ -1412,6 +1416,7 @@ procedure build;
       i: reghashindex; {hash value}
       ptr, ptr1: nodeptr; {for access to bit map nodes}
       varisparam: boolean; {true if the var in question is a parameter}
+      varlev: levelindex;
       varoffset: addressrange; {location at varlev}
       now, prev: nodeindex; {for walking read chain}
 
@@ -1434,12 +1439,16 @@ procedure build;
          (ptr^.oprnds[1] = level) then
         begin
         blocksin[1].written := true;
+        varlev := ptr^.oprnds[1];
         varoffset := ptr^.oprnds[2];
         if bigcompilerversion then ptr1 := @(bignodetable[ptr^.oprnds[3]]);
 
         if ptr1^.action = copy then
           if bigcompilerversion then
             ptr1 := @(bignodetable[ptr1^.directlink]);
+
+          varisparam := (ptr1^.oprnds[1] = localparamnode) or (varlev = level) and
+                    (varoffset >= maxlong - maxregparams - maxptrregparams - maxrealregparams);
 
           { This hashes the variable's offset.  Really should be a
             function call.  However, it would be called in several
@@ -1449,7 +1458,7 @@ procedure build;
             }
         i := (varoffset div targetintsize) mod (regtablelimit + 1);
         while ((regvars[i].offset <> varoffset) or
-              (regvars[i].parameter <> nodeisparam(ptr^.oprnds[1]))) and
+              (regvars[i].parameter <> varisparam)) and
               (regvars[i].worth >= 0) do
           i := (i + 1) mod (regtablelimit + 1);
         if regvars[i].worth >= 0 then
@@ -1989,7 +1998,15 @@ procedure build;
                 otherwise regkind := reg;
                 end {typ} ;
               end;
-            aarch64, ns32k:
+            aarch64:
+              begin
+              registercandidate := true;
+              case localvar.typ of
+                reals, doubles: regkind := realreg;
+                otherwise regkind := reg;
+                end {typ} ;
+              end;
+            ns32k:
               begin
               registercandidate := true;
               case localvar.typ of

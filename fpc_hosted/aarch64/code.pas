@@ -3899,17 +3899,19 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
       begin
       if keytable[forkey].signed then c := signedcond
       else c := unsignedcond;
-      pseudolabelx;
       regkey := settemp(long, reg_oprnd(originalreg));
       keytable[regkey].len := savedlen;
 
-      if target <> 0 then
+      if target = 0 then
+        pseudolabelx
+      else
         begin
         makeaddressable(target, 0);
 { DRB
         shrink(target, keytable[forkey].len);
 }
         loadreg(target, regkey);
+        pseudolabelx;
         gen2(lastnode, buildinst(cmp, savedlen = long, false), regkey, target);
         genbcond(lastnode, c, pseudoinst.oprnds[2]);
         end;

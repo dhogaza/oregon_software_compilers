@@ -98,6 +98,7 @@ const
 
   maxregparams = 8;
   maxrealregparams = 8;
+  maxptrregparams = 0;
   
   reversebytes = false; {if target/host byte-order is backwards}
   hostintlowbytefirst = true; {host integers have low order byte

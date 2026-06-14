@@ -283,6 +283,35 @@ procedure assignregs;
       exprp: nodeptr;
       i: oprndindex;
 
+      procedure applytoregparamnode(expr: nodeindex);
+
+        var
+          exprp: nodeptr;
+          offset: addressrange;
+          j: 0..regtablelimit; { var for temp search }
+
+        begin {applytoregparamnode}
+
+          exprp := @(bignodetable[expr]);
+          offset := exprp^.oprnds[2];
+            { This hashes the var's offset, really should be a function call.
+              However it would be called in several high bandwidth places and
+              places an unneeded speed penalty on this phase.
+              This code is replicated in procedures: doreference, killasreg
+              and dodefine in travrs.
+            }
+          j := (offset div targetintsize) mod (regtablelimit + 1);
+          while ((regvars[j].offset <> offset) or not regvars[j].parameter) and
+                (regvars[j].worth >= 0) do
+            j := (j + 1) mod (regtablelimit + 1);
+          if regvars[j].regid <> 0 then
+            begin
+            exprp^.oprnds[1] := -1;
+            exprp^.oprnds[2] := regvars[j].regid;
+            end;
+        end {applytoregparamnode};
+     
+
       procedure applytoindexnode(expr: nodeindex);
 {
     Purpose:
@@ -319,12 +348,9 @@ procedure assignregs;
           exprp := @(bignodetable[expr]);
           left := exprp^.oprnds[1];
           leftp := @(bignodetable[left]);
-          if nodeisparam(left) then
-            offset := leftp^.oprnds[2]
-          else offset := exprp^.oprnds[2];
+          offset := exprp^.oprnds[2];
           third := 0;
-          if (leftp^.op = levop) and (leftp^.oprnds[1] = level) or
-            nodeisparam(left) then
+          if (leftp^.op = levop) and (leftp^.oprnds[1] = level) then
           begin
             { This hashes the var's offset, really should be a function call.
               However it would be called in several high bandwidth places and
@@ -333,17 +359,11 @@ procedure assignregs;
               and dodefine in travrs.
             }
           j := (offset div targetintsize) mod (regtablelimit + 1);
-          while ((regvars[j].offset <> offset) or
-                (regvars[j].parameter <> nodeisparam(left))) and
+          while ((regvars[j].offset <> offset) or regvars[j].parameter) and
                 (regvars[j].worth >= 0) do
             j := (j + 1) mod (regtablelimit + 1);
           if regvars[j].regid <> 0 then
             begin
-            if leftp^.op in [regparamop, realregparamop, ptrregparamop] then
-              begin
-              leftp^.oprnds[1] := -1;
-              leftp^.oprnds[2] := regvars[j].regid;
-              end;
             case regvars[j].regkind of
               reg, bytereg: exprp^.op := regtempop;
               realreg: exprp^.op := realtempop;
@@ -361,12 +381,14 @@ procedure assignregs;
         if bigcompilerversion then exprp := @(bignodetable[expr]);
         if (exprp^.op < intop) and (exprp^.slink <> 0) then
           applytoexprnode(exprp^.slink);
-        if exprp^.op = indxop then
-          applytoindexnode(expr)
-        else
-          for i := 1 to maxoprnd do
-            if exprp^.nodeoprnd[i] then
-              applytoexprnode(exprp^.oprnds[i]);
+        case exprp^.op of
+          indxop: applytoindexnode(expr);
+          regparamop, ptrregparamop,realregparamop: applytoregparamnode(expr);
+          otherwise
+            for i := 1 to maxoprnd do
+              if exprp^.nodeoprnd[i] then
+                applytoexprnode(exprp^.oprnds[i]);
+          end;
         end;
     end {applytoexprnode};
 

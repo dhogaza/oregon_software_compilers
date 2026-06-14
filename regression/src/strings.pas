@@ -14,41 +14,48 @@ begin
   writeln(p5param);
 end;
 
-procedure tests255(s255param: s255);
+procedure tests255(s255param: s255); external;
+procedure tests255;
+
+var
+  i: integer;
 
 begin
-  writeln(s255param, length(s255param):3);
+  write(s255param, length(s255param):3, ' ');
+  for i := 1 to length(s255param) do
+    write(s255param[i]);
+  writeln;
 end;
 
 begin
   writeln('test packed arrays of char and conversion to string');
   writeln;
-  write('expected abcde: ');
+  write('expected ''abcde'': ');
   testp5('abcde');
   p5var := 'vwxyz';
-  write('expected vwxyz: ');
+  write('expected ''vwxyz'': ');
   testp5(p5var);
-  write('expected vwxyz: 5 ');
+  write('expected ''vwxyz 5 vwxyz'': ');
   tests255(p5var);
   writeln;
   writeln('test char conversion to string');
   writeln;
   c := 'b';
-  write('expected 0 1: ');
+  write('expected ''0 1 0'': ');
   tests255('0');
-  write('expected b 1: ');
+  write('expected ''b 1 b'': ');
   tests255(c);
   writeln;
   writeln('test strings directly');
   writeln;
   short := 'abcdefxyz';
-  write('expected abc 3: ');
+  write('expected ''abc 3 abc'': ');
   tests255(short);
   s := '0123456789abcdef';
-  writeln('expected 0123456789abcdef: ', s);
-  write('expected 0123456789abcdef 16: ');
+  writeln('expected ''0123456789abcdef'': ', s);
+  write('expected ''0123456789abcdef 16 0123456789abcdef'': ');
   tests255(s);
   s1 := s + short;
-  write('expected 0123456789abcdefabc 19: ');
+  write('expected ''0123456789abcdefabc 19 0123456789abcdefabc'': ');
   tests255(s1);
 end.

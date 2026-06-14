@@ -295,9 +295,6 @@ function paramalloc(paramptr, typeptr: entryptr): allockind;
     if typeptr^.typ in [reals, doubles] then paramalloc := realregparam
     else if paramptr^.length <= ptrsize then paramalloc := regparam
     else paramalloc := normalalloc;
-{
-paramalloc := normalalloc;
-}
   end; {paramalloc}
 
 function  allocparamoffset(var blocksize, length: addressrange;
@@ -488,7 +485,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.varalloc := realregparam;
       paramptr^.regid := regparams.realregparams;
       paramptr^.regcount := 1;
-      paramptr^.offset := maxlong - paramptr^.regid - maxregparams - 1;
+      paramptr^.offset := maxlong - paramptr^.regid - maxregparams;
       regparams.realregparams := regparams.realregparams + 1;
       end
     else if (alloc = regparam) and (regparams.regparams < maxregparams) then
@@ -504,11 +501,11 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
         are operands to indx, aindx, etc.  Eventually we'll do so for structs,
         at least, as that's part of the calling standard.  This code doesn't do
         it correctly anyway though.
+      }
 
       if (typeptr^.typ in [fields, arrays, strings, conformantarrays]) and
          not paramptr^.refparam  then
         paramptr^.registercandidate := false;
-      }
       end
     else
       begin
@@ -820,9 +817,9 @@ procedure possibletemp(p:entryptr);
     if tempvars < maxtrackvar then
       begin
       if bigcompilerversion then f := @(bigtable[p^.vartype]);
-      if (f^.typ in [reals, doubles]) or
+      if {(f^.typ in [reals, doubles]) or
          ((f^.typ in [bools, chars, ints, ptrs, scalars, subranges, sets]) and
-         (f^.size <= defaultptrsize)) then
+         (f^.size <= defaultptrsize))} p^.registercandidate then
         begin
         tempvars := tempvars + 1;
         localvar.offset := p^.offset;
@@ -830,7 +827,7 @@ procedure possibletemp(p:entryptr);
         localvar.typ := f^.typ;
         localvar.debugrecord := p^.dbgsymbol;
         localvar.is_param := p^.namekind in [param, varparam, confparam, varconfparam,
-                                             boundid];
+                                             constparam, boundid];
         write(locals, localvar);
         end;
       end;
