@@ -37,23 +37,21 @@
 	stp	x30,x29,[sp,40]
 	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
-	str	x26,[x29,-24]
+	stp	x25,x26,[x29,-32]
 	mov	x26,x2
 	mov	x27,x1
+	mov	x25,x0
 # Line: 42, Stmt: 1
 # Line: 43, Stmt: 2
 	mov	x28,x27
-	str	x0,[x29,-32]
 .L7:
-	ldr	x0,[x29,-32]
 # Line: 44, Stmt: 0
 	cmp	w28,w26
 	b.gt	.L8
 .L9:
 # Line: 46, Stmt: 0
 	sub	w15,w28,w27
-	ldr	x14,[x29,-32]
-	ldrb	w0,[x14, w15, sxtw]
+	ldrb	w0,[x25, w15, sxtw]
 	bl	_putchar
 # Line: 47, Stmt: 0
 	add	w28,w28,1
@@ -64,7 +62,7 @@
 	bl	_putchar
 .L6:
 	ldp	x27,x28,[x29,-16]
-	ldr	x26,[x29,-24]
+	ldp	x25,x26,[x29,-32]
 	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret
@@ -78,23 +76,21 @@
 	stp	x30,x29,[sp,40]
 	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
-	str	x26,[x29,-24]
+	stp	x25,x26,[x29,-32]
 	mov	x26,x2
 	mov	x27,x1
+	mov	x25,x0
 # Line: 57, Stmt: 1
 # Line: 58, Stmt: 2
 	mov	x28,x27
-	str	x0,[x29,-32]
 .L11:
-	ldr	x0,[x29,-32]
 # Line: 59, Stmt: 0
 	cmp	w28,w26
 	b.gt	.L12
 .L13:
 # Line: 61, Stmt: 0
 	sub	w15,w28,w27
-	ldr	x14,[x29,-32]
-	ldrb	w0,[x14, w15, sxtw]
+	ldrb	w0,[x25, w15, sxtw]
 	bl	_putchar
 # Line: 62, Stmt: 0
 	add	w28,w28,1
@@ -105,7 +101,7 @@
 	bl	_putchar
 .L10:
 	ldp	x27,x28,[x29,-16]
-	ldr	x26,[x29,-24]
+	ldp	x25,x26,[x29,-32]
 	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret

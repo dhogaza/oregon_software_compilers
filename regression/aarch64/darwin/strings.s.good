@@ -72,47 +72,40 @@ tests255:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
-	str	x28,[x29,-8]
-	str	x0,[x29,-16]
+	stp	x27,x28,[x29,-16]
+	mov	x27,x0
 # Line: 23, Stmt: 1
 # Line: 24, Stmt: 2
-	ldr	x15,[x29,-16]
-	str	x15,[x29,-24]
-	ldrb	w1,[x15]
-	add	x0,x15,xzr
+	ldrb	w1,[x27]
+	add	x0,x27,xzr
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x1,[x29,-24]
-	ldrb	w0,[x1]
+	ldrb	w0,[x27]
 	mov	x1,3
 	bl	_p_wti_o 
 	mov	x0,32
 	mov	x1,1
 	bl	_p_wtc_o 
-	ldr	x15,[x29,-16]
 # Line: 25, Stmt: 0
-	str	x15,[x29,-16]
 	mov	x28,1
-	ldr	x14,[x29,-24]
-	ldrb	w13,[x14]
-	str	x13,[x29,-24]
+	ldrb	w15,[x27]
+	str	x15,[x29,-24]
 .L6:
-	cmp	w28,w13
+	cmp	w28,w15
 	b.gt	.L5
 # Line: 26, Stmt: 0
-	ldrb	w0,[x15, w28, sxtw]
+	ldrb	w0,[x27, w28, sxtw]
 	mov	x1,1
 	bl	_p_wtc_o 
-	ldr	x13,[x29,-24]
-	ldr	x15,[x29,-16]
+	ldr	x15,[x29,-24]
 	adds	w28,w28,1
 	b.vc	.L6
 .L5:
 # Line: 27, Stmt: 0
 	bl	_p_wtln_o 
 .L3:
-	ldr	x28,[x29,-8]
+	ldp	x27,x28,[x29,-16]
 	ldp	x30,x29,[sp,24]
 	add	sp,sp,48
 	ret

@@ -58,10 +58,11 @@ putstring:
 	stp	x30,x29,[sp,40]
 	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
+	str	x26,[x29,-24]
 	mov	x27,x1
+	mov	x26,x0
 # Line: 27, Stmt: 1
 # Line: 28, Stmt: 2
-	str	x0,[x29,-24]
 	str	x2,[x29,-32]
 	mov	x28,x27
 .L6:
@@ -69,16 +70,15 @@ putstring:
 	b.gt	.L5
 # Line: 28, Stmt: 0
 	sub	w15,w28,w27
-	ldr	x14,[x29,-24]
-	ldrb	w0,[x14, w15, sxtw]
+	ldrb	w0,[x26, w15, sxtw]
 	bl	_putchar
-	ldr	x0,[x29,-24]
 	ldr	x2,[x29,-32]
 	adds	w28,w28,1
 	b.vc	.L6
 .L5:
 .L3:
 	ldp	x27,x28,[x29,-16]
+	ldr	x26,[x29,-24]
 	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret
@@ -93,10 +93,11 @@ putstringln:
 	stp	x30,x29,[sp,40]
 	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
+	str	x26,[x29,-24]
 	mov	x27,x1
+	mov	x26,x0
 # Line: 33, Stmt: 1
 # Line: 34, Stmt: 2
-	str	x0,[x29,-24]
 	str	x2,[x29,-32]
 	mov	x28,x27
 .L10:
@@ -104,10 +105,8 @@ putstringln:
 	b.gt	.L9
 # Line: 34, Stmt: 0
 	sub	w15,w28,w27
-	ldr	x14,[x29,-24]
-	ldrb	w0,[x14, w15, sxtw]
+	ldrb	w0,[x26, w15, sxtw]
 	bl	_putchar
-	ldr	x0,[x29,-24]
 	ldr	x2,[x29,-32]
 	adds	w28,w28,1
 	b.vc	.L10
@@ -116,6 +115,7 @@ putstringln:
 	bl	putln
 .L7:
 	ldp	x27,x28,[x29,-16]
+	ldr	x26,[x29,-24]
 	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret

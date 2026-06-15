@@ -50,38 +50,37 @@
 	stp	x30,x29,[sp,64]
 	add	x29,sp,64
 	stp	x27,x28,[x29,-16]
-	str	x26,[x29,-24]
+	stp	x25,x26,[x29,-32]
+	mov	x26,x0
 # Line: 24, Stmt: 1
 # Line: 25, Stmt: 2
 	mov	x27,xzr
 # Line: 26, Stmt: 0
-	str	x0,[x29,-32]
-	mov	x26,1
+	mov	x25,1
 .L12:
 	mov	x14,396
-	mul	w15,w26,w14
+	mul	w15,w25,w14
 	mov	x13,100
-	mul	w14,w26,w13
+	mul	w14,w25,w13
 # Line: 27, Stmt: 0
-	str	x0,[x29,-40]
-	str	x15,[x29,-48]
-	str	x14,[x29,-56]
+	str	x15,[x29,-40]
+	str	x14,[x29,-48]
 	mov	x28,1
 .L13:
 # Line: 28, Stmt: 0
-	add	x13,x0,w15, sxtw 0
+	add	x13,x26,w15, sxtw 0
 	add	x13,x13,w28, sxtw 2
 	add	w12,w14,w28
 	sub	x17,x13,144
 	ldrsw	x11,[x17,-256]
-	str	x11,[x29,-64]
+	str	x11,[x29,-56]
 	cmp	w11,w12
 	b.eq	.L14
 .L15:
 # Line: 30, Stmt: 0
 	add	w27,w27,1
 # Line: 31, Stmt: 0
-	mov	x0,x26
+	mov	x0,x25
 	mov	x1,1
 	bl	_p_wti_o 
 	mov	x0,32
@@ -93,21 +92,19 @@
 	mov	x0,32
 	mov	x1,1
 	bl	_p_wtc_o 
-	ldr	x0,[x29,-64]
+	ldr	x0,[x29,-56]
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 .L14:
-	ldr	x0,[x29,-40]
-	ldr	x14,[x29,-56]
-	ldr	x15,[x29,-48]
+	ldr	x14,[x29,-48]
+	ldr	x15,[x29,-40]
 	add	w28,w28,1
 	cmp	w28,99
 	b.le	.L13
 .L16:
-	ldr	x0,[x29,-32]
-	add	w26,w26,1
-	cmp	w26,99
+	add	w25,w25,1
+	cmp	w25,99
 	b.le	.L12
 .L17:
 # Line: 33, Stmt: 0
@@ -122,7 +119,7 @@
 	bl	_p_wtln_o 
 .L9:
 	ldp	x27,x28,[x29,-16]
-	ldr	x26,[x29,-24]
+	ldp	x25,x26,[x29,-32]
 	ldp	x30,x29,[sp,64]
 	add	sp,sp,96
 	ret
