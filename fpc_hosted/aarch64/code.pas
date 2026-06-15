@@ -5740,78 +5740,84 @@ begin {movstructx}
   movemultiple(right, left);
 end {movstructx};
 
-procedure movstrx;
+procedure movestring(src, dst: keyindex);
 
-{ Generate code to move a string.
-
-  Though these are maintained with a trailing null character, we don't trust this
+{ Though strings are maintained with a trailing null character, we don't trust this
   to be true, so count bytes rather than potentially moving an undetermined number of
   bytes if the source string is not initialized.
 
   We use the min(max dst length, src length byte) to limit how many bytes we move.
-  This guarantees that assigning an unitialized string won't overflow the storage
-  allocated for the destination.
+  This guarantees that assigning an unitialized or corrupted string won't overflow
+  the storage allocated for the destination, and that the resulting string, though
+  possibly garbage, will always be well-formed with an accurate length byte and trailing
+  null.
 
 }
 
 var
-  leftregkey, rightregkey, ip0key, ip1key, onekey, labelkey: keyindex;
+  dstregkey, srcregkey, ip0key, ip1key, onekey, labelkey: keyindex;
+
+begin {movestring}
+  ip0key := settemp(byte, reg_oprnd(ip0));
+  ip1key := settemp(byte, reg_oprnd(ip1));
+  onekey := settemp(word, imm12_oprnd(1, false));
+  lock(dst);
+  srcregkey := settemp(long, reg_oprnd(getreg));
+  genmoveaddress(lastnode, src, srcregkey);
+  unlock(dst);
+  lock(srcregkey);
+  dstregkey := settemp(long, reg_oprnd(getreg));
+  genmoveaddress(lastnode, dst, dstregkey);
+  unlock(srcregkey);
+
+  keytable[srcregkey].oprnd.mode := post_index;
+  keytable[srcregkey].oprnd.index := byte;
+  keytable[dstregkey].oprnd.mode := post_index;
+  keytable[dstregkey].oprnd.index := byte;
+
+  { Pick up the length of the source string.
+  }
+  genldr(lastnode, byte, false, ip0key, srcregkey);
+
+  { The first byte of the source string is the number of data bytes, exclusive
+    of the length byte and trailing null, so we take that into effect here.
+  }
+  gensimplemove(lastnode, settemp(long, intconst_oprnd(keytable[dst].len - 2)),
+                          ip1key);
+
+  { compute how many bytes to move.
+  }
+  gen2(lastnode, buildinst(cmp, false, false), ip0key, ip1key);
+  gen4(lastnode, buildinst(csel, false, false), ip0key, ip0key, ip1key,
+                 settemp(0, cond_oprnd(lo)));
+
+  { Store the computed length as the first byte of the destination string.
+  }
+  genstr(lastnode, byte, ip0key, dstregkey);
+
+  { Move the data bytes, truncated if the source string is too long for the
+    destination string.
+  }
+  labelkey := settemp(long, labeltarget_oprnd(lastlabel));
+  definelastlabel;
+  genldr(lastnode, byte, false, ip1key, srcregkey);
+  genstr(lastnode, byte, ip1key, dstregkey);
+  gen3(lastnode, buildinst(sub, true, true), ip0key, ip0key, onekey);
+  gen2(lastnode, buildinst(cbnz, true, false), ip0key, labelkey);
+
+  { done moving data bytes, add a null
+  }
+  genstr(lastnode, byte, settemp(word, reg_oprnd(zero)), dstregkey);
+end {movestring};
+
+procedure movstrx;
 
 begin {movstrx}
   if equivaddr(left, right) then derefboth
   else
     begin
-    ip0key := settemp(byte, reg_oprnd(ip0));
-    ip1key := settemp(byte, reg_oprnd(ip1));
-    onekey := settemp(word, imm12_oprnd(1, false));
     addressboth;
-    lock(left);
-    rightregkey := settemp(long, reg_oprnd(getreg));
-    genmoveaddress(lastnode, right, rightregkey);
-    unlock(left);
-    lock(rightregkey);
-    leftregkey := settemp(long, reg_oprnd(getreg));
-    genmoveaddress(lastnode, left, leftregkey);
-    unlock(rightregkey);
-
-    keytable[rightregkey].oprnd.mode := post_index;
-    keytable[rightregkey].oprnd.index := byte;
-    keytable[leftregkey].oprnd.mode := post_index;
-    keytable[leftregkey].oprnd.index := byte;
-
-    { Pick up the length of the source string.
-    }
-    genldr(lastnode, byte, false, ip0key, rightregkey);
-
-    { The first byte of the source string is the number of data bytes, exclusive
-      of the length byte and trailing null, so we take that into effect here.
-    }
-    gensimplemove(lastnode, settemp(long, intconst_oprnd(keytable[left].len - 2)),
-                            ip1key);
-
-    { compute how many bytes to move.
-    }
-    gen2(lastnode, buildinst(cmp, false, false), ip0key, ip1key);
-    gen4(lastnode, buildinst(csel, false, false), ip0key, ip0key, ip1key,
-                   settemp(0, cond_oprnd(lo)));
-
-    { Store the computed length as the first byte of the destination string.
-    }
-    genstr(lastnode, byte, ip0key, leftregkey);
-
-    { Move the data bytes, truncated if the source string is too long for the
-      destination string.
-    }
-    labelkey := settemp(long, labeltarget_oprnd(lastlabel));
-    definelastlabel;
-    genldr(lastnode, byte, false, ip1key, rightregkey);
-    genstr(lastnode, byte, ip1key, leftregkey);
-    gen3(lastnode, buildinst(sub, true, true), ip0key, ip0key, onekey);
-    gen2(lastnode, buildinst(cbnz, true, false), ip0key, labelkey);
-
-    { done moving data bytes, add a null
-    }
-    genstr(lastnode, byte, settemp(word, reg_oprnd(zero)), leftregkey);
+    movestring(right, left);
     end
 
 end {movstrx};
@@ -5819,6 +5825,8 @@ end {movstrx};
 procedure pshstrx;
 
 begin {pshstrx}
+  address(left, 0);
+  movestring(left, key);
 end {pshstrx};
 
 procedure chrstrx;
@@ -7015,10 +7023,6 @@ procedure codeone;
 }
       condvaluef: condvalue(true);
       condvaluet: condvalue(false);
-{
-      createtemp: createtempx;
-      jointemp: jointempx;
-}
       addr: addrx;
       setinsert: setinsertx;
       inset: insetx;
@@ -7092,6 +7096,9 @@ procedure codeone;
       pshfptr: pshfptrx;
       pshlitreal: pshlitrealx;
       pshreal: pshx;
+}
+{
+      Not needed because no builtins need stack params.
       pshstraddr: pshstraddrx;
 }
       pshstr: pshstrx;
@@ -7185,9 +7192,6 @@ procedure codeone;
       definelazy: definelazyx;
 }
       restoreloop: restoreloopx;
-      { C only }
-      startreflex: dontchangevalue := dontchangevalue + 1;
-      endreflex: dontchangevalue := dontchangevalue - 1;
 {
       cvtrd: cvtrdx;
       cvtdr: cvtdrx; { SNGL function }
@@ -7196,6 +7200,12 @@ procedure codeone;
       openarray: openarrayx;
 }
       saveactkeys: saveactivekeys;
+{ C only
+      createtemp: createtempx;
+      jointemp: jointempx;
+      startreflex: dontchangevalue := dontchangevalue + 1;
+      endreflex: dontchangevalue := dontchangevalue - 1;
+}
       otherwise
         begin
         dumppseudo(macfile);

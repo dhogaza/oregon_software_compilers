@@ -19,14 +19,7 @@ implmentation in codegen could be something like ...
  
 if seeking value, wzr is replaced with a register.
 
-CSEs and sets ... 
-
 *** current bugs
-
-   -- not so much a bug but a limitation.  Check for variable being a parameter
-      is messed up when the parameter is a register parameters.  Could be done
-      with the offset (boo hiss) but would be much better to figure out  more
-      information available from context.
 
    -- cstring.pas in test breaks regcount 
 
@@ -48,6 +41,9 @@ CSEs and sets ...
 
 --- current work
 
+  -- when does movecstruct actually get emitted for assigning conformant arrays?  I don't
+     even remember the semantics!!!!
+
   -- things needed to really start implementing the library
 
     1. cstring support
@@ -58,22 +54,14 @@ CSEs and sets ...
 
     2. basic extended strings.
 
-       M68K codegen goes to great lengths to optimize performace.   Probably not
-       really necessary.
-
-       Need to handle the whole parameter issue for intrinsics (first) and user-written.
-
-       user (normal) strings are being passed by reference but no copy is made for
-       value params.  oops.
-
-       The way of doing this for standard procs is very bad, but that seems to be
-       the only place the pshstr and pshstraddr pseudoops are called.  Ugh.
-
        provide cstring(string) that just bumps address by one which I think is also
        how a string is converted to a Pascal packed array of char but need to investigate.
 
     3. const params, passing structs and arrays by reference, might be a big help
        for library and probably not that difficult to implement.
+
+       compiler does a good job of not copying if a parameter isn't modified but
+       has to punt for nonpascal, external, forward, etc.
 
        void foo(const char*) in C could be defined along the lines of
 
@@ -252,15 +240,7 @@ Peephole needs:
 
 FAILS (for now at least)
 
-0.1 It appears that the [Xr, :lo12:xyz+n] does the right
-    thing for all ldr/str [long, word, half, byte].  However
-    the data must be aligned correctly, obviously.
-
-    using regenoprnd to reconstruct bss memory operands orks fine but
-    the original adp used to generate the index is not, of course, deleted.
-    Perhaps a new keyx field "addressed" and if the proper
-    kind of key value is marked but not addressed, the dangling adrp can be
-    deleted.
+0.1 
 
     Minor is that globals should be indexed before aindx with the variable
     base for this scheme, 'way back in body.pas.  Conditionalized for aarch64
@@ -270,3 +250,4 @@ FAILS (for now at least)
 
 1. var +/- intconst +/- intconst doesn't fold, though the documentation in
    improve claims it does so.  Blaim Steve from Eclipse? :)
+
