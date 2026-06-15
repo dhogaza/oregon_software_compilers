@@ -14,8 +14,7 @@ begin
   writeln(p5param);
 end;
 
-procedure tests255(s255param: s255); external;
-procedure tests255;
+procedure tests255(s255param: s255);
 
 var
   i: integer;
@@ -27,6 +26,31 @@ begin
   writeln;
 end;
 
+{ These two test that detection of modified value params and the
+  consequent pushing of a copy of the param value works properly
+  in terms of semantics.  One actually has to look at the generated
+  code to verify that the copy is being made.
+}
+
+procedure testp5mod(p5param: p5);
+begin
+  writeln(p5param);
+  p5param[3] := '3';
+end;
+
+procedure tests255mod(s255param: s255);
+
+var
+  i: integer;
+
+begin
+  write(s255param, length(s255param):3, ' ');
+  for i := 1 to length(s255param) do
+    write(s255param[i]);
+  writeln;
+  s255param[2] := '2';
+end;
+
 begin
   writeln('test packed arrays of char and conversion to string');
   writeln;
@@ -35,9 +59,16 @@ begin
   p5var := 'vwxyz';
   write('expected ''vwxyz'': ');
   testp5(p5var);
+
+  write('expected ''vwxyz'': ');
+  testp5mod(p5var);
+  write('expected ''vwxyz'': ');
+  writeln(p5var);
+  
   write('expected ''vwxyz 5 vwxyz'': ');
   tests255(p5var);
   writeln;
+
   writeln('test char conversion to string');
   writeln;
   c := 'b';
@@ -58,4 +89,9 @@ begin
   s1 := s + short;
   write('expected ''0123456789abcdefabc 19 0123456789abcdefabc'': ');
   tests255(s1);
+
+  write('expected ''0123456789abcdefabc 19 0123456789abcdefabc'': ');
+  tests255mod(s1);
+  write('expected ''0123456789abcdefabc'': ');
+  writeln(s1)
 end.

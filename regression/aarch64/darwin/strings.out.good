@@ -2,6 +2,8 @@ test packed arrays of char and conversion to string
 
 expected 'abcde': abcde
 expected 'vwxyz': vwxyz
+expected 'vwxyz': vwxyz
+expected 'vwxyz': vwxyz
 expected 'vwxyz 5 vwxyz': vwxyz  5 vwxyz
 
 test char conversion to string
@@ -15,3 +17,5 @@ expected 'abc 3 abc': abc  3 abc
 expected '0123456789abcdef': 0123456789abcdef
 expected '0123456789abcdef 16 0123456789abcdef': 0123456789abcdef 16 0123456789abcdef
 expected '0123456789abcdefabc 19 0123456789abcdefabc': 0123456789abcdefabc 19 0123456789abcdefabc
+expected '0123456789abcdefabc 19 0123456789abcdefabc': 0123456789abcdefabc 19 0123456789abcdefabc
+expected '0123456789abcdefabc': 0123456789abcdefabc
