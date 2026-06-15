@@ -468,6 +468,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
     overflowed := false;
     typeptr := @(bigtable[paramptr^.vartype]);
     paramptr^.allocated := true;
+    paramptr^.registercandidate := false;
     if (paramptr^.namekind in [varparam, varconfparam, confparam]) or
        (paramptr^.namekind = param) and ((length > maxparambytes) or
        (typeptr^.typ in [fields, arrays, strings])) and
@@ -475,7 +476,6 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       begin
       paramptr^.length := ptrsize;
       paramptr^.refparam := true;
-      paramptr^.registercandidate := true;
       end
     else paramptr^.length := length;
     alloc := paramalloc(paramptr, typeptr);
@@ -483,6 +483,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
        (regparams.realregparams < maxrealregparams) then
       begin
       paramptr^.varalloc := realregparam;
+      paramptr^.registercandidate := true;
       paramptr^.regid := regparams.realregparams;
       paramptr^.regcount := 1;
       paramptr^.offset := maxlong - paramptr^.regid - maxregparams;
@@ -503,9 +504,9 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
         it correctly anyway though.
       }
 
-      if (typeptr^.typ in [fields, arrays, strings, conformantarrays]) and
-         not paramptr^.refparam  then
-        paramptr^.registercandidate := false;
+      paramptr^.registercandidate := paramptr^.refparam or
+        not (typeptr^.typ in [fields, arrays, strings, conformantarrays]);
+
       end
     else
       begin
@@ -817,9 +818,9 @@ procedure possibletemp(p:entryptr);
     if tempvars < maxtrackvar then
       begin
       if bigcompilerversion then f := @(bigtable[p^.vartype]);
-      if (p^.refparam or
-         (f^.typ in [reals, doubles]) or (f^.size <= defaultptrsize)) and
-         p^.registercandidate then
+      if p^.registercandidate and (p^.refparam or
+        (f^.typ in [bools, chars, ints, ptrs, scalars, subranges, sets]) and
+        (f^.size <= defaultptrsize) or (f^.typ in [reals, doubles])) then
         begin
         tempvars := tempvars + 1;
         localvar.offset := p^.offset;

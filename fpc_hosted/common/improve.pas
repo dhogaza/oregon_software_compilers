@@ -187,10 +187,13 @@ procedure assignregs;
       bestvar: reghashindex; { best var to assign this pass }
       bestworth: shortint; { most useful var with disjoint register life }
       allocated: boolean; { true if a register allocated on this path }
-      varalloc: allockind; {kind of allocation}
+      varalloc: allockind; { kind of allocation }
+      leaf: boolean; { Don't promote regparams to calle-saved reg in leafs }
 
 
     begin {allocateregs}
+
+      leaf := proctable[blockref].leaf;
 
       for i := regcount + 1 to maxregs do
         begin
@@ -207,7 +210,7 @@ procedure assignregs;
             with regvars[j] do
               begin
               if registercandidate and
-                 not (parameter and (proctable[blockref].leaf)) and
+                 not (parameter and leaf) and
                  (worth - assignparampenalty * ord(parameter) > bestworth) and
                  (regkind in acceptable) then
                 begin
@@ -225,7 +228,7 @@ procedure assignregs;
               registers so there is no load/store assigninitialpenalty associated with them.
             }
             if targetmachine = aarch64 then
-              bestworth := max(bestworth - assigninitialpenalty * ord(not proctable[blockref].leaf),  0)
+              bestworth := max(bestworth - assigninitialpenalty * ord(not leaf),  0)
             else
               bestworth := max(bestworth - assigninitialpenalty,  0);
           if (bestworth > 0) then
