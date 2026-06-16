@@ -265,12 +265,12 @@ _main:
 	bl	_p_wts_o 
 # Line: 64, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x14,x15,.L32766+554@PAGEOFF
-	sub	x13,x29,8
+	add	x15,x15,.L32766+554@PAGEOFF
+	sub	x14,x29,8
 	mov	x16,5
 .L32762:
-	ldrb	w17,[x14],1
-	strb	w17,[x13],1
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
 	subs	x16,x16,1
 	cbnz	x16,.L32762
 	sub	x0,x29,8
@@ -475,19 +475,19 @@ _main:
 	bl	_p_wts_o 
 # Line: 94, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x14,x15,.L32766+290@PAGEOFF
-	sub	x13,x29,288
-	ldrb	w16,[x14],1
+	add	x15,x15,.L32766+290@PAGEOFF
+	sub	x14,x29,288
+	ldrb	w16,[x15],1
 	mov	x17,255
 	cmp	w16,w17
 	csel	w16,w16,w17,lo
-	strb	w16,[x13],1
+	strb	w16,[x14],1
 .L32755:
-	ldrb	w17,[x14],1
-	strb	w17,[x13],1
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
 	subs	x16,x16,1
 	cbnz	x16,.L32755
-	strb	wzr,[x13],1
+	strb	wzr,[x14],1
 	sub	x0,x29,288
 	bl	.P4  // tests255mod
 # Line: 95, Stmt: 0

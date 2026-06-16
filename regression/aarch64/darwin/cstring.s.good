@@ -4,25 +4,62 @@
 	.section	__TEXT,__const
 	.align 12
 .L32765:
-	.byte	0x03,0x61,0x62,0x63,0x00,0x03,0x78,0x79,0x7A,0x00
+	.byte	0x03,0x61,0x62,0x63,0x00,0x03,0x78,0x79,0x7A,0x00,0x06,0x61
+	.byte	0x62,0x63,0x64,0x65,0x66,0x00
+	.text
+	.align 2
+#
+#	toshortstring
+#
+.P1:
+	sub	sp,sp,48
+# Line: 30, Stmt: 1
+# Line: 31, Stmt: 2
+	str	x1,[sp,40]
+# Line: 32, Stmt: 0
+	mov	x15,xzr
+	ldr	x14,[sp,40]
+.L3:
+# Line: 33, Stmt: 0
+	cmp	w15,255
+	b.hs	.L4
+	ldrb	w13,[x14, w15, uxtw]
+	cbz	w13,.L4
+.L5:
+# Line: 35, Stmt: 0
+	add	x13,x0,w15, uxtw 0
+	ldrb	w16,[x14, w15, uxtw]
+	strb	w16,[x13,1]
+# Line: 36, Stmt: 0
+	add	w15,w15,1
+	b	.L3
+.L4:
+# Line: 38, Stmt: 0
+	add	x14,x0,w15, uxtw 0
+	strb	wzr,[x14,1]
+# Line: 39, Stmt: 0
+	strb	w15,[x0]
+.L2:
+	add	sp,sp,48
+	ret
 	.text
 	.align 2
 #
 #	cstring
 #
-.P1:
+.P2:
 	sub	sp,sp,16
-# Line: 24, Stmt: 1
-# Line: 25, Stmt: 2
+# Line: 44, Stmt: 1
+# Line: 45, Stmt: 2
 	add	x15,x0,xzr
 	str	x15,[sp,8]
-# Line: 26, Stmt: 0
+# Line: 46, Stmt: 0
 	ldr	x15,[sp,8]
 	add	x14,x15,1
 	str	x14,[sp]
-# Line: 27, Stmt: 0
+# Line: 47, Stmt: 0
 	ldr	x0,[sp]
-.L2:
+.L7:
 	add	sp,sp,16
 	ret
 	.text
@@ -30,34 +67,33 @@
 #
 #	writecstring
 #
-.P2:
+.P3:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,32]
 	add	x29,sp,32
 	str	x28,[x29,-8]
-# Line: 34, Stmt: 1
-# Line: 35, Stmt: 2
+# Line: 54, Stmt: 1
+# Line: 55, Stmt: 2
 	str	x0,[x29,16]
-# Line: 36, Stmt: 0
-	mov	x28,1
+# Line: 56, Stmt: 0
+	mov	x28,xzr
 	ldr	x15,[x29,16]
 	str	x15,[x29,-16]
-.L4:
+.L9:
 	ldr	x15,[x29,-16]
-# Line: 37, Stmt: 0
-	add	x14,x15,w28, sxtw 0
-	ldrb	w13,[x14,-1]
-	cbz	w13,.L5
-.L6:
-# Line: 39, Stmt: 0
-	mov	x0,x13
+# Line: 57, Stmt: 0
+	ldrb	w14,[x15, w28, sxtw]
+	cbz	w14,.L10
+.L11:
+# Line: 59, Stmt: 0
+	mov	x0,x14
 	mov	x1,1
 	bl	_p_wtc_o 
-# Line: 40, Stmt: 0
+# Line: 60, Stmt: 0
 	add	w28,w28,1
-	b	.L4
-.L3:
-.L5:
+	b	.L9
+.L8:
+.L10:
 	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,32]
 	add	sp,sp,64
@@ -65,7 +101,7 @@
 	.bss
 	.align 12
 .L32766:
-	.space 32
+	.space 296
 	.bss
 	.align 12
 .L32764:
@@ -77,14 +113,14 @@
 #
 	.global _main
 _main:
-	sub	sp,sp,32
-	stp	x30,x29,[sp,16]
-	add	x29,sp,16
+	sub	sp,sp,48
+	stp	x30,x29,[sp,32]
+	add	x29,sp,32
 	mov	x17,sp
 	adrp	x16,.L32764@PAGE
 	str	x17,[x16,.L32764@PAGEOFF]
-# Line: 46, Stmt: 1
-# Line: 47, Stmt: 0
+# Line: 66, Stmt: 1
+# Line: 67, Stmt: 0
 	adrp	x14,.L32765@PAGE
 	add	x15,x14,.L32765@PAGEOFF
 	sub	x14,x29,8
@@ -100,14 +136,16 @@ _main:
 	cbnz	x16,.L32763
 	strb	wzr,[x14],1
 	sub	x0,x29,8
-	bl	.P1  // cstring
-	bl	.P2  // writecstring
-# Line: 48, Stmt: 0
+	bl	.P2  // cstring
+	str	x0,[x29,-16]
+	ldr	x0,[x29,-16]
+	bl	.P3  // writecstring
+# Line: 68, Stmt: 0
 	bl	_p_wtln_o 
-# Line: 49, Stmt: 0
+# Line: 69, Stmt: 0
 	adrp	x14,.L32765@PAGE
 	add	x15,x14,.L32765+5@PAGEOFF
-	sub	x14,x29,16
+	sub	x14,x29,24
 	ldrb	w16,[x15],1
 	mov	x17,3
 	cmp	w16,w17
@@ -119,12 +157,45 @@ _main:
 	subs	x16,x16,1
 	cbnz	x16,.L32762
 	strb	wzr,[x14],1
-	sub	x0,x29,16
-	bl	.P1  // cstring
+	sub	x0,x29,24
+	bl	.P2  // cstring
+	str	x0,[x29,-16]
+	ldr	x0,[x29,-16]
 	bl	_printf
-# Line: 50, Stmt: 0
+# Line: 70, Stmt: 0
 	bl	_p_wtln_o 
-.L7:
-	ldp	x30,x29,[sp,16]
-	add	sp,sp,32
+# Line: 71, Stmt: 0
+	adrp	x15,.L32766@PAGE
+	adrp	x13,.L32765@PAGE
+	add	x14,x13,.L32765+10@PAGEOFF
+	sub	x13,x29,32
+	ldrb	w16,[x14],1
+	mov	x17,6
+	cmp	w16,w17
+	csel	w16,w16,w17,lo
+	strb	w16,[x13],1
+.L32761:
+	ldrb	w17,[x14],1
+	strb	w17,[x13],1
+	subs	x16,x16,1
+	cbnz	x16,.L32761
+	strb	wzr,[x13],1
+	sub	x0,x29,32
+	bl	.P2  // cstring
+	str	x0,[x29,-16]
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+32@PAGEOFF
+	ldr	x1,[x29,-16]
+	bl	.P1  // toshortstring
+# Line: 72, Stmt: 0
+	adrp	x15,.L32766@PAGE
+	ldrb	w1,[x15,.L32766+32@PAGEOFF]
+	add	x0,x15,.L32766+32@PAGEOFF
+	add	x0,x0,1
+	mov	x2,x1
+	bl	_p_wts_o 
+	bl	_p_wtln_o 
+.L12:
+	ldp	x30,x29,[sp,32]
+	add	sp,sp,48
 	ret
