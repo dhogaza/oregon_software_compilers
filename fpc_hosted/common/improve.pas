@@ -400,6 +400,8 @@ procedure assignregs;
       if expr <> 0 then
         begin
         if bigcompilerversion then exprp := @(bignodetable[expr]);
+        if exprp^.action = copy then
+          exprp := @(bignodetable[exprp^.directlink]);
         if (exprp^.op < intop) and (exprp^.slink <> 0) then
           applytoexprnode(exprp^.slink);
         case exprp^.op of
