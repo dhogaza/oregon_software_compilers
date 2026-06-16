@@ -8,7 +8,7 @@ type
     If compiled with array bounds checking enabled it will still work.
   }
 
-  stringarray = array [1..maxint] of char;
+  stringarray = array [0..maxint] of char;
   stringarrayp = ^stringarray;
   shortstring = string[255];
 
@@ -19,11 +19,31 @@ type
         true: (a: stringarrayp);
     end;
 
+var s: shortstring;
+
+procedure toshortstring(var s: shortstring; p: _p_charptr);
+
+var
+  i: 0 .. 255;
+  c: convert;
+
+begin
+  c.a := loophole(stringarrayp, p);
+  i := 0;
+  while ((i < 255) and (c.a^[i] <> chr(0))) do
+    begin
+    s[i + 1] := c.a^[i];
+    i := i + 1;
+    end;
+  s[i + 1] := chr(0);
+  s[0] := chr(i);
+end;
+    
 function cstring(s: shortstring): _p_charptr;
 var c: convert; 
 begin
   c.str := ref(s);
-  cstring := ref(c.a^[2]);
+  cstring := ref(c.a^[1]);
 end;
 
 procedure writecstring(p: _p_charptr);
@@ -33,7 +53,7 @@ procedure writecstring(p: _p_charptr);
 
 begin
   c.a := loophole(stringarrayp, p);
-  i := 1;
+  i := 0;
   while c.a^[i] <> chr(0) do
     begin
     write(c.a^[i]);
@@ -48,5 +68,7 @@ begin
   writeln;
   printf(cstring('xyz'));
   writeln;
+  toshortstring(s, cstring('abcdef'));
+  writeln(s);
 end.
 
