@@ -6395,7 +6395,7 @@ procedure loopholefnx;
 {
     unpackshrink(left, len);
 }
-
+    address(left, 0);
     if (len > keytable[left].len) and
        (keytable[left].oprnd.mode <> register) then
       begin
@@ -6549,17 +6549,25 @@ procedure callroutinex(s: boolean {signed function value} );
     { for stack parameters }
     dontchangevalue := dontchangevalue - 1;
 
-    { later need to deal with x0/x1 pairs.
+    { later need to deal with x0/x1 pairs.  This is broken anyway.
     }
     if proctable[pseudoinst.oprnds[1]].realfunction then
       begin
       setvalue(fpreg_oprnd(0));
-      fpregtargethack := pseudobuff.op = realregtarget;
+      if pseudobuff.op = realregtarget then
+        begin
+        fpregtargethack := pseudobuff.op = realregtarget;
+        keytable[key].regsaved := true;
+        end;
       end
     else if (len <= long) then
       begin
       setvalue(reg_oprnd(0));
-      regtargethack := pseudobuff.op = regtarget;
+      if pseudobuff.op in [regtarget, makeroom] then
+        begin
+        regtargethack := true;
+        keytable[key].regsaved := true;
+        end;
       end;
 
     removeparamtemps(pseudoinst.oprnds[2]);
