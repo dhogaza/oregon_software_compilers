@@ -1666,8 +1666,7 @@ function uselesstemp(k: keyindex): boolean;
 
 { True if the top temp on the tempstack is no longer needed.  It must
   have a refcount of zero and have been created after the last branch
-  in this context.  With our non-popping stack model we might be able
-  to relax this.
+  in this context.
 }
 
   var
@@ -1931,8 +1930,6 @@ end {removeparamtemps};
 { Currently registers are always spilled to the stack.  At one point regparams
   were being assigned local variable space and would be saved there instead,
   but that turned out to be not necessary and somewhat wasteful of memory.
-  However we might spill to caller-saved registers in the future and this
-  code should handle that case with the addition of allocation code.
 }
 
 procedure addtempsave(k: keyindex; first, last: nodeptr);
@@ -6439,6 +6436,7 @@ procedure stacktargetx;
     keytable[stackkey].tempflag := true;
     keytable[key].regsaved := true;
     keytable[key].properreg := stackkey;
+    keytable[stackkey].instmark := lastnode;
     setkeyvalue(stackkey);
   end {stacktargetx} ;
 
@@ -6539,6 +6537,8 @@ procedure callroutinex(s: boolean {signed function value} );
       gen1(lastnode, buildinst(blr, true, false), ip0key);
       end;
 
+    context[contextsp].lastbranch := lastnode;
+
     if linkreg and ((pseudoinst.oprnds[3] > 0) or (level > 2) and
        (levelhack <> 0)) then
       gensimplemove(lastnode, settemp(long,
@@ -6554,20 +6554,12 @@ procedure callroutinex(s: boolean {signed function value} );
     if proctable[pseudoinst.oprnds[1]].realfunction then
       begin
       setvalue(fpreg_oprnd(0));
-      if pseudobuff.op = realregtarget then
-        begin
-        fpregtargethack := pseudobuff.op = realregtarget;
-        keytable[key].regsaved := true;
-        end;
+      regtargethack := (pseudobuff.op = realregtarget) and (pseudobuff.oprnds[1] = 0);
       end
     else if (len <= long) then
       begin
       setvalue(reg_oprnd(0));
-      if pseudobuff.op in [regtarget, makeroom] then
-        begin
-        regtargethack := true;
-        keytable[key].regsaved := true;
-        end;
+      regtargethack := (pseudobuff.op = regtarget) and (pseudobuff.oprnds[1] = 0);
       end;
 
     removeparamtemps(pseudoinst.oprnds[2]);
