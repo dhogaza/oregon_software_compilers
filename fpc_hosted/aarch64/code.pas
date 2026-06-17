@@ -4283,8 +4283,6 @@ procedure cmpintptrx(signedcond, unsignedcond: conds {for branching on result});
     setvalue(cond_oprnd(c));
   end {cmpintptrx} ;
 
-
-
 procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
 
 { Generate comparison with a literal integer.  If this is zero and left is in
@@ -4335,7 +4333,9 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
       end
   end {cmplitintx} ;
 
-procedure cmpstructx(cond: conds; align: alignmentrange);
+procedure cmpstructx(cond: conds);
+
+{ This code should eventually consider alignment }
 
 var
   leftregkey, rightregkey, dstregkey, onekey, countkey,
@@ -4373,7 +4373,7 @@ begin {cmpstructx}
   unlock(leftregkey);
   unlock(rightregkey);
 
-  gensimplemove(lastnode, settemp(long, intconst_oprnd(len div align)), countkey);
+  gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), countkey);
   skiplabel := lastlabel;
   skiplabelkey := settemp(0, labeltarget_oprnd(skiplabel));
   lastlabel := lastlabel - 1;
@@ -4983,6 +4983,14 @@ procedure setinsertx;
       end;
     setvalue(cond_oprnd(ne));
   end {insetx};
+
+procedure cmpsetx(cond: conds);
+
+begin {cmpsetx}
+  if len <= long then
+    cmpintptrx(cond, cond)
+  else ;
+end {cmpsetx};
 
 { various file handling intrinsics }
 
@@ -7256,12 +7264,12 @@ procedure codeone;
       lssint, lssptr: cmpintptrx(lt, lo);
       gtrint, gtrptr: cmpintptrx(gt, hi);
 
-      eqstruct: cmpstructx(eq, byte);
-      neqstruct: cmpstructx(ne, byte);
-      leqstruct: cmpstructx(ls, byte);
-      geqstruct: cmpstructx(hs, byte);
-      lssstruct: cmpstructx(lo, byte);
-      gtrstruct: cmpstructx(hi, byte);
+      eqstruct: cmpstructx(eq);
+      neqstruct: cmpstructx(ne);
+      leqstruct: cmpstructx(ls);
+      geqstruct: cmpstructx(hs);
+      lssstruct: cmpstructx(lo);
+      gtrstruct: cmpstructx(hi);
 
       eqstr: cmpstrx(eq);
       neqstr: cmpstrx(ne);
@@ -7285,9 +7293,9 @@ procedure codeone;
       lsslitint: cmplitintx(lt, lo);
       gtrlitint: cmplitintx(gt, hi);
 
-{
       eqset: cmpsetx(eq);
       neqset: cmpsetx(ne);
+{
       geqset: cmpsetinclusion(left, right);
       leqset: cmpsetinclusion(right, left);
 }
