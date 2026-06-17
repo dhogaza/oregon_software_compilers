@@ -29,7 +29,7 @@ procedure _p_dispos(var p: _p_charptr; size: int64); external;
 
 { pascal-2 library implementations }
 
-{ Keeping these internal for now }
+{ These will be replaced by compiler-generated code }
 
 procedure _p_toshortstring(var s: _p_shortstring; p: _p_charptr);
 
@@ -101,12 +101,13 @@ procedure _p_wti_o;
     digits: packed array [0..18] of char;
     j: integer;
     count: integer;
+    minus: boolean;
 
   begin
     count := 0;
-    if i < 0 then
+    minus := i < 0;
+    if minus then
     begin
-      putchar('-');
       i := -i;
       count := count + 1;
     end;
@@ -121,6 +122,9 @@ procedure _p_wti_o;
 
     for count := count + 1 to width do
       putchar(' ');
+
+    if minus then
+      putchar('-');
 
     repeat
       j := j - 1;
