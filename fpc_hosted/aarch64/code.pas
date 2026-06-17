@@ -4335,6 +4335,60 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
       end
   end {cmplitintx} ;
 
+procedure cmpstructx(cond: conds; align: alignmentrange);
+
+var
+  leftregkey, rightregkey, dstregkey, onekey, countkey,
+  tempregkey, tempreg2key, looplabelkey, skiplabelkey: keyindex;
+  skiplabel: labelindex;
+
+begin {cmpstructx}
+
+  addressboth;
+
+  lock(left);
+  lock(right);
+  leftregkey := settemp(long, reg_oprnd(getreg));
+  genmoveaddress(lastnode, left, leftregkey);
+  keytable[leftregkey].oprnd.mode := post_index;
+  keytable[leftregkey].oprnd.index := byte;
+  unlock(left);
+  lock(leftregkey);
+
+  rightregkey := settemp(long, reg_oprnd(getreg));
+  genmoveaddress(lastnode, right, rightregkey);
+  keytable[rightregkey].oprnd.mode := post_index;
+  keytable[rightregkey].oprnd.index := byte;
+  unlock(right);
+  lock(rightregkey);
+
+  onekey := settemp(long, imm12_oprnd(1, false));
+  countkey := settemp(word, reg_oprnd(ip0));
+  tempregkey := settemp(word, reg_oprnd(ip1));
+  tempreg2key := settemp(word, reg_oprnd(getreg));
+
+  { We are done allocating registers.
+  }
+
+  unlock(leftregkey);
+  unlock(rightregkey);
+
+  gensimplemove(lastnode, settemp(long, intconst_oprnd(len div align)), countkey);
+  skiplabel := lastlabel;
+  skiplabelkey := settemp(0, labeltarget_oprnd(skiplabel));
+  lastlabel := lastlabel - 1;
+  looplabelkey := settemp(0, labeltarget_oprnd(lastlabel));
+  definelastlabel;
+  genldr(lastnode, byte, false, tempregkey, leftregkey);
+  genldr(lastnode, byte, false, tempreg2key, rightregkey);
+  gen2(lastnode, buildinst(cmp, false, false), tempregkey, tempreg2key);
+  genbcond(lastnode, ne, skiplabel);
+  gen3(lastnode, buildinst(sub, false, false), countkey, countkey, onekey);
+  gen2(lastnode, buildinst(cbnz, false, false), countkey, looplabelkey);
+  definelabel(skiplabel);
+  setvalue(cond_oprnd(cond));
+end {cmpstructx};
+
 procedure divintx;
 
 { Generate signed or unsigned divisiion.  This will be followed by
@@ -6254,10 +6308,10 @@ end; {pshstructx}
 
 procedure pshsetx;
 
-begin {pshstructx}
+begin {pshsetx}
   address(left, 0);
   moveset(left, key);
-end; {pshstructx}
+end; {pshsetx}
 
 procedure regparamx;
 
@@ -7201,14 +7255,13 @@ procedure codeone;
       geqint, geqptr: cmpintptrx(ge, hs);
       lssint, lssptr: cmpintptrx(lt, lo);
       gtrint, gtrptr: cmpintptrx(gt, hi);
-{
-      eqstruct: cmpstructx(eq);
-      neqstruct: cmpstructx(ne);
-      leqstruct: cmpstructx(ls);
-      geqstruct: cmpstructx(hs);
-      lssstruct: cmpstructx(lo);
-      gtrstruct: cmpstructx(hi);
-}
+
+      eqstruct: cmpstructx(eq, byte);
+      neqstruct: cmpstructx(ne, byte);
+      leqstruct: cmpstructx(ls, byte);
+      geqstruct: cmpstructx(hs, byte);
+      lssstruct: cmpstructx(lo, byte);
+      gtrstruct: cmpstructx(hi, byte);
 
       eqstr: cmpstrx(eq);
       neqstr: cmpstrx(ne);
@@ -7231,17 +7284,15 @@ procedure codeone;
       geqlitint: cmplitintx(ge, hs);
       lsslitint: cmplitintx(lt, lo);
       gtrlitint: cmplitintx(gt, hi);
-{
 
-      eqset: cmpstructx(beq);
-      neqset: cmpstructx(bne);
+{
+      eqset: cmpsetx(eq);
+      neqset: cmpsetx(ne);
       geqset: cmpsetinclusion(left, right);
       leqset: cmpsetinclusion(right, left);
+}
 
-      postint: postintptrx(false);
-      postptr: postintptrx(true);
-      postreal: postrealx;
-
+{
       ptrchk: ptrchkx;
       definelazy: definelazyx;
 }
@@ -7255,6 +7306,9 @@ procedure codeone;
 }
       saveactkeys: saveactivekeys;
 { C only
+      postint: postintptrx(false);
+      postptr: postintptrx(true);
+      postreal: postrealx;
       createtemp: createtempx;
       jointemp: jointempx;
       startreflex: dontchangevalue := dontchangevalue + 1;
