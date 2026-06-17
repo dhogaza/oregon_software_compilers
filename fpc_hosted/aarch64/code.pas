@@ -5749,6 +5749,56 @@ begin {movstructx}
   movemultiple(right, left);
 end {movstructx};
 
+procedure movcstructx;
+
+{ Generate code to move a structure whose size isn't known until
+  runtime.  The size is specified by "target".
+}
+
+  var
+    count, onekey, leftregkey, rightregkey, ip0key, labelkey: keyindex;
+
+  begin
+    count := target;
+    target := 0; {to avoid confusing load routines}
+{
+    unpack(count, word);
+}
+    address(count, 0);
+    loadreg(count, 0);
+    onekey := settemp(long, imm12_oprnd(1, false));
+    ip0key := settemp(long, reg_oprnd(ip0));
+    lock(count);
+    addressboth;
+    if (keytable[left].oprnd.mode <> register) or (keytable[left].refcount > 0) then
+      begin
+      lock(right);
+      leftregkey := settemp(long, reg_oprnd(getreg));
+      genmoveaddress(lastnode, left, leftregkey);
+      left := leftregkey;
+      unlock(right);
+      end;
+    if (keytable[right].oprnd.mode <> register) or (keytable[right].refcount > 0) then
+      begin
+      lock(left);
+      rightregkey := settemp(long, reg_oprnd(getreg));
+      genmoveaddress(lastnode, right, rightregkey);
+      right := rightregkey;
+      unlock(left);
+      end;
+    unlock(count);
+    keytable[left].oprnd.mode := post_index;
+    keytable[left].oprnd.index := byte;
+    keytable[right].oprnd.mode := post_index;
+    keytable[right].oprnd.index := byte;
+    labelkey := settemp(long, labeltarget_oprnd(lastlabel));
+    definelastlabel;
+    genldr(lastnode, byte, false, ip0key, right);
+    genstr(lastnode, byte, ip0key, left);
+    gen3(lastnode, buildinst(sub, true, false), count, count, onekey);
+    gen2(lastnode, buildinst(cbnz, true, false), count, labelkey);
+  end; {movcstructx}
+
 procedure movestring(src, dst: keyindex);
 
 { Though strings are maintained with a trailing null character, we don't trust this
@@ -7042,9 +7092,7 @@ procedure codeone;
       movstruct, returnstruct: movstructx;
       movset: movsetx;
       movstr: movstrx;
-{
       movcstruct: movcstructx;
-}
       addstr: addstrx;
       addint, addptr: integerarithmetic(add);
       subint, subptr: integerarithmetic(sub);
