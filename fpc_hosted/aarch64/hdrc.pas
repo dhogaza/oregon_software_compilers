@@ -557,8 +557,6 @@ var
 
   level: levelindex; {current block nesting levels}
 
-  regtargethack, fpregtargethack: boolean;
-
   formatcount: integer; {number of field-width expressions in writearg}
   fileoffset: integer; {0 if default file for read/write, 2 if specified}
 

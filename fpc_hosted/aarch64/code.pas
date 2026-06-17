@@ -5529,9 +5529,7 @@ procedure regtargetx;
       end
     else
       begin
-      if not regtargethack then
-        markreg(pseudoinst.oprnds[1]);
-      regtargethack := false;
+      markreg(pseudoinst.oprnds[1]);
       setvalue(reg_oprnd(pseudoinst.oprnds[1]));
       regused[pseudoinst.oprnds[1]] := true;
       if pseudoinst.oprnds[1] >= firstreg then
@@ -6566,15 +6564,9 @@ procedure callroutinex(s: boolean {signed function value} );
     { later need to deal with x0/x1 pairs.  This is broken anyway.
     }
     if proctable[pseudoinst.oprnds[1]].realfunction then
-      begin
-      setvalue(fpreg_oprnd(0));
-      regtargethack := (pseudobuff.op = realregtarget) and (pseudobuff.oprnds[1] = 0);
-      end
+      setvalue(fpreg_oprnd(0))
     else if (len <= long) then
-      begin
       setvalue(reg_oprnd(0));
-      regtargethack := (pseudobuff.op = regtarget) and (pseudobuff.oprnds[1] = 0);
-      end;
 
     removeparamtemps(pseudoinst.oprnds[2]);
 
