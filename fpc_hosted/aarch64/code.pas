@@ -4953,7 +4953,7 @@ procedure setinsertx;
       begin
       loadreg(right, left);
       gen3(lastnode, buildinst(lsrinst, len = long, false), ip0key, right, left);
-      gen3(lastnode, buildinst(ands, len = long, false), ip0key, ip0key,
+      gen3(lastnode, buildinst(andinst, len = long, true), ip0key, ip0key,
            settemp(long, imm12_oprnd(1, false)));
       end
     else
@@ -4978,7 +4978,7 @@ procedure setinsertx;
         end;
       genldr(lastnode, byte, false, ip0key, rightregkey);
       gen3(lastnode, buildinst(asrinst, true, false), ip0key, ip0key, ip1key);
-      gen3(lastnode, buildinst(ands, true, false), ip0key, ip0key,
+      gen3(lastnode, buildinst(andinst, true, true), ip0key, ip0key,
            settemp(long, imm12_oprnd(1, false)));
       end;
     setvalue(cond_oprnd(ne));
@@ -4991,6 +4991,25 @@ begin {cmpsetx}
     cmpintptrx(cond, cond)
   else ;
 end {cmpsetx};
+
+procedure cmpsetinclusion(left, right: keyindex);
+
+{ Generate a test for pure set inclusion, used by geqset and leqset.  The
+  only difference is in the order of the operands.  The actual test is to
+  nand the left operand with a copy of the right operand and check for zero.
+}
+
+
+begin {cmpsetinclusion}
+  addressboth;
+  if len <= long then
+    begin
+    loadreg(left, right);
+    loadreg(right, left);
+    gen3(lastnode, buildinst(bic, true, true), left, right, left);
+    end;
+  setvalue(cond_oprnd(eq));
+end {cmpsetinclusion} ;
 
 { various file handling intrinsics }
 
@@ -5111,7 +5130,7 @@ procedure sysfnintx;
     begin
       address(left, 0);
       loadreg(left, 0);
-      gen3(lastnode, buildinst(ands, keytable[left].len = long, false),
+      gen3(lastnode, buildinst(andinst, keytable[left].len = long, true),
                     settemp(long, reg_oprnd(zero)), left,
                     settemp(long, imm12_oprnd(1, false)));
       setvalue(cond_oprnd(ne));
@@ -7295,10 +7314,8 @@ procedure codeone;
 
       eqset: cmpsetx(eq);
       neqset: cmpsetx(ne);
-{
       geqset: cmpsetinclusion(left, right);
       leqset: cmpsetinclusion(right, left);
-}
 
 {
       ptrchk: ptrchkx;

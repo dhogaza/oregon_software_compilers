@@ -283,7 +283,7 @@ type
 
   {basic arithmetic instructions}
   first_a, add, sub, mul, madd, msub, sdiv, udiv, cmp, cmn, 
-  orinst, orn, andinst, ands, bic, eor, eon, neg, last_a,
+  orinst, orn, andinst, bic, eor, eon, neg, last_a,
 
   csel, cset, cinv, mvn, cneg,
 

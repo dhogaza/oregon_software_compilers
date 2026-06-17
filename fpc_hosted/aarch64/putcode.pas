@@ -480,7 +480,6 @@ begin
     adr: write(macfile, 'adr');
     adrp: write(macfile, 'adrp');
     andinst: write(macfile, 'and');
-    ands: write(macfile, 'ands');
     asrinst: write(macfile, 'asr');
     bic: write(macfile, 'bic');
     b: write(macfile, 'b');
