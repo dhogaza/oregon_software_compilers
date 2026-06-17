@@ -62,8 +62,9 @@
 #
 	.global _main
 _main:
-	stp	x30,x29,[sp,-16]!
-	add	x29,sp,xzr
+	sub	sp,sp,32
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
 	mov	x17,sp
 	adrp	x16,.L32764@PAGE
 	str	x17,[x16,.L32764@PAGEOFF]
@@ -160,5 +161,6 @@ _main:
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 .L4:
-	ldp	x30,x29,[sp],16
+	ldp	x30,x29,[sp,16]
+	add	sp,sp,32
 	ret
