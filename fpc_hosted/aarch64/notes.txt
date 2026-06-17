@@ -21,13 +21,11 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
-   -- cstring.pas in test breaks regcount 
+   -- removing regparamhack reminded me that we need to recover stack
+      space when we delete unneeded register spills.
 
    -- code like add x0,x0,foo leads to x0's saved location on the stack
       begin marked "used" even if we never load from the saved location.
-
-      This also plays into the current regtargethack, which shouldn't be
-      necessary but is.
 
    -- 64-bit arithmetic doesn't work, not suprisingly.
 
