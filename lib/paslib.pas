@@ -1,13 +1,14 @@
 {$nocheck,nomain}
 type
 
-  { For faking out C strings }
-  _p_charptr = ^char; 
-
-  { For passing string/packed char array parameters to library functions.
-    If compiled with array bounds checking enabled it will still work.
+  { For faking out C strings and passing packed array strings to
+    Pascal library procs.
   }
-  _p_stringarray = packed array [1..maxint] of char;
+
+  _p_charptr = ^char; 
+  _p_stringarray = array [0..maxint] of char;
+  _p_stringarrayp = ^_p_stringarray;
+  _p_shortstring = string[255];
 
 {glibc}
 procedure exit(code: integer); nonpascal;
@@ -27,6 +28,44 @@ procedure _p_new(var p: _p_charptr; size: int64); external;
 procedure _p_dispos(var p: _p_charptr; size: int64); external;
 
 { pascal-2 library implementations }
+
+{ Keeping these internal for now }
+
+procedure _p_toshortstring(var s: _p_shortstring; p: _p_charptr);
+
+var
+  i: 0 .. 255;
+  c: record
+      case boolean of
+        false: (str: ^_p_shortstring);
+        true: (a: _p_stringarrayp);
+    end;
+
+begin
+  c.a := loophole(_p_stringarrayp, p);
+  i := 0;
+  while ((i < 255) and (c.a^[i] <> chr(0))) do
+    begin
+    s[i + 1] := c.a^[i];
+    i := i + 1;
+    end;
+  s[i + 1] := chr(0);
+  s[0] := chr(i);
+end;
+    
+function _p_cstring(s: _p_shortstring): _p_charptr;
+var
+  c: record
+      case boolean of
+        false: (str: ^_p_shortstring);
+        true: (a: _p_stringarrayp);
+    end;
+
+begin
+  c.str := ref(s);
+  _p_cstring := ref(c.a^[1]);
+end;
+
 
 procedure _p_caseerr;
   begin
@@ -95,9 +134,9 @@ procedure _p_wts_o;
   var i: integer;
 
   begin
-    for i := 1 to width - length do
+    for i := 0 to width - length - 1 do
       putchar(' ');
-    for i := 1 to length do
+    for i := 0 to length - 1 do
       putchar(str[i]);
   end;
 
