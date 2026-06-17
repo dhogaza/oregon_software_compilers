@@ -42,21 +42,16 @@ if seeking value, wzr is replaced with a register.
 
 --- current work
 
-  -- when does movecstruct actually get emitted for assigning conformant arrays?  I don't
-     even remember the semantics!!!!
-
   -- things needed to really start implementing the library
-
-    1. cstring support
-
-       driven by nullterminatedstrings config flag.  Consts now terminate with a
-       null, and the size of tring[] types reflect this. The len stored in the 0th
-       element of the array does not included the null byte.
 
     2. basic extended strings.
 
        provide cstring(string) that just bumps address by one which I think is also
        how a string is converted to a Pascal packed array of char but need to investigate.
+
+       While cstring.pas in the regression tests show how to do this in Pascal itself,
+       it's inefficient and should be done inline, as should conversion from charptr
+       to shortstring?
 
     3. const params, passing structs and arrays by reference, might be a big help
        for library and probably not that difficult to implement.
