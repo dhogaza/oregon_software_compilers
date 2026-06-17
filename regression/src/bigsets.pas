@@ -118,4 +118,24 @@ begin
   writeln('expect false ', n192b192 in (v192 - v192x));
   writeln('expect true ', n192b91 in (v192 - v192x));
   writeln('expect false ', n192b5 in (v192 - [i192xx]));
+
+  writeln('expect true ', v128 = [n128b5]);
+  writeln('expect false ', v128 <> [n128b5]);
+  writeln('expect false ', v128 = [n128b6, n128b5]);
+  writeln('expect true ', v128 <> [n128b6, n128b5]);
+{
+  writeln('expect true ', v128 <= [n128b5]);
+  writeln('expect true ', v128 >= [n128b5]);
+  writeln('expect false ', v128 <= [n128b6, n128b5]);
+  writeln('expect true ', v128 >= [n128b6, n128b5]);
+}
+
+  writeln('expect true ', v192x = [n192b6, n192b90, n192b192]);
+  writeln('expect false ', v192x <> [n192b6, n192b90, n192b192]);
+  writeln('expect false ', v192x = [n192b90, n192b192]);
+  writeln('expect true ', v192x <> [n192b90, n192b192]);
+  writeln('expect true ', v192x <= [n192b6, n192b90, n192b192]);
+  writeln('expect true ', v192x >= [n192b6, n192b90, n192b192]);
+  writeln('expect false ', v192x <= [n192b90, n192b192]);
+  writeln('expect true ', v192x >= [n192b90, n192b192]);
 end.
