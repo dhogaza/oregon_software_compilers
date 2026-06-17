@@ -4695,7 +4695,7 @@ var
       gen3(lastnode, buildinst(stp, true, false), ip0key, ip1key, dstregkey);
       l := l - quad;
       end;
-    if l  >= long then
+    if l = long then
       begin
       gen2(lastnode, buildinst(ldr, true, false), ip0key, srcregkey);
       gen2(lastnode, buildinst(str, true, false), ip0key, dstregkey);
@@ -4986,10 +4986,62 @@ procedure setinsertx;
 
 procedure cmpsetx(cond: conds);
 
+var
+  tempregkey, tempreg2key, tempreg3key, tempreg4key, leftregkey, rightregkey: keyindex;
+  skiplabel: labelindex;
+
 begin {cmpsetx}
   if len <= long then
     cmpintptrx(cond, cond)
-  else ;
+  else
+    begin
+    addressboth;
+    lock(right);
+    lock(left);
+    leftregkey := settemp(long, reg_oprnd(getreg));
+    genmoveaddress(lastnode, left, leftregkey);
+    keytable[leftregkey].oprnd.mode := post_index;
+    keytable[leftregkey].oprnd.index := quad;
+    lock(leftregkey);
+    rightregkey := settemp(long, reg_oprnd(getreg));
+    genmoveaddress(lastnode, right, rightregkey);
+    keytable[rightregkey].oprnd.mode := post_index;
+    keytable[rightregkey].oprnd.index := quad;
+    unlock(right);
+    unlock(left);
+    lock(rightregkey);
+    tempregkey := settemp(long, reg_oprnd(ip0));
+    tempreg2key := settemp(long, reg_oprnd(ip1)); 
+    tempreg3key := settemp(long, reg_oprnd(getreg));
+    lock(tempreg3key);
+    tempreg4key := settemp(long, reg_oprnd(getreg));
+    unlock(tempreg3key);
+    unlock(rightregkey);
+    unlock(leftregkey);
+ 
+    skiplabel := lastlabel;
+    lastlabel := lastlabel - 1;
+
+    while len >= quad do
+      begin
+      gen3(lastnode, buildinst(ldp, true, false), tempregkey, tempreg2key, leftregkey);
+      gen3(lastnode, buildinst(ldp, true, false), tempreg3key, tempreg4key, rightregkey);
+      gen2(lastnode, buildinst(cmp, true, false), tempregkey, tempreg3key);
+      genbcond(lastnode, ne, skiplabel);
+      gen2(lastnode, buildinst(cmp, true, false), tempreg2key, tempreg4key);
+      len := len - quad;
+      if len <> 0 then
+        genbcond(lastnode, ne, skiplabel);
+      end;
+    if len = long then
+      begin
+      genldr(lastnode, long, false, tempregkey, leftregkey);
+      genldr(lastnode, long, false, tempreg3key, rightregkey);
+      gen2(lastnode, buildinst(cmp, true, false), tempregkey, tempreg3key);
+      end;
+    definelabel(skiplabel);
+    setvalue(cond_oprnd(cond));
+    end;
 end {cmpsetx};
 
 procedure cmpsetinclusion(left, right: keyindex);
@@ -4997,8 +5049,14 @@ procedure cmpsetinclusion(left, right: keyindex);
 { Generate a test for pure set inclusion, used by geqset and leqset.  The
   only difference is in the order of the operands.  The actual test is to
   nand the left operand with a copy of the right operand and check for zero.
+
+  This could easily be merged with cmpsetx if length is greater than long but
+  I'm too lazy.
 }
 
+var
+  tempregkey, tempreg2key, tempreg3key, tempreg4key, leftregkey, rightregkey: keyindex;
+  skiplabel: labelindex;
 
 begin {cmpsetinclusion}
   addressboth;
@@ -5007,6 +5065,53 @@ begin {cmpsetinclusion}
     loadreg(left, right);
     loadreg(right, left);
     gen3(lastnode, buildinst(bic, true, true), left, right, left);
+    end
+  else
+    begin
+    lock(right);
+    lock(left);
+    leftregkey := settemp(long, reg_oprnd(getreg));
+    genmoveaddress(lastnode, left, leftregkey);
+    keytable[leftregkey].oprnd.mode := post_index;
+    keytable[leftregkey].oprnd.index := quad;
+    lock(leftregkey);
+    rightregkey := settemp(long, reg_oprnd(getreg));
+    genmoveaddress(lastnode, right, rightregkey);
+    keytable[rightregkey].oprnd.mode := post_index;
+    keytable[rightregkey].oprnd.index := quad;
+    unlock(right);
+    unlock(left);
+    lock(rightregkey);
+    tempregkey := settemp(long, reg_oprnd(ip0));
+    tempreg2key := settemp(long, reg_oprnd(ip1)); 
+    tempreg3key := settemp(long, reg_oprnd(getreg));
+    lock(tempreg3key);
+    tempreg4key := settemp(long, reg_oprnd(getreg));
+    unlock(tempreg3key);
+    unlock(rightregkey);
+    unlock(leftregkey);
+ 
+    skiplabel := lastlabel;
+    lastlabel := lastlabel - 1;
+
+    while len >= quad do
+      begin
+      gen3(lastnode, buildinst(ldp, true, false), tempregkey, tempreg2key, leftregkey);
+      gen3(lastnode, buildinst(ldp, true, false), tempreg3key, tempreg4key, rightregkey);
+      gen3(lastnode, buildinst(bic, true, true), tempregkey, tempreg3key, tempregkey);
+      genbcond(lastnode, ne, skiplabel);
+      gen3(lastnode, buildinst(bic, true, true), tempreg2key, tempreg4key, tempreg2key);
+      len := len - quad;
+      if len <> 0 then
+        genbcond(lastnode, ne, skiplabel);
+      end;
+    if len = long then
+      begin
+      genldr(lastnode, long, false, tempregkey, leftregkey);
+      genldr(lastnode, long, false, tempreg3key, rightregkey);
+      gen3(lastnode, buildinst(bic, true, true), tempregkey, tempreg3key, tempregkey);
+      end;
+    definelabel(skiplabel);
     end;
   setvalue(cond_oprnd(eq));
 end {cmpsetinclusion} ;
