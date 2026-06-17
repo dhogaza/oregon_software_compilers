@@ -95,8 +95,6 @@ ext:
 	str	x28,[x29,-8]
 # Line: 22, Stmt: 1
 # Line: 23, Stmt: 2
-	str	x0,[x29,-16]
-	ldr	x0,[x29,-16]
 	str	x1,[x29,-16]
 	mov	x1,12
 	bl	_p_wti_o 

@@ -137,8 +137,6 @@ _main:
 	strb	wzr,[x14],1
 	sub	x0,x29,8
 	bl	.P2  // cstring
-	str	x0,[x29,-16]
-	ldr	x0,[x29,-16]
 	bl	.P3  // writecstring
 # Line: 68, Stmt: 0
 	bl	_p_wtln_o 
@@ -159,8 +157,6 @@ _main:
 	strb	wzr,[x14],1
 	sub	x0,x29,24
 	bl	.P2  // cstring
-	str	x0,[x29,-16]
-	ldr	x0,[x29,-16]
 	bl	_printf
 # Line: 70, Stmt: 0
 	bl	_p_wtln_o 
