@@ -11,6 +11,7 @@ var s1, s2: numset;
   a1,a2: alpha;
   sa1,sa2: alphaset;
   i1,i2, i3: integer;
+  eq, ne, leq, geq: boolean;
 
 function func(p: nums):nums;
 begin
@@ -53,6 +54,10 @@ begin
         initsets;
         putnumset(s1);
         putalphaset(sa1);
+        eq := s1 = s2;
+        ne := s1 = s2;
+        leq := sa1 <= [b, e];
+        geq := sa1 >= [b, e];
         end;
 end.
   

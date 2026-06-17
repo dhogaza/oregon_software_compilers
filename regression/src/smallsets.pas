@@ -49,5 +49,9 @@ begin
   write('s1 - s2 '); putnumset(s1 - s2);
   write('sa1:[b, e, k] '); putalphaset(sa1);
   write('sa2:[c..j] '); putalphaset(sa2);
+  writeln('sa1 = sa2 ', sa1 = sa2);
+  writeln('sa1 <> sa2 ', sa1 = sa2);
+  writeln('sa1:[b, e, k] <= [b, e] ',sa1 <= [b, e]);
+  writeln('sa1:[b, e, k] >= [b, e] ',sa1 >= [b, e]);
 end.
-  
+
