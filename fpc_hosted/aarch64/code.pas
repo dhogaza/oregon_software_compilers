@@ -2405,49 +2405,63 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
     end;
 
   begin {makeaddressable}
+
     with keytable[k], oprnd do
       begin
       restorereg := not regvalid;
       restorereg2 := not reg2valid;
-      if restorereg then keytable[properreg].tempflag := true;
-      if restorereg2 then keytable[properreg2].tempflag := true;
       end;
     if restorereg or restorereg2 then allowmodify(k, false);
+
     with keytable[k], oprnd do
       begin
       adjustregcount(k, - refcount);
       if restorereg then
         begin
         { DRB try to restore a register operand to its eventual resting
-          place.
+          place.  If it was stored by the previous instruction, which happens
+          when passing a function values to a proc's first parameter, then
+          don't load it.  If we're lucky, this will eventually lead to the
+          store being deleted, too, if nothing else uses it.
         }
         if (target <> 0) and (mode = register) and
            (keytable[target].oprnd.mode = register) then
-          reg := keytable[target].oprnd.reg
+          begin
+          reg := keytable[target].oprnd.reg;
+          with lastnode^ do
+            if (kind = instnode) and (inst.inst = str) and (oprnds[1].reg = reg) then
+              restorereg := false
+          end
         else
           reg := getreg;
-        t := settemp(long, reg_oprnd(reg));
-        t1 := settemp(long, regenoprnd);
-        recall_reg(reg, properreg);
-        if (mode = register) and (regenoprnd.mode <> nomode) then
-          case regenoprnd.mode of
-            datalabel:
-              begin
-              genadrp(lastnode, false, t, t1);
-              gen2(lastnode, ldrinst(len, signed), t,
-                   settemp(long, label_offset_oprnd(reg, regenoprnd.labelno, regenoprnd.labeloffset)))
-              end;
-            abstract_offset:
-              gensimplemove(lastnode, t1, t);
-            otherwise writeln('bad regnoprnd ', regenoprnd.mode);
-          end
-        else if mode = label_offset then
-          genadrp(lastnode, false, t, settemp(long, regenoprnd))
-        else
-          gen2(lastnode, buildinst(ldr, true, false), t, properreg);
+
+        if restorereg then
+          begin
+          keytable[properreg].tempflag := true;
+          t := settemp(long, reg_oprnd(reg));
+          t1 := settemp(long, regenoprnd);
+          recall_reg(reg, properreg);
+          if (mode = register) and (regenoprnd.mode <> nomode) then
+            case regenoprnd.mode of
+              datalabel:
+                begin
+                genadrp(lastnode, false, t, t1);
+                gen2(lastnode, ldrinst(len, signed), t,
+                     settemp(long, label_offset_oprnd(reg, regenoprnd.labelno, regenoprnd.labeloffset)))
+                end;
+              abstract_offset:
+                gensimplemove(lastnode, t1, t);
+              otherwise writeln('bad regnoprnd ', regenoprnd.mode);
+            end
+          else if mode = label_offset then
+            genadrp(lastnode, false, t, settemp(long, regenoprnd))
+          else
+            gen2(lastnode, buildinst(ldr, true, false), t, properreg);
+          end;
         end;
       if restorereg2 then
         begin
+        keytable[properreg2].tempflag := true;
         registers[reg] := registers[reg] + maxrefcount;
         oprnd.reg2 := getreg;
         registers[reg] := registers[reg] - maxrefcount;
