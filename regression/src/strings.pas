@@ -93,5 +93,70 @@ begin
   write('expected ''0123456789abcdefabc 19 0123456789abcdefabc'': ');
   tests255mod(s1);
   write('expected ''0123456789abcdefabc'': ');
-  writeln(s1)
+  writeln(s1);
+
+  writeln;
+  writeln('comparisons between Pascal standard packed array strings');
+  writeln;
+
+  p5var := '11234';
+
+  writeln('11234 vs 01234');
+  writeln('expect false: ', p5var =  '01234');
+  writeln('expect true: ', p5var <>  '01234');
+  writeln('expect false: ', p5var <=  '01234');
+  writeln('expect false: ', p5var <  '01234');
+  writeln('expect true: ', p5var >=  '01234');
+  writeln('expect true: ', p5var >  '01234');
+  writeln;
+
+  writeln('11234 vs 11234');
+  writeln('expect true: ', p5var =  '11234');
+  writeln('expect false: ', p5var <>  '11234');
+  writeln('expect true: ', p5var <=  '11234');
+  writeln('expect false: ', p5var <  '11234');
+  writeln('expect true: ', p5var >=  '11234');
+  writeln('expect false: ', p5var >  '11234');
+  writeln;
+
+  writeln('11234 vs 11235');
+  writeln('expect false: ', p5var =  '11235');
+  writeln('expect true: ', p5var <>  '11235');
+  writeln('expect true: ', p5var <=  '11235');
+  writeln('expect true: ', p5var <  '11235');
+  writeln('expect false: ', p5var >=  '11235');
+  writeln('expect false: ', p5var >  '11235');
+
+  writeln;
+  writeln('comparisons between extended short strings');
+  writeln;
+
+  s1 := '11234';
+
+  writeln('11234 vs 01234');
+  writeln('expect false: ', s1 =  '01234');
+  writeln('expect true: ', s1 <>  '01234');
+  writeln('expect false: ', s1 <=  '01234');
+  writeln('expect false: ', s1 <  '01234');
+  writeln('expect true: ', s1 >=  '01234');
+  writeln('expect true: ', s1 >  '01234');
+  writeln;
+
+  writeln('11234 vs 11234');
+  writeln('expect true: ', s1 =  '11234');
+  writeln('expect false: ', s1 <>  '11234');
+  writeln('expect true: ', s1 <=  '11234');
+  writeln('expect false: ', s1 <  '11234');
+  writeln('expect true: ', s1 >=  '11234');
+  writeln('expect false: ', s1 >  '11234');
+  writeln;
+
+  writeln('11234 vs 11235');
+  writeln('expect false: ', s1 =  '11235');
+  writeln('expect true: ', s1 <>  '11235');
+  writeln('expect true: ', s1 <=  '11235');
+  writeln('expect true: ', s1 <  '11235');
+  writeln('expect false: ', s1 >=  '11235');
+  writeln('expect false: ', s1 >  '11235');
+
 end.

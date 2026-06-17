@@ -19,3 +19,55 @@ expected '0123456789abcdef 16 0123456789abcdef': 0123456789abcdef 16 0123456789a
 expected '0123456789abcdefabc 19 0123456789abcdefabc': 0123456789abcdefabc 19 0123456789abcdefabc
 expected '0123456789abcdefabc 19 0123456789abcdefabc': 0123456789abcdefabc 19 0123456789abcdefabc
 expected '0123456789abcdefabc': 0123456789abcdefabc
+
+comparisons between Pascal standard packed array strings
+
+11234 vs 01234
+expect false: false
+expect true:  true
+expect false: false
+expect false: false
+expect true:  true
+expect true:  true
+
+11234 vs 11234
+expect true:  true
+expect false: false
+expect true:  true
+expect false: false
+expect true:  true
+expect false: false
+
+11234 vs 11235
+expect false: false
+expect true:  true
+expect true:  true
+expect true:  true
+expect false: false
+expect false: false
+
+comparisons between extended short strings
+
+11234 vs 01234
+expect false: false
+expect true:  true
+expect false: false
+expect false: false
+expect true:  true
+expect true:  true
+
+11234 vs 11234
+expect true:  true
+expect false: false
+expect true:  true
+expect false: false
+expect true:  true
+expect false: false
+
+11234 vs 11235
+expect false: false
+expect true:  true
+expect true:  true
+expect true:  true
+expect false: false
+expect false: false
