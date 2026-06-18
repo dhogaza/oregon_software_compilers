@@ -91,6 +91,7 @@ var
   i192, i192x, i192xx: n192;
 
   b1, b2, b3: boolean;
+  eq128, ne128, leq128, geq128, eq192, ne192, leq192, geq192: boolean;
 
 procedure sets;
 
@@ -113,10 +114,23 @@ procedure sets;
         b2 := not (n192b192 in v192);
         b3 := not (n192b1 in (v192 - [n192b1]));
         v192 := v192 + [n192b1];
+
+        eq128 := v128 = [n128b5];
+        ne128 := v128 <> [n128b6, n128b5];
+        geq128 := v128 >= [n128b5];
+        leq128 := v128 <= [n128b6, n128b5];
+
+        eq192 := v192x = [n192b6, n192b90, n192b192];
+        ne192 := v192x <> [n192b90, n192b192];
+        leq192 := v192x <= [n192b6, n192b90, n192b192];
+        geq192 := v192x >= [n192b90, n192b192];
         end;
   end {sets};
 
 begin
   sets;
-  writeln('expect all true b1: ', b1, ' b2: ', b2, ' b3: ', b3);
+  writeln('expect all true');
+  writeln('b1: ', b1, ' b2: ', b2, ' b3: ', b3);
+  writeln('eq128: ', eq128, ' ne128: ', ne128, ' geq128: ', geq128, ' leq128: ', leq128);
+  writeln('eq192: ', eq192, ' ne192: ', ne192, ' geq192: ', geq192, ' leq192: ', leq192);
 end.

@@ -123,12 +123,10 @@ begin
   writeln('expect false ', v128 <> [n128b5]);
   writeln('expect false ', v128 = [n128b6, n128b5]);
   writeln('expect true ', v128 <> [n128b6, n128b5]);
-{
   writeln('expect true ', v128 <= [n128b5]);
   writeln('expect true ', v128 >= [n128b5]);
-  writeln('expect false ', v128 <= [n128b6, n128b5]);
-  writeln('expect true ', v128 >= [n128b6, n128b5]);
-}
+  writeln('expect true ', v128 <= [n128b6, n128b5]);
+  writeln('expect false ', v128 >= [n128b6, n128b5]);
 
   writeln('expect true ', v192x = [n192b6, n192b90, n192b192]);
   writeln('expect false ', v192x <> [n192b6, n192b90, n192b192]);

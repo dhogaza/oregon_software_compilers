@@ -1,1 +1,4 @@
-expect all true b1:  true b2:  true b3:  true
+expect all true
+b1:  true b2:  true b3:  true
+eq128:  true ne128:  true geq128:  true leq128:  true
+eq192:  true ne192:  true geq192:  true leq192:  true

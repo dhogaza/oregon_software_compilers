@@ -24,10 +24,14 @@ expect false false
 expect false false
 expect true  true
 expect true  true
+expect true  true
+expect true  true
+expect false false
+expect true  true
 expect false false
 expect false false
 expect true  true
 expect true  true
 expect true  true
-expect false  true
+expect false false
 expect true  true
