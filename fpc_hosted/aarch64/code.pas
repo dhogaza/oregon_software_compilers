@@ -5059,9 +5059,13 @@ var
   skiplabel: labelindex;
 
 begin {cmpsetinclusion}
-  addressboth;
+  { not the global left and right! }
+  address(left, 0);
+  lock(left);
+  address(right, 0);
   if len <= long then
     begin
+    unlock(left);
     loadreg(left, right);
     loadreg(right, left);
     gen3(lastnode, buildinst(bic, true, true), left, right, left);
@@ -5069,7 +5073,6 @@ begin {cmpsetinclusion}
   else
     begin
     lock(right);
-    lock(left);
     leftregkey := settemp(long, reg_oprnd(getreg));
     genmoveaddress(lastnode, left, leftregkey);
     keytable[leftregkey].oprnd.mode := post_index;
@@ -5512,7 +5515,7 @@ procedure putblock;
       begin
       gen3(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
       if not prepost then
-        handle_offset12_oprnd(p1^.prevnode, ip0, long, p1^.oprnds[3]);
+        handle_offset9_oprnd(p1^.prevnode, true, ip0, p1^.oprnds[3]);
 
       if (keytable[spoffsettemp].oprnd.reg <> sp) and
          (keytable[spoffsettemp].oprnd.index = 0) then
@@ -5606,7 +5609,7 @@ procedure putblock;
       begin
       gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
       if not prepost then
-        handle_offset12_oprnd(lastnode^.prevnode, ip0, long, lastnode^.oprnds[3]);
+        handle_offset9_oprnd(lastnode^.prevnode, true, ip0, lastnode^.oprnds[3]);
       end;
 
     if not prepost then
