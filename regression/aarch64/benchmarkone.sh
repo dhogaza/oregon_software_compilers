@@ -1,5 +1,10 @@
 #!/bin/bash
 . ./env.sh
+. ./fileattrs.sh $1
+if [[ "$type" != "pas" ]]; then
+  echo "can only benchmark pascal programs the use paslib or the fpc lib"
+  exit 1
+fi
 if [ ! -d "$os" ]; then
   mkdir $os
 fi
