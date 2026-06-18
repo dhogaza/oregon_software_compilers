@@ -813,8 +813,8 @@ procedure setkeyentry(k: keyindex; l:unsigned; o: oprndtype);
       refcount := 0;
       copycount := 0;
       copylink := 0;
-      properreg := noreg;
-      properreg2 := noreg;
+      properreg := -1;
+      properreg2 := -1;
       tempflag := false;
       regsaved := false;
       reg2saved := false;
@@ -1505,8 +1505,12 @@ procedure setcommonkey;
       if key > lastkey then
         begin
         regsaved := false;
-        properreg := key; {simplifies certain special cases}
+{
+        properreg := key;
         properreg2 := key;
+}
+        properreg := -1; {simplifies certain special cases}
+        properreg2 := -1;
         validtemp := false;
         reg2saved := false;
         regvalid := true;
@@ -2002,13 +2006,16 @@ function savereg(r: regindex {register to save}) : keyindex;
           if refcount > 0 then
             if (r = reg) {and regvalid} then
               begin
+{
+              This could be made into part of savekey?
               if regenoprnd.mode <> nomode then
                 begin
                 found := true;
                 saved := true;
                 savekey := i
                 end
-              else if keytable[properreg].validtemp and
+              else}
+              if keytable[properreg].validtemp and
                 ((properreg >= stackcounter) or (properreg <= lastkey)) then
                 begin
                 found := true;
@@ -2016,9 +2023,9 @@ function savereg(r: regindex {register to save}) : keyindex;
                 saved := regsaved;
                 end
               end
-            else if (r = reg2) and reg2valid and
+            else if (r = reg2) {and reg2valid} and
                keytable[properreg2].validtemp and
-               ((properreg2 >= stackcounter) or (properreg2 <= lastkey)) then
+               ((properreg2 >= stackcounter){ or (properreg2 <= lastkey)}) then
               begin
               found := true;
               savekey := properreg2;
@@ -2406,6 +2413,7 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
 
   begin {makeaddressable}
 
+
     with keytable[k], oprnd do
       begin
       restorereg := not regvalid;
@@ -2430,7 +2438,7 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
           reg := keytable[target].oprnd.reg;
           with lastnode^ do
             if (kind = instnode) and (inst.inst = str) and (oprnds[1].reg = reg) then
-              restorereg := false
+              restorereg := false;
           end
         else
           reg := getreg;
@@ -2505,7 +2513,7 @@ procedure addressboth;
     unlock(right);
   end {addressboth} ;
 
-procedure makedstaddressable(k: keyindex);
+procedure makedstaddressable(var k: keyindex);
 
 { If the destination is a volatile register, use it again but
   mark it unsaved so that future uses as a value outside the
@@ -2537,7 +2545,7 @@ procedure makedstaddressable(k: keyindex);
       else makeaddressable(k, 0);
   end;
 
-procedure addressdst(k: keyindex);
+procedure addressdst(var k: keyindex);
 
   begin
     dereference(k);
@@ -3478,6 +3486,8 @@ procedure callsupport(libroutine: libroutines {support routine to call};
     if killregs then
       markscratchregs;
     libkey := settemp(long, libcall_oprnd(libroutine));
+    firstreg := 0;
+    firstfpreg := 0;
     gen1(lastnode, buildinst(bl, false, false), libkey);
   end {callsupport} ;
 
@@ -6516,7 +6526,6 @@ procedure indxx;
           setvalue(label_offset_oprnd(keytable[newkey].oprnd.reg,
                      keytable[labelkey].oprnd.labelno,
                      keytable[labelkey].oprnd.labeloffset));
-{DRB: hmmm ... }
           keytable[key].regsaved := true;
           end;
         reg_offset:
@@ -7459,6 +7468,7 @@ procedure codeone;
       end;
 
     if key > lastkey then lastkey := key;
+
 
     with keytable[key] do
       if refcount + copycount > 1 then savekey(key);

@@ -21,6 +21,8 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
+   -- stray unused reg spills that aren't deleted but not used ...
+
    -- removing regparamhack reminded me that we need to recover stack
       space when we delete unneeded register spills.
 
