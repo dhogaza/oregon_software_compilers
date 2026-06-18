@@ -1,0 +1,39 @@
+#
+#  Constants
+#
+	.section	__TEXT,__const
+	.align 12
+.L32765:
+	.byte	0x0C,0x68,0x65,0x6C,0x6C,0x6F,0x20,0x77,0x6F,0x72,0x6C,0x64
+	.byte	0x21,0x00
+	.bss
+	.align 12
+.L32766:
+	.space 32
+	.bss
+	.align 12
+.L32764:
+	.space 16
+	.text
+	.align 2
+#
+#	 (main)
+#
+	.global _main
+_main:
+	stp	x30,x29,[sp,-16]!
+	add	x29,sp,xzr
+	mov	x17,sp
+	adrp	x16,.L32764@PAGE
+	str	x17,[x16,.L32764@PAGEOFF]
+# Line: 4, Stmt: 1
+# Line: 5, Stmt: 2
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+1@PAGEOFF
+	mov	x1,12
+	mov	x2,x1
+	bl	_p_wts_o 
+	bl	_p_wtln_o 
+.L2:
+	ldp	x30,x29,[sp],16
+	ret

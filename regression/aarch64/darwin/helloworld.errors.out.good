@@ -1,0 +1,12 @@
+Pascal-2 ARM64  2.3.0.1     today!     Page 1-1
+/Users/dhogaza/oregon_software_compilers/regression/src/helloworld.errors
+
+    3        writeln("hello world!"); 
+                     ^2 ^63^45   ^2
+***  2: Illegal character
+*** 63: Undefined identifier
+*** 45: Binary operator expected
+
+
+ *** There was 1 line with errors detected ***
+?Errors detected: 3
