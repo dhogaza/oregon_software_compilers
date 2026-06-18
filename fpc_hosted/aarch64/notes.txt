@@ -42,8 +42,6 @@ if seeking value, wzr is replaced with a register.
 
 --- current work
 
-  -- finish sets! [n]eq/leq/geq/
-
   -- things needed to really start implementing the library
 
     2. basic extended strings.
