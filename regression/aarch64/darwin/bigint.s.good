@@ -37,6 +37,7 @@
 	add	x0,x15,.L32765+1@PAGEOFF
 	mov	x1,3
 	mov	x2,x1
+	str	x14,[x29,-16]
 	bl	_p_wts_o 
 	mov	w0,65536
 	mov	x1,1

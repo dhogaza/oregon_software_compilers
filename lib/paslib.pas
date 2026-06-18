@@ -158,5 +158,5 @@ end;
 procedure _p_dispos;
 begin
   free(p);
-  p := loophole(_p_charptr, 1);
+  p := nil;
 end;

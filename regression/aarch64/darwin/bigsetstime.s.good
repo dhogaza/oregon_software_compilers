@@ -44,7 +44,7 @@
 #	sets
 #
 .P1:
-	sub	sp,sp,272
+	sub	sp,sp,288
 # Line: 101, Stmt: 1
 	adrp	x13,.L32766@PAGE
 # Line: 102, Stmt: 2
@@ -362,7 +362,7 @@
 	b.le	.L5
 .L8:
 .L2:
-	add	sp,sp,272
+	add	sp,sp,288
 	ret
 	.bss
 	.align 12

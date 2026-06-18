@@ -160,9 +160,9 @@
 #
 	.global _main
 _main:
-	sub	sp,sp,80
-	stp	x30,x29,[sp,64]
-	add	x29,sp,64
+	sub	sp,sp,96
+	stp	x30,x29,[sp,80]
+	add	x29,sp,80
 	mov	x17,sp
 	adrp	x16,.L32764@PAGE
 	str	x17,[x16,.L32764@PAGEOFF]
@@ -175,12 +175,15 @@ _main:
 	mov	x14,1
 .L16:
 	str	x14,[x29,-56]
+	str	x15,[x29,-64]
 # Line: 47, Stmt: 0
 	mov	x27,1
 .L17:
+	str	x15,[x29,-72]
 # Line: 48, Stmt: 0
 	mov	x28,1
 .L18:
+	str	x15,[x29,-80]
 # Line: 50, Stmt: 0
 	mov	w16,10
 	strb	w16,[x15,.L32766+36@PAGEOFF]
@@ -211,37 +214,38 @@ _main:
 	cmp	w14,w13
 	cset	w26,eq
 # Line: 58, Stmt: 0
-	adrp	x14,.L32766@PAGE
-	ldrb	w14,[x14,.L32766+32@PAGEOFF]
-	cmp	w14,w13
+	adrp	x15,.L32766@PAGE
+	ldrb	w15,[x15,.L32766+32@PAGEOFF]
+	cmp	w15,w13
 	cset	w25,eq
 # Line: 59, Stmt: 0
-	adrp	x14,.L32765@PAGE
-	ldr	x13,[x14,.L32765+56@PAGEOFF]
-	adrp	x14,.L32766@PAGE
-	ldr	x14,[x14,.L32766+40@PAGEOFF]
-	bics	x13,x14,x13
+	adrp	x15,.L32765@PAGE
+	ldr	x14,[x15,.L32765+56@PAGEOFF]
+	adrp	x15,.L32766@PAGE
+	ldr	x15,[x15,.L32766+40@PAGEOFF]
+	bics	x14,x15,x14
 	cset	w24,eq
 # Line: 60, Stmt: 0
-	adrp	x14,.L32765@PAGE
-	ldr	x13,[x14,.L32765+64@PAGEOFF]
-	adrp	x14,.L32766@PAGE
-	ldr	x14,[x14,.L32766+40@PAGEOFF]
-	bics	x14,x13,x14
+	adrp	x15,.L32765@PAGE
+	ldr	x14,[x15,.L32765+64@PAGEOFF]
+	adrp	x15,.L32766@PAGE
+	ldr	x15,[x15,.L32766+40@PAGEOFF]
+	bics	x15,x14,x15
 	cset	w23,eq
 	ldr	x14,[x29,-56]
+	ldr	x15,[x29,-80]
 	add	w28,w28,1
 	cmp	w28,650
 	b.le	.L18
 .L19:
 	ldr	x14,[x29,-56]
-	adrp	x15,.L32766@PAGE
+	ldr	x15,[x29,-72]
 	add	w27,w27,1
 	cmp	w27,650
 	b.le	.L17
 .L20:
 	ldr	x14,[x29,-56]
-	adrp	x15,.L32766@PAGE
+	ldr	x15,[x29,-64]
 	add	w14,w14,1
 	cmp	w14,650
 	b.le	.L16
@@ -250,6 +254,6 @@ _main:
 	ldp	x27,x28,[x29,-16]
 	ldp	x25,x26,[x29,-32]
 	ldp	x23,x24,[x29,-48]
-	ldp	x30,x29,[sp,64]
-	add	sp,sp,80
+	ldp	x30,x29,[sp,80]
+	add	sp,sp,96
 	ret

@@ -345,7 +345,7 @@ _p_new:
 	mov	x0,x1
 	bl	_malloc
 	ldr	x15,[x29,-16]
-	str	x0,[x0]
+	str	x0,[x15]
 .L37:
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
@@ -367,9 +367,8 @@ _p_dispos:
 	ldr	x0,[x15]
 	bl	_free
 # Line: 161, Stmt: 0
-	mov	x15,1
-	ldr	x14,[x29,-8]
-	str	x15,[x14]
+	ldr	x15,[x29,-8]
+	str	xzr,[x15]
 .L38:
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
