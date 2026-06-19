@@ -1106,6 +1106,9 @@ procedure printlisting(var listing: text {file on which listing is output} );
                 'Index expression type does not match array declaration');
         badprocparam: wl_str('Procedure name expected');
         badfuncparam: wl_str('Function name expected');
+        constparamassign: wl_str('Illegal assignment to CONST parameter');
+        constparamnonstd: wl_str('CONST parameters are nonstandard');
+        modifyconstparam: wl_str('CONST parameters can''t be modified');
         varparamerr:
           wl_str(
                 'VAR parameters cannot be passed an expression, packed field or variant tag');

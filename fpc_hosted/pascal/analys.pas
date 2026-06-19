@@ -840,7 +840,7 @@ procedure onevar(id: integer; {Scope in which to enter ident}
       nestedmod := false;
       varianttag := false;
       knownvalid := (namekind in
-                    [procparam, funcparam, param, varparam, boundid]);
+                    [procparam, funcparam, param, varparam, constparam, boundid]);
       modified := (varalloc = absolute) or knownvalid or switcheverplus[test];
       parammodified := false;
       end;
@@ -2694,6 +2694,7 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
 
         if token in [packedsym, arraysym] then
           begin
+{DRB const confparam?}
           if paramkind = varparam then paramkind := varconfparam
           else paramkind := confparam;
           conformantparam(paramkind, paramtype);
@@ -2702,7 +2703,8 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
           begin
           if token = univsym then
             begin
-            if paramkind <> varparam then warn(baduniv);
+{DRB ?}
+            if not (paramkind in [varparam, constparam]) then warn(baduniv);
             gettoken;
             univflag := true;
             end;
@@ -2752,6 +2754,13 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
       verify(begparamhdr, [rpar, semicolon, comma], badparamerr);
       case token of
         functionsym: routineparam(funcparam);
+        constsym:
+          begin
+          if switchcounters[standard] > 0 then
+            warn(constparamnonstd);
+          gettoken;
+          oneparamlist(constparam)
+          end;
         varsym:
           begin
           gettoken;
@@ -2767,7 +2776,7 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
     gettoken;
     oneparampiece;
     while token in
-          ([comma, semicolon, functionsym, proceduresym, varsym, ident]) do
+          ([comma, semicolon, functionsym, proceduresym, constsym, varsym, ident]) do
       begin
       if lasttoken.token <> semicolon then warnbetween(nosemiheaderr);
       oneparampiece;
@@ -3316,8 +3325,8 @@ procedure initanalys;
 
     blockheadset := [labelsym..functionsym];
     begblockset := [labelsym..functionsym, beginsym];
-    begparamhdr := [functionsym, proceduresym, varsym, ident];
-    nextparamhdr := [functionsym, proceduresym, varsym, ident, rpar];
+    begparamhdr := [functionsym, proceduresym, constsym, varsym, ident];
+    nextparamhdr := [functionsym, proceduresym, constsym, varsym, ident, rpar];
     begstmtset := [beginsym..gotosym, ident];
     begunsignedset := [nilsym, ident, intconst, charconst, realconst,
                       dblrealconst, stringconst];

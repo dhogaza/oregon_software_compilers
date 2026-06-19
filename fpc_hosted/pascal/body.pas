@@ -3687,7 +3687,7 @@ procedure statement(follow: tokenset {legal following symbols} );
           begin {not a for index}
           var_is_valid := false;
           case namekind of
-            varname, fieldname, param, varparam, funcparam, procparam,
+            varname, fieldname, param, constparam, varparam, funcparam, procparam,
             confparam, varconfparam, boundid:
               begin
               var_is_valid := (namekind in [param, boundid]) or knownvalid;
@@ -3816,7 +3816,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                   end
                 else
 {DRB}
-                  if (namekind in [param, varparam, funcparam, procparam, confparam,
+                  if (namekind in [param, constparam, varparam, funcparam, procparam, confparam,
                                    varconfparam, boundid]) and
                      (varalloc in [regparam, ptrregparam, realregparam]) and
                      registercandidate then
@@ -4010,9 +4010,11 @@ procedure statement(follow: tokenset {legal following symbols} );
         if bigcompilerversion then p := @(bigtable[resultindex]);
         with p^ do
           if namekind in
-             [varname, fieldname, param, varparam, confparam,
+             [varname, fieldname, param, constparam, varparam, confparam,
              varconfparam] then
             begin
+            if namekind = constparam then
+              warn(modifyconstparam);
             modified := true;
             parammodified := true;
             if (nest = 1) and nolabelsofar then knownvalid := true;
@@ -4540,7 +4542,7 @@ procedure statement(follow: tokenset {legal following symbols} );
         if bigcompilerversion then p := @(bigtable[paramindex]);
         namekind := p^.namekind;
         nextparam := p^.nextparamlink + 1;
-        if alreadywarned or (namekind in [param, confparam]) or
+        if alreadywarned or (namekind in [param, constparam, confparam]) or
            (paramindex = 0) then
           begin
           expression(follow + [comma, colon, rpar], false);
@@ -4551,7 +4553,7 @@ procedure statement(follow: tokenset {legal following symbols} );
             formaltype := p^.vartype;
             if bigcompilerversion then paramptr := @(bigtable[formaltype]);
             formallen := p^.length;
-            if namekind = param then
+            if namekind in [constparam, param] then
               begin
               if (resultform = ints) and (getform(paramptr) = reals) then
                 begin
@@ -4593,10 +4595,10 @@ procedure statement(follow: tokenset {legal following symbols} );
             else if (namekind = confparam) and
                     (resultform = conformantarrays) then
               warnbefore(badconfactual);
-            if namekind = param then
+            if namekind in [param, constparam] then
               if p^.refparam then
                 begin
-                if p^.modified and
+                if (namekind = param) and p^.modified and
                    (oprndstk[sp].operandkind <> exproperand) then
                   genunary(pushcvalue, resultform);
                 oprndstk[sp].oprndlen := ptrsize;
@@ -5936,7 +5938,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                       oprndstk[sp].oprndlen := sizeof(resultptr, false);
                       end;
                     end;
-                  varname, fieldname, param, varparam, confparam, varconfparam,
+                  varname, fieldname, param, constparam, varparam, confparam, varconfparam,
                   boundid:
                     variable(true, true, true, false, true, varindex);
                   forwardfunc, externalfunc, funcname: procedurecall(varindex);
@@ -7307,7 +7309,7 @@ procedure statement(follow: tokenset {legal following symbols} );
       if bigcompilerversion then varptr := @(bigtable[varindex]);
       with varptr^ do
         if namekind in
-           [varname, fieldname, param, varparam, confparam, varconfparam] then
+           [varname, fieldname, param, constparam, varparam, confparam, varconfparam] then
           begin
           modified := true;
           parammodified := true;
@@ -7680,18 +7682,22 @@ procedure statement(follow: tokenset {legal following symbols} );
           if checkforstack(forvar, t) then warn(modifiedfor);
           if bigcompilerversion then forvarptr := @(bigtable[forvar]);
           with forvarptr^ do
-            if namekind in [varname, param, varparam] then
+            if namekind in [varname, param, constparam, varparam] then
               begin
               if bigcompilerversion then fortypeptr := @(bigtable[vartype]);
-
-              { We don't support for loop indexes that are origined, declared
-                USE, DEFINE or SHARED, or OWN.  OWN is allowed if the global
-                section is not split.
-              }
-              if ((varalloc = ownalloc) and (globalsize > globalfiles)) or
-                 (varalloc in
-                 [absolute, usealloc, definealloc, sharedalloc]) then
-                warn(unsupportedforvardecl);
+              if namekind = constparam then
+                warn(constparamassign)
+              else
+                begin
+                { We don't support for loop indexes that are origined, declared
+                  USE, DEFINE or SHARED, or OWN.  OWN is allowed if the global
+                  section is not split.
+                }
+                if ((varalloc = ownalloc) and (globalsize > globalfiles)) or
+                   (varalloc in
+                   [absolute, usealloc, definealloc, sharedalloc]) then
+                  warn(unsupportedforvardecl);
+                end;
 
               if not (fortypeptr^.typ in
                  [none, ints, chars, scalars, bools, subranges]) then
@@ -8034,8 +8040,10 @@ i: levelindex;
         if bigcompilerversion then varptr := @(bigtable[varindex]);
         case varptr^.namekind of
           standardproc: standardprocedures(varptr^.procid);
-          varname, fieldname, param, varparam, confparam, varconfparam:
+          varname, fieldname, param, constparam, varparam, confparam, varconfparam:
             begin
+            if varptr^.namekind = constparam then
+              warn(constparamassign);
             newexprstmt(simple);
             assignment;
             end;

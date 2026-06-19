@@ -280,6 +280,7 @@ type
              typesincomp, compilerwritererr, nostrictinclusion, badinoprnds,
              badfortype, badforlimit, badcasetype, badcaselabeltype,
              indexincomp, badforvar, badprocparam, badfuncparam, varparamerr,
+             constparamassign, constparamnonstd, modifyconstparam,
              badsetexpression, cantpack, badformat, illegalformat,
              badwritearg, nowritearg, badfunctionarg, nofilevar, badreadtype,
              noreadarg, nostringerr, filenameerr, nofieldtype, badnewlabel,
