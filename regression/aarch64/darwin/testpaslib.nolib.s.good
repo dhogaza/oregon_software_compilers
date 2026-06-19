@@ -499,7 +499,6 @@ _main:
 # Line: 34, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	ldr	x15,[x15,.L32766+304@PAGEOFF]
-	str	x15,[x29,-8]
 	mov	w16,10
 	str	w16,[x15]
 # Line: 35, Stmt: 0
@@ -509,7 +508,8 @@ _main:
 	ldrsw	x0,[x15]
 	mov	x1,12
 	bl	_p_wti_o 
-	ldr	x15,[x29,-8]
+	adrp	x15,.L32766@PAGE
+	ldr	x15,[x15,.L32766+304@PAGEOFF]
 	ldrsw	x0,[x15,4]
 	mov	x1,12
 	bl	_p_wti_o 
