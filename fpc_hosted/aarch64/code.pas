@@ -1977,7 +1977,7 @@ function volatilereg(r: regindex): boolean;
                    (r > pr) and (r <= lastreg);
   end {volatilereg};
 
-function savereg(r: regindex {register to save}) : keyindex;
+function savereg(r: regindex; regenok: boolean {caller can handle regen}) : keyindex;
 
 { Save the given register on the runtime stack.  This routine is quite clever
   about the process since it attempts to reuse an existing copy of the register
@@ -2004,18 +2004,15 @@ function savereg(r: regindex {register to save}) : keyindex;
         begin
         with keytable[i], oprnd do
           if refcount > 0 then
-            if (r = reg) {and regvalid} then
+            if r = reg then
               begin
-{
-              This could be made into part of savekey?
-              if regenoprnd.mode <> nomode then
+              if regenok and (regenoprnd.mode <> nomode) then
                 begin
                 found := true;
                 saved := true;
-                savekey := i
+                savekey := i;
                 end
-              else}
-              if keytable[properreg].validtemp and
+              else if keytable[properreg].validtemp and
                 ((properreg >= stackcounter) or (properreg <= lastkey)) then
                 begin
                 found := true;
@@ -2023,8 +2020,7 @@ function savereg(r: regindex {register to save}) : keyindex;
                 saved := regsaved;
                 end
               end
-            else if (r = reg2) {and reg2valid} and
-               keytable[properreg2].validtemp and
+            else if (r = reg2) and keytable[properreg2].validtemp and
                ((properreg2 >= stackcounter){ or (properreg2 <= lastkey)}) then
               begin
               found := true;
@@ -2088,13 +2084,18 @@ procedure markreg(r: regindex {register to clobber} );
                 begin
                 if not saved then
                   begin
-                  savedreg := savereg(r);
+                  savedreg := savereg(r, true);
+                  if keytable[savedreg].regenoprnd.mode <> nomode then
+                    regenoprnd := keytable[savedreg].regenoprnd
+                  else
+                    begin
+                    properreg := savedreg;
+                    keytable[savedreg].refcount := keytable[savedreg].refcount +
+                                                   refcount
+                    end;
                   saved := true;
                   end;
                 regsaved := true;
-                properreg := savedreg;
-                keytable[savedreg].refcount := keytable[savedreg].refcount +
-                                               refcount
                 end;
               regvalid := false;
               end;
@@ -2108,7 +2109,7 @@ procedure markreg(r: regindex {register to clobber} );
                 begin
                 if not saved then
                   begin
-                  savedreg := savereg(r);
+                  savedreg := savereg(r, false);
                   saved := true;
                   end;
                 reg2saved := true;
@@ -2240,6 +2241,8 @@ procedure savekey(k: keyindex {operand to save} );
   frame pointer, mov/movk sequences etc.
 }
 
+  var
+    savedreg: keyindex;
 
   begin
     if k > 0 then
@@ -2252,7 +2255,10 @@ procedure savekey(k: keyindex {operand to save} );
               if regvalid and not regsaved and (reg <> noreg) and
                 volatilereg(reg) then
                 begin
-                properreg := savereg(reg);
+                savedreg := savereg(reg, true);
+                if keytable[savedreg].regenoprnd.mode <> nomode then
+                  regenoprnd := keytable[savedreg].regenoprnd
+                else properreg := savedreg;
                 regsaved := true;
                 end;
               if reg2valid and not reg2saved and (reg2 <> noreg) and
@@ -2260,7 +2266,7 @@ procedure savekey(k: keyindex {operand to save} );
                 begin
                 { don't reuse the temp slot we just allocated!}
                 bumptempcount(k, refcount);
-                properreg2 := savereg(reg2);
+                properreg2 := savereg(reg2, false);
                 bumptempcount(k, -refcount);
                 reg2saved := true;
                 end;
@@ -2412,8 +2418,6 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
     end;
 
   begin {makeaddressable}
-
-
     with keytable[k], oprnd do
       begin
       restorereg := not regvalid;
@@ -2445,26 +2449,34 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
 
         if restorereg then
           begin
-          keytable[properreg].tempflag := true;
+
           t := settemp(long, reg_oprnd(reg));
           t1 := settemp(long, regenoprnd);
           recall_reg(reg, properreg);
-          if (mode = register) and (regenoprnd.mode <> nomode) then
+          if {(mode = register) and }(regenoprnd.mode <> nomode) then
             case regenoprnd.mode of
               datalabel:
                 begin
                 genadrp(lastnode, false, t, t1);
-                gen2(lastnode, ldrinst(len, signed), t,
-                     settemp(long, label_offset_oprnd(reg, regenoprnd.labelno, regenoprnd.labeloffset)))
+                if mode <> label_offset then
+                  if mode = register then
+                    gen2(lastnode, ldrinst(len, signed), t,
+                         settemp(long,
+                         label_offset_oprnd(reg, regenoprnd.labelno, regenoprnd.labeloffset)))
+                  else
+                    gen2(lastnode, ldrinst(long, false), t,
+                         settemp(long,
+                         label_offset_oprnd(reg, regenoprnd.labelno, regenoprnd.labeloffset)))
                 end;
               abstract_offset:
                 gensimplemove(lastnode, t1, t);
               otherwise writeln('bad regnoprnd ', regenoprnd.mode);
             end
-          else if mode = label_offset then
-            genadrp(lastnode, false, t, settemp(long, regenoprnd))
           else
+            begin
+            keytable[properreg].tempflag := true;
             gen2(lastnode, buildinst(ldr, true, false), t, properreg);
+            end;
           end;
         end;
       if restorereg2 then
@@ -2846,7 +2858,6 @@ begin {handle_offset12_oprnd}
     end;
 
 end {handle_offset12_oprnd};
-
 
 procedure genldr(var after: nodeptr;
                  len: addressrange;
@@ -3357,7 +3368,7 @@ procedure enterloop;
               active := context[contextsp].bump[i];
               if active then
                 begin
-                stackcopy := savereg(i);
+                stackcopy := savereg(i, false);
                 { DRB: temporary hack }
                 if stackcopy >= stackcounter then
                   keytable[stackcopy].refcount := keytable[stackcopy].refcount +
