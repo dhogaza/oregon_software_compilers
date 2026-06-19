@@ -813,8 +813,8 @@ procedure setkeyentry(k: keyindex; l:unsigned; o: oprndtype);
       refcount := 0;
       copycount := 0;
       copylink := 0;
-      properreg := -1;
-      properreg2 := -1;
+      properreg := lowestkey;
+      properreg2 := lowestkey;
       tempflag := false;
       regsaved := false;
       reg2saved := false;
@@ -1509,8 +1509,8 @@ procedure setcommonkey;
         properreg := key;
         properreg2 := key;
 }
-        properreg := -1; {simplifies certain special cases}
-        properreg2 := -1;
+        properreg := lowestkey;
+        properreg2 := lowestkey;
         validtemp := false;
         reg2saved := false;
         regvalid := true;
@@ -2603,15 +2603,6 @@ procedure initblock;
         currentswitch := currentswitch + 1;
         end;
 
-    { initialize stack temp allocation vars
-    }
-
-    stackbase := keysize;
-    stackcounter := stackbase;
-    stackoffset := 0;
-    maxstackoffset := 0;
-    keytable[stackcounter].oprnd := index_oprnd(abstract_offset, sp, 0, false);
-
     openarray_base := nil; { Modula2 only, but initialization needed for all }
     firstbr := nil;
     lastnode := nil;
@@ -2650,18 +2641,16 @@ procedure initblock;
     {initialize the keytable to empty}
 
     for i := lowesttemp to keysize do
-      with keytable[i] do
-        begin
-        properreg := i;
-        properreg2 := i;
-        regvalid := false;
-        reg2valid := false;
-        regsaved := false;
-        reg2saved := false;
-        regenoprnd := nomode_oprnd;
-        validtemp := false;
-        tempflag := false;
-        end;
+      keytable[i] := keytable[lowestkey];
+
+    { initialize stack temp allocation vars
+    }
+
+    stackbase := keysize;
+    stackcounter := stackbase;
+    stackoffset := 0;
+    maxstackoffset := 0;
+    keytable[stackcounter].oprnd := index_oprnd(abstract_offset, sp, 0, false);
 
     keytable[keysize].refcount := maxrefcount;
 
@@ -7553,6 +7542,22 @@ procedure initcode;
 
     stackcounter := keysize - 1; {fiddle consistency check}
     stackbase := keysize - 1;
+
+    with keytable[lowestkey] do
+      begin
+      refcount := 0;
+      copycount := 0;
+      regvalid := false;
+      reg2valid := false;
+      regsaved := false;
+      reg2saved := false;
+      properreg := lowestkey;
+      properreg2 := lowestkey;
+      regenoprnd := nomode_oprnd;
+      oprnd := nomode_oprnd;
+      validtemp := false;
+      tempflag := false;
+      end;
 
     if peeping then for i := 0 to maxpeephole do peep[i] := 0;
 

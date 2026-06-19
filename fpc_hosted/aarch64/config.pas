@@ -429,6 +429,7 @@ const
 
   labeltablesize = 1000; {max number of labels per block}
   lowesttemp = - 64; {lowest temp key which can be allocated}
+  lowestkey = -65; {used to store a nomode operand, etc }
 
 { Virtual memory sizing constants }
 { These are all HOST, not target dependent }

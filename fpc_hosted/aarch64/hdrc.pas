@@ -482,7 +482,7 @@ type
       modifiable: boolean; {if false don't replace with register}
     end;
 
-  keytabletype = array [lowesttemp..keysize] of keyx;
+  keytabletype = array [lowestkey..keysize] of keyx;
 
 { As branches are generated, branch link elements are set up to keep track of
   all branches which point to the same node.  This is used in branch tail
