@@ -2084,7 +2084,7 @@ procedure markreg(r: regindex {register to clobber} );
             begin
             if i >= keymark then 
               begin
-              if not regsaved and (refcount > 0) then
+              if not regsaved and (regenoprnd.mode = nomode) and (refcount > 0) then
                 begin
                 if not saved then
                   begin
@@ -7196,7 +7196,6 @@ procedure codeone;
     tempkey := loopcount - 1;
     setcommonkey;
     use_preferred_key := false; {code generator flag}
-
     { Dump pseudocode into macfile but don't gen code.
     }
 
