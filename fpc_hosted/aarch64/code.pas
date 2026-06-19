@@ -5054,63 +5054,62 @@ begin {cmpsetx}
     end;
 end {cmpsetx};
 
-procedure cmpsetinclusion(left, right: keyindex);
+procedure cmpsetinclusion(operand1, operand2: keyindex);
 
 { Generate a test for pure set inclusion, used by geqset and leqset.  The
   only difference is in the order of the operands.  The actual test is to
-  nand the left operand with a copy of the right operand and check for zero.
+  nand the operand1 operand with a copy of the operand2 operand and check for zero.
 
   This could easily be merged with cmpsetx if length is greater than long but
   I'm too lazy.
 }
 
 var
-  tempregkey, tempreg2key, tempreg3key, tempreg4key, leftregkey, rightregkey: keyindex;
+  tempregkey, tempreg2key, tempreg3key, tempreg4key, operand1regkey, operand2regkey: keyindex;
   skiplabel: labelindex;
 
 begin {cmpsetinclusion}
-  { not the global left and right! }
-  address(left, 0);
-  lock(left);
-  address(right, 0);
+  address(operand1, 0);
+  lock(operand1);
+  address(operand2, 0);
   if len <= long then
     begin
-    unlock(left);
-    loadreg(left, right);
-    loadreg(right, left);
-    gen3(lastnode, buildinst(bic, true, true), left, right, left);
+    unlock(operand1);
+    loadreg(operand1, operand2);
+    loadreg(operand2, operand1);
+    gen3(lastnode, buildinst(bic, true, true), operand1, operand2, operand1);
     end
   else
     begin
-    lock(right);
-    leftregkey := settemp(long, reg_oprnd(getreg));
-    genmoveaddress(lastnode, left, leftregkey);
-    keytable[leftregkey].oprnd.mode := post_index;
-    keytable[leftregkey].oprnd.index := quad;
-    lock(leftregkey);
-    rightregkey := settemp(long, reg_oprnd(getreg));
-    genmoveaddress(lastnode, right, rightregkey);
-    keytable[rightregkey].oprnd.mode := post_index;
-    keytable[rightregkey].oprnd.index := quad;
-    unlock(right);
-    unlock(left);
-    lock(rightregkey);
+    lock(operand2);
+    operand1regkey := settemp(long, reg_oprnd(getreg));
+    genmoveaddress(lastnode, operand1, operand1regkey);
+    keytable[operand1regkey].oprnd.mode := post_index;
+    keytable[operand1regkey].oprnd.index := quad;
+    lock(operand1regkey);
+    operand2regkey := settemp(long, reg_oprnd(getreg));
+    genmoveaddress(lastnode, operand2, operand2regkey);
+    keytable[operand2regkey].oprnd.mode := post_index;
+    keytable[operand2regkey].oprnd.index := quad;
+    unlock(operand2);
+    unlock(operand1);
+    lock(operand2regkey);
     tempregkey := settemp(long, reg_oprnd(ip0));
     tempreg2key := settemp(long, reg_oprnd(ip1)); 
     tempreg3key := settemp(long, reg_oprnd(getreg));
     lock(tempreg3key);
     tempreg4key := settemp(long, reg_oprnd(getreg));
     unlock(tempreg3key);
-    unlock(rightregkey);
-    unlock(leftregkey);
+    unlock(operand2regkey);
+    unlock(operand1regkey);
  
     skiplabel := lastlabel;
     lastlabel := lastlabel - 1;
 
     while len >= quad do
       begin
-      gen3(lastnode, buildinst(ldp, true, false), tempregkey, tempreg2key, leftregkey);
-      gen3(lastnode, buildinst(ldp, true, false), tempreg3key, tempreg4key, rightregkey);
+      gen3(lastnode, buildinst(ldp, true, false), tempregkey, tempreg2key, operand1regkey);
+      gen3(lastnode, buildinst(ldp, true, false), tempreg3key, tempreg4key, operand2regkey);
       gen3(lastnode, buildinst(bic, true, true), tempregkey, tempreg3key, tempregkey);
       genbcond(lastnode, ne, skiplabel);
       gen3(lastnode, buildinst(bic, true, true), tempreg2key, tempreg4key, tempreg2key);
@@ -5120,8 +5119,8 @@ begin {cmpsetinclusion}
       end;
     if len = long then
       begin
-      genldr(lastnode, long, false, tempregkey, leftregkey);
-      genldr(lastnode, long, false, tempreg3key, rightregkey);
+      genldr(lastnode, long, false, tempregkey, operand1regkey);
+      genldr(lastnode, long, false, tempreg3key, operand2regkey);
       gen3(lastnode, buildinst(bic, true, true), tempregkey, tempreg3key, tempregkey);
       end;
     definelabel(skiplabel);
