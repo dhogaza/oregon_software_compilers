@@ -120,9 +120,9 @@
 #
 	.global _main
 _main:
-	sub	sp,sp,48
-	stp	x30,x29,[sp,32]
-	add	x29,sp,32
+	sub	sp,sp,32
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
 	mov	x17,sp
 	adrp	x16,.L32764@PAGE
 	str	x17,[x16,.L32764@PAGEOFF]
@@ -156,21 +156,13 @@ _main:
 	strb	w17,[x14],1
 	subs	x16,x16,1
 	cbnz	x16,.L32762
-	adrp	x15,.L32766@PAGE
-	add	x15,x15,.L32766+44@PAGEOFF
-	sub	x14,x29,32
-	mov	x16,12
-.L32761:
-	ldrb	w17,[x15],1
-	strb	w17,[x14],1
-	subs	x16,x16,1
-	cbnz	x16,.L32761
 	sub	x0,x29,16
-	sub	x1,x29,32
+	adrp	x15,.L32766@PAGE
+	add	x1,x15,.L32766+44@PAGEOFF
 	mov	x2,1
 	mov	x3,3
 	bl	.P1  // p
 .L12:
-	ldp	x30,x29,[sp,32]
-	add	sp,sp,48
+	ldp	x30,x29,[sp,16]
+	add	sp,sp,32
 	ret
