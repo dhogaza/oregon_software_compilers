@@ -1,5 +1,5 @@
-
 type str=string[255];
+  intarray = array [1..10] of integer;
 
 procedure p(var i: integer);
 begin
@@ -24,8 +24,23 @@ end;
 procedure p2(const i: integer);
 begin
 end;
+
+procedure p3(const a:array[i..j:integer] of integer);
+begin end;
 {$nostandard}
 
+procedure p4(var aa:array [i..j:integer] of integer);
 begin
-  p1('abc', 'xyz', 3, 4);
+end;
+
+procedure p5(const aa:array [i..j:integer] of integer);
+
+  var ptr:^integer;
+begin
+  aa[2] := 3;
+  ptr := ref(aa[1]);
+  p4(aa);
+end;
+
+begin
 end.
