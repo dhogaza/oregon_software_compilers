@@ -2703,8 +2703,7 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
           begin
           if token = univsym then
             begin
-{DRB ?}
-            if not (paramkind in [varparam, constparam]) then warn(baduniv);
+            if paramkind <> varparam then warn(baduniv);
             gettoken;
             univflag := true;
             end;
