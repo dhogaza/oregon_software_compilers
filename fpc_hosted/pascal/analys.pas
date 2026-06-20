@@ -2694,8 +2694,8 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
 
         if token in [packedsym, arraysym] then
           begin
-{DRB const confparam?}
           if paramkind = varparam then paramkind := varconfparam
+          else if paramkind = constparam then paramkind := constconfparam
           else paramkind := confparam;
           conformantparam(paramkind, paramtype);
           end
@@ -2736,7 +2736,7 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
             p^.univparam := true;
             end;
           end;
-        if paramkind in [varconfparam, confparam] then
+        if paramkind in [constconfparam, varconfparam, confparam] then
           allocboundids(paramtype);
         if bigcompilerversion then paramptr := @(bigtable[last]);
         paramptr^.lastinsection := true;
