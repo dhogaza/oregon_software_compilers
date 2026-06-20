@@ -189,9 +189,9 @@ type
                (consttype: index; {type for this constant}
                 constvalue: const_descr {value for this constant} );
              varname, fieldname, param, varparam, constparam, procparam,
-             funcparam, confparam, varconfparam, boundid, undefname,
-             procname, funcname, forwardproc, forwardfunc, externalproc,
-             externalfunc:
+             funcparam, confparam, constconfparam, varconfparam, boundid,
+             undefname, procname, funcname, forwardproc, forwardfunc,
+             externalproc, externalfunc:
                (modified: boolean; {becomes true when value assigned}
                 nestedmod: boolean; {true if modified by nested procedure}
                 parammodified: boolean; {becomes true when param value changes}

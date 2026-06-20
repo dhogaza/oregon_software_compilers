@@ -100,8 +100,8 @@ type
   { symbol table entry types }
 
   nametype = (noname, varparam, constparam, param, funcparam, procparam, confparam,
-              varconfparam, boundid, typename, constname, scalarname, varname,
-              fieldname, procname, funcname, forwardproc, forwardfunc,
+              constconfparam, varconfparam, boundid, typename, constname, scalarname,
+              varname, fieldname, procname, funcname, forwardproc, forwardfunc,
               externalproc, externalfunc, undeftypename, undefname,
               standardproc, standardfunc, directivename, labelname);
 

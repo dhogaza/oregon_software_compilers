@@ -3688,13 +3688,13 @@ procedure statement(follow: tokenset {legal following symbols} );
           var_is_valid := false;
           case namekind of
             varname, fieldname, param, constparam, varparam, funcparam, procparam,
-            confparam, varconfparam, boundid:
+            confparam, constconfparam, varconfparam, boundid:
               begin
               var_is_valid := (namekind in [param, boundid]) or knownvalid;
               newresulttype(vartype);
               if (varlev < level) and
                  (namekind in [param, varparam, funcparam, procparam, confparam,
-                               varconfparam, boundid]) and
+                               constconfparam, varconfparam, boundid]) and
                  (varalloc in [regparam, realregparam, ptrregparam]) then
                 forcememoryparam(varlev, varptr);
               if varlev > level then
@@ -3815,9 +3815,8 @@ procedure statement(follow: tokenset {legal following symbols} );
                     end;
                   end
                 else
-{DRB}
-                  if (namekind in [param, constparam, varparam, funcparam, procparam, confparam,
-                                   varconfparam, boundid]) and
+                  if (namekind in [param, constparam, varparam, funcparam, procparam,
+                                  confparam, constconfparam, varconfparam, boundid]) and
                      (varalloc in [regparam, ptrregparam, realregparam]) and
                      registercandidate then
                     begin
@@ -3837,7 +3836,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                     getlevel(varlev,
                              namekind in
                              [param, varparam, funcparam, procparam, confparam,
-                              varconfparam, boundid]);
+                              constconfparam, varconfparam, boundid]);
                 len := sizeof(resultptr, unpacking);
 
                 { This fixes a 68k problem where a small packed array (of
@@ -4011,9 +4010,9 @@ procedure statement(follow: tokenset {legal following symbols} );
         with p^ do
           if namekind in
              [varname, fieldname, param, constparam, varparam, confparam,
-             varconfparam] then
+             constconfparam, varconfparam] then
             begin
-            if namekind = constparam then
+            if namekind in [constparam, constconfparam] then
               warn(modifyconstparam);
             modified := true;
             parammodified := true;
@@ -4542,7 +4541,7 @@ procedure statement(follow: tokenset {legal following symbols} );
         if bigcompilerversion then p := @(bigtable[paramindex]);
         namekind := p^.namekind;
         nextparam := p^.nextparamlink + 1;
-        if alreadywarned or (namekind in [param, constparam, confparam]) or
+        if alreadywarned or (namekind in [param, constparam, constconfparam, confparam]) or
            (paramindex = 0) then
           begin
           expression(follow + [comma, colon, rpar], false);
@@ -5939,7 +5938,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                       end;
                     end;
                   varname, fieldname, param, constparam, varparam, confparam, varconfparam,
-                  boundid:
+                  constconfparam, boundid:
                     variable(true, true, true, false, true, varindex);
                   forwardfunc, externalfunc, funcname: procedurecall(varindex);
                   funcparam: paramcall(varindex);
@@ -7309,7 +7308,8 @@ procedure statement(follow: tokenset {legal following symbols} );
       if bigcompilerversion then varptr := @(bigtable[varindex]);
       with varptr^ do
         if namekind in
-           [varname, fieldname, param, constparam, varparam, confparam, varconfparam] then
+           [varname, fieldname, param, constparam, varparam, confparam,
+            constconfparam, varconfparam] then
           begin
           modified := true;
           parammodified := true;
@@ -8040,9 +8040,10 @@ i: levelindex;
         if bigcompilerversion then varptr := @(bigtable[varindex]);
         case varptr^.namekind of
           standardproc: standardprocedures(varptr^.procid);
-          varname, fieldname, param, constparam, varparam, confparam, varconfparam:
+          varname, fieldname, param, constparam, varparam, confparam,
+          constconfparam, varconfparam:
             begin
-            if varptr^.namekind = constparam then
+            if varptr^.namekind in [constparam, constconfparam] then
               warn(constparamassign);
             newexprstmt(simple);
             assignment;
