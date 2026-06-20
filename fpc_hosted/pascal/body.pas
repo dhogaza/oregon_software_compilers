@@ -3744,14 +3744,12 @@ procedure statement(follow: tokenset {legal following symbols} );
                   if (varlev > 1) then
                     begin
                     proctable[display[level].blockref].intlevelrefs := true;
-{ not changing off in this case might break cses? }
                     if (varlev > 2) and (varalloc <> absolute) then
                       constpart := constpart + staticlinkoffset;
                     end;
                   registercandidate := false;
                   if newflag then nestedmod := true;
                   end;
-{DRB passed in registers in aarch64, is check for normalalloc necessary?}
                 if (varalloc = normalalloc) and (varlev = 1) and
                    ((varindex = outputindex) or (varindex = inputindex)) then
                   standardfilesreferenced := true;
@@ -4591,7 +4589,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                 end;
               gencheck(rangechkop, formaltype);
               end
-            else if (namekind = confparam) and
+            else if (namekind in [confparam, constconfparam]) and
                     (resultform = conformantarrays) then
               warnbefore(badconfactual);
             if namekind in [param, constparam] then
@@ -4608,7 +4606,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                 oprndstk[sp].oprndlen := formallen;
                 genparamvalue(p, resultform, stackparamcount);
                 end
-            else conformantparam(p, true);
+            else conformantparam(p, p^.modified);
             end;
           end
         else if token = ident then

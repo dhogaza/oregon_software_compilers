@@ -469,7 +469,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
     typeptr := @(bigtable[paramptr^.vartype]);
     paramptr^.allocated := true;
     paramptr^.registercandidate := false;
-    if (paramptr^.namekind in [varparam, varconfparam, confparam]) or
+    if (paramptr^.namekind in [varparam, varconfparam, constconfparam, confparam]) or
        (paramptr^.namekind in [param, constparam]) and ((length > maxparambytes) or
        (typeptr^.typ in [fields, arrays, strings])) and
        not (typeptr^.typ in [reals, doubles]) then
@@ -666,7 +666,8 @@ procedure getallocdata(form: entryptr; {type being allocated}
 
   begin
     fieldlen := sizeof(form, packedresult);
-    if varkind in [param, varparam, confparam, varconfparam, procparam, funcparam, boundid] then
+    if varkind in [param, varparam, confparam, constconfparam,varconfparam,
+                   procparam, funcparam, boundid] then
       fieldalign := stackalign
     else if packedresult and not (form^.typ in [arrays, fields]) and
             (spacelen mod (packingunit * bitsperunit) + fieldlen <=
@@ -828,7 +829,7 @@ procedure possibletemp(p:entryptr);
         localvar.typ := f^.typ;
         localvar.debugrecord := p^.dbgsymbol;
         localvar.is_param := p^.namekind in [param, varparam, confparam, varconfparam,
-                                             constparam, boundid];
+                                             constconfparam, constparam, boundid];
         write(locals, localvar);
         end;
       end;

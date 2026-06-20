@@ -2721,7 +2721,7 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
         else warn(notypenameerr);
 
         if bigcompilerversion then paramptr := @(bigtable[paramtype]);
-        if paramptr^.containsfile and (paramkind in [param, confparam]) then
+        if paramptr^.containsfile and (paramkind in [param, confparam, constconfparam]) then
           warn(novaluefile);
 
         for t := first to last do
