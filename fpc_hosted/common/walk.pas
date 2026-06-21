@@ -1586,9 +1586,9 @@ with target = 0.
        tk: keyindex;
 
       begin {regreturnnode}
-        mapkey;
         walkvalue(l, lkey, key);
-        genpseudo(psop, len, key, 1, copycount, r, 0, 0);
+        mapkey;
+        genpseudo(psop, len, key, 1, 0, r, 0, 0);
         tk := newkey;
         context[contextsp].high := tk;
         keytable[tk] := 0;
