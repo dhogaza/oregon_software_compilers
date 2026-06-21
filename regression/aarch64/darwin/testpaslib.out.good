@@ -1,4 +1,9 @@
 yz  a 100!
 abc xyz xyz
 false truefalsetrue     false      true
-          10          20
+expecting 10 20
+ 10 20
+execting 2: 2
+expecting 0: 0
+expecting 1: 1
+expecting 2: 2
