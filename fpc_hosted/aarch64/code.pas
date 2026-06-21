@@ -5262,10 +5262,10 @@ procedure sysfnintx;
       eofid: eolneofx(eofbit);
       roundid, truncid, fintid:
         truncround(standardids(pseudoinst.oprnds[2]));
-      succid: incdec(add, false);
-      predid: incdec(sub, false);
       sqrid:
 }
+      succid: incdec(add);
+      predid: incdec(sub);
       absid: absintx;
 {
       ioerrorid: callsimplefn(libioerror);
@@ -5274,6 +5274,33 @@ procedure sysfnintx;
 }
       end;
   end {sysfnintx} ;
+
+procedure sysfnstringx;
+
+{ Generate code for a system function with string arguments.
+}
+
+
+  procedure stringintfn(libroutine: libroutines);
+
+
+    begin {simplestringfn}
+      callsupport(libroutine, true);
+      setvalue(reg_oprnd(0));
+      firstreg := 1;
+    end {simplestringfn} ;
+
+
+  begin {sysfnstringx}
+    case standardids(right) of
+      posid: stringintfn(libpos);
+{
+      copyid: stringstringfn(libcopy, 3);
+}
+      end;
+    dontchangevalue := dontchangevalue - 1;
+  end {sysfnstringx} ;
+
 
 procedure sysroutinex;
 
@@ -7300,8 +7327,8 @@ procedure codeone;
       callroutine: callroutinex(true);
       unscallroutine: callroutinex(false);
       sysfnint: sysfnintx;
-{
       sysfnstring: sysfnstringx;
+{
       sysfnreal: sysfnrealx;
       castreal: castrealx;
       castrealint: castrealintx;

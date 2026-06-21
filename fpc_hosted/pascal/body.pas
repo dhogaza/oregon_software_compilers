@@ -4117,7 +4117,7 @@ procedure statement(follow: tokenset {legal following symbols} );
     end {stringtarget} ;
 
 
-  procedure stringsource;
+  procedure stringsource(var regparams: regparamstype);
 
 { Parse a string source parameter for intrinsic string params.  Parameter
   is passed by reference but any string-look-alike is allowed including
@@ -4132,7 +4132,7 @@ procedure statement(follow: tokenset {legal following symbols} );
         genunary(arraystrop, arrays)
       else if not (resultform in [strings, none]) then warnbefore(nostringerr);
       oprndstk[sp].oprndlen := ptrsize;
-      genunary(pushaddr, strings);
+      genstdparamaddr(strings, regparams);
     end {stringsource} ;
 
 
@@ -5606,9 +5606,9 @@ procedure statement(follow: tokenset {legal following symbols} );
           genop(reserve);
           genint(shorttargetintsize);
           verifytoken(lpar, nolparerr);
-          stringsource;
+          stringsource(regparams);
           verifytoken(comma, nocommaerr);
-          stringsource;
+          stringsource(regparams);
           verifytoken(rpar, norparerr);
           newresulttype(intindex);
 { Must remove the parameters from the evaluation stack, since pos is a
@@ -6980,7 +6980,7 @@ procedure statement(follow: tokenset {legal following symbols} );
       begin {insert}
         genop(bldnil);
         verifytoken(lpar, nolparerr);
-        stringsource;
+        stringsource(regparams);
         verifytoken(comma, nocommaerr);
         stringtarget(regparams);
         verifytoken(comma, nocommaerr);
@@ -7025,7 +7025,7 @@ procedure statement(follow: tokenset {legal following symbols} );
       begin {val}
         genop(bldnil);
         verifytoken(lpar, nolparerr);
-        stringsource;
+        stringsource(regparams);
         verifytoken(comma, nocommaerr);
         modifyvariable(true, true);
         if not (identical(resulttype, intindex) or identical(resulttype,
