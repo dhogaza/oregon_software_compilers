@@ -19,6 +19,7 @@ procedure free(const p: _p_charptr); nonpascal;
 { pascal-2 lib declarations }
 
 procedure _p_caseerr; external;
+function _p_pos(const src, match: _p_shortstring): integer; external;
 procedure _p_wtc_o(ch: char; width: integer); external;
 procedure _p_wti_o(i: integer; width: integer); external;
 procedure _p_wtb_o(b: boolean; width: integer); external;
@@ -29,7 +30,9 @@ procedure _p_dispos(var p: _p_charptr; size: int64); external;
 
 { pascal-2 library implementations }
 
-{ These will be replaced by compiler-generated code }
+{ String library.  The two consversion routines might be replaced
+  by compiler-generated code.
+}
 
 procedure _p_toshortstring(var s: _p_shortstring; p: _p_charptr);
 
@@ -66,7 +69,41 @@ begin
   _p_cstring := ref(c.a^[1]);
 end;
 
+function _p_pos;
 
+var
+  i, j, k, srclen, matchlen: integer;
+  found: boolean;
+ 
+begin
+  i := 0;
+  srclen := length(src);
+  matchlen := length(match);
+
+  found := false;
+  while not found and (i < srclen) do
+    begin
+    i := i + 1;
+    found := src[i] = match[1];
+    if found then
+      begin
+      j := 1;
+      k := i;
+      while found and (k < srclen) and (j < matchlen) do
+        begin
+        k := k + 1;
+        j := j + 1;
+        found := src[k] = match[j];
+        end;
+      end;
+    end;
+
+  if found then
+    _p_pos := i
+  else _p_pos := 0
+
+end;
+    
 procedure _p_caseerr;
   begin
     writeln('case error');
