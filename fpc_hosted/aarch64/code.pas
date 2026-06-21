@@ -7495,7 +7495,10 @@ procedure codeone;
 
     while (keytable[lastkey].refcount = 0) and
           (lastkey >= context[contextsp].keymark) do
+      begin
+      keytable[lastkey] := keytable[lowestkey];
       lastkey := lastkey - 1;
+      end;
 
     if switcheverplus[test] then
       begin
