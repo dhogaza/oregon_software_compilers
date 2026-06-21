@@ -98,8 +98,8 @@ _p_wtb_o:
 	stp	x30,x29,[sp,40]
 	add	x29,sp,40
 	str	x28,[x29,-8]
-	str	x0,[x29,-16]
 # Line: 80, Stmt: 1
+	str	x0,[x29,-16]
 # Line: 81, Stmt: 2
 	eor	w15,w0,1
 	mov	x14,5
@@ -189,8 +189,8 @@ _p_wti_o:
 	add	x29,sp,48
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
-	mov	x26,x0
 # Line: 106, Stmt: 1
+	mov	x26,x0
 # Line: 107, Stmt: 2
 	mov	x27,xzr
 # Line: 108, Stmt: 0
@@ -274,9 +274,9 @@ _p_wts_o:
 	stp	x30,x29,[sp,40]
 	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
-	str	x1,[x29,-24]
-	mov	x27,x0
 # Line: 140, Stmt: 1
+	mov	x27,x0
+	str	x1,[x29,-24]
 # Line: 141, Stmt: 2
 	sub	w15,w2,w1
 	sub	w14,w15,1

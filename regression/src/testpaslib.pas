@@ -31,7 +31,12 @@ begin
   new(recp);
   recp^.a := 10;
   recp^.b := 20;
-  writeln(recp^.a, recp^.b);
+  writeln('expecting 10 20'); writeln(recp^.a:3, recp^.b:3);
   dispose(recp);
+
+  write('execting 2: '); writeln(pos('abc', 'b'):1);
+  write('expecting 0: '); writeln(pos('xyz', 'b'):1);
+  write('expecting 1: '); writeln(pos('xyz', 'xyz'):1);
+  write('expecting 2: '); writeln(pos('xyz', 'yz'):1);
 
 end.

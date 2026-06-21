@@ -38,10 +38,10 @@
 	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
-	mov	x26,x2
-	mov	x27,x1
-	mov	x25,x0
 # Line: 42, Stmt: 1
+	mov	x25,x0
+	mov	x27,x1
+	mov	x26,x2
 # Line: 43, Stmt: 2
 	mov	x28,x27
 .L7:
@@ -77,10 +77,10 @@
 	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
-	mov	x26,x2
-	mov	x27,x1
-	mov	x25,x0
 # Line: 57, Stmt: 1
+	mov	x25,x0
+	mov	x27,x1
+	mov	x26,x2
 # Line: 58, Stmt: 2
 	mov	x28,x27
 .L11:

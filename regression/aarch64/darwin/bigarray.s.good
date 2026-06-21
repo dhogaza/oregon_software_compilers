@@ -56,8 +56,8 @@
 	add	x29,sp,64
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
-	mov	x26,x0
 # Line: 23, Stmt: 1
+	mov	x26,x0
 # Line: 24, Stmt: 2
 	mov	x27,xzr
 # Line: 25, Stmt: 0

@@ -59,9 +59,9 @@ putstring:
 	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
 	str	x26,[x29,-24]
-	mov	x27,x1
-	mov	x26,x0
 # Line: 27, Stmt: 1
+	mov	x26,x0
+	mov	x27,x1
 # Line: 28, Stmt: 2
 	str	x2,[x29,-32]
 	mov	x28,x27
@@ -94,9 +94,9 @@ putstringln:
 	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
 	str	x26,[x29,-24]
-	mov	x27,x1
-	mov	x26,x0
 # Line: 33, Stmt: 1
+	mov	x26,x0
+	mov	x27,x1
 # Line: 34, Stmt: 2
 	str	x2,[x29,-32]
 	mov	x28,x27
@@ -130,8 +130,8 @@ puthex:
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
 	stp	x27,x28,[x29,-16]
-	mov	x27,x0
 # Line: 44, Stmt: 1
+	mov	x27,x0
 # Line: 45, Stmt: 2
 	mov	x28,xzr
 .L12:
@@ -207,8 +207,8 @@ putint:
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
 	stp	x27,x28,[x29,-16]
-	mov	x27,x0
 # Line: 76, Stmt: 1
+	mov	x27,x0
 # Line: 77, Stmt: 2
 	cmp	w27,wzr
 	b.ge	.L26

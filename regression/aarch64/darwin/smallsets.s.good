@@ -122,8 +122,8 @@
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
 	stp	x27,x28,[x29,-16]
-	mov	x27,x0
 # Line: 25, Stmt: 1
+	mov	x27,x0
 # Line: 26, Stmt: 2
 	mov	x28,xzr
 .L6:
@@ -157,8 +157,8 @@
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
 	stp	x27,x28,[x29,-16]
-	mov	x27,x0
 # Line: 33, Stmt: 1
+	mov	x27,x0
 # Line: 34, Stmt: 2
 	mov	x28,xzr
 .L10:

@@ -63,9 +63,9 @@
 	stp	x26,x27,[x29,-16]
 	stp	x24,x25,[x29,-32]
 	str	x23,[x29,-40]
-	mov	x23,x1
-	mov	x24,x0
 # Line: 58, Stmt: 1
+	mov	x24,x0
+	mov	x23,x1
 # Line: 61, Stmt: 2
 	ldr	x15,[x28,-8]
 	ldr	x15,[x15,16]
@@ -157,9 +157,9 @@
 	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
-	mov	x27,x1
-	mov	x25,x0
 # Line: 81, Stmt: 1
+	mov	x25,x0
+	mov	x27,x1
 # Line: 83, Stmt: 2
 	cmp	w25,w27
 	b.ge	.L22
@@ -196,8 +196,8 @@
 	stp	x30,x29,[sp,8]
 	add	x29,sp,8
 	str	x28,[x29,-8]
-	str	x0,[x29,16]
 # Line: 90, Stmt: 1
+	str	x0,[x29,16]
 # Line: 91, Stmt: 2
 	mov	x0,1
 	movz	x1,34464
