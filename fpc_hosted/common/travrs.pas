@@ -2061,8 +2061,8 @@ procedure build;
           begin
           if bigcompilerversion then p := @(bignodetable[n]);
           p^.slink := opmap[hashvalue];
-          { operators at contextlevel 1 are hoisted for free }
-          if contextlevel = 1 then
+          { operators at contextlevels zero or one are hoisted for free }
+          if contextlevel <= 1 then
             begin
             p^.prelink := p^.slink;
             p^.hoistedby := root;
@@ -2693,8 +2693,8 @@ procedure build;
                     with ptr^ do
                       begin
                       refcount := refcount + 1;
-                      if ptr^.action = visit then
-                        if ptr^.op = commaop then
+                      if action = visit then
+                        if op = commaop then
                           increfcount(ptr^.oprnds[2], deadcode, 1);
                       copycount := copycount + 1
                       end;
@@ -3942,7 +3942,7 @@ procedure build;
                   n.oprndlist[i].relation := false;
                   end;
                 sp := sp - 1;
-                insertnode(1);
+                insertnode(0);
                 end
               else
                 begin
@@ -4125,7 +4125,7 @@ procedure build;
                 collectoprnds(2);
                 end
               else collectoprnds(1);
-              insertnode(1);
+              insertnode(0);
             end {buildptrnode} ;
 
 
@@ -4159,7 +4159,7 @@ procedure build;
                   read(tempfiletwo, tempfilebuf);
                   n.len := getintfileint;
                   getintreal(n.rval);
-                  insertnode(1);
+                  insertnode(0);
                   end;
                 pascal, modula2:
                   begin
@@ -4178,13 +4178,13 @@ procedure build;
                   else j := 2;
 
                   collectoprnds(j);
-                  insertnode(1);
+                  insertnode(0);
                   intpieces := intpieces - j;
 
                   while intpieces > 0 do
                     begin
                     collectoprnds(3);
-                    insertnode(1);
+                    insertnode(0);
                     intpieces := intpieces - 2;
                     end;
                   end;
@@ -4284,7 +4284,7 @@ procedure build;
               openarrayop:
                 begin
                 collectwork(2);
-                insertnode(1);
+                insertnode(0);
                 sp := 0; {throw it away}
                 end;
               commaop:
@@ -4484,7 +4484,7 @@ procedure build;
                       end;
                     if (n.oprndlist[1].i = level) then
                       begin
-                      insertnode(1);
+                      insertnode(0);
                       localparamnode := stack[sp].p;
                       end
                     else insertnormal;
@@ -4500,7 +4500,7 @@ procedure build;
                       end;
                     if (n.oprndlist[1].i >= level - 1) then
                       begin
-                      insertnode(1);
+                      insertnode(0);
                       localparamnode := stack[sp].p;
                       end
                     else insertnormal;
@@ -4538,12 +4538,12 @@ procedure build;
                 begin {this and other literals are entered in context 1}
                 buildintoprnds(0);
 {DRB}
-                insertnode(1);
+                insertnode(0);
                 end;
               fptrop:
                 begin
                 buildintoprnds(1);
-                insertnode(1);
+                insertnode(0);
                 end;
               ptrop: buildptrnode;
               realop: buildrealnode(targetrealsize, reals);
@@ -4556,7 +4556,7 @@ procedure build;
                 end;
               varop, unsvarop: buildvarnode;
               newvarop, newunsvarop: buildnewvarnode;
-              ownop: insertnode(1);
+              ownop: insertnode(0);
               extop:
                 begin
                 buildintoprnds(1);
@@ -4577,7 +4577,7 @@ procedure build;
                   litflag := true;
                   i := 1
                   end;
-                insertnode(1);
+                insertnode(0);
                 end;
               originop, segop:
                 begin
@@ -4593,7 +4593,7 @@ procedure build;
                   relation := false;
                   i := level
                   end;
-                insertnode(1);
+                insertnode(0);
                 end;
               lit: pushlitint;
               withop:
