@@ -7218,11 +7218,8 @@ procedure codeone;
       blockentry: blockentryx;
       blockcode: blockcodex;
       blockexit: blockexitx;
-{
-      doreal: dorealx;
-      dofptr: dofptrx;
-}
       stmtbrk: stmtbrkx;
+
       copyaccess: copyaccessx;
       clearlabel: clearlabelx;
       savelabel: savelabelx;
@@ -7231,6 +7228,7 @@ procedure codeone;
       pseudolabel: pseudolabelx;
       pascallabel: pascallabelx;
       pascalgoto: pascalgotox;
+
       defforlitindex: defforindexx(true, true);
       defforindex: defforindexx(true, false);
       defunsforlitindex: defforindexx(false, true);
@@ -7241,11 +7239,7 @@ procedure codeone;
       foruptop: fortopx(gt, hi);
       forupbottom: forbottomx(false, add, le, ls);
       forupimproved: forbottomx(true, add, le, ls);
-{
-      forupchk: forcheckx(true);
-      fordnchk: forcheckx(false);
-      forerrchk: forerrchkx;
-}
+
       casebranch: casebranchx;
       caseelt: caseeltx;
       caseerr: caseerrx;
@@ -7255,17 +7249,10 @@ procedure codeone;
       dounsvar, doptrvar, dofptrvar: dovarx(false);
 {
       doext: doextx;
-      indxchk: checkx(false, index_error);
-      rangechk: checkx(true, range_error);
-      congruchk: checkx(true, index_error);
 }
       regparam: regparamx;
       regtarget: regtargetx;
       regtemp: regtempx;
-{
-      realregparam: realregparamx;
-      realtemp: realtempx;
-}
       indxindr: indxindrx;
       indx: indxx;
       aindx: aindxx;
@@ -7281,10 +7268,6 @@ procedure codeone;
       movint, returnint, returnptr, returnfptr: movintptrx;
       movptr: movptrx;
       movlitint, movlitptr: movlitintx;
-{
-      movreal, returnreal: movrealx;
-      movlitreal: movlitrealx;
-}
       movstruct, returnstruct: movstructx;
       movset: movsetx;
       movstr: movstrx;
@@ -7307,13 +7290,7 @@ procedure codeone;
       xorint: logicalarithmetic(eor);
       compint: compintx;
       compbool: compboolx;
-{
-      addreal: realarithmeticx(true, libfadd, libdadd, fadd);
-      subreal: realarithmeticx(false, libfsub, libdsub, fsub);
-      mulreal: realarithmeticx(true, libfmult, libdmult, fmul);
-      divreal: realarithmeticx(false, libfdiv, libddiv, fdiv);
-      negreal: negrealx;
-}
+
       addset: setarithmetic(orinst);
       subset: setarithmetic(bic);
       mulset: setarithmetic(andinst);
@@ -7335,18 +7312,11 @@ procedure codeone;
       sysroutine: sysroutinex;
       chrstr: chrstrx;
       arraystr: arraystrx;
-{
-      flt: fltx;
-}
+
       pshint, pshptr: pshintptrx;
       pshlitint, pshlitptr, pshlitfptr: pshlitintptrx;
       pshaddr: pshaddrx;
       pshproc: pshprocx;
-{
-      pshfptr: pshfptrx;
-      pshlitreal: pshlitrealx;
-      pshreal: pshx;
-}
 {
       Not needed because no builtins need stack params.
       pshstraddr: pshstraddrx;
@@ -7372,24 +7342,12 @@ procedure codeone;
       wrbin: callsupport(libput, true);
       wrst: wrstx;
       wrxstr: wrstx;
-{
-      wrreal: wrrealx;
-}
       wrint: wrcommon(libwriteint, 12);
       wrchar: wrcommon(libwritechar, 1);
       wrbool: wrcommon(libwritebool, 5);
       jump: jumpx(pseudoinst.oprnds[1]);
       jumpf: jumpcond(true);
       jumpt: jumpcond(false);
-{
-
-      eqreal: cmprealx(beq, libdeql, fbngl);
-      neqreal: cmprealx(bne, libdeql, fbgl);
-      lssreal: cmprealx(blt, libdlss, fblt);
-      leqreal: cmprealx(ble, libdlss, fble);
-      geqreal: cmprealx(bge, libdgtr, fbge);
-      gtrreal: cmprealx(bgt, libdgtr, fbgt);
-}
 
       eqint, eqptr, eqfptr: cmpintptrx(eq, eq);
       neqint, neqptr: cmpintptrx(ne, ne);
@@ -7412,14 +7370,6 @@ procedure codeone;
       lssstr: cmpstrx(lo);
       gtrstr: cmpstrx(hi);
 
-{
-      eqlitreal: cmplitrealx(beq, libdeql, fbngl);
-      neqlitreal: cmplitrealx(bne, libdeql, fbgl);
-      lsslitreal: cmplitrealx(blt, libdlss, fblt);
-      leqlitreal: cmplitrealx(ble, libdlss, fble);
-      gtrlitreal: cmplitrealx(bgt, libdgtr, fbgt);
-      geqlitreal: cmplitrealx(bge, libdgtr, fbge);
-}
       eqlitint, eqlitptr: cmplitintx(eq, eq);
       neqlitint, neqlitptr: cmplitintx(ne, ne);
       leqlitint: cmplitintx(le, ls);
@@ -7433,7 +7383,6 @@ procedure codeone;
       leqset: cmpsetinclusion(right, left);
 
 {
-      ptrchk: ptrchkx;
       definelazy: definelazyx;
 }
       restoreloop: restoreloopx;
@@ -7453,6 +7402,45 @@ procedure codeone;
       jointemp: jointempx;
       startreflex: dontchangevalue := dontchangevalue + 1;
       endreflex: dontchangevalue := dontchangevalue - 1;
+
+  Runtime error checks
+      indxchk: checkx(false, index_error);
+      rangechk: checkx(true, range_error);
+      congruchk: checkx(true, index_error);
+      forupchk: forcheckx(true);
+      fordnchk: forcheckx(false);
+      forerrchk: forerrchkx;
+      ptrchk: ptrchkx;
+
+  Reals
+      doreal: dorealx;
+      dofptr: dofptrx;
+      realregparam: realregparamx;
+      realtemp: realtempx;
+      flt: fltx;
+      movreal, returnreal: movrealx;
+      movlitreal: movlitrealx;
+      addreal: realarithmeticx(true, libfadd, libdadd, fadd);
+      subreal: realarithmeticx(false, libfsub, libdsub, fsub);
+      mulreal: realarithmeticx(true, libfmult, libdmult, fmul);
+      divreal: realarithmeticx(false, libfdiv, libddiv, fdiv);
+      negreal: negrealx;
+      eqlitreal: cmplitrealx(beq, libdeql, fbngl);
+      neqlitreal: cmplitrealx(bne, libdeql, fbgl);
+      lsslitreal: cmplitrealx(blt, libdlss, fblt);
+      leqlitreal: cmplitrealx(ble, libdlss, fble);
+      gtrlitreal: cmplitrealx(bgt, libdgtr, fbgt);
+      geqlitreal: cmplitrealx(bge, libdgtr, fbge);
+      eqreal: cmprealx(beq, libdeql, fbngl);
+      neqreal: cmprealx(bne, libdeql, fbgl);
+      lssreal: cmprealx(blt, libdlss, fblt);
+      leqreal: cmprealx(ble, libdlss, fble);
+      geqreal: cmprealx(bge, libdgtr, fbge);
+      gtrreal: cmprealx(bgt, libdgtr, fbgt);
+      wrreal: wrrealx;
+      pshfptr: pshfptrx;
+      pshlitreal: pshlitrealx;
+      pshreal: pshx;
 }
       otherwise
         begin

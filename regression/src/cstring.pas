@@ -61,7 +61,7 @@ begin
     end;
 end;
 
-procedure printf(p: _p_charptr); nonpascal;
+procedure printf(const p: _p_charptr); nonpascal;
 
 begin
   writecstring(cstring('abc'));

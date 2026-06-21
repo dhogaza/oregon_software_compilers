@@ -2815,7 +2815,7 @@ type
           case targetmachine of
             pdp11, vax: realmode := DECformat;
             iapx86, i80386, ns32k: realmode := INTELformat;
-            mc68000: realmode := IEEEformat;
+            mc68000, aarch64: realmode := IEEEformat;
             otherwise
               begin
               write('unknown targetmachine ');

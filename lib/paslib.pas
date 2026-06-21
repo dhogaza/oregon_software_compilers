@@ -11,10 +11,10 @@ type
   _p_shortstring = string[255];
 
 {glibc}
-procedure exit(code: integer); nonpascal;
-procedure putchar(ch: char); nonpascal;
-function malloc(size: int64): _p_charptr; nonpascal;
-procedure free(p: _p_charptr); nonpascal;
+procedure exit(const code: integer); nonpascal;
+procedure putchar(const ch: char); nonpascal;
+function malloc(const size: int64): _p_charptr; nonpascal;
+procedure free(const p: _p_charptr); nonpascal;
 
 { pascal-2 lib declarations }
 
@@ -22,7 +22,7 @@ procedure _p_caseerr; external;
 procedure _p_wtc_o(ch: char; width: integer); external;
 procedure _p_wti_o(i: integer; width: integer); external;
 procedure _p_wtb_o(b: boolean; width: integer); external;
-procedure _p_wts_o(var str: _p_stringarray; length: integer; width: integer); external;
+procedure _p_wts_o(const str: _p_stringarray; length: integer; width: integer); external;
 procedure _p_wtln_o; external;
 procedure _p_new(var p: _p_charptr; size: int64); external;
 procedure _p_dispos(var p: _p_charptr; size: int64); external;
