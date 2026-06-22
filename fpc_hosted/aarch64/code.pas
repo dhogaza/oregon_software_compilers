@@ -6728,11 +6728,23 @@ procedure stacktargetx;
 
 procedure makeroomx;
 
+{ Create room on the stack for a function return value if it does not fit
+  in a general for floating point register, which is only true for certain
+  structures.
+}
+
 begin {makeroomx}
   saveactivekeys;
   paramoffset := 0;
   dontchangevalue := dontchangevalue + 1;
-end {makeroomx};
+
+  if proctable[pseudoinst.oprnds[1]].struct_ret then
+    begin
+    newtemp(len);
+    setallfields(stackcounter);
+    end;
+
+  end {makeroomx} ;
 
 procedure callroutinex(s: boolean {signed function value} );
 
@@ -6806,6 +6818,15 @@ procedure callroutinex(s: boolean {signed function value} );
         end;
       if proctable[pseudoinst.oprnds[1]].level <= 2 then
         levelhack := 0;
+
+{ DRB this doesn't really work either }
+      if proctable[pseudoinst.oprnds[1]].struct_ret then
+        begin
+        markreg(8);
+        settemp(long, reg_oprnd(8));
+        genmoveaddress(lastnode, stackcounter, tempkey);
+        end;
+
       gen1(lastnode, buildinst(bl, false, false),
            settemp(long, proccall_oprnd(pseudoinst.oprnds[1], max(0, levelhack))));
 
@@ -6835,9 +6856,11 @@ procedure callroutinex(s: boolean {signed function value} );
     { for stack parameters }
     dontchangevalue := dontchangevalue - 1;
 
-    { later need to deal with x0/x1 pairs.  This is broken anyway.
+    { later need to deal with x0/x1 pairs.
     }
-    if proctable[pseudoinst.oprnds[1]].realfunction then
+    if proctable[pseudoinst.oprnds[1]].struct_ret then
+      setvalue(index_oprnd(abstract_offset, 8, 0, false))
+    else if proctable[pseudoinst.oprnds[1]].realfunction then
       setvalue(fpreg_oprnd(0))
     else if (len <= long) then
       setvalue(reg_oprnd(0));

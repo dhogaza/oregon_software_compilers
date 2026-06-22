@@ -21,6 +21,12 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
+   -- string function return values ALMOST work
+
+   -- very bad code generator can't use proctable to determine where to
+      a value is returned in callroutinex.  Function body processing works
+      OK though.
+
    -- removing regparamhack reminded me that we need to recover stack
       space when we delete unneeded register spills.
 

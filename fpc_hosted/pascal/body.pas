@@ -3901,6 +3901,8 @@ procedure statement(follow: tokenset {legal following symbols} );
                     ptrregparam: genunary(ptrregparamop, none);
                     realregparam: genunary(realregparamop, none);
                     end; 
+                  if refparam then
+                    genunary(indrop, ptrs);
                   constpart := 0;
                   end 
                 end
@@ -8116,16 +8118,40 @@ procedure body;
     begin {functionreturn}
       if bigcompilerversion then
         procptr := @(bigtable[display[level].blockname]);
-      if procptr^.allocated and (procptr^.varalloc = normalalloc) and
+      if procptr^.allocated {and (procptr^.varalloc = normalalloc)} and
          (paramalloc(procptr, resultptr) <> normalalloc) then
         begin
         newexprstmt(simple);
         newresulttype(procptr^.vartype);
+
         off := procptr^.offset;
         len := sizeof(resultptr, false);
-        getlevel(level, false);
-        genlit(off);
-        genunary(indxop, ints);
+
+        if procptr^.varalloc <> normalalloc then
+          begin
+          genlit(0);
+          pushdummy;
+          genlit(off);
+          genlit(procptr^.regid);
+          len := procptr^.length;
+          if procptr^.refparam then
+            begin
+            resultform := ptrs;
+            len := ptrsize;
+            end
+          end
+        else
+          begin
+          getlevel(level, false);
+          genlit(off);
+          genunary(indxop, ints);
+          end;
+        oprndstk[sp].oprndlen := len;
+        case procptr^.varalloc of
+          regparam: genunary(regparamop, none);
+          ptrregparam: genunary(ptrregparamop, none);
+          realregparam: genunary(realregparamop, none);
+          end; 
         if unsigned(resultptr, len, false) then genop(unsvarop)
         else genop(varop);
         genint(len);

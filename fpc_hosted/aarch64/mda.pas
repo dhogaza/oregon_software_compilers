@@ -86,7 +86,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
 { Allocate space or a register for a single parameter.
 }
 
-procedure allocfunction(procptr: entryptr;
+procedure allocfunction(funcptr: entryptr;
                         var blocksize: addressrange);
 
 { Function return values are allocated in local variable storage and allowed to
@@ -542,7 +542,7 @@ procedure alloc(align: alignmentrange; {variable alignment}
     else overflowed := true;
   end; {alloc}
 
-procedure allocfunction(procptr: entryptr;
+procedure allocfunction(funcptr: entryptr;
                         var blocksize: addressrange);
 
 { Function return values are allocated in local variable storage and allowed to
@@ -558,18 +558,20 @@ procedure allocfunction(procptr: entryptr;
     typeptr: entryptr;
 
   begin {allocfunction}
-    typeptr := @(bigtable[procptr^.vartype]);
-    procptr^.allocated := true;
+    typeptr := @(bigtable[funcptr^.vartype]);
+    funcptr^.allocated := true;
     {if not (typeptr^.typ in [reals, doubles]) and
-       procptr^,length >= 2 * ptrsize) then}
+       funcptr^,length >= 2 * ptrsize) then}
     if (typeptr^.typ = sets) and (typeptr^.size > ptrsize) or
         (typeptr^.typ in [fields, arrays, strings, conformantarrays]) then
       begin
-      procptr^.varalloc := regparam;
-      procptr^.regid := 8;
-      procptr^.refparam := true;
-      procptr^.length := ptrsize;
-      procptr^.offset := 0;
+      funcptr^.varalloc := regparam;
+      funcptr^.regid := 8;
+      funcptr^.refparam := true;
+      funcptr^.length := ptrsize;
+      funcptr^.offset := 0;
+      proctable[blockref].struct_ret := true;
+      funcptr^.registercandidate := true;
       end
     else
       begin
@@ -580,15 +582,11 @@ procedure allocfunction(procptr: entryptr;
         at least, as that's part of the calling standard.
       }
 
-      procptr^.length := typeptr^.size;
-      procptr^.varalloc := normalalloc;
-      procptr^.offset := blocksize;
-      blocksize := blocksize + procptr^.length;
-{DRB
-      procptr^.registercandidate := true;
-}
-      procptr^.registercandidate := false;
-      procptr^.regid := 0;
+      funcptr^.length := typeptr^.size;
+      funcptr^.varalloc := normalalloc;
+      funcptr^.offset := blocksize;
+      funcptr^.regid := 0;
+      blocksize := blocksize + funcptr^.length;
       end;
   end; {allocfunction}
 
