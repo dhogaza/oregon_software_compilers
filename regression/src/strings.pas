@@ -9,6 +9,11 @@ var
   p5var: p5;
   c: char;
 
+function tests255func(s:s255): s255;
+begin
+  tests255func := s + 'abc';
+end;
+
 procedure testp5(p5param: p5);
 begin
   writeln(p5param);
@@ -158,5 +163,7 @@ begin
   writeln('expect true: ', s1 <  '11235');
   writeln('expect false: ', s1 >=  '11235');
   writeln('expect false: ', s1 >  '11235');
+
+  writeln('expect ''xyzabc'': ', tests255func('xyz'));
 
 end.
