@@ -104,6 +104,7 @@ ext:
 	ldr	x28,[x29,16]
 	ldr	x16,[x29,24]
 	blr	x16
+	ldr	x28,[x29,-8]
 # Line: 25, Stmt: 0
 	ldr	x0,[x29,-16]
 	mov	x1,12
