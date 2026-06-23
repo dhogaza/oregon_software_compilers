@@ -6273,10 +6273,11 @@ procedure addstrx;
 
 var
   leftregkey, rightregkey, dstregkey, countkey, maxsizekey, onekey,
-  tempregkey, tempreg2key, tempreg3key,looplabelkey, skiplabelkey: keyindex;
+  tempregkey, tempreg2key, tempreg3key,looplabelkey, skiplabelkey,
+  skiplabel1key, skiplabel2key: keyindex;
   maxsize: addressrange;
   appendtarget: boolean;
-  skiplabel: labelindex;
+  skiplabel, skiplabel1: labelindex;
 
 begin {addstrx}
 
@@ -6386,12 +6387,17 @@ begin {addstrx}
     end
   else
     begin
+    skiplabel1 := lastlabel;
+    lastlabel := lastlabel - 1;
+    skiplabel1key := settemp(0, labeltarget_oprnd(skiplabel1));
+    gen2(lastnode, buildinst(cbz, false, false), countkey, skiplabel1key);
     looplabelkey := settemp(0, labeltarget_oprnd(lastlabel));
     definelastlabel;
     genldr(lastnode, byte, false, tempregkey, leftregkey);
     genstr(lastnode, byte, tempregkey, dstregkey);
     gen3(lastnode, buildinst(sub, false, false), countkey, countkey, onekey);
     gen2(lastnode, buildinst(cbnz, false, false), countkey, looplabelkey);
+    definelabel(skiplabel1);
     end;
 
   { Compute the number of bytes to move from the right operand.
