@@ -162,19 +162,21 @@
 	cmp	w11,w17
 	csel	w16,w11,w17,lo
 	sub	w17,w17,w16
-.L32762:
+	cbz	w16,.L32762
+.L32761:
 	ldrb	w11,[x14],1
 	strb	w11,[x12],1
 	sub	w16,w16,1
-	cbnz	w16,.L32762
+	cbnz	w16,.L32761
+.L32762:
 	cmp	w10,w17
 	csel	w16,w10,w17,lo
 	cbz	w16,.L32763
-.L32761:
+.L32760:
 	ldrb	w11,[x13],1
 	strb	w11,[x12],1
 	sub	w16,w16,1
-	cbnz	w16,.L32761
+	cbnz	w16,.L32760
 .L32763:
 	strb	wzr,[x12],1
 # Line: 15, Stmt: 0
@@ -374,11 +376,11 @@ _main:
 	add	x14,x13,.L32765+86@PAGEOFF
 	add	x13,x15,.L32766+554@PAGEOFF
 	mov	x16,5
-.L32760:
+.L32759:
 	ldrb	w17,[x14],1
 	strb	w17,[x13],1
 	subs	x16,x16,1
-	cbnz	x16,.L32760
+	cbnz	x16,.L32759
 # Line: 65, Stmt: 0
 	adrp	x14,.L32765@PAGE
 	add	x0,x14,.L32765+93@PAGEOFF
@@ -400,11 +402,11 @@ _main:
 	add	x15,x15,.L32766+554@PAGEOFF
 	sub	x14,x29,8
 	mov	x16,5
-.L32759:
+.L32758:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32759
+	cbnz	x16,.L32758
 	sub	x0,x29,8
 	bl	.P4  // testp5mod
 # Line: 70, Stmt: 0
@@ -432,11 +434,11 @@ _main:
 	add	x17,x15,.L32766+554@PAGEOFF
 	mov	x15,5
 	strb	w15,[x16],1
-.L32758:
+.L32757:
 	ldrb	w14,[x17],1
 	strb	w14,[x16],1
 	subs	x15,x15,1
-	cbnz	x15,.L32758
+	cbnz	x15,.L32757
 	strb	wzr,[x16],1
 	sub	x0,x29,16
 	bl	.P3  // tests255
@@ -502,13 +504,13 @@ _main:
 	cmp	w16,w17
 	csel	w16,w16,w17,lo
 	strb	w16,[x13],1
-	cbz	x16,.L32757
-.L32756:
+	cbz	x16,.L32756
+.L32755:
 	ldrb	w17,[x14],1
 	strb	w17,[x13],1
 	subs	x16,x16,1
-	cbnz	x16,.L32756
-.L32757:
+	cbnz	x16,.L32755
+.L32756:
 	strb	wzr,[x13],1
 # Line: 88, Stmt: 0
 	adrp	x14,.L32765@PAGE
@@ -527,13 +529,13 @@ _main:
 	add	x13,x15,.L32766+32@PAGEOFF
 	ldrb	w16,[x14],1
 	strb	w16,[x13],1
-	cbz	x16,.L32755
-.L32754:
+	cbz	x16,.L32754
+.L32753:
 	ldrb	w17,[x14],1
 	strb	w17,[x13],1
 	subs	x16,x16,1
-	cbnz	x16,.L32754
-.L32755:
+	cbnz	x16,.L32753
+.L32754:
 	strb	wzr,[x13],1
 # Line: 91, Stmt: 0
 	adrp	x14,.L32765@PAGE
@@ -575,20 +577,22 @@ _main:
 	cmp	w14,w17
 	csel	w16,w14,w17,lo
 	sub	w17,w17,w16
-.L32752:
+	cbz	w16,.L32751
+.L32750:
 	ldrb	w14,[x12],1
 	strb	w14,[x10],1
 	sub	w16,w16,1
-	cbnz	w16,.L32752
+	cbnz	w16,.L32750
+.L32751:
 	cmp	w13,w17
 	csel	w16,w13,w17,lo
-	cbz	w16,.L32753
-.L32751:
+	cbz	w16,.L32752
+.L32749:
 	ldrb	w14,[x11],1
 	strb	w14,[x10],1
 	sub	w16,w16,1
-	cbnz	w16,.L32751
-.L32753:
+	cbnz	w16,.L32749
+.L32752:
 	strb	wzr,[x10],1
 # Line: 95, Stmt: 0
 	adrp	x14,.L32765@PAGE
@@ -612,13 +616,13 @@ _main:
 	sub	x14,x29,288
 	ldrb	w16,[x15],1
 	strb	w16,[x14],1
-	cbz	x16,.L32750
-.L32749:
+	cbz	x16,.L32748
+.L32747:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32749
-.L32750:
+	cbnz	x16,.L32747
+.L32748:
 	strb	wzr,[x14],1
 	sub	x0,x29,288
 	bl	.P5  // tests255mod
@@ -653,11 +657,11 @@ _main:
 	add	x14,x13,.L32765+620@PAGEOFF
 	add	x13,x15,.L32766+554@PAGEOFF
 	mov	x16,5
-.L32748:
+.L32746:
 	ldrb	w17,[x14],1
 	strb	w17,[x13],1
 	subs	x16,x16,1
-	cbnz	x16,.L32748
+	cbnz	x16,.L32746
 # Line: 109, Stmt: 0
 	adrp	x14,.L32765@PAGE
 	add	x0,x14,.L32765+627@PAGEOFF
@@ -676,14 +680,14 @@ _main:
 	adrp	x12,.L32765@PAGE
 	add	x13,x12,.L32765+659@PAGEOFF
 	mov	x16,5
-.L32746:
+.L32744:
 	ldrb	w17,[x14],1
 	ldrb	w12,[x13],1
 	cmp	w17,w12
-	b.ne	.L32747
+	b.ne	.L32745
 	sub	w16,w16,1
-	cbnz	w16,.L32746
-.L32747:
+	cbnz	w16,.L32744
+.L32745:
 	cset	w0,eq
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -699,14 +703,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+681@PAGEOFF
 	mov	x16,5
-.L32744:
+.L32742:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32745
+	b.ne	.L32743
 	sub	w16,w16,1
-	cbnz	w16,.L32744
-.L32745:
+	cbnz	w16,.L32742
+.L32743:
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -722,14 +726,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+704@PAGEOFF
 	mov	x16,5
-.L32742:
+.L32740:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32743
+	b.ne	.L32741
 	sub	w16,w16,1
-	cbnz	w16,.L32742
-.L32743:
+	cbnz	w16,.L32740
+.L32741:
 	cset	w0,ls
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -745,14 +749,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+727@PAGEOFF
 	mov	x16,5
-.L32740:
+.L32738:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32741
+	b.ne	.L32739
 	sub	w16,w16,1
-	cbnz	w16,.L32740
-.L32741:
+	cbnz	w16,.L32738
+.L32739:
 	cset	w0,lo
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -768,14 +772,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+749@PAGEOFF
 	mov	x16,5
-.L32738:
+.L32736:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32739
+	b.ne	.L32737
 	sub	w16,w16,1
-	cbnz	w16,.L32738
-.L32739:
+	cbnz	w16,.L32736
+.L32737:
 	cset	w0,hs
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -791,14 +795,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+771@PAGEOFF
 	mov	x16,5
-.L32736:
+.L32734:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32737
+	b.ne	.L32735
 	sub	w16,w16,1
-	cbnz	w16,.L32736
-.L32737:
+	cbnz	w16,.L32734
+.L32735:
 	cset	w0,hi
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -823,14 +827,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+809@PAGEOFF
 	mov	x16,5
-.L32734:
+.L32732:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32735
+	b.ne	.L32733
 	sub	w16,w16,1
-	cbnz	w16,.L32734
-.L32735:
+	cbnz	w16,.L32732
+.L32733:
 	cset	w0,eq
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -846,14 +850,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+832@PAGEOFF
 	mov	x16,5
-.L32732:
+.L32730:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32733
+	b.ne	.L32731
 	sub	w16,w16,1
-	cbnz	w16,.L32732
-.L32733:
+	cbnz	w16,.L32730
+.L32731:
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -869,14 +873,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+854@PAGEOFF
 	mov	x16,5
-.L32730:
+.L32728:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32731
+	b.ne	.L32729
 	sub	w16,w16,1
-	cbnz	w16,.L32730
-.L32731:
+	cbnz	w16,.L32728
+.L32729:
 	cset	w0,ls
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -892,14 +896,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+877@PAGEOFF
 	mov	x16,5
-.L32728:
+.L32726:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32729
+	b.ne	.L32727
 	sub	w16,w16,1
-	cbnz	w16,.L32728
-.L32729:
+	cbnz	w16,.L32726
+.L32727:
 	cset	w0,lo
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -915,14 +919,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+899@PAGEOFF
 	mov	x16,5
-.L32726:
+.L32724:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32727
+	b.ne	.L32725
 	sub	w16,w16,1
-	cbnz	w16,.L32726
-.L32727:
+	cbnz	w16,.L32724
+.L32725:
 	cset	w0,hs
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -938,14 +942,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+922@PAGEOFF
 	mov	x16,5
-.L32724:
+.L32722:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32725
+	b.ne	.L32723
 	sub	w16,w16,1
-	cbnz	w16,.L32724
-.L32725:
+	cbnz	w16,.L32722
+.L32723:
 	cset	w0,hi
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -970,14 +974,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+961@PAGEOFF
 	mov	x16,5
-.L32722:
+.L32720:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32723
+	b.ne	.L32721
 	sub	w16,w16,1
-	cbnz	w16,.L32722
-.L32723:
+	cbnz	w16,.L32720
+.L32721:
 	cset	w0,eq
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -993,14 +997,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+983@PAGEOFF
 	mov	x16,5
-.L32720:
+.L32718:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32721
+	b.ne	.L32719
 	sub	w16,w16,1
-	cbnz	w16,.L32720
-.L32721:
+	cbnz	w16,.L32718
+.L32719:
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1016,14 +1020,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+1005@PAGEOFF
 	mov	x16,5
-.L32718:
+.L32716:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32719
+	b.ne	.L32717
 	sub	w16,w16,1
-	cbnz	w16,.L32718
-.L32719:
+	cbnz	w16,.L32716
+.L32717:
 	cset	w0,ls
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1039,14 +1043,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+1027@PAGEOFF
 	mov	x16,5
-.L32716:
+.L32714:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32717
+	b.ne	.L32715
 	sub	w16,w16,1
-	cbnz	w16,.L32716
-.L32717:
+	cbnz	w16,.L32714
+.L32715:
 	cset	w0,lo
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1062,14 +1066,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+1050@PAGEOFF
 	mov	x16,5
-.L32714:
+.L32712:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32715
+	b.ne	.L32713
 	sub	w16,w16,1
-	cbnz	w16,.L32714
-.L32715:
+	cbnz	w16,.L32712
+.L32713:
 	cset	w0,hs
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1085,14 +1089,14 @@ _main:
 	adrp	x13,.L32765@PAGE
 	add	x15,x13,.L32765+1073@PAGEOFF
 	mov	x16,5
-.L32712:
+.L32710:
 	ldrb	w17,[x14],1
 	ldrb	w13,[x15],1
 	cmp	w17,w13
-	b.ne	.L32713
+	b.ne	.L32711
 	sub	w16,w16,1
-	cbnz	w16,.L32712
-.L32713:
+	cbnz	w16,.L32710
+.L32711:
 	cset	w0,hi
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1115,13 +1119,13 @@ _main:
 	add	x13,x15,.L32766+290@PAGEOFF
 	ldrb	w16,[x14],1
 	strb	w16,[x13],1
-	cbz	x16,.L32711
-.L32710:
+	cbz	x16,.L32709
+.L32708:
 	ldrb	w17,[x14],1
 	strb	w17,[x13],1
 	subs	x16,x16,1
-	cbnz	x16,.L32710
-.L32711:
+	cbnz	x16,.L32708
+.L32709:
 	strb	wzr,[x13],1
 # Line: 141, Stmt: 0
 	adrp	x14,.L32765@PAGE
@@ -1146,17 +1150,17 @@ _main:
 	csel	w16,w11,w10,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32709
-.L32707:
+	cbz	w16,.L32707
+.L32705:
 	ldrb	w9,[x14],1
 	ldrb	w8,[x13],1
 	cmp	w9,w8
-	b.ne	.L32708
+	b.ne	.L32706
 	sub	w16,w16,1
-	cbnz	w16,.L32707
-.L32709:
+	cbnz	w16,.L32705
+.L32707:
 	cmp	w11,w10
-.L32708:
+.L32706:
 	cset	w0,eq
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1177,17 +1181,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32706
-.L32704:
+	cbz	w16,.L32704
+.L32702:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32705
+	b.ne	.L32703
 	sub	w16,w16,1
-	cbnz	w16,.L32704
-.L32706:
+	cbnz	w16,.L32702
+.L32704:
 	cmp	w15,w11
-.L32705:
+.L32703:
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1208,17 +1212,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32703
-.L32701:
+	cbz	w16,.L32701
+.L32699:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32702
+	b.ne	.L32700
 	sub	w16,w16,1
-	cbnz	w16,.L32701
-.L32703:
+	cbnz	w16,.L32699
+.L32701:
 	cmp	w15,w11
-.L32702:
+.L32700:
 	cset	w0,ls
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1239,17 +1243,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32700
-.L32698:
+	cbz	w16,.L32698
+.L32696:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32699
+	b.ne	.L32697
 	sub	w16,w16,1
-	cbnz	w16,.L32698
-.L32700:
+	cbnz	w16,.L32696
+.L32698:
 	cmp	w15,w11
-.L32699:
+.L32697:
 	cset	w0,lo
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1270,17 +1274,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32697
-.L32695:
+	cbz	w16,.L32695
+.L32693:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32696
+	b.ne	.L32694
 	sub	w16,w16,1
-	cbnz	w16,.L32695
-.L32697:
+	cbnz	w16,.L32693
+.L32695:
 	cmp	w15,w11
-.L32696:
+.L32694:
 	cset	w0,hs
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1301,17 +1305,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32694
-.L32692:
+	cbz	w16,.L32692
+.L32690:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32693
+	b.ne	.L32691
 	sub	w16,w16,1
-	cbnz	w16,.L32692
-.L32694:
+	cbnz	w16,.L32690
+.L32692:
 	cmp	w15,w11
-.L32693:
+.L32691:
 	cset	w0,hi
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1341,17 +1345,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32691
-.L32689:
+	cbz	w16,.L32689
+.L32687:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32690
+	b.ne	.L32688
 	sub	w16,w16,1
-	cbnz	w16,.L32689
-.L32691:
+	cbnz	w16,.L32687
+.L32689:
 	cmp	w15,w11
-.L32690:
+.L32688:
 	cset	w0,eq
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1372,17 +1376,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32688
-.L32686:
+	cbz	w16,.L32686
+.L32684:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32687
+	b.ne	.L32685
 	sub	w16,w16,1
-	cbnz	w16,.L32686
-.L32688:
+	cbnz	w16,.L32684
+.L32686:
 	cmp	w15,w11
-.L32687:
+.L32685:
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1403,17 +1407,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32685
-.L32683:
+	cbz	w16,.L32683
+.L32681:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32684
+	b.ne	.L32682
 	sub	w16,w16,1
-	cbnz	w16,.L32683
-.L32685:
+	cbnz	w16,.L32681
+.L32683:
 	cmp	w15,w11
-.L32684:
+.L32682:
 	cset	w0,ls
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1434,17 +1438,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32682
-.L32680:
+	cbz	w16,.L32680
+.L32678:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32681
+	b.ne	.L32679
 	sub	w16,w16,1
-	cbnz	w16,.L32680
-.L32682:
+	cbnz	w16,.L32678
+.L32680:
 	cmp	w15,w11
-.L32681:
+.L32679:
 	cset	w0,lo
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1465,17 +1469,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32679
-.L32677:
+	cbz	w16,.L32677
+.L32675:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32678
+	b.ne	.L32676
 	sub	w16,w16,1
-	cbnz	w16,.L32677
-.L32679:
+	cbnz	w16,.L32675
+.L32677:
 	cmp	w15,w11
-.L32678:
+.L32676:
 	cset	w0,hs
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1496,17 +1500,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32676
-.L32674:
+	cbz	w16,.L32674
+.L32672:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32675
+	b.ne	.L32673
 	sub	w16,w16,1
-	cbnz	w16,.L32674
-.L32676:
+	cbnz	w16,.L32672
+.L32674:
 	cmp	w15,w11
-.L32675:
+.L32673:
 	cset	w0,hi
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1536,17 +1540,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32673
-.L32671:
+	cbz	w16,.L32671
+.L32669:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32672
+	b.ne	.L32670
 	sub	w16,w16,1
-	cbnz	w16,.L32671
-.L32673:
+	cbnz	w16,.L32669
+.L32671:
 	cmp	w15,w11
-.L32672:
+.L32670:
 	cset	w0,eq
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1567,17 +1571,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32670
-.L32668:
+	cbz	w16,.L32668
+.L32666:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32669
+	b.ne	.L32667
 	sub	w16,w16,1
-	cbnz	w16,.L32668
-.L32670:
+	cbnz	w16,.L32666
+.L32668:
 	cmp	w15,w11
-.L32669:
+.L32667:
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1598,17 +1602,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32667
-.L32665:
+	cbz	w16,.L32665
+.L32663:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32666
+	b.ne	.L32664
 	sub	w16,w16,1
-	cbnz	w16,.L32665
-.L32667:
+	cbnz	w16,.L32663
+.L32665:
 	cmp	w15,w11
-.L32666:
+.L32664:
 	cset	w0,ls
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1629,17 +1633,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32664
-.L32662:
+	cbz	w16,.L32662
+.L32660:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32663
+	b.ne	.L32661
 	sub	w16,w16,1
-	cbnz	w16,.L32662
-.L32664:
+	cbnz	w16,.L32660
+.L32662:
 	cmp	w15,w11
-.L32663:
+.L32661:
 	cset	w0,lo
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1660,17 +1664,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32661
-.L32659:
+	cbz	w16,.L32659
+.L32657:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32660
+	b.ne	.L32658
 	sub	w16,w16,1
-	cbnz	w16,.L32659
-.L32661:
+	cbnz	w16,.L32657
+.L32659:
 	cmp	w15,w11
-.L32660:
+.L32658:
 	cset	w0,hs
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -1691,17 +1695,17 @@ _main:
 	csel	w16,w15,w11,lo
 	mov	x17,5
 	csel	w16,w16,w17,lo
-	cbz	w16,.L32658
-.L32656:
+	cbz	w16,.L32656
+.L32654:
 	ldrb	w10,[x14],1
 	ldrb	w9,[x13],1
 	cmp	w10,w9
-	b.ne	.L32657
+	b.ne	.L32655
 	sub	w16,w16,1
-	cbnz	w16,.L32656
-.L32658:
+	cbnz	w16,.L32654
+.L32656:
 	cmp	w15,w11
-.L32657:
+.L32655:
 	cset	w0,hi
 	mov	x1,5
 	bl	_p_wtb_o 
