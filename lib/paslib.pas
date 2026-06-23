@@ -20,6 +20,9 @@ procedure free(const p: _p_charptr); nonpascal;
 
 procedure _p_caseerr; external;
 function _p_pos(const src, match: _p_shortstring): integer; external;
+function _p_trim(const src:_p_shortstring):_p_shortstring; external;
+function _p_trimleft(const src: _p_shortstring):_p_shortstring; external;
+function _p_trimright(const src: _p_shortstring):_p_shortstring; external;
 procedure _p_wtc_o(ch: char; width: integer); external;
 procedure _p_wti_o(i: integer; width: integer); external;
 procedure _p_wtb_o(b: boolean; width: integer); external;
@@ -98,11 +101,75 @@ begin
       end;
     end;
 
-  if found then
-    _p_pos := i
+  if found then _p_pos := i
   else _p_pos := 0
-
 end;
+
+{ These string functions depend on string assignment to append
+  the null character to the resulting string.  Naughty but I
+  know that the code generator is very protective of the integrity
+  of strings.
+}
+
+function _p_trim;
+
+var
+  ltrim,rtrim,len,i: integer;
+  trimmed: _p_shortstring;
+
+begin {_p_trim}
+  rtrim := length(src);
+  while (rtrim > 0) and (src[rtrim] <= chr(32)) do
+    rtrim := rtrim - 1;
+  ltrim := 1;
+  while (ltrim < rtrim) and (src[ltrim] <= chr(32)) do
+    ltrim := ltrim + 1;
+  len := rtrim - ltrim + 1;
+  for i := 1 to len do
+    begin
+    trimmed[i] := src[ltrim];
+    ltrim := ltrim + 1; 
+    end;
+  trimmed[0] := chr(len);
+  _p_trim := trimmed;
+end {_p_trim};
+
+function _p_trimleft;
+
+var
+  ltrim,len,i: integer;
+  trimmed: _p_shortstring;
+
+begin {_p_trimleft}
+  len := length(src);
+  ltrim := 1;
+  while (ltrim <= len) and (src[ltrim] <= chr(32)) do
+    ltrim := ltrim + ltrim;
+  len := len - ltrim + 1;
+  trimmed[0] := chr(len);
+  for i := 1 to len do
+    begin
+    trimmed[i] := src[ltrim];
+    ltrim := ltrim + 1;
+    end;
+  _p_trimleft := trimmed;
+end {_p_trimleft};
+
+function _p_trimright;
+
+var
+  rtrim,i: integer;
+  trimmed: _p_shortstring;
+
+begin {_p_trimright}
+  rtrim := length(src);
+  while (rtrim > 0) and (src[rtrim] <= chr(32)) do
+    rtrim := rtrim - 1;
+  trimmed[0] := chr(rtrim);
+  for i := 1 to rtrim do
+    trimmed[i] := src[i];
+  _p_trimright := trimmed;
+end {_p_trimright};
     
 procedure _p_caseerr;
   begin
