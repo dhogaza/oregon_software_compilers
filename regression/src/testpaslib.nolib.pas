@@ -45,4 +45,10 @@ begin
   writeln('expecting ''xyz    '': ''',trimleft('   xyz    '),''''); 
   writeln('expecting ''xyz'': ''',trim('   xyz    '),''''); 
 
+  writeln('expecting ''cdef'': ''',copy('abcdef', 3, 10),'''');
+  writeln('expecting '''': ''',copy('abcdef', 20, 10),'''');
+  writeln('expecting '''': ''',copy('abcdef', 1, -5),'''');
+  writeln('expecting ''abcdef'': ''',copy('abcdef', 1, 6),'''');
+  writeln('expecting '''': ''',copy('abcdef', 0, 10),'''');
+
 end.

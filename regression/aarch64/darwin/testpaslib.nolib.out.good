@@ -10,3 +10,8 @@ expecting 2: 2
 expecting '   xyz': '   xyz'
 expecting 'xyz    ': 'xyz    '
 expecting 'xyz': 'xyz'
+expecting 'cdef': 'cdef'
+expecting '': ''
+expecting '': ''
+expecting 'abcdef': 'abcdef'
+expecting '': ''
