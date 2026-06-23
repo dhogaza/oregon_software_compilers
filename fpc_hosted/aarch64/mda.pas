@@ -560,8 +560,6 @@ procedure allocfunction(funcptr: entryptr;
   begin {allocfunction}
     typeptr := @(bigtable[funcptr^.vartype]);
     funcptr^.allocated := true;
-    {if not (typeptr^.typ in [reals, doubles]) and
-       funcptr^,length >= 2 * ptrsize) then}
     if (typeptr^.typ = sets) and (typeptr^.size > ptrsize) or
         (typeptr^.typ in [fields, arrays, strings, conformantarrays]) then
       begin

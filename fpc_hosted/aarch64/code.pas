@@ -6815,17 +6815,15 @@ from the front end.
 procedure callroutinex(s: boolean {signed function value} );
 
 { Generate a call to a user procedure. There are two possibilies:  if
-  target is non-zero, then keytable[left] is a procedure parameter,
+  oprnds[3] is greater than zero, then keytable[left] is a procedure parameter,
   and we call the routine by loading the static link register with the
-  passed environment pointer and call the routine.  If target is 0, we
-  are calling an explicit routine, the left'th procedure (named Pleft).
+  passed environment pointer and call the routine.  If oprnds[3] is less than
+  zero, we are calling an explicit routine. The absolute value of oprnds[3]
+  tells us the type information we need to know to decide how to return the
+  value.
+
   Proctable contains interesting information as to whether or not the
   procedure is external.
-
-  We use the offset1 field of the proccall node to indicate how
-  many "movl (A4),A4" instructions to use on entry to the called
-  routine.  This causes the generated routine's address to be offset by
-  - (offset1 * word).
 
 }
 
@@ -6839,13 +6837,23 @@ procedure callroutinex(s: boolean {signed function value} );
     ip0key: keyindex; {tempkey holding address of procedure param's procedure}
     param: integer; {parameter count for creating unix standard list}
     notcopied: 0..1; {1 if last parameter was already the right size}
-    i: keyindex; {"from" key for copying parameters}
+    returnform: types; {reals, ints, etc, for return register determination}
+    structreturn: boolean; {magic x8 magic for structs}
 
   const
     reverse_params = false; { true if nonpascal parameters are to be reversed
                               here, false if front-end does it. }
 
   begin {callroutinex}
+
+    returnform := types(abs(pseudoinst.oprnds[3]));
+
+    {This has to match mda.pas, at least until we move function return allocation
+     to a place where we can use it here, too.
+    }
+    structreturn := (returnform = sets) and (len > ptrsize) or
+                     (returnform in [fields, arrays, strings, conformantarrays]);
+
     paramlist_started := false; {reset the switch}
 
     markscratchregs;
@@ -6885,8 +6893,7 @@ procedure callroutinex(s: boolean {signed function value} );
       if proctable[pseudoinst.oprnds[1]].level <= 2 then
         levelhack := 0;
 
-{ DRB this doesn't really work either }
-      if proctable[pseudoinst.oprnds[1]].struct_ret then
+      if structreturn then
         begin
         settemp(long, reg_oprnd(8));
         genmoveaddress(lastnode, stackcounter, tempkey);
@@ -6921,14 +6928,19 @@ procedure callroutinex(s: boolean {signed function value} );
     { for stack parameters }
     dontchangevalue := dontchangevalue - 1;
 
-    { later need to deal with x0/x1 pairs.
+    { later need to deal with x0/x1 pairs if we implement it.
     }
-    if proctable[pseudoinst.oprnds[1]].struct_ret then
+
+    if structreturn then
       setvalue(index_oprnd(abstract_offset, 8, 0, false))
-    else if proctable[pseudoinst.oprnds[1]].realfunction then
+    else if returnform in [reals, doubles] then
       setvalue(fpreg_oprnd(0))
-    else if (len <= long) then
-      setvalue(reg_oprnd(0));
+    else if (len <= ptrsize) then
+      setvalue(reg_oprnd(0))
+    else begin
+      write('Bad register return information');
+      compilerabort(inconsistent);
+      end;
 
     removeparamtemps(pseudoinst.oprnds[2]);
 
