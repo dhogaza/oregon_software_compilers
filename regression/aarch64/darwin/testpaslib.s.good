@@ -62,15 +62,14 @@ _main:
 	sub	x14,x29,8
 	add	x13,x15,.L32766+42@PAGEOFF
 	ldrb	w16,[x14],1
-	mov	x17,255
-	cmp	w16,w17
-	csel	w16,w16,w17,lo
 	strb	w16,[x13],1
-.L32762:
+	cbz	x16,.L32762
+.L32761:
 	ldrb	w17,[x14],1
 	strb	w17,[x13],1
 	subs	x16,x16,1
-	cbnz	x16,.L32762
+	cbnz	x16,.L32761
+.L32762:
 	strb	wzr,[x13],1
 # Line: 23, Stmt: 0
 	mov	x0,121

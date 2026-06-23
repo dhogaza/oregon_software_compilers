@@ -129,11 +129,13 @@ _main:
 	cmp	w16,w17
 	csel	w16,w16,w17,lo
 	strb	w16,[x14],1
-.L32763:
+	cbz	x16,.L32763
+.L32762:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32763
+	cbnz	x16,.L32762
+.L32763:
 	strb	wzr,[x14],1
 	sub	x0,x29,8
 	bl	.P2  // cstring
@@ -149,11 +151,13 @@ _main:
 	cmp	w16,w17
 	csel	w16,w16,w17,lo
 	strb	w16,[x14],1
-.L32762:
+	cbz	x16,.L32761
+.L32760:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32762
+	cbnz	x16,.L32760
+.L32761:
 	strb	wzr,[x14],1
 	sub	x0,x29,24
 	bl	.P2  // cstring
@@ -170,11 +174,13 @@ _main:
 	cmp	w16,w17
 	csel	w16,w16,w17,lo
 	strb	w16,[x13],1
-.L32761:
+	cbz	x16,.L32759
+.L32758:
 	ldrb	w17,[x14],1
 	strb	w17,[x13],1
 	subs	x16,x16,1
-	cbnz	x16,.L32761
+	cbnz	x16,.L32758
+.L32759:
 	strb	wzr,[x13],1
 	sub	x0,x29,32
 	bl	.P2  // cstring
