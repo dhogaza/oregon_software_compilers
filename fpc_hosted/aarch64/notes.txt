@@ -21,7 +21,15 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
-   -- string function return values ALMOST work
+   -- for i := 1 to i fails 
+      for i := 1 to -1 fails? (treated as unsigned???)
+
+   -- test everything with empty strings, some of the code assumes non-zero
+      length.
+
+      movestring seems to work.  test cmpstrx.  implement addstrx.
+
+      how is '' handled in the front end? does it work in codegen?
 
    -- very bad code generator can't use proctable to determine where to
       a value is returned in callroutinex.  Function body processing works

@@ -2628,25 +2628,38 @@ procedure initblock;
     contextsp := 1;
     loopsp := 0;
 
-    for i := 0 to maxreg do
+    with loopstack[0] do
       begin
-      with loopstack[0].regstate[i] do
+      thecontext := 0;
+      savelastbranch := nil;
+      savefirst := nil;
+      savelast := nil;
+      for i := 0 to maxreg do
         begin
-        active := false;
-        killed := false;
-        used := false;
-        stackcopy := 0;
-        end;
 
-      with loopstack[0].fpregstate[i] do
-        begin
-        active := false;
-        killed := false;
-        used := false;
-        stackcopy := 0;
+        bump[i] := false;
+        with regstate[i] do
+          begin
+          active := false;
+          killed := false;
+          used := false;
+          stackcopy := 0;
+          end;
+
+        fpbump[i] := false;
+        with fpregstate[i] do
+          begin
+          active := false;
+          killed := false;
+          used := false;
+          stackcopy := 0;
+          end;
         end;
       end;
 
+    for i := 1 to loopdepth do
+      loopstack[i] := loopstack[0]; 
+     
     loopoverflow := 0;
     lastkey := 0;
 
@@ -6039,7 +6052,8 @@ procedure movestring(src, dst: keyindex);
 }
 
 var
-  dstregkey, srcregkey, ip0key, ip1key, onekey, labelkey: keyindex;
+  dstregkey, srcregkey, ip0key, ip1key, onekey, labelkey, skiplabelkey: keyindex;
+  skiplabel: labelindex;
 
 begin {movestring}
   ip0key := settemp(byte, reg_oprnd(ip0));
@@ -6065,24 +6079,37 @@ begin {movestring}
 
   { The first byte of the source string is the number of data bytes, exclusive
     of the length byte and trailing null, so we take that into effect here.
-  }
-  gensimplemove(lastnode, settemp(long, intconst_oprnd(keytable[dst].len - 2)),
-                          ip1key);
 
-  { compute how many bytes to move.
+    If the strings has 255 data bytes we don't need to check to see if it is
+    smaller than the value of the length byte stored in the string.
   }
-  gen2(lastnode, buildinst(cmp, false, false), ip0key, ip1key);
-  gen4(lastnode, buildinst(csel, false, false), ip0key, ip0key, ip1key,
-                 settemp(0, cond_oprnd(lo)));
+
+  if keytable[dst].len - 2 < 255 then
+    begin
+    gensimplemove(lastnode, settemp(long, intconst_oprnd(keytable[dst].len - 2)),
+                            ip1key);
+
+    { compute how many bytes to move.
+    }
+    gen2(lastnode, buildinst(cmp, false, false), ip0key, ip1key);
+    gen4(lastnode, buildinst(csel, false, false), ip0key, ip0key, ip1key,
+                   settemp(0, cond_oprnd(lo)));
+    end;
 
   { Store the computed length as the first byte of the destination string.
   }
   genstr(lastnode, byte, ip0key, dstregkey);
 
-  { Move the data bytes, truncated if the source string is too long for the
-    destination string.
+  { Move the data bytes, if any, truncated if the source string is too long
+    for the destination string.
   }
+
+  skiplabel := lastlabel;
+  skiplabelkey := settemp(long, labeltarget_oprnd(skiplabel));
+  lastlabel := lastlabel - 1;
   labelkey := settemp(long, labeltarget_oprnd(lastlabel));
+
+  gen2(lastnode, buildinst(cbz, true, false), ip0key, skiplabelkey);
   definelastlabel;
   genldr(lastnode, byte, false, ip1key, srcregkey);
   genstr(lastnode, byte, ip1key, dstregkey);
@@ -6091,6 +6118,7 @@ begin {movestring}
 
   { done moving data bytes, add a null
   }
+  definelabel(skiplabel);
   genstr(lastnode, byte, settemp(word, reg_oprnd(zero)), dstregkey);
 end {movestring};
 
@@ -6382,10 +6410,11 @@ procedure cmpstrx(cond: conds);
 
 var
   leftregkey, rightregkey, dstregkey, countkey, maxsizekey, onekey,
-  tempregkey, tempreg2key, tempreg3key, tempreg4key, looplabelkey, skiplabelkey: keyindex;
+  tempregkey, tempreg2key, tempreg3key, tempreg4key, looplabelkey,
+  skiplabelkey, skiplabel1key: keyindex;
   maxsize: addressrange;
   appendtarget: boolean;
-  skiplabel: labelindex;
+  skiplabel, skiplabel1: labelindex;
 
 begin {cmpstrx}
 
@@ -6447,10 +6476,15 @@ begin {cmpstrx}
        settemp(0, cond_oprnd(lo)));
   gen4(lastnode, buildinst(csel, false, false), countkey, countkey, maxsizekey,
        settemp(0, cond_oprnd(lo)));
+  skiplabel1 := lastlabel;
+  lastlabel := lastlabel - 1;
+  skiplabel1key := settemp(0, labeltarget_oprnd(skiplabel1));
   skiplabel := lastlabel;
   skiplabelkey := settemp(0, labeltarget_oprnd(skiplabel));
   lastlabel := lastlabel - 1;
   looplabelkey := settemp(0, labeltarget_oprnd(lastlabel));
+
+  gen2(lastnode, buildinst(cbz, false, false), countkey, skiplabel1key);
   definelastlabel;
 
   genldr(lastnode, byte, false, tempreg3key, leftregkey);
@@ -6460,11 +6494,12 @@ begin {cmpstrx}
   gen3(lastnode, buildinst(sub, false, false), countkey, countkey, onekey);
   gen2(lastnode, buildinst(cbnz, false, false), countkey, looplabelkey);
 
-  { All of the chars we compared are the same.  Set result depending on the
-    length of the two operands.  If we exited the loop to skiplabel, the
-    last character comparison should be valid.
+  { All of the chars we compared are the same or one string was empty.  Set
+    result depending on the length of the two operands.  If we exited the loop
+    to skiplabel, the last character comparison should be valid.
   }
 
+  definelabel(skiplabel1);
   gen2(lastnode, buildinst(cmp, false, false), tempregkey, tempreg2key);
   definelabel(skiplabel);
   setvalue(cond_oprnd(cond));
