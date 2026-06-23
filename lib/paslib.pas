@@ -20,6 +20,7 @@ procedure free(const p: _p_charptr); nonpascal;
 
 procedure _p_caseerr; external;
 function _p_pos(const src, match: _p_shortstring): integer; external;
+function _p_copy(const src:_p_shortstring; pos, count: integer): _p_shortstring; external;
 function _p_trim(const src:_p_shortstring):_p_shortstring; external;
 function _p_trimleft(const src: _p_shortstring):_p_shortstring; external;
 function _p_trimright(const src: _p_shortstring):_p_shortstring; external;
@@ -118,6 +119,30 @@ end;
   know that the code generator is very protective of the integrity
   of strings.
 }
+
+function _p_copy;
+
+var
+  len, copypos: integer;
+  copied: _p_shortstring;
+
+begin {_p_copy}
+  len := length(src);
+  if pos + count - 1 > len then
+    count := len - pos + 1;
+  if (count < 0) or (pos < 1) then
+    count := 0;
+  copied[0] := chr(count);
+  copypos := 1;
+  while count > 0 do
+    begin
+    copied[copypos] := src[pos];
+    pos := pos + 1;
+    copypos := copypos + 1;
+    count := count - 1;
+    end;
+  _p_copy := copied;
+end {_p_copy};
 
 function _p_trim;
 
