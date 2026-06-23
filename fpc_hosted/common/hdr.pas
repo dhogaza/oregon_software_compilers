@@ -218,6 +218,7 @@ type
                                  emtid, forwardid, externalid, nonpascalid,
                                  fortranid, interruptid, insertid, strid,
                                  valprocid, copyid, concatid, lengthid, posid,
+                                 trimid, trimleftid, trimrightid,
                                  deletestrid, snglid, dblid, upperid, lowerid,
 
   { Pascal-F only }

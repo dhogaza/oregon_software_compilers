@@ -203,6 +203,9 @@ procedure libname(libroutine: libroutines;
       libtell:          s := '_p_tell    ';
       libtime:          s := '_p_ftime   ';
       libtransfer:      s := '_p_trans   ';  { for Modula-2}
+      libtrim:          s := '_p_trim    ';
+      libtrimleft:      s := '_p_trimleft ';
+      libtrimright:     s := '_p_trimright';
       libunpack:        s := '_p_unpack  ';
       libunsdiv:        s := '_p_udiv    ';
       libunsmod:        s := '_p_umod    ';

@@ -5152,13 +5152,12 @@ procedure wrcommon(libroutine: libroutines; {formatting routine to call}
     if formatcount = 0 then
       begin
       { whee hardcoding parameter registers!}
-      markreg(firstreg);
+      markreg(1);
       gensimplemove(lastnode,
                     settemp(long, intconst_oprnd(deffmt)),
-                    settemp(long, reg_oprnd(firstreg)));
+                    settemp(long, reg_oprnd(1)));
       end;
     calliosupport(libroutine);
-    formatcount := 0;
     formatcount := 0;
     dontchangevalue := 0;
   end {wrcommon};
@@ -5177,8 +5176,8 @@ procedure wrstx;
   begin
     if formatcount = 0 then
       begin
-      lengthregkey := settemp(long, reg_oprnd(firstreg - 1));
-      widthregkey := settemp(long, reg_oprnd(firstreg));
+      lengthregkey := settemp(long, reg_oprnd(1));
+      widthregkey := settemp(long, reg_oprnd(2));
       gensimplemove(lastnode, lengthregkey, widthregkey);
       end;
     calliosupport(libwritestring)
@@ -5297,19 +5296,34 @@ procedure sysfnstringx;
   procedure stringintfn(libroutine: libroutines);
 
 
-    begin {simplestringfn}
+    begin {stringintfn}
       callsupport(libroutine, true);
       setvalue(reg_oprnd(0));
+{
       firstreg := 1;
-    end {simplestringfn} ;
+}
+    end {stringintfn} ;
+
+  procedure stringstringfn(libroutine: libroutines);
+
+
+    begin {stringstringfn}
+      markreg(8);
+      settemp(long, reg_oprnd(8));
+      genmoveaddress(lastnode, stackcounter, tempkey);
+      callsupport(libroutine, true);
+      setvalue(index_oprnd(abstract_offset, 8, 0, false));
+      firstreg := 0;
+    end {stringstringfn} ;
 
 
   begin {sysfnstringx}
     case standardids(right) of
       posid: stringintfn(libpos);
-{
-      copyid: stringstringfn(libcopy, 3);
-}
+      copyid: stringstringfn(libcopy);
+      trimid: stringstringfn(libtrim);
+      trimleftid: stringstringfn(libtrimleft);
+      trimrightid: stringstringfn(libtrimright);
       end;
     dontchangevalue := dontchangevalue - 1;
   end {sysfnstringx} ;
@@ -6465,7 +6479,6 @@ begin {cmpstrx}
 
   genldr(lastnode, byte, false, tempregkey, leftregkey);
   genldr(lastnode, byte, false, tempreg2key, rightregkey);
-  gensimplemove(lastnode, settemp(long, intconst_oprnd(maxsize)), maxsizekey);
 
   { Compute the maximum number of data bytes to compare, to provide some protection
     against the comparison loop running past the boundaries of the two operands.
@@ -6474,8 +6487,12 @@ begin {cmpstrx}
   gen2(lastnode, buildinst(cmp, false, false), tempregkey, tempreg2key);
   gen4(lastnode, buildinst(csel, false, false), countkey, tempregkey, tempreg2key,
        settemp(0, cond_oprnd(lo)));
-  gen4(lastnode, buildinst(csel, false, false), countkey, countkey, maxsizekey,
-       settemp(0, cond_oprnd(lo)));
+  if maxsize < 255 then
+    begin
+    gensimplemove(lastnode, settemp(long, intconst_oprnd(maxsize)), maxsizekey);
+    gen4(lastnode, buildinst(csel, false, false), countkey, countkey, maxsizekey,
+         settemp(0, cond_oprnd(lo)));
+    end;
   skiplabel1 := lastlabel;
   lastlabel := lastlabel - 1;
   skiplabel1key := settemp(0, labeltarget_oprnd(skiplabel1));
@@ -6772,8 +6789,13 @@ begin {makeroomx}
   saveactivekeys;
   paramoffset := 0;
   dontchangevalue := dontchangevalue + 1;
-
+{
   if proctable[pseudoinst.oprnds[1]].struct_ret then
+
+need some way to tell reliably if we are doing a struct_ret or not, passed
+from the front end.
+}
+  if len > long then
     begin
     newtemp(len);
     setallfields(stackcounter);
@@ -6857,7 +6879,6 @@ procedure callroutinex(s: boolean {signed function value} );
 { DRB this doesn't really work either }
       if proctable[pseudoinst.oprnds[1]].struct_ret then
         begin
-        markreg(8);
         settemp(long, reg_oprnd(8));
         genmoveaddress(lastnode, stackcounter, tempkey);
         end;

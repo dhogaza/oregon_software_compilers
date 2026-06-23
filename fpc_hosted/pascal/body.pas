@@ -5528,6 +5528,45 @@ procedure statement(follow: tokenset {legal following symbols} );
         end {reffunction} ;
 
 
+      procedure trim;
+
+{ Parse "copy(stringsource, pos, num)".  Why isn't this called "substring"?
+  Ask Borland someday!
+}
+
+{ DBR: this is broken! }
+
+        var
+          strlen: addressrange;
+
+
+        begin {trim}
+          genlit(0);
+          genop(reserve);
+          genint(maxstrlen + 1);
+          verifytoken(lpar, nolparerr);
+          expression(follow + [colon, rpar], false);
+          if resultform = chars then genunary(chrstrop, chars)
+          else if (resultform = arrays) and resultptr^.stringtype then
+            genunary(arraystrop, arrays)
+          else if not (resultform in [strings, none]) then
+            warnbefore(nostringerr);
+          strlen := oprndstk[sp].oprndlen;
+          oprndstk[sp].oprndlen := ptrsize;
+          genstdparamaddr(strings, regparams);
+          parseextraargs;
+          newstringtype(resulttype, strings, strlen);
+          newresulttype(resulttype);
+          paramform := strings;
+{ Must remove the parameters from the evaluation stack, since copy is a
+  function.  Genunary expects a description of the copy operator on the
+  stack, not the first parameter, so this hack is only partly correct. }
+{
+          sp := sp - 1;
+}
+          oprndstk[sp].oprndlen := strlen;
+        end {trim} ;
+
       procedure copy;
 
 { Parse "copy(stringsource, pos, num)".  Why isn't this called "substring"?
@@ -5577,7 +5616,6 @@ procedure statement(follow: tokenset {legal following symbols} );
 
 
       procedure concat;
-
 { Parse concat(s1,s2,...sn) function.  Any number of arguments are allowed,
   but must be strings!
 }
@@ -5795,6 +5833,7 @@ procedure statement(follow: tokenset {legal following symbols} );
         case procid of
           posid: pos;
           copyid: copy;
+          trimid, trimleftid, trimrightid: trim;
           concatid: concat;
           sinid, cosid: sincosfn;
           expid, lnid, sqrtid, arctanid: transcendentals;

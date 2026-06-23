@@ -340,7 +340,7 @@ procedure unnestparams(root: nodeindex {tree to visit});
     if bigcompilerversion then ptr := @(bignodetable[root]);
     op := ptr^.op;
     if ptr^.action = visit then
-      if op in [call, unscall, callparam, unscallparam] then
+      if op in [call, unscall, callparam, unscallparam, sysfn] then
         walknode(root, k, 0, false)
       else
         begin

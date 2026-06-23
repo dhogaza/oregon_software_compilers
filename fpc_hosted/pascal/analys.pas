@@ -3795,6 +3795,15 @@ procedure initanalys;
       {define 'pos'}
       enterstandardid(posid, standardfunc, 0, 0);
 
+      {define 'trim'}
+      enterstandardid(trimid, standardfunc, 0, 0);
+
+      {define 'trimright'}
+      enterstandardid(trimrightid, standardfunc, 0, 0);
+
+      {define 'trimleft'}
+      enterstandardid(trimleftid, standardfunc, 0, 0);
+
       {define 'seek'}
       enterstandardid(seekid, standardproc, 0, 0);
 

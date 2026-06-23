@@ -239,6 +239,9 @@ type
     libtell,
     libtime,
     libtransfer, { Modula-2 TRANSFER function }
+    libtrim,
+    libtrimleft,
+    libtrimright,
     libunpack,
     libunsdiv,
     libunsmod,
