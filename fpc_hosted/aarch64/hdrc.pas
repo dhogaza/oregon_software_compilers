@@ -560,7 +560,14 @@ var
 
   level: levelindex; {current block nesting levels}
 
-  formatcount: integer; {number of field-width expressions in writearg}
+  { information for counting very kludgey field-width expressions passed
+    to write procedures.
+  }
+  formatinfo: record
+    count: integer; {number of field-width expressions in current write}
+    regcount: regindex; {will differ from count when writing an fp reg}
+  end;
+
   fileoffset: integer; {0 if default file for read/write, 2 if specified}
 
   globaldatalabel, libdatalabel, rodatalabel: integer;

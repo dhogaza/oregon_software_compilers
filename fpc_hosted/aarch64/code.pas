@@ -5149,16 +5149,17 @@ procedure wrcommon(libroutine: libroutines; {formatting routine to call}
     regkey: keyindex;
 
   begin {wrcommon}
-    if formatcount = 0 then
+    if formatinfo.count = 0 then
       begin
       { whee hardcoding parameter registers!}
-      markreg(1);
+      markreg(formatinfo.regcount + 1);
       gensimplemove(lastnode,
                     settemp(long, intconst_oprnd(deffmt)),
                     settemp(long, reg_oprnd(1)));
       end;
     calliosupport(libroutine);
-    formatcount := 0;
+    formatinfo.count := 0;
+    formatinfo.regcount := 0;
     dontchangevalue := 0;
   end {wrcommon};
 
@@ -5174,10 +5175,10 @@ procedure wrstx;
   var lengthregkey, widthregkey: keyindex;
 
   begin
-    if formatcount = 0 then
+    if formatinfo.count = 0 then
       begin
-      lengthregkey := settemp(long, reg_oprnd(1));
-      widthregkey := settemp(long, reg_oprnd(2));
+      lengthregkey := settemp(long, reg_oprnd(formatinfo.regcount + 1));
+      widthregkey := settemp(long, reg_oprnd(formatinfo.regcount + 2));
       gensimplemove(lastnode, lengthregkey, widthregkey);
       end;
     calliosupport(libwritestring)
@@ -5201,8 +5202,9 @@ begin {fmtx}
   address(left, 0);
   gensimplemove(lastnode, left, settemp(long, reg_oprnd(firstreg)));
   markreg(firstreg);
+  formatinfo.count := formatinfo.count + 1;
+  formatinfo.regcount := firstreg;
   firstreg := firstreg + 1;
-  formatcount := formatcount + 1;
 end {fmtx};
 
 procedure fileparamx;
@@ -5368,7 +5370,8 @@ procedure sysroutinex;
 }
       end;
     filenamed := false;
-    formatcount := 0;
+    formatinfo.count := 0;
+    formatinfo.regcount := 0;
     dontchangevalue := 0;
     paramlist_started := false; {reset switch}
   end {sysroutinex};
@@ -7635,7 +7638,8 @@ procedure initcode;
     nextstringfile := 0;
     level := 0;
     fileoffset := 0;
-    formatcount := 0;
+    formatinfo.count := 0;
+    formatinfo.regcount := 0;
     filenamed := false;
 
     keytable[0].validtemp := false;
