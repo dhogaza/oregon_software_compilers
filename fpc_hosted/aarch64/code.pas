@@ -5301,9 +5301,6 @@ procedure sysfnstringx;
     begin {stringintfn}
       callsupport(libroutine, true);
       setvalue(reg_oprnd(0));
-{
-      firstreg := 1;
-}
     end {stringintfn} ;
 
   procedure stringstringfn(libroutine: libroutines);
@@ -5315,6 +5312,7 @@ procedure sysfnstringx;
       genmoveaddress(lastnode, stackcounter, tempkey);
       callsupport(libroutine, true);
       setvalue(index_oprnd(abstract_offset, 8, 0, false));
+      keytable[key].regenoprnd := keytable[stackcounter].oprnd;
       firstreg := 0;
     end {stringstringfn} ;
 
@@ -6932,7 +6930,10 @@ procedure callroutinex(s: boolean {signed function value} );
     }
 
     if structreturn then
-      setvalue(index_oprnd(abstract_offset, 8, 0, false))
+      begin
+      setvalue(index_oprnd(abstract_offset, 8, 0, false));
+      keytable[key].regenoprnd := keytable[stackcounter].oprnd;
+      end
     else if returnform in [reals, doubles] then
       setvalue(fpreg_oprnd(0))
     else if (len <= ptrsize) then
