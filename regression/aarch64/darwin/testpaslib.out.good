@@ -7,3 +7,6 @@ execting 2: 2
 expecting 0: 0
 expecting 1: 1
 expecting 2: 2
+expecting '   xyz': '   xyz'
+expecting 'xyz    ': 'xyz    '
+expecting 'xyz': 'xyz'

@@ -39,4 +39,8 @@ begin
   write('expecting 1: '); writeln(pos('xyz', 'xyz'):1);
   write('expecting 2: '); writeln(pos('xyz', 'yz'):1);
 
+  writeln('expecting ''   xyz'': ''',trimright('   xyz    '),''''); 
+  writeln('expecting ''xyz    '': ''',trimleft('   xyz    '),''''); 
+  writeln('expecting ''xyz'': ''',trim('   xyz    '),''''); 
+
 end.
