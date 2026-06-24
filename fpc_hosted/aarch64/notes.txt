@@ -52,7 +52,14 @@ if seeking value, wzr is replaced with a register.
 
 --- current work
 
-  -- look into why smallsetstime genrates such trash code.
+  -- cstring
+
+     1. convert if necessary (arraystr/chrstr)
+     2. add one to address 
+     3. need to make the result a ^char
+     4. if not folded, emit cstringid syssomething function
+
+  -- look into why smallsetstime genrates such trash code (Low priority)
 
   -- things needed to really start implementing the library
 

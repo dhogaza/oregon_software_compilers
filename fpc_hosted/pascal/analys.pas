@@ -3526,9 +3526,9 @@ procedure initanalys;
 
       {define 'integer'}
       enterform(ints, f, fptr);
+      intindex := f;
       with fptr^ do
         begin
-        intindex := f;
         size := targetintsize;
         align := intalign;
         end;
@@ -3539,9 +3539,9 @@ procedure initanalys;
         begin
         {define 'int64'}
         enterform(ints, f, fptr);
+        longintindex := f;
         with fptr^ do
           begin
-          longintindex := f;
           size := longtargetintsize;
           align := longintalign;
           end;
@@ -3564,9 +3564,9 @@ procedure initanalys;
 
       {define dummy subrange for set building operations}
       enterform(subranges, f, fptr);
+      subrangeindex := f;
       with fptr^ do
         begin
-        subrangeindex := f;
         size := targetintsize;
         align := intalign;
         lowerord := 0;
@@ -3578,9 +3578,9 @@ procedure initanalys;
 
       {define 'real'}
       enterform(reals, f, fptr);
+      realindex := f;
       with fptr^ do
         begin
-        realindex := f;
         size := targetrealsize;
         align := realalign;
         end;
@@ -3588,9 +3588,9 @@ procedure initanalys;
 
       {define 'double'}
       enterform(doubles, f, fptr);
+      doubleindex := f;
       with fptr^ do
         begin
-        doubleindex := f;
         size := doublesize;
         align := realalign;
         end;
@@ -3611,9 +3611,9 @@ procedure initanalys;
 
       {define 'boolean'}
       enterform(bools, f, fptr);
+      boolindex := f;
       with fptr^ do
         begin
-        boolindex := f;
         size := scalarsize;
         align := scalaralign;
         end;
@@ -3621,11 +3621,11 @@ procedure initanalys;
 
       {define 'text'}
       enterform(files, f, fptr);
+      textindex := f;
       with fptr^ do
         begin
         containsfile := true;
         filebasetype := chartypeindex;
-        textindex := f;
         size := ptrsize;
         align := ptralign;
         filekey := maxint;
@@ -3883,10 +3883,10 @@ procedure initanalys;
 
       {define noneindex for undef typenames}
       enterform(none, f, fptr);
+      noneindex := f;
       with fptr^ do
         begin
         dbgsymbol := 0;
-        noneindex := f;
         size := 0;
         align := unitsize;
         end;
