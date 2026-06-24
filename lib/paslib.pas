@@ -15,6 +15,38 @@ type
   _p_string = string[_p_maxstringlen];
   _p_stringrange = 0.._p_maxstringlen;
 
+  { The first three must be matched in the code generator. These
+    are taken from the MC68000 library and not all will apply
+    to our files.
+  }
+  _p_filestatusenum = (
+    _p_def,     { current data defined (lazy I/O) }
+    _p_eof,     { at end of file }
+    _p_eoln,    { at end of line }
+    _p_text,    { set for text file, clear for binary file }
+    _p_inp,     { input operations allowed ( reset() ) }
+    _p_out,     { output operations allowed ( rewrite() ) }
+    _p_newl,    { new input line should be read }
+    _p_int,     { interactive device (for lazy I/O }
+    _p_perm,    { file can't be closed (input and output) }
+    _p_ran,     { seek() allowed }
+    _p_noerror, { don't trap on error }
+    _p_necho,   { echo is on }
+    _p_sngl,    { single character mode }
+    _p_cont     { contiguous file });
+  _p_filestatustype = set of _p_filestatusenum;
+
+  _p_filerecordptr = ^_p_filerecord;
+  _p_filerecord =
+    record
+      currentp: _p_charptr; { get byte, get a byte, get a byte byte byte }
+      status: _p_filestatustype; { see above }
+      nextfile: _p_filerecordptr; { pointer to next file or nil (for closerange()) }
+      filevar: _p_charptr; { back pointer to file var not sure how to do this yet }
+      err: integer; { available to the caller if _p_noerror is set }
+      streamp: _p_charptr; { pointer to the unix stream }
+    end;
+
 {glibc}
 procedure exit(const code: integer); nonpascal;
 procedure putchar(const ch: char); nonpascal;
