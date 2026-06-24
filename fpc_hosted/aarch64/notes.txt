@@ -21,8 +21,7 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
-   -- for i := 1 to i fails 
-      for i := 1 to -1 fails? (treated as unsigned???)
+   -- for i := 1 to -1 fails? (treated as unsigned???)
 
    -- why aren't param spills in _p_copy deleted as the reg is never
       destroyed?
@@ -52,6 +51,8 @@ if seeking value, wzr is replaced with a register.
      set-fixer-upper procedure.
 
 --- current work
+
+  -- look into why smallsetstime genrates such trash code.
 
   -- things needed to really start implementing the library
 

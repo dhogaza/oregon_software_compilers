@@ -1830,10 +1830,7 @@ function newtemp(size: addressrange {size of temp to allocate} ): keyindex;
 
   Offsets to the stack are negative offsets from the base of the stack
   rather than positive offsets to the top of the stack.  This makes
-  removing temps easier.  We flip the indexes at the end of the
-  block.  They are given the mode signed_offset and will later become
-  unsigned_offset, while parameters are given unsigned_offset when
-  first allocated.
+  removing temps easier.
 }
 
   begin {newtemp}
@@ -1916,10 +1913,7 @@ function stacktemp(size: addressrange): keyindex;
       splittemp(k, size)
       end
     else
-      begin
-      { DRB temp }
       stacktemp := newtemp(size);
-      end;
   end {stacktemp} ;
 
 procedure removeparamtemps(count: integer);
@@ -2678,10 +2672,6 @@ procedure initblock;
     keytable[stackcounter].oprnd := index_oprnd(abstract_offset, sp, 0, false);
 
     keytable[keysize].refcount := maxrefcount;
-
-    keytable[loopsrc].refcount := maxrefcount;
-    keytable[loopsrc1].refcount := maxrefcount;
-    keytable[loopdst].refcount := maxrefcount;
 
     {zero out all register data}
     for i := 0 to maxreg do
@@ -3836,8 +3826,18 @@ procedure defforindexx(sgn, { true if signed induction var }
   variable. The stack case will actually delay pushing the variable
   until we are inside the loop body.  In many cases the push is not
   needed at all.
+
+  This code makes use of pseudobuff.  The defforindex and fortop pseudoops
+  come as pairs, mostly to make the information fit into the pseudoinst
+  format.
+
+  In the "for i : = n to i" case, where "i" is assigned a global register
+  we make a copy of it into another register and make sure it's saved on the
+  stack, before it is set to the initial value (of course).
 }
 
+  var
+    target: keyindex; {from pseudobuff}
 
   begin {defforindexx}
     saveactivekeys;
@@ -3876,7 +3876,25 @@ procedure defforindexx(sgn, { true if signed induction var }
       globalreg := (keytable[right].oprnd.mode = register) and
                    not volatilereg(keytable[right].oprnd.reg);
     if globalreg then
-      setkeyvalue(right)
+      begin
+       setkeyvalue(right);
+
+       if not (pseudobuff.op in [foruptop, fordntop]) then
+         begin
+         writeln('expecting fortop');
+         compilerabort(inconsistent);
+         end;
+  
+      target := pseudobuff.oprnds[3];
+      if equivaddr(right, target) then
+        begin
+        adjustregcount(target, -keytable[target].refcount);
+        keytable[target].oprnd.reg := getreg;
+        adjustregcount(target, keytable[target].refcount);
+        gensimplemove(lastnode, right, target);
+        savekey(target);
+        end
+      end
     else
       begin
       setkeyvalue(settemp(long, reg_oprnd(getreg)));
@@ -3890,6 +3908,9 @@ procedure defforindexx(sgn, { true if signed induction var }
           keytable[key].properreg := right;
           end;
       end;
+
+
+
 
     unlock(left);
     unlock(right);
@@ -7321,7 +7342,7 @@ procedure codeone;
     left := pseudoinst.oprnds[1];
     right := pseudoinst.oprnds[2];
     target := pseudoinst.oprnds[3];
-    tempkey := loopcount - 1;
+    tempkey := -1;
     setcommonkey;
     use_preferred_key := false; {code generator flag}
     { Dump pseudocode into macfile but don't gen code.

@@ -53,13 +53,6 @@ const
   undefinedaddr = -1; {impossible address flag}
   loopdepth = 10; { maximum number of nested loops optimized }
 
-  {special keys for building internal loops}
-
-  loopsrc = - 3; {source descriptor}
-  loopsrc1 = - 4; {second source descriptor (for three operand loops)}
-  loopdst = - 5; {destination descriptor}
-  loopcount = - 6; {loop counter descriptor}
-
 { File variable status bits
 }
   lazybit = 0; {buffer not lazy}
@@ -639,7 +632,6 @@ var
                                 contents of this register}
         savedlen: datarange; { original length of index variable }
         litinitial: boolean; {set true if initial value is constant}
-        savedoprnd: oprndtype;
         initval: integer; {initial value, if constant}
       end;
 
