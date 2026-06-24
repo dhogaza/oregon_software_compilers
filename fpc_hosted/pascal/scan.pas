@@ -3548,7 +3548,6 @@ procedure initscanner;
       enterstandardid('trim      ', 4, trimid);
       enterstandardid('trimleft  ', 8, trimleftid);
       enterstandardid('trimright ', 9, trimrightid);
-      enterstandardid('trimright ', 9, trimrightid);
       enterstandardid('cstring   ', 7, cstringid);
 
       if targetmachine = aarch64 then
