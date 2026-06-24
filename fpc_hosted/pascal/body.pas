@@ -5659,7 +5659,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 
         if resultform = chars then
           genunary(chrstrop, strings)
-        else if resultform = arrays then
+        else if (resultform = arrays) and resultptr^.stringtype then
           genunary(arraystrop, strings);
 
         finishparams([none, strings], charptrindex);
