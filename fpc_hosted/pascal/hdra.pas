@@ -384,7 +384,7 @@ var
   {the following are entries for standard types}
   intindex, shortintindex, longintindex, realindex, doubleindex, chartypeindex,
     boolindex, noneindex, nilindex, textindex, inputindex, outputindex,
-    subrangeindex: index;
+    subrangeindex, charptrindex, chartypenameindex: index;
 
   nullboundindex: index; {undefined boundid}
 

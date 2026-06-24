@@ -312,7 +312,8 @@ type
              nonvoidret, mixedreturns, nostaterr, nolcurlerr, nowhileerr,
              novoidval, cantassign, nostructype, badcast, badptrsub, notconst,
              noenumerr, nostructerr, nobitaddr, noregaddr, badinit,
-             scalarexpected, emptyfile, notdfunc, badifnest, lastwarning);
+             scalarexpected, emptyfile, notdfunc, badifnest, nocstring,
+             lastwarning);
 
   { Reasons for aborting a compilation}
 

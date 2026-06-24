@@ -54,10 +54,7 @@ if seeking value, wzr is replaced with a register.
 
   -- cstring
 
-     1. convert if necessary (arraystr/chrstr)
-     2. add one to address 
-     3. need to make the result a ^char
-     4. if not folded, emit cstringid syssomething function
+     fold if possible, if not emit cstring function
 
   -- look into why smallsetstime genrates such trash code (Low priority)
 

@@ -2027,17 +2027,21 @@ function compatible(left, right: index {types to compare} ): boolean;
             if (left = nilindex) or (right = nilindex) then
               compatible := true
             else
-              begin {Allow compatibility between pointer types and pointers
-                     created with the address operator if the base types are
-                     the same. Also forstall error messages if either pointer
-                     base type is undef. }
+              begin
               if bigcompilerversion then lptr := @(bigtable[lptr^.ptrtypename]);
               if bigcompilerversion then rptr := @(bigtable[rptr^.ptrtypename]);
-
-              c := (lptr^.typeindex = noneindex) or
-                   (rptr^.typeindex = noneindex);
-              if rptr^.refdefined or lptr^.refdefined then
-                c := c or compatible(rptr^.typeindex, lptr^.typeindex);
+              c := (switchcounters[standard] <= 0) and
+                   (lptr^.typeindex = rptr^.typeindex);
+              if not c then
+                begin {Allow compatibility between pointer types and pointers
+                       created with the address operator if the base types are
+                       the same. Also forstall error messages if either pointer
+                       base type is undef. }
+                c := (lptr^.typeindex = noneindex) or
+                     (rptr^.typeindex = noneindex);
+                if rptr^.refdefined or lptr^.refdefined then
+                  c := c or compatible(rptr^.typeindex, lptr^.typeindex);
+                end;
               compatible := c;
               end;
           end;

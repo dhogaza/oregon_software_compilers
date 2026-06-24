@@ -5288,10 +5288,20 @@ procedure sysfnintx;
       setvalue(cond_oprnd(ne));
     end {oddx} ;
 
+  procedure cstringx;
+
+  begin {cstringx}
+    address(left,0);
+    setvalue(reg_oprnd(getreg));
+    genmoveaddress(lastnode, left, key);
+    gen3(lastnode, buildinst(add, true, false), key, key,
+         settemp(long, imm12_oprnd(1, false)));
+  end {cstringx};
 
   begin {sysfnintx} ;
     case standardids(pseudoinst.oprnds[2]) of
       oddid: oddx;
+      cstringid: cstringx; 
 {
       eolnid: eolneofx(eolnbit);
       eofid: eolneofx(eofbit);

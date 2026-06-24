@@ -843,6 +843,7 @@ procedure printlisting(var listing: text {file on which listing is output} );
 
     begin {listoneerror}
       case err of
+        nocstring: wl_str('Cstring function not supported');
         linetoolong: wl_str('Line too long');
         badchar: wl_str('Illegal character');
         missingdigits:

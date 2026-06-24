@@ -3608,6 +3608,7 @@ procedure initanalys;
         align := charalign;
         end;
       enterstandardid(charid, typename, charsize, chartypeindex);
+      chartypenameindex := tabletop;
 
       {define 'boolean'}
       enterform(bools, f, fptr);
@@ -3804,6 +3805,9 @@ procedure initanalys;
       {define 'trimleft'}
       enterstandardid(trimleftid, standardfunc, 0, 0);
 
+      {define 'cstring'}
+      enterstandardid(cstringid, standardfunc, 0, 0);
+
       {define 'seek'}
       enterstandardid(seekid, standardproc, 0, 0);
 
@@ -3881,6 +3885,16 @@ procedure initanalys;
       if targetopsys = msdos then
         enterstandardid(fortranid, directivename, 0, 0);
 
+      {define ^char for nonstandard cstring function}
+      enterform(ptrs, f, fptr);
+      charptrindex := f;
+      with fptr^ do
+        begin
+        ptrtypename := chartypenameindex;
+        size := ptrsize;
+        align := ptralign;
+        end;
+
       {define noneindex for undef typenames}
       enterform(none, f, fptr);
       noneindex := f;
@@ -3893,10 +3907,10 @@ procedure initanalys;
 
       {define nilindex}
       enterform(ptrs, f, fptr);
+      nilindex := f;
       with fptr^ do
         begin
         ptrtypename := 0;
-        nilindex := f;
         size := ptrsize;
         align := ptralign;
         end;

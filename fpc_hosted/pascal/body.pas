@@ -5530,12 +5530,6 @@ procedure statement(follow: tokenset {legal following symbols} );
 
       procedure trim;
 
-{ Parse "copy(stringsource, pos, num)".  Why isn't this called "substring"?
-  Ask Borland someday!
-}
-
-{ DBR: this is broken! }
-
         var
           strlen: addressrange;
 
@@ -5572,8 +5566,6 @@ procedure statement(follow: tokenset {legal following symbols} );
 { Parse "copy(stringsource, pos, num)".  Why isn't this called "substring"?
   Ask Borland someday!
 }
-
-{ DBR: this is broken! }
 
         var
           strlen: addressrange;
@@ -5638,9 +5630,6 @@ procedure statement(follow: tokenset {legal following symbols} );
 { Parse "pos(string1, string2)".
 }
 
-{DRB: broken.  Must fix std function returns}
-
-
         begin {pos}
           genlit(0);
           genop(reserve);
@@ -5658,6 +5647,24 @@ procedure statement(follow: tokenset {legal following symbols} );
           oprndstk[sp].oprndlen := shorttargetintsize;
           paramform := strings;
         end {pos} ;
+
+      procedure cstringfn;
+
+      begin {cstringfn}
+
+        if not nullterminatedstrings then
+          warnbefore(nocstring);
+
+        beginparams;
+
+        if resultform = chars then
+          genunary(chrstrop, strings)
+        else if resultform = arrays then
+          genunary(arraystrop, strings);
+
+        finishparams([none, strings], charptrindex);
+
+      end {cstringfn};
 
 
       procedure snglfn;
@@ -5831,6 +5838,7 @@ procedure statement(follow: tokenset {legal following symbols} );
           genlit(ord(procid));
         gettoken;
         case procid of
+          cstringid: cstringfn;
           posid: pos;
           copyid: copy;
           trimid, trimleftid, trimrightid: trim;
