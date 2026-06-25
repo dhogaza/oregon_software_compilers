@@ -5463,7 +5463,6 @@ procedure blockcodex;
     firstfpreg := 0;
     lineoffset := pseudoinst.len;
 
-
     if (blockref = 0) and (switchcounters[mainbody] > 0) then
       begin
 
@@ -5471,9 +5470,12 @@ procedure blockcodex;
       p^.bsssize := globalsize;
       p^.bsslabel := globaldatalabel;
 
-      p := newnode(lastnode, bssnode);
-      p^.bsssize := savespsize;
-      p^.bsslabel := savesplabel;
+      if savemainsp then
+        begin
+        p := newnode(lastnode, bssnode);
+        p^.bsssize := savespsize;
+        p^.bsslabel := savesplabel;
+        end;
       end;
 
     p := newnode(lastnode, textnode);
@@ -5641,7 +5643,7 @@ procedure putblock;
 
       end;
 
-    if blockref = 0 then
+    if (blockref = 0) and savemainsp then
       begin
       gen2(p1, buildinst(mov, true, false), ip1temp, sptemp);
       labelkey := settemp(long, datalabel_oprnd(savesplabel, false, libinitsp));
@@ -7258,7 +7260,8 @@ procedure pascallabelx;
                settemp(long, label_offset_oprnd(ip0, savesplabel, libinitsp)));
         gen2(lastnode, buildinst(mov, true, false), spkey, ip1temp);
         end
-      else begin
+      else
+        begin
         { magic value to be fixed up in finalizestackoffsets }
         stackoffsetkey := settemp(long, imm12_oprnd(undefinedaddr, false));
         slkey := settemp(long, reg_oprnd(sl));
@@ -7266,41 +7269,6 @@ procedure pascallabelx;
         gen3(lastnode, buildinst(sub, true, false), spkey, slkey, stackoffsetkey);
         gensimplemove(lastnode, slkey, fpkey);
         end;
-
-{
-        if level = 2 then t := 0
-        else t := long;
-        settempareg(sp);
-
-        case targetopsys of
-          unix, apollo:
-            settemp(long, relative, sl, 0, false, t - stackoffset, 0,
-                    1, unknown);
-          vdos:
-            settemp(long, relative, sl, 0, false, - stackoffset, 0, 1,
-                    unknown);
-          end {case} ;
-
-        gen2(lea, long, tempkey, tempkey + 1);
-
-        if bigcompilerversion then p := @(bignodetable[lastnode - 1]);
-
-        p^.tempcount := stackcounter - keysize; {note: negative tempcount!}
-
-        if blockusesframe then
-          begin
-          settemp(long, relative, sl, 0, false, blksize + t, 0, 1, unknown);
-          settempareg(fp);
-          gen2(lea, long, tempkey + 1, tempkey);
-          end;
-
-        if level > 2 then
-          begin
-          settempreg(long, indr, sl);
-          settempareg(sl);
-          gen2(move, long, tempkey + 1, tempkey);
-          end;
-}
       end;
     definelabel(pseudoinst.oprnds[1]);
   end {pascallabelx} ;
@@ -7349,6 +7317,8 @@ procedure pascalgotox;
 }
       { This call is a profiler/debugger entry point for a non-local goto. }
 
+      if pseudoinst.oprnds[2] = 1 then
+        savemainsp := true;
 
       slregkey := settemp(long, reg_oprnd(sl));
       slindrkey := settemp(long, index_oprnd(abstract_offset, sl, -long, false));
@@ -7687,6 +7657,7 @@ procedure initcode;
     globaldatalabel := newlabel;
     rodatalabel := newlabel;
     savesplabel := newlabel;
+    savemainsp := false;
 
     invertcond[eq] := ne;     invertcond[ne] := eq;     invertcond[lt] := ge;
     invertcond[gt] := le;     invertcond[ge] := lt;     invertcond[le] := gt;

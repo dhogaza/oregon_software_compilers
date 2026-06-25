@@ -553,6 +553,7 @@ var
 
   level: levelindex; {current block nesting levels}
 
+  savemainsp: boolean; {if true main prolog must save sp for global gotos}
   { information for counting very kludgey field-width expressions passed
     to write procedures.
   }
