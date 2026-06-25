@@ -5237,8 +5237,8 @@ procedure fileparamx;
 }
 
 begin {fileparamx}
-  gensimplemove(lastnode, stackcounter, settemp(long, reg_oprnd(0)));
   markreg(0);
+  gensimplemove(lastnode, stackcounter, settemp(long, reg_oprnd(0)));
   firstreg := 1;
 end {fileparamx};
 
@@ -5362,6 +5362,24 @@ procedure sysfnstringx;
 
 procedure sysroutinex;
 
+  procedure openx(libroutine: libroutines);
+
+    var
+      regkey: keyindex;
+      zerokey: keyindex;
+
+    begin
+      zerokey := settemp(long, reg_oprnd(zero));
+      regkey := settemp(long, reg_oprnd(firstreg));
+      for firstreg := firstreg to 4 do
+        begin
+        markreg(firstreg);
+        keytable[regkey].oprnd.reg := firstreg;
+        gensimplemove(lastnode, zerokey, regkey);
+        end;
+      callsupport(libroutine, true);
+   end;
+
   begin {sysroutinex}
     case standardids(pseudoinst.oprnds[1]) of
       pageid: calliosupport(libpage);
@@ -5370,10 +5388,8 @@ procedure sysroutinex;
       breakid: callsupport(libbreak, true);
       seekid: callsupport(libseek, true);
       closeid: callsupport(libclose, true);
-{
       resetid: openx(libreset);
       rewriteid: openx(librewrite);
-}
       packid: callsupport(libpack, true);
       unpackid: callsupport(libunpack, true);
       newid: callsupport(libnew, true);
@@ -5453,8 +5469,8 @@ procedure blockcodex;
       p^.bsssize := globalsize;
       p^.bsslabel := globaldatalabel;
       p := newnode(lastnode, bssnode);
-      p^.bsssize := libdatasize;
-      p^.bsslabel := libdatalabel;
+      p^.bsssize := savespsize;
+      p^.bsslabel := savesplabel;
       end;
 
     p := newnode(lastnode, textnode);
@@ -5625,11 +5641,11 @@ procedure putblock;
     if blockref = 0 then
       begin
       gen2(p1, buildinst(mov, true, false), ip1temp, sptemp);
-      labelkey := settemp(long, datalabel_oprnd(libdatalabel, false, libinitsp));
+      labelkey := settemp(long, datalabel_oprnd(savesplabel, false, libinitsp));
       genadrp(p1, false, ip0temp, labelkey);
       keytable[labelkey].oprnd.lowbits := true;
       genstr(p1, long, ip1temp,
-             settemp(long, label_offset_oprnd(ip0, libdatalabel, libinitsp)));
+             settemp(long, label_offset_oprnd(ip0, savesplabel, libinitsp)));
       end;
 
     { Procedure exit code. Restore callee-saved registers, link and frame pointer
@@ -7232,11 +7248,11 @@ procedure pascallabelx;
         { restore from the initial value saved at program start}
         ip0temp := settemp(long, reg_oprnd(ip0));
         ip1temp := settemp(long, reg_oprnd(ip1));
-        labelkey := settemp(long, datalabel_oprnd(libdatalabel, false, libinitsp));
+        labelkey := settemp(long, datalabel_oprnd(savesplabel, false, libinitsp));
         genadrp(lastnode, true, ip0temp, labelkey);
         keytable[labelkey].oprnd.lowbits := true;
         genldr(lastnode, long, false, ip1temp,
-               settemp(long, label_offset_oprnd(ip0, libdatalabel, libinitsp)));
+               settemp(long, label_offset_oprnd(ip0, savesplabel, libinitsp)));
         gen2(lastnode, buildinst(mov, true, false), spkey, ip1temp);
         end
       else begin
@@ -7667,7 +7683,7 @@ procedure initcode;
 
     globaldatalabel := newlabel;
     rodatalabel := newlabel;
-    libdatalabel := newlabel;
+    savesplabel := newlabel;
 
     invertcond[eq] := ne;     invertcond[ne] := eq;     invertcond[lt] := ge;
     invertcond[gt] := le;     invertcond[ge] := lt;     invertcond[le] := gt;

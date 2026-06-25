@@ -193,7 +193,7 @@ procedure libname(libroutine: libroutines;
       librealloc:       s := '_p_realloc ';
       librename:        s := '_p_rename  ';
       libreset:         s := '_p_reset   ';
-      librewrite:       s := '_p_rewrit  ';
+      librewrite:       s := '_p_rewrite ';
       libscan:          s := '_p_scan    ';  { for Modula-2}
       libseek:          s := '_p_seek    ';
       libsin:           s := '_p_fsin    ';

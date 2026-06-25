@@ -10,9 +10,11 @@ type
   }
 
   _p_charptr = ^char; 
+  _p_intptr = ^integer;
   _p_stringarray = array [0..maxint] of char;
   _p_stringarrayp = ^_p_stringarray;
   _p_string = string[_p_maxstringlen];
+  _p_stringptr = ^_p_string;
   _p_stringrange = 0.._p_maxstringlen;
 
   { The first three must be matched in the code generator. These
@@ -36,15 +38,18 @@ type
     _p_cont     { contiguous file });
   _p_filestatustype = set of _p_filestatusenum;
 
+  _p_addressptr = ^int64; {for now}
+  _p_streamptr = ^integer; {for now}
+
   _p_filerecordptr = ^_p_filerecord;
   _p_filerecord =
     record
       currentp: _p_charptr; { get byte, get a byte, get a byte byte byte }
       status: _p_filestatustype; { see above }
       nextfile: _p_filerecordptr; { pointer to next file or nil (for closerange()) }
-      filevar: _p_charptr; { back pointer to file var not sure how to do this yet }
+      filevar: _p_addressptr; { back pointer to file var not sure how to do this yet }
       err: integer; { available to the caller if _p_noerror is set }
-      streamp: _p_charptr; { pointer to the unix stream }
+      streamp: _p_addressptr; { pointer to the unix stream }
     end;
 
 {glibc}
@@ -55,17 +60,28 @@ procedure free(const p: _p_charptr); nonpascal;
 
 { pascal-2 lib declarations }
 
+{ errors }
 procedure _p_caseerr; external;
-function _p_pos(const src, match: _p_string): integer; external;
-function _p_copy(const src:_p_string; pos, count: integer): _p_string; external;
-function _p_trim(const src:_p_string):_p_string; external;
-function _p_trimleft(const src: _p_string):_p_string; external;
-function _p_trimright(const src: _p_string):_p_string; external;
+
+{ I/O }
+procedure _p_reset(filep: _p_filerecordptr; const size:integer; const str1ptr, str2ptr:
+                   _p_stringptr; errptr: _p_intptr); external;
+procedure _p_rewrite(filep: _p_filerecordptr; const size:integer; const str1ptr, str2ptr:
+                   _p_stringptr; errptr: _p_intptr); external;
 procedure _p_wtc_o(ch: char; width: integer); external;
 procedure _p_wti_o(i: integer; width: integer); external;
 procedure _p_wtb_o(b: boolean; width: integer); external;
 procedure _p_wts_o(const str: _p_stringarray; length: integer; width: integer); external;
 procedure _p_wtln_o; external;
+
+{ strings }
+function _p_pos(const src, match: _p_string): integer; external;
+function _p_copy(const src:_p_string; pos, count: integer): _p_string; external;
+function _p_trim(const src:_p_string):_p_string; external;
+function _p_trimleft(const src: _p_string):_p_string; external;
+function _p_trimright(const src: _p_string):_p_string; external;
+
+{ dynamic memory }
 procedure _p_new(var p: _p_charptr; size: int64); external;
 procedure _p_dispos(var p: _p_charptr; size: int64); external;
 
@@ -253,6 +269,38 @@ procedure _p_caseerr;
     writeln('case error');
     exit(1);
   end;
+
+procedure _p_open(reset: boolean; filep: _p_filerecordptr; size:integer; str1ptr, str2ptr:
+                   _p_stringptr; errptr: _p_intptr);
+
+begin
+  if reset then writeln('reset')
+  else writeln('rewrite');
+  writeln(loophole(int64, filep):1);
+  writeln(size:1);
+  if str1ptr = nil then
+    writeln('str1ptr nil')
+  else
+    writeln(str1ptr^);
+  if str2ptr = nil then
+    writeln('str2ptr nil')
+  else
+    writeln(str2ptr^);
+  if errptr = nil then
+    writeln('errptr nil');
+end;
+
+procedure _p_reset;
+
+begin
+  _p_open(true, filep, size, str1ptr, str2ptr, errptr);
+end;
+
+procedure _p_rewrite;
+
+begin
+  _p_open(false, filep, size, str1ptr, str2ptr, errptr);
+end;
 
 procedure _p_wtb_o;
 

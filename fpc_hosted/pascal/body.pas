@@ -6495,15 +6495,21 @@ procedure statement(follow: tokenset {legal following symbols} );
           sp := sp + 1;
           oprndstk[sp] := nilvalue;
           genstdparamvalue(ptrs, regparams);
-          genpushdefaultint(0, regparams);
+          if targetmachine <> aarch64 then 
+            genpushdefaultint(0, regparams);
           end
         else
           begin
-          expression(follow + [comma, rpar, intconst..stringconst], false);
-          if (resultform = arrays) and resultptr^.stringtype or
-             (resultform = strings) then
-            pushstringparam(resultform = strings, regparams)
-          else if (resultform <> none) then warnbefore(nostringerr);
+          if targetmachine = aarch64 then
+            stringsource(regparams)
+          else
+            begin
+            expression(follow + [comma, rpar, intconst..stringconst], false);
+            if (resultform = arrays) and resultptr^.stringtype or
+               (resultform = strings) then
+              pushstringparam(resultform = strings, regparams)
+            else if (resultform <> none) then warnbefore(nostringerr);
+           end;
           end;
       end {getname} ;
 
@@ -6549,7 +6555,7 @@ procedure statement(follow: tokenset {legal following symbols} );
             if not identical(resulttype, intindex) then
               warnbefore(paramtypeerr);
             oprndstk[sp].oprndlen := ptrsize;
-            genunary(pushaddr, ints);
+            genstdparamaddr(ints, regparams);
             end;
           end;
         parseextraargs;

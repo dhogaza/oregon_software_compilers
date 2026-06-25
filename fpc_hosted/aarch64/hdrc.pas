@@ -71,7 +71,7 @@ const
 {offsets from the library bss storage area
 }
   libinitsp = 0;
-  libdatasize = quad;
+  savespsize = quad;
 
 type
 
@@ -563,7 +563,7 @@ var
 
   fileoffset: integer; {0 if default file for read/write, 2 if specified}
 
-  globaldatalabel, libdatalabel, rodatalabel: integer;
+  globaldatalabel, savesplabel, rodatalabel: integer;
 
   labeltable: array [labelindex] of
       record {links label numbers to nodes, plus useful data}
@@ -598,7 +598,6 @@ var
 
   settarget: keyindex; {target of a set insert operation}
 
-  filestkcnt: integer; {stackcounter value at point of setfile op}
   filenamed: boolean; {file was specified for read/write}
 
   adjustdelay: boolean; {if set, do not get rid of temps}
