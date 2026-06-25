@@ -6725,10 +6725,6 @@ procedure indxx;
           }
           begin
           newkey := settemp(long, reg_oprnd(getreg));
-{
-          labelkey := settemp(long,dataref_oprnd(keytable[left].oprnd.labelno,
-                              false, keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
-}
           labelkey := settemp(long,keytable[left].oprnd);
           with keytable[labelkey].oprnd do
             labeloffset := labeloffset + pseudoinst.oprnds[2];

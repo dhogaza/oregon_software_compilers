@@ -914,14 +914,7 @@ procedure closec;
 procedure initmac;
 
 begin
-  copysfile;
-end;
 
-procedure initputcode;
-
-begin
-
-  data_region := false;
   reg_prefix[false] := 'w'; reg_prefix[true] := 'x';
   signed_prefix[false] := 'u'; signed_prefix[true] := 's';
 
@@ -951,6 +944,16 @@ begin
   conds_text[pl] := 'pl';
   conds_text[vs] := 'vs';
   conds_text[vc] := 'vc';
+
+  copysfile;
+
+end;
+
+procedure initputcode;
+
+begin
+
+  data_region := false;
 
   if switcheverplus[outputmacro] then initmac;
 
