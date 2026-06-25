@@ -237,7 +237,7 @@ _main:
 	b.le	.L17
 .L20:
 	adrp	x15,.L32766@PAGE
-	ldr	w15,[x15,.L32766+56@PAGEOFF]
+	ldrsw	x15,[x15,.L32766+56@PAGEOFF]
 	mov	x14,x15
 	ldr	x15,[x29,-64]
 	add	w14,w14,1
