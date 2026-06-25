@@ -5463,21 +5463,6 @@ procedure blockcodex;
     firstfpreg := 0;
     lineoffset := pseudoinst.len;
 
-    if (blockref = 0) and (switchcounters[mainbody] > 0) then
-      begin
-
-      p := newnode(lastnode, bssnode);
-      p^.bsssize := globalsize;
-      p^.bsslabel := globaldatalabel;
-
-      if savemainsp then
-        begin
-        p := newnode(lastnode, bssnode);
-        p^.bsssize := savespsize;
-        p^.bsslabel := savesplabel;
-        end;
-      end;
-
     p := newnode(lastnode, textnode);
 
     with proctable[blockref] do
@@ -5503,8 +5488,17 @@ procedure putblock;
   routines, and finally outputs the macro code.
 }
 
+  begin {putblock}
+    if switcheverplus[outputmacro] then putcode.putcode;
+  end { putblock } ;
+
+procedure blockexitx;
+
+{ Finish up after one procedure block.
+}
   var
-    i: regindex; {induction var for scanning registers}
+    i: regindex;
+    anyfound: boolean;
     blockcost: integer; {max bytes allocated on the stack}
     spoffset: integer; {size of stack save area}
     p, p1: nodeptr;
@@ -5524,232 +5518,228 @@ procedure putblock;
     prepost: boolean; {if pre/post index modes can be used}
     fplroprnd: oprndtype;
 
-  begin {putblock}
-
-    { todo save procedure symbol table index }
-
-    processregsaves;
-
-    while stackcounter < stackbase do
-      begin
-      if keytable[stackcounter].refcount > 0 then
-        begin
-        writeln('stackcounter: ', stackcounter, ' refcount: ', keytable[stackcounter].refcount);
-        break;
-        end;
-      stackcounter := stackcounter + 1;
-      end;
-
-    if stackcounter < stackbase then
-     compilerabort(undeltemps);
-
-    { eventually peephole optimizations happen now }
-
-    { We only save registers x19 ... and if the proc has a frame we
-       we do this indexing negatively off the fp to make sure the index is in range.
-      The static link must be the first register saved if used.
-     }
-    regcost := 0;
-    regcount := -1;
-    for i := sp downto pr + 1 do
-      if regused[i] then
-        begin
-        regcount := regcount + 1;
-        regcost := regcost + long;
-        with reglist[regcount] do
-          begin
-          index  := -regcost;
-          r := i;
-          end;
-        end;
-
-{    if proctable[blockref].opensfile then
-      begin
-      settemp(long, relative, sp, 0, false, (fpregcost - 96) * ord(mc68881) +
-              regcost - 13 * long, 0, 1, unknown);
-      gen1(pea, long, tempkey);
-      tempkey := tempkey + 1;
-      settempimmediate(long, blksize);
-      settempreg(long, autod, sp);
-      gen2(move, long, tempkey + 1, tempkey);
-      tempkey := tempkey + 2;
-      callsupport(libcloseinrange, true);
-      settempimmediate(word, 8);  { Clean up stack }
-      settempareg(sp);
-      gen2(adda, word, tempkey + 1, tempkey);
-      tempkey := tempkey + 1;
-      end;
-}
-
-    { procedure entry code. Grow stack,save link and frame pointer registers,
-     save used callee-saved registers.
-    }
-
-    savetempkey := tempkey;
-    linktemp := settemp(long, reg_oprnd(link));
-    sptemp := settemp(long, reg_oprnd(sp));
-    fptemp := settemp(long, reg_oprnd(fp));
-    ip0temp := settemp(long, reg_oprnd(ip0));
-    ip1temp := settemp(long, reg_oprnd(ip1));
-
-{ DRB allocate no space for frame and return pointer}
-    if not hasframeptr then
-      blksize := blksize - quad;
-    blockcost := (blksize + regcost + maxstackoffset + quad - 1) and -quad;
-    spoffset := blockcost - blksize;
-    spoffsettemp := settemp(long, index_oprnd(abstract_offset, sp, spoffset, true));
-
-    if hasframeptr then
-      saveregoffsettemp := settemp(long, index_oprnd(signed_offset, fp, 0, false))
-    else
-      saveregoffsettemp := settemp(long, index_oprnd(abstract_offset, sp,
-                                   spoffset, true));
-
-    if hasframeptr then
-      finalizestackoffsets(firstnode, lastnode, maxstackoffset, regcost)
-    else
-      finalizestackoffsets(firstnode, lastnode, spoffset, regcost);
-
-    { for using STP/LDP to save callee-saved registers }
-    saveregtemp := settemp(long, reg_oprnd(0));
-    savereg2temp := settemp(long, reg_oprnd(0));
-
-    { set up the frame for this block }
-
-    prepost := hasframeptr and (spoffset = 0) and (blockcost < 504);
-    p1 := codeproctable[blockref].proclabelnode;
-
-    if prepost then
-      begin
-      keytable[spoffsettemp].oprnd.mode := pre_index;
-      keytable[spoffsettemp].oprnd.index := -blockcost;
-      end
-    else
-      makeoffsetptr(p1, -blockcost, sp, sp);
-
-    if hasframeptr then
-      begin
-      gen3(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
-      if not prepost then
-        handle_offset9_oprnd(p1^.prevnode, true, ip0, p1^.oprnds[3]);
-
-      if (keytable[spoffsettemp].oprnd.reg <> sp) and
-         (keytable[spoffsettemp].oprnd.index = 0) then
-{ can this possibly work in all cases? }
-        gen2(p1, buildinst(mov, true, false), fptemp,
-             settemp(long, reg_oprnd(keytable[spoffsettemp].oprnd.reg)))
-      else
-        makeoffsetptr(p1, spoffset, sp, fp);
-
-      end;
-
-    if (blockref = 0) and savemainsp then
-      begin
-      gen2(p1, buildinst(mov, true, false), ip1temp, sptemp);
-      labelkey := settemp(long, datalabel_oprnd(savesplabel, false, libinitsp));
-      genadrp(p1, false, ip0temp, labelkey);
-      keytable[labelkey].oprnd.lowbits := true;
-      genstr(p1, long, ip1temp,
-             settemp(long, label_offset_oprnd(ip0, savesplabel, libinitsp)));
-      end;
-
-    { Procedure exit code. Restore callee-saved registers, link and frame pointer
-      registers, and shrink stack.
-
-      If this is a leaf proc, this is complicated by the fact that we have to
-      index up from sp which might be further away than 12 bits.  The code uses
-      genstr/genldr to handle generating the extracode to reference these.  It
-      is even worse for stp/ldp which can only index 504 bytes above the sp. If
-      spoffset is greater than this the code just punts and issues genstr/genldr.
-      This should be rare as leaf procs will have regtemps allocated to scratch
-      registers and are unlikely to be complex enough to both use many callee-saved
-      registers and generate enough local stack storage to fall out of range of
-      stp/ldp.
-
-      This will work if I ever implement complete frame pointer removal, i.e.
-      the noframepointer option.  In that case the code generator will have
-      to check proctable for those procs which really need an fp (calling a
-      nested proc that makes intermediate level references).
-
-    } 
-
-    i := 0;
-    while i <= regcount do
-      begin
-      keytable[saveregtemp].oprnd.reg := reglist[i].r;
-      if (i = regcount) or (spoffset > 504) then
-        begin
-        if hasframeptr then
-          keytable[saveregoffsettemp].oprnd.index := reglist[i].index
-        else
-          begin
-          keytable[saveregoffsettemp].oprnd.mode := abstract_offset;
-          keytable[saveregoffsettemp].oprnd.index := spoffset + reglist[i].index;
-          end;
-        genstr(p1, long, saveregtemp, saveregoffsettemp);
-        genldr(lastnode, long, false, saveregtemp, saveregoffsettemp);
-        i := i + 1;
-        end
-      else
-        begin
-        keytable[savereg2temp].oprnd.reg := reglist[i + 1].r;
-        if hasframeptr then
-          keytable[saveregoffsettemp].oprnd.index := reglist[i + 1].index
-        else
-          begin
-          keytable[saveregoffsettemp].oprnd.mode := signed_offset;
-          keytable[saveregoffsettemp].oprnd.index := spoffset + reglist[i + 1].index;
-          end;
-        { ordering important to make sure sl is in the right place if needed }
-        gen3(p1, buildinst(stp, true, false), savereg2temp, saveregtemp,
-             saveregoffsettemp);
-        gen3(lastnode, buildinst(ldp, true, false), savereg2temp, saveregtemp,
-             saveregoffsettemp);
-        i := i + 2;
-        end;
-      end;
-
-    if prepost then
-      begin
-      keytable[spoffsettemp].oprnd.mode := post_index;
-      keytable[spoffsettemp].oprnd.index := blockcost;
-      end
-    else if hasframeptr then
-      begin
-      keytable[spoffsettemp].oprnd.mode := abstract_offset;
-      keytable[spoffsettemp].oprnd.reg := sp;
-      keytable[spoffsettemp].oprnd.index := spoffset;
-      end;
-
-    if hasframeptr then
-      begin
-      gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
-      if not prepost then
-        handle_offset9_oprnd(lastnode^.prevnode, true, ip0, lastnode^.oprnds[3]);
-      end;
-
-    if not prepost then
-      makeoffsetptr(lastnode, blockcost, sp, sp);
-
-    gen0(lastnode, buildinst(ret, false, false));
-    tempkey := savetempkey;
-
-    { write output code }
-    if switcheverplus[outputmacro] then putcode.putcode;
-
-  end { putblock } ;
-
-procedure blockexitx;
-
-{ Finish up after one procedure block.
-}
-  var
-    i: regindex;
-    anyfound: boolean;
-
   begin {blockexitx}
 
-    if (level <> 1) or (switchcounters[mainbody] > 0) then putblock;
+    if (blockref <> 0) or (switchcounters[mainbody] > 0) then
+      begin
+      { todo save procedure symbol table index }
+  
+      processregsaves;
+  
+      while stackcounter < stackbase do
+        begin
+        if keytable[stackcounter].refcount > 0 then
+          begin
+          writeln('stackcounter: ', stackcounter, ' refcount: ', keytable[stackcounter].refcount);
+          break;
+          end;
+        stackcounter := stackcounter + 1;
+        end;
+  
+      if stackcounter < stackbase then
+       compilerabort(undeltemps);
+  
+      { eventually peephole optimizations happen now }
+  
+      { We only save registers x19 ... and if the proc has a frame we
+         we do this indexing negatively off the fp to make sure the index is in range.
+        The static link must be the first register saved if used.
+       }
+      regcost := 0;
+      regcount := -1;
+      for i := sp downto pr + 1 do
+        if regused[i] then
+          begin
+          regcount := regcount + 1;
+          regcost := regcost + long;
+          with reglist[regcount] do
+            begin
+            index  := -regcost;
+            r := i;
+            end;
+          end;
+  
+  {    if proctable[blockref].opensfile then
+        begin
+        settemp(long, relative, sp, 0, false, (fpregcost - 96) * ord(mc68881) +
+                regcost - 13 * long, 0, 1, unknown);
+        gen1(pea, long, tempkey);
+        tempkey := tempkey + 1;
+        settempimmediate(long, blksize);
+        settempreg(long, autod, sp);
+        gen2(move, long, tempkey + 1, tempkey);
+        tempkey := tempkey + 2;
+        callsupport(libcloseinrange, true);
+        settempimmediate(word, 8);  { Clean up stack }
+        settempareg(sp);
+        gen2(adda, word, tempkey + 1, tempkey);
+        tempkey := tempkey + 1;
+        end;
+  }
+  
+      { procedure entry code. Grow stack,save link and frame pointer registers,
+       save used callee-saved registers.
+      }
+  
+      savetempkey := tempkey;
+      linktemp := settemp(long, reg_oprnd(link));
+      sptemp := settemp(long, reg_oprnd(sp));
+      fptemp := settemp(long, reg_oprnd(fp));
+      ip0temp := settemp(long, reg_oprnd(ip0));
+      ip1temp := settemp(long, reg_oprnd(ip1));
+  
+  { DRB allocate no space for frame and return pointer}
+      if not hasframeptr then
+        blksize := blksize - quad;
+      blockcost := (blksize + regcost + maxstackoffset + quad - 1) and -quad;
+      spoffset := blockcost - blksize;
+      spoffsettemp := settemp(long, index_oprnd(abstract_offset, sp, spoffset, true));
+  
+      if hasframeptr then
+        saveregoffsettemp := settemp(long, index_oprnd(signed_offset, fp, 0, false))
+      else
+        saveregoffsettemp := settemp(long, index_oprnd(abstract_offset, sp,
+                                     spoffset, true));
+  
+      if hasframeptr then
+        finalizestackoffsets(firstnode, lastnode, maxstackoffset, regcost)
+      else
+        finalizestackoffsets(firstnode, lastnode, spoffset, regcost);
+  
+      { for using STP/LDP to save callee-saved registers }
+      saveregtemp := settemp(long, reg_oprnd(0));
+      savereg2temp := settemp(long, reg_oprnd(0));
+  
+      { set up the frame for this block }
+  
+      prepost := hasframeptr and (spoffset = 0) and (blockcost < 504);
+      p1 := codeproctable[blockref].proclabelnode;
+  
+      if prepost then
+        begin
+        keytable[spoffsettemp].oprnd.mode := pre_index;
+        keytable[spoffsettemp].oprnd.index := -blockcost;
+        end
+      else
+        makeoffsetptr(p1, -blockcost, sp, sp);
+  
+      if hasframeptr then
+        begin
+        gen3(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
+        if not prepost then
+          handle_offset9_oprnd(p1^.prevnode, true, ip0, p1^.oprnds[3]);
+  
+        if (keytable[spoffsettemp].oprnd.reg <> sp) and
+           (keytable[spoffsettemp].oprnd.index = 0) then
+  { can this possibly work in all cases? }
+          gen2(p1, buildinst(mov, true, false), fptemp,
+               settemp(long, reg_oprnd(keytable[spoffsettemp].oprnd.reg)))
+        else
+          makeoffsetptr(p1, spoffset, sp, fp);
+  
+        end;
+  
+      if (blockref = 0) and savemainsp then
+        begin
+        gen2(p1, buildinst(mov, true, false), ip1temp, sptemp);
+        labelkey := settemp(long, datalabel_oprnd(savesplabel, false, libinitsp));
+        genadrp(p1, false, ip0temp, labelkey);
+        keytable[labelkey].oprnd.lowbits := true;
+        genstr(p1, long, ip1temp,
+               settemp(long, label_offset_oprnd(ip0, savesplabel, libinitsp)));
+        end;
+  
+      { Procedure exit code. Restore callee-saved registers, link and frame pointer
+        registers, and shrink stack.
+  
+        If this is a leaf proc, this is complicated by the fact that we have to
+        index up from sp which might be further away than 12 bits.  The code uses
+        genstr/genldr to handle generating the extracode to reference these.  It
+        is even worse for stp/ldp which can only index 504 bytes above the sp. If
+        spoffset is greater than this the code just punts and issues genstr/genldr.
+        This should be rare as leaf procs will have regtemps allocated to scratch
+        registers and are unlikely to be complex enough to both use many callee-saved
+        registers and generate enough local stack storage to fall out of range of
+        stp/ldp.
+  
+        This will work if I ever implement complete frame pointer removal, i.e.
+        the noframepointer option.  In that case the code generator will have
+        to check proctable for those procs which really need an fp (calling a
+        nested proc that makes intermediate level references).
+  
+      } 
+  
+      i := 0;
+      while i <= regcount do
+        begin
+        keytable[saveregtemp].oprnd.reg := reglist[i].r;
+        if (i = regcount) or (spoffset > 504) then
+          begin
+          if hasframeptr then
+            keytable[saveregoffsettemp].oprnd.index := reglist[i].index
+          else
+            begin
+            keytable[saveregoffsettemp].oprnd.mode := abstract_offset;
+            keytable[saveregoffsettemp].oprnd.index := spoffset + reglist[i].index;
+            end;
+          genstr(p1, long, saveregtemp, saveregoffsettemp);
+          genldr(lastnode, long, false, saveregtemp, saveregoffsettemp);
+          i := i + 1;
+          end
+        else
+          begin
+          keytable[savereg2temp].oprnd.reg := reglist[i + 1].r;
+          if hasframeptr then
+            keytable[saveregoffsettemp].oprnd.index := reglist[i + 1].index
+          else
+            begin
+            keytable[saveregoffsettemp].oprnd.mode := signed_offset;
+            keytable[saveregoffsettemp].oprnd.index := spoffset + reglist[i + 1].index;
+            end;
+          { ordering important to make sure sl is in the right place if needed }
+          gen3(p1, buildinst(stp, true, false), savereg2temp, saveregtemp,
+               saveregoffsettemp);
+          gen3(lastnode, buildinst(ldp, true, false), savereg2temp, saveregtemp,
+               saveregoffsettemp);
+          i := i + 2;
+          end;
+        end;
+  
+      if prepost then
+        begin
+        keytable[spoffsettemp].oprnd.mode := post_index;
+        keytable[spoffsettemp].oprnd.index := blockcost;
+        end
+      else if hasframeptr then
+        begin
+        keytable[spoffsettemp].oprnd.mode := abstract_offset;
+        keytable[spoffsettemp].oprnd.reg := sp;
+        keytable[spoffsettemp].oprnd.index := spoffset;
+        end;
+  
+      if hasframeptr then
+        begin
+        gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
+        if not prepost then
+          handle_offset9_oprnd(lastnode^.prevnode, true, ip0, lastnode^.oprnds[3]);
+        end;
+  
+      if not prepost then
+        makeoffsetptr(lastnode, blockcost, sp, sp);
+  
+      gen0(lastnode, buildinst(ret, false, false));
+      tempkey := savetempkey;
+    end;
+
+    if blockref = 0 then
+      begin
+      p := newnode(lastnode, commnode);
+      p^.commsize := globalsize;
+      p^.commlabel := globaldatalabel;
+      end;
+
+    putblock;
+
     if (blockref = 0) or (level = 1) then
       mainsymbolindex := pseudoinst.oprnds[1];
 

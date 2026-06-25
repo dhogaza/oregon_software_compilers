@@ -422,46 +422,49 @@ procedure writeprocname(procn: proctableindex {number of procedure to copy});
 procedure writeproclabel(procn: proctableindex);
   begin {writeproclabel}
 
-    { banner }
-    writeln(macfile, '#');
-    write(macfile, '#', chr(9));
-    writeprocname(procn);
-    if blockref = 0 then writeln(macfile, ' (main)')
-    else writeln(macfile);
-    writeln(macfile, '#');
-
-    if proctable[blockref].externallinkage
-       or ((proctable[blockref].calllinkage = implementationbody)
-	   and (level = 1)) then
-      { a linux kludge that the front end doesn't manage.  ld could be told that
-        the program starts at the program name global but it is easier to just
-        declare "main".
-      }
-      if blockref = 0 then
-        begin
-        if unixtarget = linux then
+    if (blockref <> 0) or (switchcounters[mainbody] > 0) then
+      begin
+      { banner }
+      writeln(macfile, '#');
+      write(macfile, '#', chr(9));
+      writeprocname(procn);
+      if blockref = 0 then writeln(macfile, ' (main)')
+      else writeln(macfile);
+      writeln(macfile, '#');
+  
+      if proctable[blockref].externallinkage
+         or ((proctable[blockref].calllinkage = implementationbody)
+  	   and (level = 1)) then
+        { a linux kludge that the front end doesn't manage.  ld could be told that
+          the program starts at the program name global but it is easier to just
+          declare "main".
+        }
+        if blockref = 0 then
           begin
-          writeln(macfile, chr(9), '.global main');
-          writeln(macfile, 'main:');
+          if unixtarget = linux then
+            begin
+            writeln(macfile, chr(9), '.global main');
+            writeln(macfile, 'main:');
+            end
+          else {assumptions, assumpsions ...}
+            begin
+            writeln(macfile, chr(9), '.global _main');
+            writeln(macfile, '_main:');
+            end;
           end
-        else {assumptions, assumpsions ...}
-          begin
-          writeln(macfile, chr(9), '.global _main');
-          writeln(macfile, '_main:');
-          end;
-        end
+        else
+          begin write(macfile, chr(9), '.global ');
+          { for darwin }
+          if (unixtarget = darwin) and (proctable[blockref].calllinkage = nonpascalcall) then
+            write(macfile, '_');
+          writeprocname(blockref);
+          writeln(macfile);
+          writeprocname(blockref);
+          writeln(macfile, ':');
+          end
       else
-        begin write(macfile, chr(9), '.global ');
-        { for darwin }
-        if (unixtarget = darwin) and (proctable[blockref].calllinkage = nonpascalcall) then
-          write(macfile, '_');
-        writeprocname(blockref);
-        writeln(macfile);
-        writeprocname(blockref);
-        writeln(macfile, ':');
-        end
-    else
-      writeln(macfile, '.P', procn, ':');
+        writeln(macfile, '.P', procn, ':');
+      end;
 
   end {writeproclabel};
 
@@ -771,13 +774,14 @@ begin {write_node}
     writeln(macfile, chr(9), '.text');
     writeln(macfile, chr(9), '.align 2');
     end;
-  bssnode:
+  commnode:
     begin
-    writeln(macfile, chr(9), '.bss');
-    writeln(macfile, chr(9), '.align 12');
-    writeln(macfile, chr(9), '.global .L', p^.bsslabel:1);
-    writeln(macfile, '.L', p^.bsslabel:1, ':');
-    writeln(macfile, chr(9), '.space ', p^.bsssize);
+    write(macfile, chr(9), '.comm',chr(9));
+    { if labelno then...}
+    write(macfile, '.L', p^.commlabel:1,',',p^.commsize);
+    {if align <> 0 then}
+    write(macfile,',12');
+    writeln(macfile);
     end;
   proclabelnode: writeproclabel(p^.proclabel);
   labelnode: writeln(macfile, '.L', p^.labelno, ':');
