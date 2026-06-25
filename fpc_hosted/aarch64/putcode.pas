@@ -775,7 +775,8 @@ begin {write_node}
     begin
     writeln(macfile, chr(9), '.bss');
     writeln(macfile, chr(9), '.align 12');
-    writeln(macfile, '.L', p^.bsslabel, ':');
+    writeln(macfile, chr(9), '.global .L', p^.bsslabel:1);
+    writeln(macfile, '.L', p^.bsslabel:1, ':');
     writeln(macfile, chr(9), '.space ', p^.bsssize);
     end;
   proclabelnode: writeproclabel(p^.proclabel);

@@ -60,50 +60,11 @@ if seeking value, wzr is replaced with a register.
 
   -- things needed to really start implementing the library
 
-    2. basic extended strings.
+     {$own} just like global but with a string label not number label.
 
-       provide cstring(string) that just bumps address by one which I think is also
-       how a string is converted to a Pascal packed array of char but need to investigate.
-
-       While cstring.pas in the regression tests show how to do this in Pascal itself,
-       it's inefficient and should be done inline, as should conversion from charptr
-       to shortstring?
-
-    3. const params, passing structs and arrays by reference, might be a big help
-       for library and probably not that difficult to implement.
-
-       compiler does a good job of not copying if a parameter isn't modified but
-       has to punt for nonpascal, external, forward, etc.
-
-       void foo(const char*) in C could be defined along the lines of
-
-       procedure foo(const str:cstring); nonpascal;
-
-       ... foo(cstring(str)) ...
- 
-       That is incomplete.
-
-       Can we just do something like:
-
-       type cstring = ^char;
-
-       procedure foo(cstr: cstring); nonpascal;
-
-       function tocstring(str: string[255): cstring;
-
-         begin
-         tocstring := loophole(cstring, succ(ref(str)));
-         end;
-
-       { const disallow assignment so could pass by reference to 'a quoted string'
-         etc without making a copy on the stack.
-       }
-       procedure usefoo((const?) str: string[255]);
-       begin
-         foo(tocstring(str));
-       end;
-
-       introduces all of the danger of cstrings to the pascal source.
+     Doing this will make shared and ext variables easier to do, too.  Hmmm need to
+     turn off adp optimixation for shared variable or use define.  Use/define sucks
+     actually.  So does shared.  It all does.
 
   -- error calls
 

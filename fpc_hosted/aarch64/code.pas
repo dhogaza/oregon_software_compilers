@@ -5463,11 +5463,14 @@ procedure blockcodex;
     firstfpreg := 0;
     lineoffset := pseudoinst.len;
 
+
     if (blockref = 0) and (switchcounters[mainbody] > 0) then
       begin
+
       p := newnode(lastnode, bssnode);
       p^.bsssize := globalsize;
       p^.bsslabel := globaldatalabel;
+
       p := newnode(lastnode, bssnode);
       p^.bsssize := savespsize;
       p^.bsslabel := savesplabel;
