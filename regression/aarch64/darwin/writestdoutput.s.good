@@ -5,11 +5,6 @@
 	.align 12
 .L32765:
 	.byte	0x03,0x78,0x79,0x7A,0x00,0x03,0x61,0x62,0x63,0x00
-	.bss
-	.align 12
-	.global .L32766
-.L32766:
-	.space 304
 	.text
 	.align 2
 #
@@ -122,3 +117,4 @@ _main:
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
+	.comm	.L32766,304,12

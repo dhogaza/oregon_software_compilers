@@ -98,11 +98,6 @@
 	ldp	x30,x29,[sp,32]
 	add	sp,sp,64
 	ret
-	.bss
-	.align 12
-	.global .L32766
-.L32766:
-	.space 296
 	.text
 	.align 2
 #
@@ -195,3 +190,4 @@ _main:
 	ldp	x30,x29,[sp,32]
 	add	sp,sp,48
 	ret
+	.comm	.L32766,296,12

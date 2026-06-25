@@ -59,16 +59,6 @@
 .L4:
 	add	sp,sp,xzr
 	ret
-	.bss
-	.align 12
-	.global .L32762
-.L32762:
-	.space 40
-	.bss
-	.align 12
-	.global .L32760
-.L32760:
-	.space 16
 	.text
 	.align 2
 #
@@ -176,3 +166,5 @@ _main:
 	ldp	x30,x29,[sp,80]
 	add	sp,sp,96
 	ret
+	.comm	.L32762,40,12
+	.comm	.L32760,16
