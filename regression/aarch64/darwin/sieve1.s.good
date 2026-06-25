@@ -1,11 +1,8 @@
 	.bss
 	.align 12
+	.global .L32766
 .L32766:
 	.space 1000056
-	.bss
-	.align 12
-.L32764:
-	.space 16
 	.text
 	.align 2
 #
@@ -16,9 +13,6 @@ _main:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,48]
 	add	x29,sp,48
-	mov	x17,sp
-	adrp	x16,.L32764@PAGE
-	str	x17,[x16,.L32764@PAGEOFF]
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
 	str	x24,[x29,-40]

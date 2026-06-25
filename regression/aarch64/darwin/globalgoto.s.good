@@ -61,10 +61,12 @@
 	ret
 	.bss
 	.align 12
+	.global .L32762
 .L32762:
 	.space 40
 	.bss
 	.align 12
+	.global .L32760
 .L32760:
 	.space 16
 	.text

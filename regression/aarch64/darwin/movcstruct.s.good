@@ -107,12 +107,9 @@
 	ret
 	.bss
 	.align 12
+	.global .L32766
 .L32766:
 	.space 56
-	.bss
-	.align 12
-.L32764:
-	.space 16
 	.text
 	.align 2
 #
@@ -123,9 +120,6 @@ _main:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-	mov	x17,sp
-	adrp	x16,.L32764@PAGE
-	str	x17,[x16,.L32764@PAGEOFF]
 # Line: 22, Stmt: 1
 # Line: 23, Stmt: 0
 	adrp	x15,.L32766@PAGE

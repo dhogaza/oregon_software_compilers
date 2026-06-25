@@ -91,12 +91,9 @@
 	.byte	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x80
 	.bss
 	.align 12
+	.global .L32766
 .L32766:
 	.space 136
-	.bss
-	.align 12
-.L32764:
-	.space 16
 	.text
 	.align 2
 #
@@ -108,9 +105,6 @@ _main:
 	add	x16,sp,56
 	stp	x30,x29,[x16,504]
 	add	x29,sp,560
-	mov	x17,sp
-	adrp	x16,.L32764@PAGE
-	str	x17,[x16,.L32764@PAGEOFF]
 	str	x28,[x29,-8]
 	str	x27,[x29,-16]
 	str	x26,[x29,-24]
