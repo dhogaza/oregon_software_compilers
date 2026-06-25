@@ -719,19 +719,55 @@ function procref_oprnd(mode:oprnd_modes; proclabelno: integer;
     procref_oprnd := o;
   end;
 
-function datalabel_oprnd(labelno: integer; lowbits: boolean;
-                         labeloffset: integer): oprndtype;
+function externref_oprnd(externref: unsigned; lowbits: boolean; labeloffset: integer): oprndtype;
+
+  var
+    o:oprndtype;
+
+  begin
+    o.externref := externref;
+    o.reg := noreg;
+    o.reg2 := noreg;
+    o.mode := dataref;
+    o.labelno := 0;
+    o.lowbits := lowbits;
+    o.labeloffset := labeloffset;
+    o.labelownflag := false;
+    externref_oprnd := o;
+  end;
+
+function ownref_oprnd(lowbits: boolean; labeloffset: integer): oprndtype;
+
+  var
+    o:oprndtype;
+
+  begin
+    o.labelownflag := true;
+    o.reg := noreg;
+    o.reg2 := noreg;
+    o.mode := dataref;
+    o.labelno := 0;
+    o.lowbits := lowbits;
+    o.labeloffset := labeloffset;
+    o.externref := 0;
+    ownref_oprnd := o;
+  end;
+
+function dataref_oprnd(labelno: integer; lowbits: boolean;
+                       labeloffset: integer): oprndtype;
 
   var
     o:oprndtype;
   begin
     o.reg := noreg;
     o.reg2 := noreg;
-    o.mode := datalabel;
+    o.mode := dataref;
     o.labelno := labelno;
     o.lowbits := lowbits;
     o.labeloffset := labeloffset;
-    datalabel_oprnd := o;
+    o.labelownflag := false;
+    o.externref := 0;
+    dataref_oprnd := o;
   end;
 
 function labeltarget_oprnd(labelno: integer): oprndtype;
@@ -745,10 +781,13 @@ function labeltarget_oprnd(labelno: integer): oprndtype;
     o.labelno := labelno;
     o.lowbits := false;
     o.labeloffset := 0;
+    o.labelownflag := false;
+    o.externref := 0;
     labeltarget_oprnd := o;
   end;
 
-function label_offset_oprnd(reg: regindex; labelno: integer; labeloffset: integer): oprndtype;
+function labeloffset_oprnd(reg: regindex; labelno: unsigned; labelownflag: boolean;
+                           externref: unsigned; labeloffset: integer): oprndtype;
 
   var
     o:oprndtype;
@@ -759,7 +798,9 @@ function label_offset_oprnd(reg: regindex; labelno: integer; labeloffset: intege
     o.labelno := labelno;
     o.lowbits := true;
     o.labeloffset := labeloffset;
-    label_offset_oprnd := o;
+    o.labelownflag := labelownflag;
+    o.externref := externref;
+    labeloffset_oprnd := o;
   end;
 
 function proccall_oprnd(proclabelno: unsigned; entry_offset: integer): oprndtype;
@@ -1193,13 +1234,16 @@ procedure genadrp(var after: nodeptr; scavenge: boolean; var regkey: keyindex;
 
   var p: nodeptr;
     found: boolean;
-    maskedoffset, labelno, labeloffset:integer;
+    maskedoffset, labelno, labeloffset, externref:integer;
+    labelownflag: boolean;
     reg: regindex;
     clobberedregs: array [regindex] of boolean;
 
   begin {genadrp}
     labelno := keytable[labelkey].oprnd.labelno;
     labeloffset := keytable[labelkey].oprnd.labeloffset;
+    labelownflag := keytable[labelkey].oprnd.labelownflag;
+    externref := keytable[labelkey].oprnd.externref;
     maskedoffset := labeloffset and $FFFFF000;
     reg := keytable[regkey].oprnd.reg;
     p := after;
@@ -1216,8 +1260,10 @@ procedure genadrp(var after: nodeptr; scavenge: boolean; var regkey: keyindex;
         if (p^.kind = instnode) then
           if (p^.inst.inst = adrp) and
            (not clobberedregs[p^.oprnds[1].reg]) and
-           (p^.oprnds[2].mode = datalabel) and
+           (p^.oprnds[2].mode = dataref) and
            (p^.oprnds[2].labelno = labelno) and
+           (p^.oprnds[2].labelownflag = labelownflag) and
+           (p^.oprnds[2].externref = externref) and
            (p^.oprnds[2].labeloffset and $FFFFF000 = maskedoffset) and
            (scavenge or (p^.oprnds[1].reg = reg)) then
             begin
@@ -1416,9 +1462,11 @@ function equivaddr(l, r: keyindex): boolean;
          reg_offset: same := (shift = oprnd.shift) and
                              (extend = oprnd.extend) and
                              (signed = oprnd.signed);
-         labeltarget, label_offset, datalabel:
+         labeltarget, label_offset, dataref:
            same := (labelno = oprnd.labelno) and (lowbits = oprnd.lowbits) and
-                   (labeloffset = oprnd.labeloffset);
+                   (labeloffset = oprnd.labeloffset) and
+                   (labelownflag = oprnd.labelownflag) and
+                   (externref = oprnd.externref);
          otherwise same := true;
          end;
       end;
@@ -2449,22 +2497,25 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
           recall_reg(reg, properreg);
           if {(mode = register) and }(regenoprnd.mode <> nomode) then
             case regenoprnd.mode of
-              datalabel:
+              dataref:
                 begin
                 genadrp(lastnode, false, t, t1);
                 if mode <> label_offset then
                   if mode = register then
                     gen2(lastnode, ldrinst(len, signed), t,
                          settemp(long,
-                         label_offset_oprnd(reg, regenoprnd.labelno, regenoprnd.labeloffset)))
+                         labeloffset_oprnd(reg, regenoprnd.labelno,
+                                           regenoprnd.labelownflag,
+                                           regenoprnd.externref, regenoprnd.labeloffset)))
                   else
                     gen2(lastnode, ldrinst(long, false), t,
                          settemp(long,
-                         label_offset_oprnd(reg, regenoprnd.labelno, regenoprnd.labeloffset)))
+                         labeloffset_oprnd(reg, regenoprnd.labelno, regenoprnd.labelownflag,
+                                           regenoprnd.externref, regenoprnd.labeloffset)))
                 end;
               abstract_offset:
                 gensimplemove(lastnode, t1, t);
-              otherwise writeln('bad regnoprnd ', regenoprnd.mode);
+              otherwise writeln('bad regenoprnd ', regenoprnd.mode);
             end
           else
             begin
@@ -3137,10 +3188,10 @@ procedure genmoveaddress(var after: nodeptr; src, dst: keyindex);
       case mode of
       label_offset:
         begin
-        labelkey := settemp(long, datalabel_oprnd(labelno, true, labeloffset)); 
+        labelkey := settemp(long, dataref_oprnd(labelno, true, labeloffset)); 
         gen3(lastnode, buildinst(add, true, false), dst, settemp(long, reg_oprnd(reg)), labelkey);
         end;
-      datalabel:
+      dataref:
         begin
         { the idea here is to have adrp target a different reg than is referenced
           by dst, to give adrp optimization a higher chance of finding a match.  There
@@ -3441,15 +3492,17 @@ procedure reloadloop;
                 reloadfirst := lastnode;
                 gen2(lastnode, ldrinst(keytable[stackcopy].len, keytable[stackcopy].signed),
                      r,
-                     settemp(long, label_offset_oprnd(keytable[r].oprnd.reg,
+                     settemp(long, labeloffset_oprnd(keytable[r].oprnd.reg,
                              keytable[stackcopy].regenoprnd.labelno,
+                             keytable[stackcopy].regenoprnd.labelownflag,
+                             keytable[stackcopy].regenoprnd.externref,
                              keytable[stackcopy].regenoprnd.labeloffset)))
                 end
               else if keytable[stackcopy].oprnd.mode = label_offset then
                 begin
                 genadrp(lastnode, false, r,
                         settemp(long,
-                                datalabel_oprnd(keytable[stackcopy].oprnd.labelno, false,
+                                dataref_oprnd(keytable[stackcopy].oprnd.labelno, false,
                                                 keytable[stackcopy].oprnd.labeloffset)));
                 reloadfirst := lastnode;
                 end
@@ -3739,8 +3792,10 @@ procedure restoreloopx;
                            settemp(long, keytable[stackcopy].regenoprnd));
                       gen2(lastnode, ldrinst(keytable[stackcopy].len, keytable[stackcopy].signed),
                            tempreg,
-                           settemp(long, label_offset_oprnd(keytable[tempreg].oprnd.reg,
+                           settemp(long, labeloffset_oprnd(keytable[tempreg].oprnd.reg,
                                          keytable[stackcopy].regenoprnd.labelno,
+                                         keytable[stackcopy].regenoprnd.labelownflag,
+                                         keytable[stackcopy].regenoprnd.externref,
                                          keytable[stackcopy].regenoprnd.labeloffset)))
                       end
                     else if keytable[stackcopy].oprnd.mode = label_offset then
@@ -3884,7 +3939,7 @@ procedure defforindexx(sgn, { true if signed induction var }
          writeln('expecting fortop');
          compilerabort(inconsistent);
          end;
-  
+
       target := pseudobuff.oprnds[3];
       if equivaddr(right, target) then
         begin
@@ -3980,8 +4035,10 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
                settemp(long, keytable[forkey].regenoprnd));
           gen2(lastnode, strinst(keytable[forkey].len),
                regkey,
-               settemp(long, label_offset_oprnd(ip0,
+               settemp(long, labeloffset_oprnd(ip0,
                              keytable[forkey].regenoprnd.labelno,
+                             keytable[forkey].regenoprnd.labelownflag,
+                             keytable[forkey].regenoprnd.externref,
                              keytable[forkey].regenoprnd.labeloffset)))
           end
         else gensimplemove(lastnode, regkey, keytable[forkey].properreg)
@@ -4667,17 +4724,14 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
       if (left <= 1) or (left >= level - 1) then
         modifiable := false;
       if ownflag then
-        begin
-        write('own data not yet implemented');
-        compilerabort(inconsistent);
-        end
+        setvalue(ownref_oprnd(false, 0))
       else if left = 0 then
         begin
         write('origin data not  implemented');
         compilerabort(inconsistent);
         end
       else if left = 1 then
-        setvalue(datalabel_oprnd(globaldatalabel, false, 0))
+        setvalue(dataref_oprnd(globaldatalabel, false, 0))
       else if left = level then
         if hasframeptr then
           setvalue(index_oprnd(abstract_offset, fp, 0, false))
@@ -4704,7 +4758,7 @@ procedure dostructx;
     labelkey, regkey: keyindex;
 
 begin {dostructx}
-  setvalue(datalabel_oprnd(rodatalabel, false, pseudoinst.oprnds[1]));
+  setvalue(dataref_oprnd(rodatalabel, false, pseudoinst.oprnds[1]));
 end {dostructx} ;
 
 { set operations }
@@ -4778,12 +4832,14 @@ procedure dosetx;
       tempreg := getreg;
       tempregkey := settemp(len, reg_oprnd(tempreg));
       labelkey := settemp(long,
-                          datalabel_oprnd(keytable[left].oprnd.labelno, false,
+                          dataref_oprnd(keytable[left].oprnd.labelno, false,
                           keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
       genadrp(lastnode, true, tempregkey, labelkey);
       structkey := settemp(len,
-                           label_offset_oprnd(tempreg, keytable[labelkey].oprnd.labelno,
-                                              keytable[labelkey].oprnd.labeloffset));
+                           labeloffset_oprnd(tempreg, keytable[labelkey].oprnd.labelno,
+                                             keytable[labelkey].oprnd.labelownflag,
+                                             keytable[labelkey].oprnd.externref,
+                                             keytable[labelkey].oprnd.labeloffset));
       lock(tempregkey);
       settargetorreg;
       unlock(tempregkey);
@@ -5523,9 +5579,9 @@ procedure blockexitx;
     if (blockref <> 0) or (switchcounters[mainbody] > 0) then
       begin
       { todo save procedure symbol table index }
-  
+
       processregsaves;
-  
+
       while stackcounter < stackbase do
         begin
         if keytable[stackcounter].refcount > 0 then
@@ -5535,12 +5591,12 @@ procedure blockexitx;
           end;
         stackcounter := stackcounter + 1;
         end;
-  
+
       if stackcounter < stackbase then
        compilerabort(undeltemps);
-  
+
       { eventually peephole optimizations happen now }
-  
+
       { We only save registers x19 ... and if the proc has a frame we
          we do this indexing negatively off the fp to make sure the index is in range.
         The static link must be the first register saved if used.
@@ -5558,7 +5614,7 @@ procedure blockexitx;
             r := i;
             end;
           end;
-  
+
   {    if proctable[blockref].opensfile then
         begin
         settemp(long, relative, sp, 0, false, (fpregcost - 96) * ord(mc68881) +
@@ -5576,45 +5632,45 @@ procedure blockexitx;
         tempkey := tempkey + 1;
         end;
   }
-  
+
       { procedure entry code. Grow stack,save link and frame pointer registers,
        save used callee-saved registers.
       }
-  
+
       savetempkey := tempkey;
       linktemp := settemp(long, reg_oprnd(link));
       sptemp := settemp(long, reg_oprnd(sp));
       fptemp := settemp(long, reg_oprnd(fp));
       ip0temp := settemp(long, reg_oprnd(ip0));
       ip1temp := settemp(long, reg_oprnd(ip1));
-  
+
   { DRB allocate no space for frame and return pointer}
       if not hasframeptr then
         blksize := blksize - quad;
       blockcost := (blksize + regcost + maxstackoffset + quad - 1) and -quad;
       spoffset := blockcost - blksize;
       spoffsettemp := settemp(long, index_oprnd(abstract_offset, sp, spoffset, true));
-  
+
       if hasframeptr then
         saveregoffsettemp := settemp(long, index_oprnd(signed_offset, fp, 0, false))
       else
         saveregoffsettemp := settemp(long, index_oprnd(abstract_offset, sp,
                                      spoffset, true));
-  
+
       if hasframeptr then
         finalizestackoffsets(firstnode, lastnode, maxstackoffset, regcost)
       else
         finalizestackoffsets(firstnode, lastnode, spoffset, regcost);
-  
+
       { for using STP/LDP to save callee-saved registers }
       saveregtemp := settemp(long, reg_oprnd(0));
       savereg2temp := settemp(long, reg_oprnd(0));
-  
+
       { set up the frame for this block }
-  
+
       prepost := hasframeptr and (spoffset = 0) and (blockcost < 504);
       p1 := codeproctable[blockref].proclabelnode;
-  
+
       if prepost then
         begin
         keytable[spoffsettemp].oprnd.mode := pre_index;
@@ -5622,13 +5678,13 @@ procedure blockexitx;
         end
       else
         makeoffsetptr(p1, -blockcost, sp, sp);
-  
+
       if hasframeptr then
         begin
         gen3(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
         if not prepost then
           handle_offset9_oprnd(p1^.prevnode, true, ip0, p1^.oprnds[3]);
-  
+
         if (keytable[spoffsettemp].oprnd.reg <> sp) and
            (keytable[spoffsettemp].oprnd.index = 0) then
   { can this possibly work in all cases? }
@@ -5636,22 +5692,22 @@ procedure blockexitx;
                settemp(long, reg_oprnd(keytable[spoffsettemp].oprnd.reg)))
         else
           makeoffsetptr(p1, spoffset, sp, fp);
-  
+
         end;
-  
+
       if (blockref = 0) and savemainsp then
         begin
         gen2(p1, buildinst(mov, true, false), ip1temp, sptemp);
-        labelkey := settemp(long, datalabel_oprnd(savesplabel, false, libinitsp));
+        labelkey := settemp(long, dataref_oprnd(savesplabel, false, libinitsp));
         genadrp(p1, false, ip0temp, labelkey);
         keytable[labelkey].oprnd.lowbits := true;
         genstr(p1, long, ip1temp,
-               settemp(long, label_offset_oprnd(ip0, savesplabel, libinitsp)));
+               settemp(long, labeloffset_oprnd(ip0, savesplabel, false, 0, libinitsp)));
         end;
-  
+
       { Procedure exit code. Restore callee-saved registers, link and frame pointer
         registers, and shrink stack.
-  
+
         If this is a leaf proc, this is complicated by the fact that we have to
         index up from sp which might be further away than 12 bits.  The code uses
         genstr/genldr to handle generating the extracode to reference these.  It
@@ -5661,14 +5717,14 @@ procedure blockexitx;
         registers and are unlikely to be complex enough to both use many callee-saved
         registers and generate enough local stack storage to fall out of range of
         stp/ldp.
-  
+
         This will work if I ever implement complete frame pointer removal, i.e.
         the noframepointer option.  In that case the code generator will have
         to check proctable for those procs which really need an fp (calling a
         nested proc that makes intermediate level references).
-  
+
       } 
-  
+
       i := 0;
       while i <= regcount do
         begin
@@ -5704,7 +5760,7 @@ procedure blockexitx;
           i := i + 2;
           end;
         end;
-  
+
       if prepost then
         begin
         keytable[spoffsettemp].oprnd.mode := post_index;
@@ -5716,26 +5772,50 @@ procedure blockexitx;
         keytable[spoffsettemp].oprnd.reg := sp;
         keytable[spoffsettemp].oprnd.index := spoffset;
         end;
-  
+
       if hasframeptr then
         begin
         gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
         if not prepost then
           handle_offset9_oprnd(lastnode^.prevnode, true, ip0, lastnode^.oprnds[3]);
         end;
-  
+
       if not prepost then
         makeoffsetptr(lastnode, blockcost, sp, sp);
-  
+
       gen0(lastnode, buildinst(ret, false, false));
       tempkey := savetempkey;
     end;
 
     if blockref = 0 then
-      begin
+      begin 
       p := newnode(lastnode, commnode);
       p^.commsize := globalsize;
       p^.commlabel := globaldatalabel;
+      p^.commexternref := 0;
+      p^.commownflag := false;
+      p^.commalign := 12;
+
+      if ownsize > 0 then
+        begin
+        p := newnode(lastnode, commnode);
+        p^.commownflag := true;
+        p^.commsize := ownsize;
+        p^.commlabel := 0;
+        p^.commexternref := 0;
+        p^.commalign := 12;
+        end;
+   
+      if savemainsp then
+        begin
+        p := newnode(lastnode, commnode);
+        p^.commsize := savespsize;
+        p^.commlabel := savesplabel;
+        p^.commexternref := 0;
+        p^.commownflag := false;
+        p^.commalign := 0;
+        end;
+
       end;
 
     putblock;
@@ -5901,7 +5981,7 @@ procedure movptrx;
   begin {movptrx}
     if keytable[left].oprnd.mode = tworeg then
       begin
-  
+
       addressboth;
 
       regkey := settemp(long, reg_oprnd(keytable[left].oprnd.reg));
@@ -6628,7 +6708,7 @@ procedure indxx;
 
   begin {indxx}
     if (pseudoinst.oprnds[2] = 0) and
-        (keytable[left].oprnd.mode <> datalabel) then
+        (keytable[left].oprnd.mode <> dataref) then
       begin
       setallfields(left);
       dereference(left);
@@ -6638,20 +6718,27 @@ procedure indxx;
       address(left, 0);
 
       case keytable[left].oprnd.mode of
-        datalabel:
+        dataref:
           {We would like to index the var with a label offset but one
            has to scale that by the length of the load or store operation.
            Need to study clang output.
           }
           begin
           newkey := settemp(long, reg_oprnd(getreg));
-          labelkey := settemp(long,datalabel_oprnd(keytable[left].oprnd.labelno,
+{
+          labelkey := settemp(long,dataref_oprnd(keytable[left].oprnd.labelno,
                               false, keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
+}
+          labelkey := settemp(long,keytable[left].oprnd);
+          with keytable[labelkey].oprnd do
+            labeloffset := labeloffset + pseudoinst.oprnds[2];
           keytable[key].regenoprnd := keytable[labelkey].oprnd;
           genadrp(lastnode, true, newkey, labelkey);
           keytable[labelkey].oprnd.lowbits := true;
-          setvalue(label_offset_oprnd(keytable[newkey].oprnd.reg,
+          setvalue(labeloffset_oprnd(keytable[newkey].oprnd.reg,
                      keytable[labelkey].oprnd.labelno,
+                     keytable[labelkey].oprnd.labelownflag,
+                     keytable[labelkey].oprnd.externref,
                      keytable[labelkey].oprnd.labeloffset));
           keytable[key].regsaved := true;
           end;
@@ -7062,7 +7149,7 @@ begin {casebranchx}
   tablelabel := newlabel;
   addressreg := getreg;
   addresskey := settemp(long, reg_oprnd(addressreg));
-  t1 := settemp(long, datalabel_oprnd(tablelabel, false, 0));
+  t1 := settemp(long, dataref_oprnd(tablelabel, false, 0));
   genadrp(lastnode, true, addresskey, t1);
   keytable[t1].oprnd.lowbits := true;
   gen3(lastnode, buildinst(add, true, false), addresskey, addresskey, t1);
@@ -7073,7 +7160,7 @@ begin {casebranchx}
 {
   linux?
   gen2(lastnode, buildinst(adr, true, false), addresskey,
-       settemp(long, datalabel_oprnd(baselabel, false, 0)));
+       settemp(long, dataref_oprnd(baselabel, false, 0)));
 }
   gen2(lastnode, buildinst(adr, true, false), addresskey,
        settemp(long, labeltarget_oprnd(baselabel)));
@@ -7243,11 +7330,11 @@ procedure pascallabelx;
         { restore from the initial value saved at program start}
         ip0temp := settemp(long, reg_oprnd(ip0));
         ip1temp := settemp(long, reg_oprnd(ip1));
-        labelkey := settemp(long, datalabel_oprnd(savesplabel, false, libinitsp));
+        labelkey := settemp(long, dataref_oprnd(savesplabel, false, libinitsp));
         genadrp(lastnode, true, ip0temp, labelkey);
         keytable[labelkey].oprnd.lowbits := true;
         genldr(lastnode, long, false, ip1temp,
-               settemp(long, label_offset_oprnd(ip0, savesplabel, libinitsp)));
+               settemp(long, labeloffset_oprnd(ip0, savesplabel, false, 0, libinitsp)));
         gen2(lastnode, buildinst(mov, true, false), spkey, ip1temp);
         end
       else
@@ -7680,7 +7767,7 @@ procedure initcode;
 
     testing := switcheverplus[test] and switcheverplus[outputmacro];
 
-    if switcheverplus[outputmacro] then initmac;
+    initputcode;
 
     stackcounter := keysize - 1; {fiddle consistency check}
     stackbase := keysize - 1;

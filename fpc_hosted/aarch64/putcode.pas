@@ -6,7 +6,7 @@ uses config, product, hdr, hdrc, t_c, utils, sysutils;
 
 procedure putcode;
 
-procedure initmac;
+procedure initputcode;
 
 procedure openc;
 
@@ -309,6 +309,7 @@ procedure writehex(v: unsigned; n: unsigned {nibbles to write} );
     column := column + n + 2;
   end {writehex} ; 
 
+
 procedure copysfile;
 
 { Copy the string table and constant table from the string file to
@@ -407,7 +408,7 @@ procedure writeprocname(procn: proctableindex {number of procedure to copy});
   var
     i: integer; {induction var for copy}
 
-  begin
+  begin {writeprocname}
 
     curstringblock := (stringfilecount + proctable[procn].charindex - 1) div
        (diskbufsize + 1) + 1;
@@ -418,6 +419,52 @@ procedure writeprocname(procn: proctableindex {number of procedure to copy});
     for i := 1 to proctable[procn].charlen do
       write(macfile, chr(getstringfile));
   end {writeprocname} ;
+
+procedure writesymbolname(name: string);
+
+{ Write a symbol name string to the macro file. }
+
+  var
+    i: 0..maxprocnamelen;
+
+  begin
+    i := 0;
+    name := trimright(name);
+    while (i < length(name)) do begin
+      i := i + 1;
+      if language = pascal then write(macfile, lowercase(name[i]))
+      else write(macfile, name[i]);
+      end;
+  end;
+
+procedure writeownname;
+
+{ Write the own name, which might've been provided in the "own" directive.
+  If not we'll write the output name if one exists, and in the end fall
+  back on the program name.  These last two cases will lead to an own
+  section unique to this compilation.  The "own" directive makes possible
+  sharing own sections between compilation units.
+}
+
+var
+  i: integer;
+
+begin {writeownname}
+  if ownsize > 0 then
+    if ownsect_strlength > 0 then
+      begin
+      curstringblock := (stringfilecount + ownsect_string - 1) div
+       (diskbufsize + 1) + 1;
+      stringblkptr := stringblkptrtbl[curstringblock];
+      nextstringfile := (stringfilecount + ownsect_string - 1) mod
+                          (diskbufsize + 1);
+      for i := 1 to ownsect_strlength do
+        write(macfile, chr(getstringfile));
+      end
+    else if proctable[0].charindex = 0 then writesymbolname(outputname)
+    else writeprocname(0); {use program name}
+end {writeownname};
+
 
 procedure writeproclabel(procn: proctableindex);
   begin {writeproclabel}
@@ -467,6 +514,17 @@ procedure writeproclabel(procn: proctableindex);
       end;
 
   end {writeproclabel};
+
+  procedure writedatalabel(labelno:unsigned; ownflag: boolean; externref: unsigned);
+
+    begin {writedatalabel}
+    if ownflag then
+      writeownname
+    else if externref <> 0 then
+      write(macfile, 'extern_',externref:1)
+    else
+      write(macfile, '.L', labelno:1);
+    end {writedatalabel};
 
 procedure write_reg(r: regindex; sf: boolean);
 begin
@@ -663,20 +721,20 @@ begin
         if unixtarget = darwin then
           write(macfile, '@PAGE');
         end;
-    datalabel:
+    dataref:
       if o.lowbits then
         begin
         if unixtarget = linux then
           write(macfile, ':lo12:');
-        write(macfile, '.L', o.labelno);
+         writedatalabel(o.labelno, o.labelownflag, o.externref);
         if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset:1);
         if unixtarget = darwin then
           write(macfile, '@PAGEOFF');
         end
       else
         begin
-        write(macfile, '.L', o.labelno);
-        if (o.labeloffset and $FFFFF000) <> 0 then
+        writedatalabel(o.labelno, o.labelownflag, o.externref);
+        if (o.externref = 0) and ((o.labeloffset and $FFFFF000) <> 0) then
           write(macfile, '+',o.labeloffset and $FFFFF000:1);
         if unixtarget = darwin then
           write(macfile, '@PAGE');
@@ -694,8 +752,9 @@ begin
         compilerabort(inconsistent);;
         end;
       if unixtarget = linux then write(macfile, ':lo12:');
-      write(macfile, '.L', o.labelno);
-      if o.labeloffset <> 0 then write(macfile, '+',o.labeloffset and $FFF:1);
+      writedatalabel(o.labelno, o.labelownflag, o.externref);
+      if (o.externref = 0) and (o.labeloffset <> 0) then
+        write(macfile, '+',o.labeloffset and $FFF:1);
       if unixtarget = darwin then write(macfile, '@PAGEOFF');
       write(macfile, ']');
       end;
@@ -777,10 +836,10 @@ begin {write_node}
   commnode:
     begin
     write(macfile, chr(9), '.comm',chr(9));
-    { if labelno then...}
-    write(macfile, '.L', p^.commlabel:1,',',p^.commsize);
-    {if align <> 0 then}
-    write(macfile,',12');
+    writedatalabel(p^.commlabel, p^.commownflag, p^.commexternref);
+    write(macfile,',', p^.commsize:1);
+    if p^.commalign <> 0 then
+      write(macfile,',',p^.commalign:1);
     writeln(macfile);
     end;
   proclabelnode: writeproclabel(p^.proclabel);
@@ -792,44 +851,6 @@ begin {write_node}
   otherwise writeln('bad node');
   end;
 end {write_node};
-
-procedure initmac;
-
-begin
-  data_region := false;
-  reg_prefix[false] := 'w'; reg_prefix[true] := 'x';
-  signed_prefix[false] := 'u'; signed_prefix[true] := 's';
-
-  reg_shifts_text[lsl] := 'lsl';
-  reg_shifts_text[lsr] := 'lsr';
-  reg_shifts_text[asr] := 'asr';
-  
-  reg_extends_text[xtb] := 'xtb';
-  reg_extends_text[xth] := 'xth';
-  reg_extends_text[xtw] := 'xtw';
-  reg_extends_text[xtx] := 'xtx';
-
-  conds_text[al] := 'al';
-  conds_text[eq] := 'eq';
-  conds_text[ne] := 'ne';
-  conds_text[gt] := 'gt';
-  conds_text[lt] := 'lt';
-  conds_text[le] := 'le';
-  conds_text[ge] := 'ge';
-  conds_text[hi] := 'hi';
-  conds_text[hs] := 'hs';
-  conds_text[lo] := 'lo';
-  conds_text[ls] := 'ls';
-  conds_text[cc] := 'cc';
-  conds_text[cs] := 'cs';
-  conds_text[mi] := 'mi';
-  conds_text[pl] := 'pl';
-  conds_text[vs] := 'vs';
-  conds_text[vc] := 'vc';
-
-  copysfile;
-
-end;
 
 procedure write_nodes(firstnode, lastnode: nodeptr);
   var stopnode: nodeptr;
@@ -890,5 +911,49 @@ procedure closec;
     if switcheverplus[outputmacro] or switcheverplus[test] then close(macfile);
   end {closec} ;
 
+procedure initmac;
+
+begin
+  copysfile;
+end;
+
+procedure initputcode;
+
+begin
+
+  data_region := false;
+  reg_prefix[false] := 'w'; reg_prefix[true] := 'x';
+  signed_prefix[false] := 'u'; signed_prefix[true] := 's';
+
+  reg_shifts_text[lsl] := 'lsl';
+  reg_shifts_text[lsr] := 'lsr';
+  reg_shifts_text[asr] := 'asr';
+  
+  reg_extends_text[xtb] := 'xtb';
+  reg_extends_text[xth] := 'xth';
+  reg_extends_text[xtw] := 'xtw';
+  reg_extends_text[xtx] := 'xtx';
+
+  conds_text[al] := 'al';
+  conds_text[eq] := 'eq';
+  conds_text[ne] := 'ne';
+  conds_text[gt] := 'gt';
+  conds_text[lt] := 'lt';
+  conds_text[le] := 'le';
+  conds_text[ge] := 'ge';
+  conds_text[hi] := 'hi';
+  conds_text[hs] := 'hs';
+  conds_text[lo] := 'lo';
+  conds_text[ls] := 'ls';
+  conds_text[cc] := 'cc';
+  conds_text[cs] := 'cs';
+  conds_text[mi] := 'mi';
+  conds_text[pl] := 'pl';
+  conds_text[vs] := 'vs';
+  conds_text[vc] := 'vc';
+
+  if switcheverplus[outputmacro] then initmac;
+
+end;
 
 end.

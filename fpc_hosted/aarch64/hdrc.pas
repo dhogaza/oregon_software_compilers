@@ -310,7 +310,7 @@ type
   oprnd_modes = (nomode, register, fpregister, tworeg, shift_reg, extend_reg,
                  imm12, imm16, immbitmask, relative, pre_index, post_index,
                  abstract_offset, signed_offset, unsigned_offset, label_offset,
-                 reg_offset, literal, labeltarget, datalabel, extprocref,
+                 reg_offset, literal, labeltarget, dataref, extprocref,
                  localprocref, proccall, libcall, cond, intconst, realconst);
 
   oprnd_mode_set = set of oprnd_modes;
@@ -342,8 +342,9 @@ type
       reg_offset: (shift: bits2; extend: reg_extends; signed: boolean);
       literal: (literal: integer);
       cond: (condition: conds);
-      labeltarget, label_offset, datalabel:
-         (labelno: unsigned; lowbits: boolean; labeloffset: integer);
+      labeltarget, label_offset, dataref:
+         (labelno: unsigned; lowbits: boolean; labeloffset: integer;
+          labelownflag: boolean; externref: unsigned);
       proccall, extprocref, localprocref:
          (proclabelno: unsigned; entry_offset: integer; proclowbits: boolean);
       libcall: (libroutine: libroutines);
@@ -389,6 +390,9 @@ type
            sourceline: unsigned; {line number (for walkback)}
            filename: stringtableindex; {stringfile index of file name} );
         commnode: (commsize: addressrange; {for globals}
+                   commalign: addressrange;
+                   commownflag: boolean;
+                   commexternref: addressrange;
                    commlabel: unsigned);
         commentnode: (comment: string);
     end;
@@ -527,6 +531,7 @@ type
       param_offset: integer;
     end;
 
+  linknametype = packed array [1..maxprocnamelen] of char;
   bytesize = 0..255;
   section = (codesect, diagsect, datasect); { code sections }
   supportrange = integer;
