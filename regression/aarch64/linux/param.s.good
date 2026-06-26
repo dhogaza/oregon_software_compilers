@@ -83,7 +83,7 @@ main:
 # Line: 16, Stmt: 0
 	adrp	x15,.L32766
 	mov	w16,3
-	str	w16,[x15,:lo12:.L32766+32]
+	str	w16,[x15,:lo12:.L32766+16]
 # Line: 18, Stmt: 0
 	mov	x0,1
 	mov	x1,2
@@ -186,4 +186,4 @@ main:
 	ldp	x30,x29,[sp,32]
 	add	sp,sp,48
 	ret
-	.comm	.L32766,40,12
+	.comm	.L32766,24,12

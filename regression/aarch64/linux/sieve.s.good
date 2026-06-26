@@ -24,7 +24,7 @@
 	add	x15,x14,:lo12:.L32766
 	add	x15,x15,w27, sxtw 0
 	mov	w16,1
-	strb	w16,[x15,32]
+	strb	w16,[x15,16]
 	add	w27,w27,1
 	movz	x16,16960
 	movk	x16,15,lsl 16
@@ -38,7 +38,7 @@
 	adrp	x14,.L32766
 	add	x15,x14,:lo12:.L32766
 	add	x15,x15,w27, sxtw 0
-	ldrb	w15,[x15,32]
+	ldrb	w15,[x15,16]
 	cbz	w15,.L10
 .L11:
 # Line: 24, Stmt: 0
@@ -57,7 +57,7 @@
 	adrp	x14,.L32766
 	add	x15,x14,:lo12:.L32766
 	add	x15,x15,w28, sxtw 0
-	strb	wzr,[x15,32]
+	strb	wzr,[x15,16]
 # Line: 28, Stmt: 0
 	add	w28,w28,w26
 	b	.L3
@@ -102,4 +102,4 @@ main:
 .L16:
 	ldp	x30,x29,[sp],16
 	ret
-	.comm	.L32766,1000040,12
+	.comm	.L32766,1000024,12
