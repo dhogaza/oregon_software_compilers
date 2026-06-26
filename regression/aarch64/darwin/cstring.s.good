@@ -175,13 +175,13 @@ _main:
 	bl	.P2  // cstring
 	str	x0,[x29,-16]
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+32@PAGEOFF
+	add	x0,x15,.L32766+16@PAGEOFF
 	ldr	x1,[x29,-16]
 	bl	.P1  // toshortstring
 # Line: 72, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	ldrb	w1,[x15,.L32766+32@PAGEOFF]
-	add	x0,x15,.L32766+32@PAGEOFF
+	ldrb	w1,[x15,.L32766+16@PAGEOFF]
+	add	x0,x15,.L32766+16@PAGEOFF
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -190,4 +190,4 @@ _main:
 	ldp	x30,x29,[sp,32]
 	add	sp,sp,48
 	ret
-	.comm	.L32766,296,12
+	.comm	.L32766,280,12

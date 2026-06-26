@@ -234,11 +234,11 @@ _main:
 	bl	_p_wtln_o 
 # Line: 96, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+40@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	bl	.P1  // initarray
 # Line: 97, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+40@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	bl	.P2  // quicksort
 # Line: 98, Stmt: 0
 	mov	x27,1
@@ -257,8 +257,8 @@ _main:
 	add	x15,x14,.L32766@PAGEOFF
 	add	x14,x15,w28, sxtw 2
 	add	x15,x15,w28, sxtw 2
-	ldrsw	x14,[x14,36]
-	ldrsw	x15,[x15,32]
+	ldrsw	x14,[x14,20]
+	ldrsw	x15,[x15,16]
 	cmp	w14,w15
 	cset	w15,ge
 	mov	x27,x15
@@ -281,4 +281,4 @@ _main:
 	ldp	x30,x29,[sp,32]
 	add	sp,sp,48
 	ret
-	.comm	.L32766,400040,12
+	.comm	.L32766,400024,12

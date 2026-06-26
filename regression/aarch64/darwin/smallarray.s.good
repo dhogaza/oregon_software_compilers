@@ -135,13 +135,13 @@ _main:
 # Line: 36, Stmt: 1
 # Line: 37, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+32@PAGEOFF
+	add	x0,x15,.L32766+16@PAGEOFF
 	bl	.P1  // fill
 # Line: 38, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+32@PAGEOFF
+	add	x0,x15,.L32766+16@PAGEOFF
 	bl	.P2  // verify
 .L18:
 	ldp	x30,x29,[sp],16
 	ret
-	.comm	.L32766,39240,12
+	.comm	.L32766,39224,12
