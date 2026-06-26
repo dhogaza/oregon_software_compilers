@@ -1,11 +1,3 @@
-	.bss
-	.align 3
-.L32766:
-	.space 1000056
-	.bss
-	.align 3
-.L32764:
-	.space 16
 	.text
 	.align 2
 #
@@ -16,67 +8,76 @@ main:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,48]
 	add	x29,sp,48
-	mov	x17,sp
-	adrp	x16,.L32764
-	str	x17,[x16,:lo12:.L32764]
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
 	str	x24,[x29,-40]
 # Line: 15, Stmt: 1
 # Line: 16, Stmt: 2
-	mov	x28,1
+	mov	x24,1
 .L6:
-	mov	x27,xzr
+# Line: 17, Stmt: 0
 	mov	x25,xzr
+# Line: 18, Stmt: 0
+	mov	x27,xzr
 .L7:
-	adrp	x15,.L32766
-	add	x15,x15,:lo12:.L32766
-	add	x15,x15,w25, sxtw 0
+# Line: 19, Stmt: 0
+	adrp	x14,.L32766
+	add	x15,x14,:lo12:.L32766
+	add	x15,x15,w27, sxtw 0
 	mov	w16,1
 	strb	w16,[x15,32]
-	add	w25,w25,1
+	add	w27,w27,1
 	movz	x16,16960
 	movk	x16,15,lsl 16
-	cmp	w25,w16
+	cmp	w27,w16
 	b.le	.L7
 .L8:
-	mov	x25,xzr
+# Line: 20, Stmt: 0
+	mov	x27,xzr
 .L9:
-	adrp	x15,.L32766
-	add	x15,x15,:lo12:.L32766
-	add	x15,x15,w25, sxtw 0
+# Line: 21, Stmt: 0
+	adrp	x14,.L32766
+	add	x15,x14,:lo12:.L32766
+	add	x15,x15,w27, sxtw 0
 	ldrb	w15,[x15,32]
 	cbz	w15,.L10
 .L11:
-	add	w26,w25,w25
+# Line: 22, Stmt: 0
+	add	w26,w27,w27
 	add	w26,w26,3
-	add	w24,w25,w26
+# Line: 23, Stmt: 0
+	add	w28,w27,w26
 .L3:
+# Line: 24, Stmt: 0
 	movz	x16,16960
 	movk	x16,15,lsl 16
-	cmp	w24,w16
+	cmp	w28,w16
 	b.gt	.L12
 .L13:
-	adrp	x15,.L32766
-	add	x15,x15,:lo12:.L32766
-	add	x15,x15,w24, sxtw 0
+# Line: 25, Stmt: 0
+	adrp	x14,.L32766
+	add	x15,x14,:lo12:.L32766
+	add	x15,x15,w28, sxtw 0
 	strb	wzr,[x15,32]
-	add	w24,w24,w26
+# Line: 26, Stmt: 0
+	add	w28,w28,w26
 	b	.L3
 .L12:
-	add	w27,w27,1
-.L10:
+# Line: 28, Stmt: 0
 	add	w25,w25,1
+.L10:
+	add	w27,w27,1
 	movz	x16,16960
 	movk	x16,15,lsl 16
-	cmp	w25,w16
+	cmp	w27,w16
 	b.le	.L9
 .L14:
-	add	w28,w28,1
-	cmp	w28,100
+	add	w24,w24,1
+	cmp	w24,100
 	b.le	.L6
 .L15:
-	mov	x0,x27
+# Line: 31, Stmt: 0
+	mov	x0,x25
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -87,3 +88,4 @@ main:
 	ldp	x30,x29,[sp,48]
 	add	sp,sp,64
 	ret
+	.comm	.L32766,1000056,12

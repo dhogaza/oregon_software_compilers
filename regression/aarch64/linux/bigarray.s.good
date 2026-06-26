@@ -2,51 +2,48 @@
 #  Constants
 #
 	.section	.rodata
-	.align 3
+	.align 12
 .L32765:
-	.byte	0x07,0x66,0x61,0x69,0x6C,0x73,0x3A,0x20
+	.byte	0x07,0x66,0x61,0x69,0x6C,0x73,0x3A,0x20,0x00
 	.text
 	.align 2
 #
 #	fill
 #
 .P1:
-	sub	sp,sp,80
-	stp	x30,x29,[sp,56]
-	add	x29,sp,56
-	stp	x27,x28,[x29,-16]
+	sub	sp,sp,48
 # Line: 13, Stmt: 1
 # Line: 14, Stmt: 2
-	mov	x28,1
+	mov	x14,1
 .L5:
-	movz	x14,14460
-	movk	x14,1,lsl 16
-	mul	w15,w28,w14
-	mov	x13,20000
-	mul	w14,w28,w13
-	mov	x27,1
+	movz	x12,14460
+	movk	x12,1,lsl 16
+	mul	w13,w14,w12
+	mov	x11,20000
+	mul	w12,w14,w11
+# Line: 15, Stmt: 0
+	mov	x15,1
 .L6:
-	add	x13,x0,w15, sxtw 0
-	add	x13,x13,w27, sxtw 2
-	add	w12,w14,w27
+# Line: 16, Stmt: 0
+	add	x11,x0,w13, sxtw 0
+	add	x11,x11,w15, sxtw 2
+	add	w10,w12,w15
 	movz	x17,14464
 	movk	x17,1,lsl 16
-	sub	x17,x13,x17
-	str	w12,[x17]
-	add	w27,w27,1
+	sub	x17,x11,x17
+	str	w10,[x17]
+	add	w15,w15,1
 	movz	x16,19999
-	cmp	w27,w16
+	cmp	w15,w16
 	b.le	.L6
 .L7:
-	add	w28,w28,1
+	add	w14,w14,1
 	movz	x16,19999
-	cmp	w28,w16
+	cmp	w14,w16
 	b.le	.L5
 .L8:
 .L2:
-	ldp	x27,x28,[x29,-16]
-	ldp	x30,x29,[sp,56]
-	add	sp,sp,80
+	add	sp,sp,48
 	ret
 	.text
 	.align 2
@@ -58,68 +55,71 @@
 	stp	x30,x29,[sp,64]
 	add	x29,sp,64
 	stp	x27,x28,[x29,-16]
-	str	x26,[x29,-24]
+	stp	x25,x26,[x29,-32]
 # Line: 23, Stmt: 1
+	mov	x26,x0
 # Line: 24, Stmt: 2
 	mov	x27,xzr
-	str	x0,[x29,-32]
-	mov	x28,1
+# Line: 25, Stmt: 0
+	mov	x25,1
 .L12:
 	movz	x14,14460
 	movk	x14,1,lsl 16
-	mul	w15,w28,w14
+	mul	w15,w25,w14
 	mov	x13,20000
-	mul	w14,w28,w13
-	str	x0,[x29,-40]
-	str	x15,[x29,-48]
-	str	x14,[x29,-56]
-	mov	x26,1
+	mul	w14,w25,w13
+# Line: 26, Stmt: 0
+	str	x15,[x29,-40]
+	str	x14,[x29,-48]
+	mov	x28,1
 .L13:
-	add	x13,x0,w15, sxtw 0
-	add	x13,x13,w26, sxtw 2
-	add	w12,w14,w26
+# Line: 27, Stmt: 0
+	add	x13,x26,w15, sxtw 0
+	add	x13,x13,w28, sxtw 2
+	add	w12,w14,w28
 	movz	x17,14464
 	movk	x17,1,lsl 16
 	sub	x17,x13,x17
 	ldrsw	x11,[x17]
-	str	x11,[x29,-64]
+	str	x11,[x29,-56]
 	cmp	w11,w12
 	b.eq	.L14
 .L15:
+# Line: 29, Stmt: 0
 	add	w27,w27,1
+# Line: 30, Stmt: 0
+	mov	x0,x25
+	mov	x1,1
+	bl	_p_wti_o 
+	mov	x0,32
+	mov	x1,1
+	bl	_p_wtc_o 
 	mov	x0,x28
 	mov	x1,1
 	bl	_p_wti_o 
 	mov	x0,32
 	mov	x1,1
 	bl	_p_wtc_o 
-	mov	x0,x26
-	mov	x1,1
-	bl	_p_wti_o 
-	mov	x0,32
-	mov	x1,1
-	bl	_p_wtc_o 
-	ldr	x0,[x29,-64]
+	ldr	x0,[x29,-56]
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 .L14:
-	ldr	x0,[x29,-40]
-	ldr	x14,[x29,-56]
-	ldr	x15,[x29,-48]
-	add	w26,w26,1
-	movz	x16,19999
-	cmp	w26,w16
-	b.le	.L13
-.L16:
-	ldr	x0,[x29,-32]
+	ldr	x14,[x29,-48]
+	ldr	x15,[x29,-40]
 	add	w28,w28,1
 	movz	x16,19999
 	cmp	w28,w16
+	b.le	.L13
+.L16:
+	add	w25,w25,1
+	movz	x16,19999
+	cmp	w25,w16
 	b.le	.L12
 .L17:
-	adrp	x0,.L32765
-	add	x0,x0,:lo12:.L32765+1
+# Line: 32, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+1
 	mov	x1,7
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -129,18 +129,10 @@
 	bl	_p_wtln_o 
 .L9:
 	ldp	x27,x28,[x29,-16]
-	ldr	x26,[x29,-24]
+	ldp	x25,x26,[x29,-32]
 	ldp	x30,x29,[sp,64]
 	add	sp,sp,96
 	ret
-	.bss
-	.align 3
-.L32766:
-	.space 1599840040
-	.bss
-	.align 3
-.L32764:
-	.space 16
 	.text
 	.align 2
 #
@@ -150,16 +142,16 @@
 main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
-	mov	x17,sp
-	adrp	x16,.L32764
-	str	x17,[x16,:lo12:.L32764]
 # Line: 35, Stmt: 1
+# Line: 36, Stmt: 0
 	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+32
 	bl	.P1  // fill
+# Line: 37, Stmt: 0
 	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+32
 	bl	.P2  // verify
 .L18:
 	ldp	x30,x29,[sp],16
 	ret
+	.comm	.L32766,1599840040,12
