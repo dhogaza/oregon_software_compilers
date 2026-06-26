@@ -520,7 +520,7 @@ procedure writeproclabel(procn: proctableindex);
     begin {writedatalabel}
     if ownflag then
       writeownname
-    else if externref <> 0 then
+    else if labelno = 0 then
       write(macfile, 'extern_',externref:1)
     else
       write(macfile, '.L', labelno:1);

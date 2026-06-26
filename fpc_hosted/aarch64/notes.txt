@@ -60,11 +60,15 @@ if seeking value, wzr is replaced with a register.
 
   -- things needed to really start implementing the library
 
-     {$own} just like global but with a string label not number label.
+  -- shared/def/use variable
 
-     Doing this will make shared and ext variables easier to do, too.  Hmmm need to
-     turn off adp optimixation for shared variable or use define.  Use/define sucks
-     actually.  So does shared.  It all does.
+     not my favorite thing.  But initputcode should walk the vartable and for
+     shared vars each definitely gets a commnode.   For use/define?  Need to see
+     how to communicate with C library for standard input/ouput streams.
+
+     probably need to do a commc here.
+
+     maybe hold off for a bit and start files.
 
   -- error calls
 

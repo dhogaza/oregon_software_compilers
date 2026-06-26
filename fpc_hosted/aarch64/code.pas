@@ -4706,6 +4706,21 @@ procedure dorealx;
   end {dorealx} ;
 }
 
+procedure doextx;
+
+{ Defines the left operand as a variable reference and sets the
+  result "key" to show this.
+
+  This is for "use", "define" and "shared" variables.
+
+  For now just puts out a .comm directive in each compilation unit.
+}
+
+
+  begin {doextx}
+    setvalue(externref_oprnd(pseudoinst.oprnds[1], false, 0));
+  end {doextx} ;
+
 procedure dolevelx(ownflag: boolean {true says own sect def} );
 
 { Generate a reference to the data area for the level specified in
@@ -7468,9 +7483,7 @@ procedure codeone;
       doset: dosetx;
       dovar: dovarx(true);
       dounsvar, doptrvar, dofptrvar: dovarx(false);
-{
       doext: doextx;
-}
       regparam: regparamx;
       regtarget: regtargetx;
       regtemp: regtempx;
