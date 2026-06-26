@@ -753,8 +753,8 @@ function ownref_oprnd(lowbits: boolean; labeloffset: integer): oprndtype;
     ownref_oprnd := o;
   end;
 
-function dataref_oprnd(labelno: integer; lowbits: boolean;
-                       labeloffset: integer): oprndtype;
+function dataref_oprnd(labelno: integer; labelown: boolean; externref: integer;
+                       lowbits: boolean; labeloffset: integer): oprndtype;
 
   var
     o:oprndtype;
@@ -765,8 +765,8 @@ function dataref_oprnd(labelno: integer; lowbits: boolean;
     o.labelno := labelno;
     o.lowbits := lowbits;
     o.labeloffset := labeloffset;
-    o.labelownflag := false;
-    o.externref := 0;
+    o.labelownflag := labelown;
+    o.externref := externref;
     dataref_oprnd := o;
   end;
 
@@ -3188,7 +3188,8 @@ procedure genmoveaddress(var after: nodeptr; src, dst: keyindex);
       case mode of
       label_offset:
         begin
-        labelkey := settemp(long, dataref_oprnd(labelno, true, labeloffset)); 
+        labelkey := settemp(long,
+          dataref_oprnd(labelno, labelownflag, externref, true, labeloffset)); 
         gen3(lastnode, buildinst(add, true, false), dst, settemp(long, reg_oprnd(reg)), labelkey);
         end;
       dataref:
@@ -3500,10 +3501,11 @@ procedure reloadloop;
                 end
               else if keytable[stackcopy].oprnd.mode = label_offset then
                 begin
+                with keytable[stackcopy].oprnd do
                 genadrp(lastnode, false, r,
                         settemp(long,
-                                dataref_oprnd(keytable[stackcopy].oprnd.labelno, false,
-                                                keytable[stackcopy].oprnd.labeloffset)));
+                                dataref_oprnd(labelno, labelownflag, externref,
+                                              false, labeloffset)));
                 reloadfirst := lastnode;
                 end
               else
@@ -4746,7 +4748,7 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
         compilerabort(inconsistent);
         end
       else if left = 1 then
-        setvalue(dataref_oprnd(globaldatalabel, false, 0))
+        setvalue(dataref_oprnd(globaldatalabel, false, 0, false, 0))
       else if left = level then
         if hasframeptr then
           setvalue(index_oprnd(abstract_offset, fp, 0, false))
@@ -4773,7 +4775,7 @@ procedure dostructx;
     labelkey, regkey: keyindex;
 
 begin {dostructx}
-  setvalue(dataref_oprnd(rodatalabel, false, pseudoinst.oprnds[1]));
+  setvalue(dataref_oprnd(rodatalabel, false, 0, false, pseudoinst.oprnds[1]));
 end {dostructx} ;
 
 { set operations }
@@ -4846,9 +4848,9 @@ procedure dosetx;
       begin
       tempreg := getreg;
       tempregkey := settemp(len, reg_oprnd(tempreg));
-      labelkey := settemp(long,
-                          dataref_oprnd(keytable[left].oprnd.labelno, false,
-                          keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2]));
+      with keytable[left].oprnd do
+      labelkey := settemp(long, dataref_oprnd(labelno, labelownflag, externref, false,
+                          labeloffset + pseudoinst.oprnds[2]));
       genadrp(lastnode, true, tempregkey, labelkey);
       structkey := settemp(len,
                            labeloffset_oprnd(tempreg, keytable[labelkey].oprnd.labelno,
@@ -5713,7 +5715,7 @@ procedure blockexitx;
       if (blockref = 0) and savemainsp then
         begin
         gen2(p1, buildinst(mov, true, false), ip1temp, sptemp);
-        labelkey := settemp(long, dataref_oprnd(savesplabel, false, libinitsp));
+        labelkey := settemp(long, dataref_oprnd(savesplabel, false, 0, false, libinitsp));
         genadrp(p1, false, ip0temp, labelkey);
         keytable[labelkey].oprnd.lowbits := true;
         genstr(p1, long, ip1temp,
@@ -7160,7 +7162,7 @@ begin {casebranchx}
   tablelabel := newlabel;
   addressreg := getreg;
   addresskey := settemp(long, reg_oprnd(addressreg));
-  t1 := settemp(long, dataref_oprnd(tablelabel, false, 0));
+  t1 := settemp(long, dataref_oprnd(tablelabel, false, 0, false, 0));
   genadrp(lastnode, true, addresskey, t1);
   keytable[t1].oprnd.lowbits := true;
   gen3(lastnode, buildinst(add, true, false), addresskey, addresskey, t1);
@@ -7171,7 +7173,7 @@ begin {casebranchx}
 {
   linux?
   gen2(lastnode, buildinst(adr, true, false), addresskey,
-       settemp(long, dataref_oprnd(baselabel, false, 0)));
+       settemp(long, dataref_oprnd(baselabel, false, 0, false, 0)));
 }
   gen2(lastnode, buildinst(adr, true, false), addresskey,
        settemp(long, labeltarget_oprnd(baselabel)));
@@ -7341,7 +7343,7 @@ procedure pascallabelx;
         { restore from the initial value saved at program start}
         ip0temp := settemp(long, reg_oprnd(ip0));
         ip1temp := settemp(long, reg_oprnd(ip1));
-        labelkey := settemp(long, dataref_oprnd(savesplabel, false, libinitsp));
+        labelkey := settemp(long, dataref_oprnd(savesplabel, false, 0, false, libinitsp));
         genadrp(lastnode, true, ip0temp, labelkey);
         keytable[labelkey].oprnd.lowbits := true;
         genldr(lastnode, long, false, ip1temp,
