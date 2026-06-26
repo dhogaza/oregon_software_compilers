@@ -282,7 +282,10 @@ function initialblocksize(blocklevel: levelindex): addressrange;
 { determines the offset from the fp for the first variable }
 
 begin {initialblocksize}
-  initialblocksize := 2 * ptrsize;
+  if level = 0 then
+    initialblocksize := 0
+  else
+    initialblocksize := 2 * ptrsize;
 end; {initialblocksize}
 
 function paramalloc(paramptr, typeptr: entryptr): allockind;
