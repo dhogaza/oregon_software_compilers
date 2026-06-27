@@ -52,6 +52,11 @@ type
       streamp: _p_addressptr; { pointer to the unix stream }
     end;
 
+{$own='_p_paslib'}
+
+var
+  _p_filelist: _p_filerecordptr;
+
 {glibc}
 procedure exit(const code: integer); nonpascal;
 procedure putchar(const ch: char); nonpascal;
@@ -64,10 +69,10 @@ procedure free(const p: _p_charptr); nonpascal;
 procedure _p_caseerr; external;
 
 { I/O }
-procedure _p_reset(filep: _p_filerecordptr; const size:integer; const str1ptr, str2ptr:
+procedure _p_reset(filevar: _p_addressptr; const size:integer; const str1ptr, str2ptr:
                    _p_stringptr; errptr: _p_intptr); external;
-procedure _p_rewrite(filep: _p_filerecordptr; const size:integer; const str1ptr, str2ptr:
-                   _p_stringptr; errptr: _p_intptr); external;
+procedure _p_rewrite(filevar: _p_addressptr; const size:integer; const str1ptr, str2ptr:
+                     _p_stringptr; errptr: _p_intptr); external;
 procedure _p_wtc_o(ch: char; width: integer); external;
 procedure _p_wti_o(i: integer; width: integer); external;
 procedure _p_wtb_o(b: boolean; width: integer); external;
@@ -270,13 +275,28 @@ procedure _p_caseerr;
     exit(1);
   end;
 
-procedure _p_open(reset: boolean; filep: _p_filerecordptr; size:integer; str1ptr, str2ptr:
+function _p_isopen(filevar: _p_addressptr): boolean;
+
+{ check the list of open files to see if this file is already open.
+}
+
+var p: _p_filerecordptr;
+
+begin {_p_isopen}
+  p := _p_filelist;
+  while (p <> nil) and (p^.filevar <> filevar) do
+    p := p^.nextfile;
+  _p_isopen := p <> nil;
+end {_p_isopen};
+
+procedure _p_open(reset: boolean; filevar: _p_addressptr; size:integer; str1ptr, str2ptr:
                    _p_stringptr; errptr: _p_intptr);
 
 begin
   if reset then writeln('reset')
   else writeln('rewrite');
-  writeln(loophole(int64, filep):1);
+  writeln(loophole(int64, filevar):1);
+  writeln(_p_isopen(filevar));
   writeln(size:1);
   if str1ptr = nil then
     writeln('str1ptr nil')
@@ -293,13 +313,13 @@ end;
 procedure _p_reset;
 
 begin
-  _p_open(true, filep, size, str1ptr, str2ptr, errptr);
+  _p_open(true, filevar, size, str1ptr, str2ptr, errptr);
 end;
 
 procedure _p_rewrite;
 
 begin
-  _p_open(false, filep, size, str1ptr, str2ptr, errptr);
+  _p_open(false, filevar, size, str1ptr, str2ptr, errptr);
 end;
 
 procedure _p_wtb_o;
