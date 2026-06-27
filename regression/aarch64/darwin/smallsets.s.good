@@ -260,7 +260,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x14,.L32766@PAGE
-	ldrsb	w14,[x14,.L32766+19@PAGEOFF]
+	ldrb	w14,[x14,.L32766+19@PAGEOFF]
 	add	w15,w14,1
 	adrp	x14,.L32766@PAGE
 	ldrb	w14,[x14,.L32766+17@PAGEOFF]
