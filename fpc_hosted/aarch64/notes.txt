@@ -65,6 +65,10 @@ if seeking value, wzr is replaced with a register.
 
   -- things needed to really start implementing the library
 
+     Will need an assembly stub or separate pascal header file(?) to deal
+     with darwin ___stdinp vs linux stdin naming difference stupidty. Probably
+     the assembler thing, sources in darwin/linux subdirs.
+
   -- shared/def/use variable
 
      not my favorite thing.  But initputcode should walk the vartable and for

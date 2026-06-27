@@ -323,7 +323,7 @@ begin {newlabel}
   lastlabel := lastlabel - 1;
 end {newlabel};
 
-procedure power2check(n: integer; { number to check }
+procedure power2check(n: unsigned; { number to check }
                       var power2: boolean; {true if n = power of 2}
                       var power2value: integer {resulting power} );
 
@@ -341,10 +341,25 @@ procedure power2check(n: integer; { number to check }
     power2 := (n = 1);
   end {power2check} ;
 
+function power2(n: unsigned): int64;
+
+{ return 2^n when n is in the range 0..15.
+}
+
+var
+  m: int64;
+
+begin {power2}
+  m := 1;
+  for n := 1 to n do
+    m := m * 2;
+ power2 := m;
+end {power2};
 
 function bits(i: unsigned): integer;
 
-{ return the number of bits in i }
+{ return the number of bits in i
+}
 
 var b: integer;
 
@@ -5059,44 +5074,84 @@ procedure setinsertx;
   procedure insetx;
 
   var
-    ip0key, ip1key, rightregkey, maxvaluekey: keyindex;
+    ip0key, ip1key, rightregkey, maxvaluekey, power2key: keyindex;
+    adjustoffset: integer;
 
   begin {insetx}
     addressboth;
-    loadreg(left, right);
     ip0key := settemp(long, reg_oprnd(ip0));
     ip1key := settemp(long, reg_oprnd(ip1));
     if len <= long then
       begin
       loadreg(right, left);
-      gen3(lastnode, buildinst(lsrinst, len = long, false), ip0key, right, left);
-      gen3(lastnode, buildinst(andinst, len = long, true), ip0key, ip0key,
-           settemp(long, imm12_oprnd(1, false)));
+      { need to make is_bitmask work with 64 bit masks }
+      if (keytable[left].oprnd.mode = intconst) and
+         (keytable[left].oprnd.int_value < 32) then
+        begin
+        power2key := settemp(long, intconst_oprnd(power2(keytable[left].oprnd.int_value)));
+        handle_bitmask(power2key);
+        gen3(lastnode, buildinst(andinst, len = long, true), ip0key, right, power2key);
+        end
+      else  
+        begin
+        loadreg(left, right);
+        gen3(lastnode, buildinst(lsrinst, len = long, false), ip0key, right, left);
+        gen3(lastnode, buildinst(andinst, len = long, true), ip0key, ip0key,
+             settemp(long, imm12_oprnd(1, false)));
+        end
       end
     else
       begin
-      lock(left);
-      rightregkey := settemp(long, reg_oprnd(getreg));
-      unlock(left);
-      genmoveaddress(lastnode, right, rightregkey);
-      gen3(lastnode,
-          buildinst(asrinst, true, false), ip0key, left,
-                    settemp(long, imm12_oprnd(3, false)));
-      gen3(lastnode,
-           buildinst(andinst, true, false), ip1key, left,
-                     settemp(long, imm12_oprnd(7, false)));
-      with keytable[rightregkey].oprnd do
+      if (keytable[left].oprnd.mode = intconst) then
         begin
-        mode := reg_offset;
-        reg2 := ip0;
-        shift := 0;
-        extend := xtx;
-        signed := false;
+        power2key :=
+          settemp(long, intconst_oprnd(power2(keytable[left].oprnd.int_value mod 8)));
+        handle_bitmask(power2key);
+        if keytable[right].oprnd.mode in [abstract_offset, label_offset] then
+          rightregkey := settemp(word, keytable[right].oprnd)
+        else
+          begin
+          lock(power2key);
+          rightregkey := settemp(long, reg_oprnd(ip1));
+          genmoveaddress(lastnode, right, rightregkey);
+          keytable[rightregkey].oprnd.mode := abstract_offset;
+          keytable[rightregkey].oprnd.spabsolute := false;
+          end;
+        adjustoffset := keytable[left].oprnd.int_value div 8;
+        with keytable[rightregkey].oprnd do
+        if mode = abstract_offset then
+          index := index + adjustoffset
+        else
+          labeloffset := labeloffset + adjustoffset;
+        genldr(lastnode, byte, false, ip0key, rightregkey);
+        gen3(lastnode, buildinst(andinst, false, true), ip0key, ip0key, power2key);
+        end
+      else
+        begin
+        loadreg(left, right);
+        lock(left);
+        rightregkey := settemp(long, reg_oprnd(getreg));
+        unlock(left);
+        genmoveaddress(lastnode, right, rightregkey);
+        gen3(lastnode,
+            buildinst(asrinst, true, false), ip0key, left,
+                      settemp(long, imm12_oprnd(3, false)));
+        gen3(lastnode,
+             buildinst(andinst, true, false), ip1key, left,
+                       settemp(long, imm12_oprnd(7, false)));
+        with keytable[rightregkey].oprnd do
+          begin
+          mode := reg_offset;
+          reg2 := ip0;
+          shift := 0;
+          extend := xtx;
+          signed := false;
+          end;
+        genldr(lastnode, byte, false, ip0key, rightregkey);
+        gen3(lastnode, buildinst(asrinst, true, false), ip0key, ip0key, ip1key);
+        gen3(lastnode, buildinst(andinst, true, true), ip0key, ip0key,
+             settemp(long, imm12_oprnd(1, false)));
         end;
-      genldr(lastnode, byte, false, ip0key, rightregkey);
-      gen3(lastnode, buildinst(asrinst, true, false), ip0key, ip0key, ip1key);
-      gen3(lastnode, buildinst(andinst, true, true), ip0key, ip0key,
-           settemp(long, imm12_oprnd(1, false)));
       end;
     setvalue(cond_oprnd(ne));
   end {insetx};
