@@ -44,6 +44,10 @@ begin
   initsets;
   write('s1:[one, two, five, func(four)] '); putnumset(s1);
   write('s2:[eight, two..five] '); putnumset(s2);
+  writeln('b2:five in s2: ', b2 in s2);
+  writeln('succ(b2):six in s2: ', succ(b2) in s2);
+  writeln('five in s2: ', five in s2);
+  writeln('six in s2: ', six in s2);
   write('s1 + s2 '); putnumset(s1 + s2);
   write('s1 * s2 '); putnumset(s1 * s2);
   write('s1 - s2 '); putnumset(s1 - s2);
@@ -53,5 +57,8 @@ begin
   writeln('sa1 <> sa2 ', sa1 = sa2);
   writeln('sa1:[b, e, k] <= [b, e] ',sa1 <= [b, e]);
   writeln('sa1:[b, e, k] >= [b, e] ',sa1 >= [b, e]);
+  writeln('a2:c in sa2:[c..j] ', a2 in sa2);
+  writeln('j in sa2:[c..j] ', j in sa2);
+  writeln('a in sa2:[c..j] ', a in sa2);
 end.
 

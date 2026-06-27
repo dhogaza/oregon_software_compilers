@@ -129,23 +129,13 @@
 	and	x16,x16,x17
 	str	x16,[x8],16
 # Line: 113, Stmt: 0
-	mov	x12,89
-	add	x11,x13,.L32766+32@PAGEOFF
-	asr	x16,x12,3
-	and	x17,x12,7
-	ldrb	w16,[x11, x16]
-	asr	x16,x16,x17
-	ands	x16,x16,1
+	ldrb	w16,[x13,.L32766+43@PAGEOFF]
+	ands	w16,w16,2
 	cset	w12,ne
 	strb	w12,[x13,.L32766+116@PAGEOFF]
 # Line: 114, Stmt: 0
-	mov	x12,191
-	add	x11,x13,.L32766+32@PAGEOFF
-	asr	x16,x12,3
-	and	x17,x12,7
-	ldrb	w16,[x11, x16]
-	asr	x16,x16,x17
-	ands	x16,x16,1
+	ldrb	w16,[x13,.L32766+55@PAGEOFF]
+	ands	w16,w16,128
 	cset	w12,ne
 	eor	w12,w12,1
 	strb	w12,[x13,.L32766+117@PAGEOFF]
@@ -169,13 +159,8 @@
 	ldr	x17,[x9],16
 	bic	x16,x16,x17
 	str	x16,[x8],16
-	mov	x12,xzr
-	add	x11,sp,192
-	asr	x16,x12,3
-	and	x17,x12,7
-	ldrb	w16,[x11, x16]
-	asr	x16,x16,x17
-	ands	x16,x16,1
+	ldrb	w16,[sp,192]
+	ands	w16,w16,1
 	cset	w12,ne
 	eor	w12,w12,1
 	strb	w12,[x13,.L32766+118@PAGEOFF]

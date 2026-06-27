@@ -11,7 +11,7 @@ var s1, s2: numset;
   a1,a2: alpha;
   sa1,sa2: alphaset;
   i1,i2, i3: integer;
-  eq, ne, leq, geq: boolean;
+  eq, ne, leq, geq, intrue, infalse: boolean;
 
 function func(p: nums):nums;
 begin
@@ -58,6 +58,8 @@ begin
         ne := s1 = s2;
         leq := sa1 <= [b, e];
         geq := sa1 >= [b, e];
+        intrue := b in [b,e];
+        infalse := c in [b,e];
         end;
 end.
   
