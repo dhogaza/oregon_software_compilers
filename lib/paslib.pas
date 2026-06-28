@@ -46,8 +46,8 @@ type
     record
       currentp: _p_charptr; { get byte, get a byte, get a byte byte byte }
       status: _p_filestatustype; { see above }
-      nextfile: _p_filerecordptr; { pointer to next file or nil (for closerange()) }
-      filevar: _p_addressptr; { back pointer to file var not sure how to do this yet }
+      nextfile: _p_filerecordptr; { pointer to next file or nil }
+      filevar: _p_addressptr; { back pointer to file var }
       err: integer; { available to the caller if _p_noerror is set }
       streamp: _p_addressptr; { pointer to the unix stream }
     end;
@@ -71,6 +71,7 @@ procedure _p_caseerr; external;
 { I/O }
 procedure _p_dumpfilelist; external;
 procedure _p_close(filevar: _p_addressptr); external;
+procedure _p_closerange(firstfilevar, lastfilevar: _p_addressptr); external;
 procedure _p_reset(filevar: _p_addressptr; const size:integer; const str1ptr, str2ptr:
                    _p_stringptr; errptr: _p_intptr); external;
 procedure _p_rewrite(filevar: _p_addressptr; const size:integer; const str1ptr, str2ptr:
@@ -384,6 +385,32 @@ begin {_p_close}
     _p_removefile(p);
     end;
 end {_p_close};
+
+procedure _p_closerange;
+var
+  curp, prevp, nextp: _p_filerecordptr;
+
+begin {_p_closerange}
+  prevp := nil;
+  curp := _p_filelist;
+  while (curp <> nil) do
+    begin
+    nextp := curp^.nextfile;
+    if (loophole(_p_address,firstfilevar) <= loophole(_p_address, curp^.filevar)) and
+       (loophole(_p_address, curp^.filevar) <= loophole(_p_address, lastfilevar)) then
+      begin
+      if prevp = nil then
+        _p_filelist := nextp
+      else
+        prevp^.nextfile := nextp;
+      curp^.filevar^ := loophole(_p_address, nil);
+      dispose(curp);
+      end
+    else
+      prevp := curp;
+    curp := nextp;
+    end;
+end {_p_closerange};
 
 procedure _p_open(reset: boolean; filevar: _p_addressptr; size:integer; str1ptr, str2ptr:
                    _p_stringptr; errptr: _p_intptr);
