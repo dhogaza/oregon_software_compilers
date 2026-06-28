@@ -5379,6 +5379,35 @@ begin {removefileparam}
   if filenamed then removeparamtemps(1);
 end {removefileparam};
 
+procedure closerangex;
+
+{ The compiler was originally written for libcloseinrange to take (base, length)
+  parameters, but at the moment 64 bit arithmetic isn't supported in the
+  pseudocode so libcloseinrange takes (base, base + length) parameters.
+
+  When backtracing is implemented, a crash in libcloserange will mess it up
+  due to the stack kludge but for the moment that's OK.
+}
+
+
+var
+  prekey, postkey, indrx0key, x0key, x1key: keyindex;
+
+begin {closerangex}
+  { we can cheat bigtime here }
+  prekey := settemp(long, index_oprnd(pre_index, sp, -quad, false));
+  postkey := settemp(long, index_oprnd(post_index, sp, quad, false));
+  indrx0key := settemp(long, index_oprnd(unsigned_offset, 0, 0, false));
+  x0key := settemp(long, reg_oprnd(0));
+  x1key := settemp(long, reg_oprnd(1));
+  gen3(lastnode, buildinst(stp, true, false), x0key, x1key, prekey);
+  gensimplemove(lastnode, indrx0key, x0key);
+  gen3(lastnode, buildinst(add, true, false), x1key, x0key, x1key);
+  callsupport(libcloseinrange, true);
+  gen3(lastnode, buildinst(ldp, true, false), x0key, x1key, postkey);
+
+end {closerangex};
+
 procedure sysfnintx;
 
 { Generate code for a system routine with scalar (non-real) argument.
@@ -7456,23 +7485,19 @@ procedure pascalgotox;
     slregkey, slindrkey: keyindex;
 
   procedure closerange;
+
+    var
+      fpkey, x0key, x1key: keyindex;
+
     begin
-{
     if proctable[blockref].opensfile then
       begin
-      settemp(long, relative, fp, 0, false, - blksize, 0, 1, unknown);
-      gen1(pea, long, tempkey);
-      tempkey := tempkey + 1;
-      settempimmediate(long, blksize);
-      settempreg(long, autod, sp);
-      gen2(move, long, tempkey + 1, tempkey);
-      tempkey := tempkey + 2;
+      fpkey := settemp(long, reg_oprnd(fp));
+      x0key := settemp(long, reg_oprnd(0));
+      gensimplemove(lastnode, fpkey, x0key);
+      makeoffsetptr(lastnode, blksize, fp, 1);
       callsupport(libcloseinrange, true);
-      settempimmediate(word, 8);  { Clean up stack }
-      settempareg(sp);
-      gen2(adda, word, tempkey + 1, tempkey);
       end;
-}
     end;
 
   begin
@@ -7643,9 +7668,9 @@ procedure codeone;
       setfile: setfilex;
       fileparam: fileparamx;
       fmt: fmtx;
+      closerange: closerangex;
 {
       setbinfile: setbinfilex;
-      closerange: closerangex;
       rdint: rdintcharx(libreadint, defaulttargetintsize);
       rdchar: rdintcharx(libreadchar, byte);
       rdreal: rdintcharx(libreadreal, len);
