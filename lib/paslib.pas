@@ -16,6 +16,9 @@ type
   _p_string = string[_p_maxstringlen];
   _p_stringptr = ^_p_string;
   _p_stringrange = 0.._p_maxstringlen;
+  _p_address = int64; {for now}
+  _p_addressptr = ^_p_address; {for now}
+  _p_streamptr = ^integer; {for now}
 
   { The first three must be matched in the code generator. These
     are taken from the MC68000 library and not all will apply
@@ -37,9 +40,6 @@ type
     _p_sngl,    { single character mode }
     _p_cont     { contiguous file });
   _p_filestatustype = set of _p_filestatusenum;
-
-  _p_addressptr = ^int64; {for now}
-  _p_streamptr = ^integer; {for now}
 
   _p_filerecordptr = ^_p_filerecord;
   _p_filerecord =
@@ -69,6 +69,8 @@ procedure free(const p: _p_charptr); nonpascal;
 procedure _p_caseerr; external;
 
 { I/O }
+procedure _p_dumpfilelist; external;
+procedure _p_close(filevar: _p_addressptr); external;
 procedure _p_reset(filevar: _p_addressptr; const size:integer; const str1ptr, str2ptr:
                    _p_stringptr; errptr: _p_intptr); external;
 procedure _p_rewrite(filevar: _p_addressptr; const size:integer; const str1ptr, str2ptr:
@@ -275,39 +277,125 @@ procedure _p_caseerr;
     exit(1);
   end;
 
-function _p_isopen(filevar: _p_addressptr): boolean;
+{I/O}
+
+type seekwhence = (SEEK_SET, SEEK_CUR, SEEK_END);
+
+procedure _p_dumpfilelist;
+
+var
+  p: _p_filerecordptr;
+
+begin {_p_dumpfilelist}
+  writeln('dump file list');
+  p := _p_filelist;
+  while p <> nil do
+    begin
+    with p^ do
+      writeln('address: ', loophole(_p_address, p):1,
+              ' currentp: ', loophole(_p_address, currentp):1,
+              ' status: ', loophole(_p_address, status):1,
+              ' nextfile: ', loophole(_p_address, nextfile):1,
+              ' filevar: ', loophole(_p_address, filevar):1,
+              ' streamp: ', loophole(_p_address, streamp):1,
+              ' err: ',err:1);
+      p := p^.nextfile;
+      end;
+  writeln('end dump file list');
+end {_p_dumpfilelist};
+
+function _p_filep(filevar: _p_addressptr): _p_filerecordptr;
 
 { check the list of open files to see if this file is already open.
 }
 
-var p: _p_filerecordptr;
+var
+  p: _p_filerecordptr;
 
-begin {_p_isopen}
+begin {_p_filep}
   p := _p_filelist;
   while (p <> nil) and (p^.filevar <> filevar) do
     p := p^.nextfile;
-  _p_isopen := p <> nil;
-end {_p_isopen};
+  _p_filep := p;
+end {_p_filep};
+
+procedure _p_addfile(filevar: _p_addressptr);
+
+{ Add a new filerecord to the list of files.  _p_filelist will point
+  to the new entry. Caller guarantees that it doesn't already exist
+  in the list of active files.
+}
+
+var
+  p: _p_filerecordptr;
+
+begin {_p_addfile}
+  new(p);
+  filevar^ := loophole(_p_address, p);
+  p^.nextfile := _p_filelist;
+  p^.currentp := nil;
+  p^.status := [];
+  p^.filevar := filevar;  
+  p^.err := 0;
+  p^.streamp := nil;
+  _p_filelist := p;
+end {_p_addfile};
+
+procedure _p_removefile(var filep: _p_filerecordptr);
+
+{ Remove a file from the list of files.  f is guaranteed by the caller
+  to exist.
+}
+
+var
+  curp, prevp: _p_filerecordptr;
+
+begin {_p_removefile}
+  prevp := nil;
+  curp := _p_filelist;
+  while curp <> filep do
+    begin
+    prevp := curp;
+    curp := curp^.nextfile;
+    end;
+    curp := curp^.nextfile;
+  if prevp = nil then
+    _p_filelist := filep^.nextfile
+  else
+    prevp^.nextfile := filep^.nextfile;
+  filep^.filevar^ := loophole(_p_address, nil);
+  dispose(filep);
+end {_p_removefile};
+
+procedure _p_close;
+
+{ Close a file and remove it from the file list and set filevar
+  to nil.
+}
+
+var
+  p: _p_filerecordptr;
+
+begin {_p_close}
+  p := _p_filep(filevar);
+  if p <> nil then
+    begin
+    { close the file, of course}
+    _p_removefile(p);
+    end;
+end {_p_close};
 
 procedure _p_open(reset: boolean; filevar: _p_addressptr; size:integer; str1ptr, str2ptr:
                    _p_stringptr; errptr: _p_intptr);
 
+var p: _p_filerecordptr;
+
 begin
-  if reset then writeln('reset')
-  else writeln('rewrite');
-  writeln(loophole(int64, filevar):1);
-  writeln(_p_isopen(filevar));
-  writeln(size:1);
-  if str1ptr = nil then
-    writeln('str1ptr nil')
-  else
-    writeln(str1ptr^);
-  if str2ptr = nil then
-    writeln('str2ptr nil')
-  else
-    writeln(str2ptr^);
-  if errptr = nil then
-    writeln('errptr nil');
+  if _p_filep(filevar) = nil then
+    begin
+    _p_addfile(filevar);
+    p := _p_filep(filevar);
+    end;
 end;
 
 procedure _p_reset;
