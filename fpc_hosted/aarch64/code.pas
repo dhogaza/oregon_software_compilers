@@ -3241,6 +3241,9 @@ procedure genmoveaddress(var after: nodeptr; src, dst: keyindex);
       otherwise
         begin
         write('bad operand in genmoveaddress key: ', src, ' mode: ', ord(mode));
+{
+writeln(macfile, 'bad operand in genmoveaddress key: ', src, ' mode: ', ord(mode));
+}
         compilerabort(inconsistent);
         end;
       end;
@@ -5631,7 +5634,8 @@ procedure blockexitx;
     spoffset: integer; {size of stack save area}
     p, p1: nodeptr;
     savetempkey, fptemp, sptemp, linktemp, ip0temp, ip1temp, spoffsettemp,
-    saveregtemp, savereg2temp, saveregoffsettemp, spadjusttemp, labelkey: keyindex;
+    saveregtemp, savereg2temp, saveregoffsettemp, spadjusttemp, labelkey,
+    t1key, t2key: keyindex;
     regcost, regcount, fpregcost, fpregcount: integer;
     reglist, fpreglist:
       array [regindex] of
@@ -5686,24 +5690,6 @@ procedure blockexitx;
             r := i;
             end;
           end;
-
-  {    if proctable[blockref].opensfile then
-        begin
-        settemp(long, relative, sp, 0, false, (fpregcost - 96) * ord(mc68881) +
-                regcost - 13 * long, 0, 1, unknown);
-        gen1(pea, long, tempkey);
-        tempkey := tempkey + 1;
-        settempimmediate(long, blksize);
-        settempreg(long, autod, sp);
-        gen2(move, long, tempkey + 1, tempkey);
-        tempkey := tempkey + 2;
-        callsupport(libcloseinrange, true);
-        settempimmediate(word, 8);  { Clean up stack }
-        settempareg(sp);
-        gen2(adda, word, tempkey + 1, tempkey);
-        tempkey := tempkey + 1;
-        end;
-  }
 
       { procedure entry code. Grow stack,save link and frame pointer registers,
        save used callee-saved registers.
@@ -5775,6 +5761,36 @@ procedure blockexitx;
         keytable[labelkey].oprnd.lowbits := true;
         genstr(p1, long, ip1temp,
                settemp(long, labeloffset_oprnd(ip0, savesplabel, false, 0, libinitsp)));
+        end;
+
+      if proctable[blockref].opensfile then
+        begin
+        if blockref = 0 then
+          begin { one or both of these two cases will be true }
+          if globalsize > 0 then
+            begin
+            t1key := settemp(long, dataref_oprnd(globaldatalabel, false, 0, false, 0));
+            t2key := settemp(long,
+                             dataref_oprnd(globaldatalabel, false, 0, false, globalsize));
+            genmoveaddress(lastnode, t2key, settemp(long, reg_oprnd(1)));
+            genmoveaddress(lastnode, t1key, settemp(long, reg_oprnd(0)));
+            callsupport(libcloseinrange, true);
+            end;
+          if ownsize > 0 then
+            begin
+            t1key := settemp(long, ownref_oprnd(false, 0));
+            t2key := settemp(long, ownref_oprnd(false, ownsize));
+            genmoveaddress(lastnode, t2key, settemp(long, reg_oprnd(1)));
+            genmoveaddress(lastnode, t1key, settemp(long, reg_oprnd(0)));
+            callsupport(libcloseinrange, true);
+            end
+          end
+        else
+          begin
+          makeoffsetptr(lastnode, blockcost, sp, 1);
+          gensimplemove(lastnode, sptemp, settemp(long, reg_oprnd(0)));
+          callsupport(libcloseinrange, true);
+          end;
         end;
 
       { Procedure exit code. Restore callee-saved registers, link and frame pointer
@@ -7319,7 +7335,16 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
     address(right, 0);
     labeltarget := settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1]));
     if keytable[right].oprnd.mode = cond then
+      begin
+if right = 44 then
+begin
+{
+writeln(keytable[right].oprnd.mode, keytable[right].oprnd.reg, keytable[right].oprnd.reg2);
+writeln(registers[1]);
+}
+end;
       c := keytable[right].oprnd.condition
+      end
     else
       begin
       c := ne;
@@ -7744,6 +7769,7 @@ procedure codeone;
         end;
       end;
 
+{writeln(macfile, registers[1]);}
     if key > lastkey then lastkey := key;
 
 

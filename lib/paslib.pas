@@ -71,7 +71,7 @@ procedure _p_caseerr; external;
 { I/O }
 procedure _p_dumpfilelist; external;
 procedure _p_close(filevar: _p_addressptr); external;
-procedure _p_closerange(firstfilevar, lastfilevar: _p_addressptr); external;
+procedure _p_clsrng(firstfilevar, lastfilevar: _p_addressptr); external;
 procedure _p_reset(filevar: _p_addressptr; const size:integer; const str1ptr, str2ptr:
                    _p_stringptr; errptr: _p_intptr); external;
 procedure _p_rewrite(filevar: _p_addressptr; const size:integer; const str1ptr, str2ptr:
@@ -386,11 +386,11 @@ begin {_p_close}
     end;
 end {_p_close};
 
-procedure _p_closerange;
+procedure _p_clsrng;
 var
   curp, prevp, nextp: _p_filerecordptr;
 
-begin {_p_closerange}
+begin {_p_clsrng}
   prevp := nil;
   curp := _p_filelist;
   while (curp <> nil) do
@@ -410,7 +410,7 @@ begin {_p_closerange}
       prevp := curp;
     curp := nextp;
     end;
-end {_p_closerange};
+end {_p_clsrng};
 
 procedure _p_open(reset: boolean; filevar: _p_addressptr; size:integer; str1ptr, str2ptr:
                    _p_stringptr; errptr: _p_intptr);
