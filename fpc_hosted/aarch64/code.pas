@@ -1639,6 +1639,7 @@ procedure setallfields(k: keyindex);
   begin
     with keytable[k] do
       begin
+      keytable[key].signed := signed;
       keytable[key].regsaved := regsaved;
       keytable[key].reg2saved := reg2saved;
       keytable[key].regvalid := regvalid;
@@ -2371,6 +2372,8 @@ procedure allowmodify(var k: keyindex; {operand to be modified}
       keytable[tempkey].copycount := 0;
       keytable[tempkey].regsaved := false;
       keytable[tempkey].reg2saved := false;
+      keytable[tempkey].signed := keytable[k].signed;
+      keytable[tempkey].packedaccess := keytable[k].packedaccess;
       k := tempkey
       end;
   end {allowmodify} ;
@@ -2435,8 +2438,10 @@ procedure changevalue(var key1: keyindex; {key to be changed}
       reg2valid := keytable[key2].reg2valid;
       properreg := keytable[key2].properreg;
       properreg2 := keytable[key2].properreg2;
+{
       packedaccess := keytable[key2].packedaccess;
       signed := keytable[key2].signed;
+}
       oprnd := keytable[key2].oprnd;
       bumptempcount(key1, refcount);
       adjustregcount(key1, refcount);
@@ -2480,6 +2485,7 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
       restorereg := not regvalid;
       restorereg2 := not reg2valid;
       end;
+
     if restorereg or restorereg2 then allowmodify(k, false);
 
     with keytable[k], oprnd do
@@ -2517,7 +2523,9 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
                 genadrp(lastnode, false, t, t1);
                 if mode <> label_offset then
                   if mode = register then
-                    gen2(lastnode, ldrinst(len, signed), t,
+                    gen2(lastnode,
+                         {AWFUL Free Pascal with statement bug requires this}
+                         ldrinst(len, keytable[k].signed), t,
                          settemp(long,
                          labeloffset_oprnd(reg, regenoprnd.labelno,
                                            regenoprnd.labelownflag,
@@ -3664,7 +3672,8 @@ procedure copyaccessx;
       keytable[key].signlimit := signlimit;
       end;
 
-keytable[key].signed := keytable[left].signed; {AWFUL Free Pascal bug requires this}
+{AWFUL Free Pascal with statement bug requires this}
+keytable[key].signed := keytable[left].signed;
 
     { Now decrement refcounts }
     repeat
