@@ -3117,6 +3117,8 @@ procedure loadreg(var k: keyindex; other: keyindex);
       begin
       lock(other);
       newkey := settemp(keytable[k].len, reg_oprnd(getreg));
+{DRB should probably have settemp set signed}
+      keytable[newkey].signed := keytable[k].signed;
       gensimplemove(lastnode, k, newkey);
       unlock(other);
       changevalue(k, newkey);
@@ -3276,13 +3278,18 @@ procedure finalizestackoffsets(firstnode: nodeptr; lastnode: nodeptr;
             used to abort a program.  We aren't going to bother to be clever
             about this at all.
           }
-          if (inst.inst = sub) and
+          if{ (inst.inst = sub) and
              (oprnds[1].mode = register) and (oprnds[1].reg = sp) and
              (oprnds[2].mode = register) and (oprnds[2].reg = sl) and
+}
              (oprnds[3].imm12_value = undefinedaddr) then
             begin
             after := firstnode;
-            makeoffsetptr(after, -amount - savedregspace, oprnds[2].reg, sp);
+            if inst.inst = add then
+              makeoffsetptr(after, amount + savedregspace + ptrsize, oprnds[2].reg,
+                            oprnds[1].reg)
+            else
+              makeoffsetptr(after, -amount - savedregspace, oprnds[2].reg, oprnds[1].reg);
             deletenodes(firstnode, firstnode);
             firstnode := after;
             end
@@ -5384,28 +5391,22 @@ procedure closerangex;
 { The compiler was originally written for libcloseinrange to take (base, length)
   parameters, but at the moment 64 bit arithmetic isn't supported in the
   pseudocode so libcloseinrange takes (base, base + length) parameters.
-
-  When backtracing is implemented, a crash in libcloserange will mess it up
-  due to the stack kludge but for the moment that's OK.
 }
 
 
 var
-  prekey, postkey, indrx0key, x0key, x1key: keyindex;
+  tkey, indrx0key, x0key, x1key: keyindex;
 
 begin {closerangex}
-  { we can cheat bigtime here }
-  prekey := settemp(long, index_oprnd(pre_index, sp, -quad, false));
-  postkey := settemp(long, index_oprnd(post_index, sp, quad, false));
+  tkey := newtemp(quad);
   indrx0key := settemp(long, index_oprnd(unsigned_offset, 0, 0, false));
   x0key := settemp(long, reg_oprnd(0));
   x1key := settemp(long, reg_oprnd(1));
-  gen3(lastnode, buildinst(stp, true, false), x0key, x1key, prekey);
+  gen3(lastnode, buildinst(stp, true, false), x0key, x1key, tkey);
   gensimplemove(lastnode, indrx0key, x0key);
   gen3(lastnode, buildinst(add, true, false), x1key, x0key, x1key);
   callsupport(libcloseinrange, true);
-  gen3(lastnode, buildinst(ldp, true, false), x0key, x1key, postkey);
-
+  gen3(lastnode, buildinst(ldp, true, false), x0key, x1key, tkey);
 end {closerangex};
 
 procedure sysfnintx;
@@ -7447,6 +7448,9 @@ procedure pascallabelx;
       jumpx(pseudoinst.oprnds[1]);
       definelabel(pseudoinst.oprnds[1] - 1);
       spkey := settemp(long, reg_oprnd(sp));
+      fpkey := settemp(long, reg_oprnd(fp));
+      slkey := settemp(long, reg_oprnd(sl));
+      stackoffsetkey := settemp(long, imm12_oprnd(undefinedaddr, false));
       if level = 1 then 
         begin
         { restore from the initial value saved at program start}
@@ -7458,13 +7462,11 @@ procedure pascallabelx;
         genldr(lastnode, long, false, ip1temp,
                settemp(long, labeloffset_oprnd(ip0, savesplabel, false, 0, libinitsp)));
         gen2(lastnode, buildinst(mov, true, false), spkey, ip1temp);
+        gen3(lastnode, buildinst(add, true, false), fpkey, spkey, stackoffsetkey);
         end
       else
         begin
         { magic value to be fixed up in finalizestackoffsets }
-        stackoffsetkey := settemp(long, imm12_oprnd(undefinedaddr, false));
-        slkey := settemp(long, reg_oprnd(sl));
-        fpkey := settemp(long, reg_oprnd(fp));
         gen3(lastnode, buildinst(sub, true, false), spkey, slkey, stackoffsetkey);
         gensimplemove(lastnode, slkey, fpkey);
         end;
