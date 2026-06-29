@@ -293,7 +293,7 @@ type
 
   {branch instructions}
 
-  b, bcond, bl, blr, br, cbz, cbnz,
+  b, bcond, bl, blr, br, cbz, cbnz, tbz, tbnz,
 
   {miscellaneous instructions}
 
@@ -620,6 +620,7 @@ var
   key: keyindex; {result key from pseudoinst}
   target: keyindex; {target value, often a key, from pseudoinst}
   tempkey: keyindex; {current temp key <0}
+  lastpermtempkey: keyindex; {perm temps are for things like ip0, sp, etc }
 
   firstbr: brlinkptr; {beginning of branch link data chain}
 

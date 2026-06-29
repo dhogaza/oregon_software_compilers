@@ -589,6 +589,8 @@ begin
     str: write(macfile, 'str');
     strb: write(macfile, 'strb');
     strh: write(macfile, 'strh');
+    tbz: write(macfile, 'tbz');
+    tbnz: write(macfile, 'tbnz');
     sub: write(macfile, 'sub');
     udiv: write(macfile, 'udiv');
     otherwise write(macfile, 'bad inst: ', ord(i.inst));

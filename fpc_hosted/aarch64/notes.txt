@@ -1,6 +1,12 @@
 
 -- random stuff
 
+pseudops like eoln/eof/inset and others that in some cases do a single bit test
+followed by a setvalue(cond) can peek ahead for a jumpcond pseudo op, poach
+its label, and to a tb[n]z directly if it has a refcount of one.  
+
+define global keys for ip0, ip1, zero, sp, fp, sl regmodes.
+
 i in [a..b] with no non-emptyset constant component can be transformed into:
 
 if (i>=a) and (i<=b)

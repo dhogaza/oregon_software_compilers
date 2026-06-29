@@ -2731,9 +2731,12 @@ procedure initblock;
     loopoverflow := 0;
     lastkey := 0;
 
-    {initialize the keytable to empty}
+    {initialize the non permanent keytable entries to empty}
 
-    for i := lowesttemp to keysize do
+    for i := lowesttemp to lastpermtempkey - 1 do 
+      keytable[i] := keytable[lowestkey];
+
+    for i := 0 to keysize do
       keytable[i] := keytable[lowestkey];
 
     { initialize stack temp allocation vars
@@ -5311,6 +5314,59 @@ end {cmpsetinclusion} ;
 
 { various file handling intrinsics }
 
+procedure definelazyx;
+
+{ Checks "defined" bit in file status word.  If not set calls "get".
+  File to check is in "left".
+}
+
+var
+  bitkey, x0key, zerokey: keyindex;
+
+
+begin {definelazyx}
+
+{
+  if definelazykluge then
+    begin
+    settempareg(definelazyklugereg);
+    setkeyvalue(tempkey);
+    definelazykluge := false;
+    end
+  else
+}
+  address(left, 0);
+  x0key := settemp(long, reg_oprnd(0));
+  gensimplemove(lastnode, left, x0key);
+  bitkey := settemp(long, imm12_oprnd(lazybit, false));
+  gen3(lastnode, buildinst(tbnz, len = long, true),x0key, bitkey,
+       settemp(long, labeltarget_oprnd(lastlabel)));
+  callsupport(libdefinebuf, true);
+  definelastlabel;
+  setallfields(left);
+end {definelazyx} ;
+   
+procedure eolneofx(whichbit: integer {mask to choose condition bit} );
+
+{ Generate code for an eoln or eof call.  This checks the status bit in the
+  file control table.  This code is dependent on being preceded
+  by a "definelazy" that sets the key to a register holding the filevar.
+}
+
+var
+  power2key, zerokey: keyindex;
+
+begin
+  address(left, 0);
+  loadreg(left, 0);
+  power2key := settemp(long, intconst_oprnd(whichbit));
+  zerokey := settemp(long, reg_oprnd(zero));
+  handle_bitmask(power2key);
+  gen3(lastnode, buildinst(andinst, len = long, true), zerokey, left, power2key);
+  setvalue(cond_oprnd(ne));
+end {eolnx} ;
+
+
 procedure wrcommon(libroutine: libroutines; {formatting routine to call}
                    deffmt: integer {default width if needed} );
   var
@@ -5472,9 +5528,9 @@ procedure sysfnintx;
     case standardids(pseudoinst.oprnds[2]) of
       oddid: oddx;
       cstringid: cstringx; 
-{
       eolnid: eolneofx(eolnbit);
       eofid: eolneofx(eofbit);
+{
       roundid, truncid, fintid:
         truncround(standardids(pseudoinst.oprnds[2]));
       sqrid:
@@ -7547,7 +7603,7 @@ procedure codeone;
     left := pseudoinst.oprnds[1];
     right := pseudoinst.oprnds[2];
     target := pseudoinst.oprnds[3];
-    tempkey := -1;
+    tempkey := lastpermtempkey - 1;
     setcommonkey;
     use_preferred_key := false; {code generator flag}
     { Dump pseudocode into macfile but don't gen code.
@@ -7680,6 +7736,7 @@ procedure codeone;
       fileparam: fileparamx;
       fmt: fmtx;
       closerange: closerangex;
+      definelazy: definelazyx;
 {
       setbinfile: setbinfilex;
       rdint: rdintcharx(libreadint, defaulttargetintsize);
@@ -7734,9 +7791,6 @@ procedure codeone;
       geqset: cmpsetinclusion(left, right);
       leqset: cmpsetinclusion(right, left);
 
-{
-      definelazy: definelazyx;
-}
       restoreloop: restoreloopx;
 {
       cvtrd: cvtrdx;
@@ -7915,6 +7969,10 @@ procedure initcode;
       validtemp := false;
       tempflag := false;
       end;
+
+    tempkey := 0;
+    { insert global temps here }
+    lastpermtempkey := tempkey;
 
     if peeping then for i := 0 to maxpeephole do peep[i] := 0;
 
