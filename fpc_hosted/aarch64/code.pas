@@ -4499,8 +4499,8 @@ begin {cmpstructx}
   lock(rightregkey);
 
   onekey := settemp(long, imm12_oprnd(1, false));
-  countkey := settemp(word, reg_oprnd(ip0));
-  tempregkey := settemp(word, reg_oprnd(ip1));
+  countkey := regkeys[ip0];
+  tempregkey := regkeys[ip1];
   tempreg2key := settemp(word, reg_oprnd(getreg));
 
   { We are done allocating registers.
@@ -5194,8 +5194,8 @@ begin {cmpsetx}
     unlock(right);
     unlock(left);
     lock(rightregkey);
-    tempregkey := settemp(long, reg_oprnd(ip0));
-    tempreg2key := settemp(long, reg_oprnd(ip1)); 
+    tempregkey := regkeys[ip0];
+    tempreg2key := regkeys[ip1];
     tempreg3key := settemp(long, reg_oprnd(getreg));
     lock(tempreg3key);
     tempreg4key := settemp(long, reg_oprnd(getreg));
@@ -5268,8 +5268,8 @@ begin {cmpsetinclusion}
     unlock(operand2);
     unlock(operand1);
     lock(operand2regkey);
-    tempregkey := settemp(long, reg_oprnd(ip0));
-    tempreg2key := settemp(long, reg_oprnd(ip1)); 
+    tempregkey := regkeys[ip0];
+    tempreg2key := regkeys[ip1];
     tempreg3key := settemp(long, reg_oprnd(getreg));
     lock(tempreg3key);
     tempreg4key := settemp(long, reg_oprnd(getreg));
