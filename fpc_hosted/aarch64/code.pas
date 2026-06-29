@@ -3240,7 +3240,7 @@ procedure genmoveaddress(var after: nodeptr; src, dst: keyindex);
             makeoffsetptr(lastnode, index, reg, keytable[dst].oprnd.reg)
           else
             gen3(lastnode, buildinst(add, true, false), dst,
-                 settemp(long, reg_oprnd(sp)),
+                 regkeys[sp],
                  settemp(long, imm12_oprnd(index, false)));
       reg_offset:
         begin
@@ -6242,7 +6242,7 @@ procedure movemultiple(src, dst: keyindex);
 }
 
 var
-  srcregkey, dstregkey, ip1key, labelkey: keyindex;
+  srcregkey, dstregkey, labelkey: keyindex;
   l: addressrange;
 
   begin {movemultiple}
@@ -6258,7 +6258,6 @@ var
     keytable[srcregkey].oprnd.index := byte;
     keytable[dstregkey].oprnd.mode := post_index;
     keytable[dstregkey].oprnd.index := byte;
-    ip1key := settemp(byte, reg_oprnd(ip1));
     l := len;
     if l <= 4 then
       while l > 0 do
@@ -6272,8 +6271,8 @@ var
       gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), regkeys[ip0]);
       labelkey := settemp(long, labeltarget_oprnd(lastlabel));
       definelastlabel;
-      genldr(lastnode, byte, false, ip1key, srcregkey);
-      genstr(lastnode, byte, ip1key, dstregkey);
+      genldr(lastnode, byte, false, regkeys[ip1], srcregkey);
+      genstr(lastnode, byte, regkeys[ip1], dstregkey);
       gen3(lastnode, buildinst(sub, true, true), regkeys[ip0], regkeys[ip0],
                      settemp(long, imm12_oprnd(1, false)));
       gen2(lastnode, buildinst(cbnz, true, false), regkeys[ip0], labelkey);
@@ -6351,11 +6350,10 @@ procedure movestring(src, dst: keyindex);
 }
 
 var
-  dstregkey, srcregkey, ip1key, onekey, labelkey, skiplabelkey: keyindex;
+  dstregkey, srcregkey, onekey, labelkey, skiplabelkey: keyindex;
   skiplabel: labelindex;
 
 begin {movestring}
-  ip1key := settemp(byte, reg_oprnd(ip1));
   onekey := settemp(word, imm12_oprnd(1, false));
   lock(dst);
   srcregkey := settemp(long, reg_oprnd(getreg));
@@ -6385,12 +6383,12 @@ begin {movestring}
   if keytable[dst].len - 2 < 255 then
     begin
     gensimplemove(lastnode, settemp(long, intconst_oprnd(keytable[dst].len - 2)),
-                            ip1key);
+                            regkeys[ip1]);
 
     { compute how many bytes to move.
     }
-    gen2(lastnode, buildinst(cmp, false, false), regkeys[ip0], ip1key);
-    gen4(lastnode, buildinst(csel, false, false), regkeys[ip0], regkeys[ip0], ip1key,
+    gen2(lastnode, buildinst(cmp, false, false), regkeys[ip0], regkeys[ip1]);
+    gen4(lastnode, buildinst(csel, false, false), regkeys[ip0], regkeys[ip0], regkeys[ip1],
                    settemp(0, cond_oprnd(lo)));
     end;
 
@@ -6409,8 +6407,8 @@ begin {movestring}
 
   gen2(lastnode, buildinst(cbz, true, false), regkeys[ip0], skiplabelkey);
   definelastlabel;
-  genldr(lastnode, byte, false, ip1key, srcregkey);
-  genstr(lastnode, byte, ip1key, dstregkey);
+  genldr(lastnode, byte, false, regkeys[ip1], srcregkey);
+  genstr(lastnode, byte, regkeys[ip1], dstregkey);
   gen3(lastnode, buildinst(sub, true, true), regkeys[ip0], regkeys[ip0], onekey);
   gen2(lastnode, buildinst(cbnz, true, false), regkeys[ip0], labelkey);
 
@@ -7109,8 +7107,6 @@ procedure callroutinex(s: boolean {signed function value} );
     linkreg: boolean; {true if we build a static link}
     levelhack: integer; {if linkreg then we are going up levelhack levels}
     savetempkey: keyindex; {to restore tempkey when we are done}
-    slkey: keyindex; {tempkey holding static link descriptor}
-    framekey: keyindex; {tempkey holding address of base of current frame}
     paramkey: keyindex; {tempkey holding procedure param address}
     param: integer; {parameter count for creating unix standard list}
     notcopied: 0..1; {1 if last parameter was already the right size}
@@ -7139,12 +7135,6 @@ procedure callroutinex(s: boolean {signed function value} );
     firstfpreg := 0;
 
     savetempkey := tempkey;
-    {frame pointers in the aarch64 standard calling sequence form a linked
-     list.
-    }
-    framekey := settemp(long, reg_oprnd(fp));
-
-    slkey := settemp(long, reg_oprnd(sl));
 
     levelhack := 0;
     notcopied := 0;
@@ -7166,7 +7156,7 @@ procedure callroutinex(s: boolean {signed function value} );
         regused[sl] := true;
         levelhack := level - proctable[pseudoinst.oprnds[1]].level;
         if levelhack < 0 then
-          gensimplemove(lastnode, framekey, slkey);
+          gensimplemove(lastnode, regkeys[fp], regkeys[sl]);
         end;
       if proctable[pseudoinst.oprnds[1]].level <= 2 then
         levelhack := 0;
@@ -7186,7 +7176,7 @@ procedure callroutinex(s: boolean {signed function value} );
       regused[sl] := true;
       address(left, 0);
       paramkey := settemp(long, keytable[left].oprnd);
-      genldr(lastnode, long, false, slkey, paramkey);
+      genldr(lastnode, long, false, regkeys[sl], paramkey);
       keytable[paramkey].oprnd.index := keytable[paramkey].oprnd.index + long;
       genldr(lastnode, long, false, regkeys[ip0], paramkey);
       gen1(lastnode, buildinst(blr, true, false), regkeys[ip0]);
@@ -7197,7 +7187,7 @@ procedure callroutinex(s: boolean {signed function value} );
     if linkreg and ((pseudoinst.oprnds[3] > 0) or (level > 2) and
        (levelhack <> 0)) then
       gensimplemove(lastnode, settemp(long,
-                    index_oprnd(signed_offset, fp, staticlinkoffset, false)), slkey);
+                    index_oprnd(signed_offset, fp, staticlinkoffset, false)), regkeys[sl]);
 
     tempkey := savetempkey;
 
