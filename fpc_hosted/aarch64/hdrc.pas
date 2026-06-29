@@ -622,6 +622,8 @@ var
   tempkey: keyindex; {current temp key <0}
   lastpermtempkey: keyindex; {perm temps are for things like ip0, sp, etc }
 
+  regkeys: array [regindex] of keyindex;
+
   firstbr: brlinkptr; {beginning of branch link data chain}
 
   forstack: array [forindex] of

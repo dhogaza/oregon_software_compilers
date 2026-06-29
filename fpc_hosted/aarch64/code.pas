@@ -5321,7 +5321,7 @@ procedure definelazyx;
 }
 
 var
-  bitkey, x0key, zerokey: keyindex;
+  bitkey: keyindex;
 
 
 begin {definelazyx}
@@ -5336,10 +5336,9 @@ begin {definelazyx}
   else
 }
   address(left, 0);
-  x0key := settemp(long, reg_oprnd(0));
-  gensimplemove(lastnode, left, x0key);
+  gensimplemove(lastnode, left, regkeys[0]);
   bitkey := settemp(long, imm12_oprnd(lazybit, false));
-  gen3(lastnode, buildinst(tbnz, len = long, true),x0key, bitkey,
+  gen3(lastnode, buildinst(tbnz, len = long, true),regkeys[0], bitkey,
        settemp(long, labeltarget_oprnd(lastlabel)));
   callsupport(libdefinebuf, true);
   definelastlabel;
@@ -5354,15 +5353,14 @@ procedure eolneofx(whichbit: integer {mask to choose condition bit} );
 }
 
 var
-  power2key, zerokey: keyindex;
+  power2key: keyindex;
 
 begin
   address(left, 0);
   loadreg(left, 0);
   power2key := settemp(long, intconst_oprnd(whichbit));
-  zerokey := settemp(long, reg_oprnd(zero));
   handle_bitmask(power2key);
-  gen3(lastnode, buildinst(andinst, len = long, true), zerokey, left, power2key);
+  gen3(lastnode, buildinst(andinst, len = long, true), regkeys[zero], left, power2key);
   setvalue(cond_oprnd(ne));
 end {eolnx} ;
 
@@ -7971,7 +7969,9 @@ procedure initcode;
       end;
 
     tempkey := 0;
-    { insert global temps here }
+    { permanent temps for less tedious use in generating code }
+    for i := noreg to sp do
+      regkeys[i] := settemp(long, reg_oprnd(i));
     lastpermtempkey := tempkey;
 
     if peeping then for i := 0 to maxpeephole do peep[i] := 0;
