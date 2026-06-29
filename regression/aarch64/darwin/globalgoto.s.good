@@ -104,6 +104,7 @@ _main:
 	adrp	x16,.L32760@PAGE
 	ldr	x17,[x16,.L32760@PAGEOFF]
 	mov	sp,x17
+	add	x29,sp,88
 .L32766:
 # Line: 30, Stmt: 0
 	adrp	x28,.L32761@PAGE
@@ -143,6 +144,7 @@ _main:
 	adrp	x16,.L32760@PAGE
 	ldr	x17,[x16,.L32760@PAGEOFF]
 	mov	sp,x17
+	add	x29,sp,88
 .L32764:
 # Line: 40, Stmt: 0
 	adrp	x28,.L32761@PAGE

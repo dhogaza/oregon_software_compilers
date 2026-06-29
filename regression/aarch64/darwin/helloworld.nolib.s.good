@@ -5,50 +5,58 @@
 	.align 12
 .L32765:
 	.byte	0x0A,0x63,0x61,0x73,0x65,0x20,0x65,0x72,0x72,0x6F,0x72,0x00
-	.byte	0x05,0x72,0x65,0x73,0x65,0x74,0x00,0x07,0x72,0x65,0x77,0x72
-	.byte	0x69,0x74,0x65,0x00,0x0B,0x73,0x74,0x72,0x31,0x70,0x74,0x72
-	.byte	0x20,0x6E,0x69,0x6C,0x00,0x0B,0x73,0x74,0x72,0x32,0x70,0x74
-	.byte	0x72,0x20,0x6E,0x69,0x6C,0x00,0x0A,0x65,0x72,0x72,0x70,0x74
-	.byte	0x72,0x20,0x6E,0x69,0x6C,0x00,0x04,0x74,0x72,0x75,0x65,0x00
-	.byte	0x05,0x66,0x61,0x6C,0x73,0x65,0x00,0x0C,0x68,0x65,0x6C,0x6C
-	.byte	0x6F,0x20,0x77,0x6F,0x72,0x6C,0x64,0x21,0x00
+	.byte	0x0E,0x64,0x75,0x6D,0x70,0x20,0x66,0x69,0x6C,0x65,0x20,0x6C
+	.byte	0x69,0x73,0x74,0x00,0x09,0x61,0x64,0x64,0x72,0x65,0x73,0x73
+	.byte	0x3A,0x20,0x00,0x0B,0x20,0x63,0x75,0x72,0x72,0x65,0x6E,0x74
+	.byte	0x70,0x3A,0x20,0x00,0x09,0x20,0x73,0x74,0x61,0x74,0x75,0x73
+	.byte	0x3A,0x20,0x00,0x0B,0x20,0x6E,0x65,0x78,0x74,0x66,0x69,0x6C
+	.byte	0x65,0x3A,0x20,0x00,0x0A,0x20,0x66,0x69,0x6C,0x65,0x76,0x61
+	.byte	0x72,0x3A,0x20,0x00,0x0A,0x20,0x73,0x74,0x72,0x65,0x61,0x6D
+	.byte	0x70,0x3A,0x20,0x00,0x06,0x20,0x65,0x72,0x72,0x3A,0x20,0x00
+	.byte	0x12,0x65,0x6E,0x64,0x20,0x64,0x75,0x6D,0x70,0x20,0x66,0x69
+	.byte	0x6C,0x65,0x20,0x6C,0x69,0x73,0x74,0x00,0x00,0x00,0x00,0x00
+	.byte	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+	.byte	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+	.byte	0x00,0x00,0x00,0x00,0x04,0x74,0x72,0x75,0x65,0x00,0x05,0x66
+	.byte	0x61,0x6C,0x73,0x65,0x00,0x0C,0x68,0x65,0x6C,0x6C,0x6F,0x20
+	.byte	0x77,0x6F,0x72,0x6C,0x64,0x21,0x00
 	.text
 	.align 2
 #
 #	_p_arraytostrin
 #
-.P20:
+.P23:
 	sub	sp,sp,32
-# Line: 104, Stmt: 1
+# Line: 112, Stmt: 1
 	str	x2,[sp,8]
-# Line: 106, Stmt: 2
+# Line: 114, Stmt: 2
 	cmp	w2,255
 	b.ls	.L4
 .L5:
-# Line: 107, Stmt: 0
+# Line: 115, Stmt: 0
 	mov	x2,255
 	str	x2,[sp,8]
 .L4:
-# Line: 108, Stmt: 0
+# Line: 116, Stmt: 0
 	mov	x15,xzr
 .L3:
-# Line: 109, Stmt: 0
+# Line: 117, Stmt: 0
 	ldr	x14,[sp,8]
 	cmp	w15,w14
 	b.hs	.L6
 .L7:
-# Line: 111, Stmt: 0
+# Line: 119, Stmt: 0
 	add	x13,x0,w15, uxtw 0
 	ldrb	w16,[x1, w15, uxtw]
 	strb	w16,[x13,1]
-# Line: 112, Stmt: 0
+# Line: 120, Stmt: 0
 	add	w15,w15,1
 	b	.L3
 .L6:
-# Line: 114, Stmt: 0
+# Line: 122, Stmt: 0
 	add	x13,x0,w15, uxtw 0
 	strb	wzr,[x13,1]
-# Line: 115, Stmt: 0
+# Line: 123, Stmt: 0
 	strb	w14,[x0]
 .L2:
 	add	sp,sp,32
@@ -58,33 +66,33 @@
 #
 #	_p_cstringtostr
 #
-.P21:
+.P24:
 	sub	sp,sp,48
-# Line: 132, Stmt: 1
-# Line: 133, Stmt: 2
+# Line: 140, Stmt: 1
+# Line: 141, Stmt: 2
 	str	x1,[sp,40]
-# Line: 134, Stmt: 0
+# Line: 142, Stmt: 0
 	mov	x15,xzr
 	ldr	x14,[sp,40]
 .L9:
-# Line: 135, Stmt: 0
+# Line: 143, Stmt: 0
 	cmp	w15,255
 	b.hs	.L10
 	ldrb	w13,[x14, w15, uxtw]
 	cbz	w13,.L10
 .L11:
-# Line: 137, Stmt: 0
+# Line: 145, Stmt: 0
 	add	x13,x0,w15, uxtw 0
 	ldrb	w16,[x14, w15, uxtw]
 	strb	w16,[x13,1]
-# Line: 138, Stmt: 0
+# Line: 146, Stmt: 0
 	add	w15,w15,1
 	b	.L9
 .L10:
-# Line: 140, Stmt: 0
+# Line: 148, Stmt: 0
 	add	x14,x0,w15, uxtw 0
 	strb	wzr,[x14,1]
-# Line: 141, Stmt: 0
+# Line: 149, Stmt: 0
 	strb	w15,[x0]
 .L8:
 	add	sp,sp,48
@@ -97,48 +105,48 @@
 	.global _p_pos
 _p_pos:
 	sub	sp,sp,64
-# Line: 150, Stmt: 1
-# Line: 151, Stmt: 2
+# Line: 158, Stmt: 1
+# Line: 159, Stmt: 2
 	mov	x12,xzr
-# Line: 152, Stmt: 0
+# Line: 160, Stmt: 0
 	ldrb	w11,[x0]
-# Line: 153, Stmt: 0
+# Line: 161, Stmt: 0
 	ldrb	w10,[x1]
-# Line: 155, Stmt: 0
+# Line: 163, Stmt: 0
 	mov	x13,xzr
 .L15:
-# Line: 156, Stmt: 0
+# Line: 164, Stmt: 0
 	cbnz	w13,.L16
 	cmp	w12,w11
 	b.ge	.L16
 .L17:
-# Line: 158, Stmt: 0
+# Line: 166, Stmt: 0
 	add	w12,w12,1
-# Line: 159, Stmt: 0
+# Line: 167, Stmt: 0
 	ldrb	w9,[x0, w12, sxtw]
 	ldrb	w8,[x1,1]
 	cmp	w9,w8
 	cset	w13,eq
-# Line: 160, Stmt: 0
+# Line: 168, Stmt: 0
 	cbz	w13,.L19
 .L20:
-# Line: 162, Stmt: 0
+# Line: 170, Stmt: 0
 	mov	x15,1
-# Line: 163, Stmt: 0
+# Line: 171, Stmt: 0
 	mov	x14,x12
 .L14:
-# Line: 164, Stmt: 0
+# Line: 172, Stmt: 0
 	cbz	w13,.L19
 	cmp	w14,w11
 	b.ge	.L19
 	cmp	w15,w10
 	b.ge	.L19
 .L21:
-# Line: 166, Stmt: 0
+# Line: 174, Stmt: 0
 	add	w14,w14,1
-# Line: 167, Stmt: 0
+# Line: 175, Stmt: 0
 	add	w15,w15,1
-# Line: 168, Stmt: 0
+# Line: 176, Stmt: 0
 	ldrb	w9,[x0, w14, sxtw]
 	ldrb	w8,[x1, w15, sxtw]
 	cmp	w9,w8
@@ -147,17 +155,17 @@ _p_pos:
 .L19:
 	b	.L15
 .L16:
-# Line: 173, Stmt: 0
+# Line: 181, Stmt: 0
 	cbz	w13,.L24
 .L25:
-# Line: 173, Stmt: 0
+# Line: 181, Stmt: 0
 	str	w12,[sp,32]
 	b	.L26
 .L24:
-# Line: 174, Stmt: 0
+# Line: 182, Stmt: 0
 	str	wzr,[sp,32]
 .L26:
-# Line: 175, Stmt: 0
+# Line: 183, Stmt: 0
 	ldrsw	x0,[sp,32]
 .L13:
 	add	sp,sp,64
@@ -170,60 +178,60 @@ _p_pos:
 	.global _p_copy
 _p_copy:
 	sub	sp,sp,304
-# Line: 189, Stmt: 1
+# Line: 197, Stmt: 1
 	str	x8,[sp,24]
 	str	x2,[sp]
-# Line: 190, Stmt: 2
+# Line: 198, Stmt: 2
 	ldrb	w15,[x0]
-# Line: 191, Stmt: 0
+# Line: 199, Stmt: 0
 	add	w14,w1,w2
 	sub	w13,w14,1
 	cmp	w13,w15
 	b.le	.L29
 .L30:
-# Line: 192, Stmt: 0
+# Line: 200, Stmt: 0
 	sub	w2,w15,w1
 	add	w2,w2,1
 	str	x2,[sp]
 .L29:
-# Line: 193, Stmt: 0
+# Line: 201, Stmt: 0
 	ldr	x14,[sp]
 	cmp	w14,wzr
 	b.lt	.L32
 	cmp	w1,1
 	b.ge	.L31
 .L32:
-# Line: 194, Stmt: 0
+# Line: 202, Stmt: 0
 	mov	x2,xzr
 	str	x2,[sp]
 .L31:
-# Line: 195, Stmt: 0
+# Line: 203, Stmt: 0
 	ldr	x14,[sp]
 	strb	w14,[sp,40]
-# Line: 196, Stmt: 0
+# Line: 204, Stmt: 0
 	mov	x15,1
 .L28:
-# Line: 197, Stmt: 0
+# Line: 205, Stmt: 0
 	ldr	x14,[sp]
 	cmp	w14,wzr
 	b.le	.L34
 .L35:
-# Line: 199, Stmt: 0
+# Line: 207, Stmt: 0
 	add	x13,sp,16
 	add	x13,x13,w15, sxtw 0
 	ldrb	w16,[x0, w1, sxtw]
 	strb	w16,[x13,24]
-# Line: 200, Stmt: 0
+# Line: 208, Stmt: 0
 	add	w1,w1,1
-# Line: 201, Stmt: 0
+# Line: 209, Stmt: 0
 	add	w15,w15,1
-# Line: 202, Stmt: 0
+# Line: 210, Stmt: 0
 	sub	w13,w14,1
 	mov	x2,x13
 	str	x2,[sp]
 	b	.L28
 .L34:
-# Line: 204, Stmt: 0
+# Line: 212, Stmt: 0
 	add	x14,sp,40
 	add	x13,x8,xzr
 	ldrb	w16,[x14],1
@@ -236,7 +244,7 @@ _p_copy:
 	cbnz	x16,.L32762
 .L32763:
 	strb	wzr,[x13],1
-# Line: 205, Stmt: 0
+# Line: 213, Stmt: 0
 	ldr	x8,[sp,24]
 .L27:
 	add	sp,sp,304
@@ -249,57 +257,57 @@ _p_copy:
 	.global _p_trim
 _p_trim:
 	sub	sp,sp,304
-# Line: 213, Stmt: 1
+# Line: 221, Stmt: 1
 	str	x8,[sp,16]
-# Line: 214, Stmt: 2
+# Line: 222, Stmt: 2
 	ldrb	w14,[x0]
 .L39:
-# Line: 215, Stmt: 0
+# Line: 223, Stmt: 0
 	cmp	w14,wzr
 	b.le	.L40
 	ldrb	w11,[x0, w14, sxtw]
 	cmp	w11,32
-	b.gt	.L40
+	b.hi	.L40
 .L41:
-# Line: 216, Stmt: 0
+# Line: 224, Stmt: 0
 	sub	w14,w14,1
 	b	.L39
 .L40:
-# Line: 217, Stmt: 0
+# Line: 225, Stmt: 0
 	mov	x15,1
 .L38:
-# Line: 218, Stmt: 0
+# Line: 226, Stmt: 0
 	cmp	w15,w14
 	b.ge	.L43
 	ldrb	w11,[x0, w15, sxtw]
 	cmp	w11,32
-	b.gt	.L43
+	b.hi	.L43
 .L44:
-# Line: 219, Stmt: 0
+# Line: 227, Stmt: 0
 	add	w15,w15,1
 	b	.L38
 .L43:
-# Line: 220, Stmt: 0
+# Line: 228, Stmt: 0
 	sub	w12,w14,w15
 	add	w12,w12,1
-# Line: 221, Stmt: 0
+# Line: 229, Stmt: 0
 	mov	x13,1
 .L47:
 	cmp	w13,w12
 	b.gt	.L46
-# Line: 223, Stmt: 0
+# Line: 231, Stmt: 0
 	add	x11,sp,8
 	add	x11,x11,w13, sxtw 0
 	ldrb	w16,[x0, w15, sxtw]
 	strb	w16,[x11,32]
-# Line: 224, Stmt: 0
+# Line: 232, Stmt: 0
 	add	w15,w15,1
 	adds	w13,w13,1
 	b.vc	.L47
 .L46:
-# Line: 226, Stmt: 0
+# Line: 234, Stmt: 0
 	strb	w12,[sp,40]
-# Line: 227, Stmt: 0
+# Line: 235, Stmt: 0
 	add	x11,sp,40
 	add	x10,x8,xzr
 	ldrb	w16,[x11],1
@@ -312,7 +320,7 @@ _p_trim:
 	cbnz	x16,.L32760
 .L32761:
 	strb	wzr,[x10],1
-# Line: 228, Stmt: 0
+# Line: 236, Stmt: 0
 	ldr	x8,[sp,16]
 .L36:
 	add	sp,sp,304
@@ -325,45 +333,45 @@ _p_trim:
 	.global _p_trimleft
 _p_trimleft:
 	sub	sp,sp,288
-# Line: 236, Stmt: 1
+# Line: 244, Stmt: 1
 	str	x8,[sp,8]
-# Line: 237, Stmt: 2
+# Line: 245, Stmt: 2
 	ldrb	w13,[x0]
-# Line: 238, Stmt: 0
+# Line: 246, Stmt: 0
 	mov	x15,1
 .L50:
-# Line: 239, Stmt: 0
+# Line: 247, Stmt: 0
 	cmp	w15,w13
 	b.gt	.L51
 	ldrb	w12,[x0, w15, sxtw]
 	cmp	w12,32
-	b.gt	.L51
+	b.hi	.L51
 .L52:
-# Line: 240, Stmt: 0
+# Line: 248, Stmt: 0
 	add	w15,w15,w15
 	b	.L50
 .L51:
-# Line: 241, Stmt: 0
+# Line: 249, Stmt: 0
 	sub	w13,w13,w15
 	add	w13,w13,1
-# Line: 242, Stmt: 0
+# Line: 250, Stmt: 0
 	strb	w13,[sp,28]
-# Line: 243, Stmt: 0
+# Line: 251, Stmt: 0
 	mov	x14,1
 .L55:
 	cmp	w14,w13
 	b.gt	.L54
-# Line: 245, Stmt: 0
+# Line: 253, Stmt: 0
 	add	x12,sp,0
 	add	x12,x12,w14, sxtw 0
 	ldrb	w16,[x0, w15, sxtw]
 	strb	w16,[x12,28]
-# Line: 246, Stmt: 0
+# Line: 254, Stmt: 0
 	add	w15,w15,1
 	adds	w14,w14,1
 	b.vc	.L55
 .L54:
-# Line: 248, Stmt: 0
+# Line: 256, Stmt: 0
 	add	x12,sp,28
 	add	x11,x8,xzr
 	ldrb	w16,[x12],1
@@ -376,7 +384,7 @@ _p_trimleft:
 	cbnz	x16,.L32758
 .L32759:
 	strb	wzr,[x11],1
-# Line: 249, Stmt: 0
+# Line: 257, Stmt: 0
 	ldr	x8,[sp,8]
 .L48:
 	add	sp,sp,288
@@ -389,30 +397,30 @@ _p_trimleft:
 	.global _p_trimright
 _p_trimright:
 	sub	sp,sp,288
-# Line: 257, Stmt: 1
+# Line: 265, Stmt: 1
 	str	x8,[sp,8]
-# Line: 258, Stmt: 2
+# Line: 266, Stmt: 2
 	ldrb	w15,[x0]
 .L58:
-# Line: 259, Stmt: 0
+# Line: 267, Stmt: 0
 	cmp	w15,wzr
 	b.le	.L59
 	ldrb	w13,[x0, w15, sxtw]
 	cmp	w13,32
-	b.gt	.L59
+	b.hi	.L59
 .L60:
-# Line: 260, Stmt: 0
+# Line: 268, Stmt: 0
 	sub	w15,w15,1
 	b	.L58
 .L59:
-# Line: 261, Stmt: 0
+# Line: 269, Stmt: 0
 	strb	w15,[sp,24]
-# Line: 262, Stmt: 0
+# Line: 270, Stmt: 0
 	mov	x14,1
 .L63:
 	cmp	w14,w15
 	b.gt	.L62
-# Line: 263, Stmt: 0
+# Line: 271, Stmt: 0
 	add	x13,sp,0
 	add	x13,x13,w14, sxtw 0
 	ldrb	w16,[x0, w14, sxtw]
@@ -420,7 +428,7 @@ _p_trimright:
 	adds	w14,w14,1
 	b.vc	.L63
 .L62:
-# Line: 264, Stmt: 0
+# Line: 272, Stmt: 0
 	add	x13,sp,24
 	add	x12,x8,xzr
 	ldrb	w16,[x13],1
@@ -433,7 +441,7 @@ _p_trimright:
 	cbnz	x16,.L32756
 .L32757:
 	strb	wzr,[x12],1
-# Line: 265, Stmt: 0
+# Line: 273, Stmt: 0
 	ldr	x8,[sp,8]
 .L56:
 	add	sp,sp,288
@@ -447,15 +455,15 @@ _p_trimright:
 _p_caseerr:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
-# Line: 268, Stmt: 1
-# Line: 269, Stmt: 0
+# Line: 276, Stmt: 1
+# Line: 277, Stmt: 0
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+1@PAGEOFF
 	mov	x1,10
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
-# Line: 270, Stmt: 0
+# Line: 278, Stmt: 0
 	mov	x0,1
 	bl	_exit
 .L64:
@@ -464,106 +472,376 @@ _p_caseerr:
 	.text
 	.align 2
 #
-#	_p_open
+#	_p_dumpfilelist
 #
-.P22:
-	sub	sp,sp,64
-	stp	x30,x29,[sp,48]
-	add	x29,sp,48
-# Line: 276, Stmt: 1
-# Line: 277, Stmt: 2
-	str	x1,[x29,-16]
-	str	x2,[x29,-24]
-	str	x3,[x29,-32]
-	str	x4,[x29,-40]
-	str	x5,[x29,-48]
-	cbz	w0,.L66
-.L67:
-# Line: 277, Stmt: 0
+	.global _p_dumpfilelist
+_p_dumpfilelist:
+	sub	sp,sp,96
+	stp	x30,x29,[sp,72]
+	add	x29,sp,72
+	str	x28,[x29,-8]
+# Line: 290, Stmt: 1
+# Line: 291, Stmt: 0
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+13@PAGEOFF
-	mov	x1,5
+	mov	x1,14
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
-	b	.L68
+# Line: 292, Stmt: 0
+	adrp	x15,_p_paslib@PAGE
+	ldr	x28,[x15,_p_paslib@PAGEOFF]
+	adrp	x14,.L32765@PAGE
+	add	x15,x14,.L32765+29@PAGEOFF
+	str	x15,[x29,-16]
+	adrp	x13,.L32765@PAGE
+	add	x14,x13,.L32765+40@PAGEOFF
+	str	x14,[x29,-24]
+	adrp	x12,.L32765@PAGE
+	add	x13,x12,.L32765+53@PAGEOFF
+	str	x13,[x29,-32]
+	adrp	x11,.L32765@PAGE
+	add	x12,x11,.L32765+64@PAGEOFF
+	str	x12,[x29,-40]
+	adrp	x10,.L32765@PAGE
+	add	x11,x10,.L32765+77@PAGEOFF
+	str	x11,[x29,-48]
+	adrp	x9,.L32765@PAGE
+	add	x10,x9,.L32765+89@PAGEOFF
+	str	x10,[x29,-56]
+	adrp	x8,.L32765@PAGE
+	add	x9,x8,.L32765+101@PAGEOFF
+	str	x9,[x29,-64]
 .L66:
-# Line: 278, Stmt: 0
-	adrp	x15,.L32765@PAGE
-	add	x0,x15,.L32765+20@PAGEOFF
-	mov	x1,7
-	mov	x2,x1
-	bl	_p_wts_o 
-	bl	_p_wtln_o 
-.L68:
-# Line: 279, Stmt: 0
+	ldr	x9,[x29,-64]
+	ldr	x10,[x29,-56]
+	ldr	x11,[x29,-48]
+	ldr	x12,[x29,-40]
+	ldr	x13,[x29,-32]
+	ldr	x14,[x29,-24]
 	ldr	x15,[x29,-16]
+# Line: 293, Stmt: 0
+	cbz	x28,.L67
+.L68:
+# Line: 295, Stmt: 0
+# Line: 296, Stmt: 0
 	mov	x0,x15
+	mov	x1,9
+	mov	x2,x1
+	bl	_p_wts_o 
+	mov	x0,x28
 	mov	x1,1
 	bl	_p_wti_o 
-	bl	_p_wtln_o 
-# Line: 280, Stmt: 0
 	ldr	x0,[x29,-24]
+	mov	x1,11
+	mov	x2,x1
+	bl	_p_wts_o 
+	ldr	x0,[x28]
+	mov	x1,1
+	bl	_p_wti_o 
+	ldr	x0,[x29,-32]
+	mov	x1,9
+	mov	x2,x1
+	bl	_p_wts_o 
+	ldr	x0,[x28,8]
+	mov	x1,1
+	bl	_p_wti_o 
+	ldr	x0,[x29,-40]
+	mov	x1,11
+	mov	x2,x1
+	bl	_p_wts_o 
+	ldr	x0,[x28,16]
+	mov	x1,1
+	bl	_p_wti_o 
+	ldr	x0,[x29,-48]
+	mov	x1,10
+	mov	x2,x1
+	bl	_p_wts_o 
+	ldr	x0,[x28,24]
+	mov	x1,1
+	bl	_p_wti_o 
+	ldr	x0,[x29,-56]
+	mov	x1,10
+	mov	x2,x1
+	bl	_p_wts_o 
+	ldr	x0,[x28,40]
+	mov	x1,1
+	bl	_p_wti_o 
+	ldr	x0,[x29,-64]
+	mov	x1,6
+	mov	x2,x1
+	bl	_p_wts_o 
+	ldrsw	x0,[x28,32]
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
-# Line: 281, Stmt: 0
-	ldr	x15,[x29,-32]
-	cbnz	x15,.L69
-.L70:
-# Line: 282, Stmt: 0
-	adrp	x14,.L32765@PAGE
-	add	x0,x14,.L32765+29@PAGEOFF
-	mov	x1,11
-	mov	x2,x1
-	bl	_p_wts_o 
-	bl	_p_wtln_o 
-	b	.L71
-.L69:
-# Line: 284, Stmt: 0
-	ldrb	w1,[x15]
-	add	x0,x15,xzr
-	add	x0,x0,1
-	mov	x2,x1
-	bl	_p_wts_o 
-	bl	_p_wtln_o 
-.L71:
-# Line: 285, Stmt: 0
-	ldr	x15,[x29,-40]
-	cbnz	x15,.L72
-.L73:
-# Line: 286, Stmt: 0
-	adrp	x14,.L32765@PAGE
-	add	x0,x14,.L32765+42@PAGEOFF
-	mov	x1,11
-	mov	x2,x1
-	bl	_p_wts_o 
-	bl	_p_wtln_o 
-	b	.L74
-.L72:
-# Line: 288, Stmt: 0
-	ldrb	w1,[x15]
-	add	x0,x15,xzr
-	add	x0,x0,1
-	mov	x2,x1
-	bl	_p_wts_o 
-	bl	_p_wtln_o 
-.L74:
-# Line: 289, Stmt: 0
-	ldr	x15,[x29,-48]
-	cbnz	x15,.L75
-.L76:
-# Line: 290, Stmt: 0
+# Line: 303, Stmt: 0
+	ldr	x28,[x28,16]
+	b	.L66
+.L67:
+# Line: 305, Stmt: 0
 	adrp	x15,.L32765@PAGE
-	add	x0,x15,.L32765+55@PAGEOFF
-	mov	x1,10
+	add	x0,x15,.L32765+109@PAGEOFF
+	mov	x1,18
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
 .L65:
+	ldr	x28,[x29,-8]
+	ldp	x30,x29,[sp,72]
+	add	sp,sp,96
+	ret
+	.text
+	.align 2
+#
+#	_p_filep
+#
+.P25:
+	sub	sp,sp,32
+# Line: 316, Stmt: 1
+# Line: 317, Stmt: 2
+	adrp	x14,_p_paslib@PAGE
+	ldr	x15,[x14,_p_paslib@PAGEOFF]
+.L70:
+# Line: 318, Stmt: 0
+	cbz	x15,.L71
+	ldr	x14,[x15,24]
+	cmp	x14,x0
+	b.eq	.L71
+.L72:
+# Line: 319, Stmt: 0
+	ldr	x15,[x15,16]
+	b	.L70
+.L71:
+# Line: 320, Stmt: 0
+	str	x15,[sp,16]
+# Line: 321, Stmt: 0
+	ldr	x0,[sp,16]
+.L69:
+	add	sp,sp,32
+	ret
+	.text
+	.align 2
+#
+#	_p_addfile
+#
+.P26:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
+# Line: 333, Stmt: 1
+# Line: 334, Stmt: 2
+	str	x0,[x29,-8]
+	add	x0,x29,16
+	mov	x1,48
+	bl	_p_new 
+# Line: 335, Stmt: 0
+	ldr	x15,[x29,-8]
+	ldr	x16,[x29,16]
+	str	x16,[x15]
+# Line: 336, Stmt: 0
+	ldr	x14,[x29,16]
+	adrp	x13,_p_paslib@PAGE
+	ldr	x16,[x13,_p_paslib@PAGEOFF]
+	str	x16,[x14,16]
+# Line: 337, Stmt: 0
+	str	xzr,[x14]
+# Line: 338, Stmt: 0
+	adrp	x12,.L32765@PAGE
+	ldr	x11,[x12,.L32765+128@PAGEOFF]
+	str	x11,[x14,8]
+# Line: 339, Stmt: 0
+	str	x15,[x14,24]
+# Line: 340, Stmt: 0
+	str	wzr,[x14,32]
+# Line: 341, Stmt: 0
+	str	xzr,[x14,40]
+# Line: 342, Stmt: 0
+	str	x14,[x13,_p_paslib@PAGEOFF]
+.L74:
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
+	ret
+	.text
+	.align 2
+#
+#	_p_removefile
+#
+.P27:
+	sub	sp,sp,64
+	stp	x30,x29,[sp,32]
+	add	x29,sp,32
+	stp	x27,x28,[x29,-16]
+# Line: 354, Stmt: 1
+# Line: 355, Stmt: 2
+	mov	x27,xzr
+# Line: 356, Stmt: 0
+	adrp	x15,_p_paslib@PAGE
+	ldr	x28,[x15,_p_paslib@PAGEOFF]
+	str	x0,[x29,-24]
+.L76:
+# Line: 357, Stmt: 0
+	ldr	x15,[x0]
+	cmp	x28,x15
+	b.eq	.L77
+.L78:
+# Line: 359, Stmt: 0
+	mov	x27,x28
+# Line: 360, Stmt: 0
+	ldr	x28,[x28,16]
+	b	.L76
+.L77:
+# Line: 362, Stmt: 0
+	ldr	x28,[x28,16]
+# Line: 363, Stmt: 0
+	cbnz	x27,.L79
+.L80:
+# Line: 364, Stmt: 0
+	adrp	x14,_p_paslib@PAGE
+	ldr	x16,[x15,16]
+	str	x16,[x14,_p_paslib@PAGEOFF]
+	b	.L81
+.L79:
+# Line: 366, Stmt: 0
+	ldr	x16,[x15,16]
+	str	x16,[x27,16]
+.L81:
+# Line: 367, Stmt: 0
+	ldr	x15,[x15,24]
+	str	xzr,[x15]
+# Line: 368, Stmt: 0
+	ldr	x15,[x29,-24]
+	add	x0,x15,xzr
+	mov	x1,48
+	bl	_p_dispos 
 .L75:
-	ldp	x30,x29,[sp,48]
+	ldp	x27,x28,[x29,-16]
+	ldp	x30,x29,[sp,32]
 	add	sp,sp,64
+	ret
+	.text
+	.align 2
+#
+#	_p_close
+#
+	.global _p_close
+_p_close:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
+# Line: 380, Stmt: 1
+# Line: 381, Stmt: 2
+	bl	.P25  // _p_filep
+	str	x0,[x29,16]
+# Line: 382, Stmt: 0
+	ldr	x15,[x29,16]
+	cbz	x15,.L83
+.L84:
+# Line: 385, Stmt: 0
+	add	x0,x29,16
+	bl	.P27  // _p_removefile
+.L82:
+.L83:
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
+	ret
+	.text
+	.align 2
+#
+#	_p_clsrng
+#
+	.global _p_clsrng
+_p_clsrng:
+	sub	sp,sp,80
+	stp	x30,x29,[sp,40]
+	add	x29,sp,40
+	stp	x27,x28,[x29,-16]
+	stp	x25,x26,[x29,-32]
+# Line: 393, Stmt: 1
+	mov	x25,x0
+	mov	x26,x1
+# Line: 394, Stmt: 2
+	mov	x27,xzr
+# Line: 395, Stmt: 0
+	adrp	x15,_p_paslib@PAGE
+	ldr	x16,[x15,_p_paslib@PAGEOFF]
+	str	x16,[x29,16]
+.L86:
+# Line: 396, Stmt: 0
+	ldr	x15,[x29,16]
+	cbz	x15,.L87
+.L88:
+# Line: 398, Stmt: 0
+	ldr	x28,[x15,16]
+# Line: 399, Stmt: 0
+	ldr	x14,[x15,24]
+	cmp	w25,w14
+	b.gt	.L89
+	cmp	w14,w26
+	b.gt	.L89
+.L90:
+# Line: 402, Stmt: 0
+	cbnz	x27,.L92
+.L93:
+# Line: 403, Stmt: 0
+	adrp	x14,_p_paslib@PAGE
+	str	x28,[x14,_p_paslib@PAGEOFF]
+	b	.L94
+.L92:
+# Line: 405, Stmt: 0
+	str	x28,[x27,16]
+.L94:
+# Line: 406, Stmt: 0
+	ldr	x14,[x15,24]
+	str	xzr,[x14]
+# Line: 407, Stmt: 0
+	add	x0,x29,16
+	mov	x1,48
+	bl	_p_dispos 
+	b	.L95
+.L89:
+# Line: 410, Stmt: 0
+	mov	x27,x15
+.L95:
+# Line: 411, Stmt: 0
+	str	x28,[x29,16]
+	b	.L86
+.L85:
+.L87:
+	ldp	x27,x28,[x29,-16]
+	ldp	x25,x26,[x29,-32]
+	ldp	x30,x29,[sp,40]
+	add	sp,sp,80
+	ret
+	.text
+	.align 2
+#
+#	_p_open
+#
+.P28:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
+	str	x28,[x29,-8]
+# Line: 420, Stmt: 1
+	mov	x28,x1
+# Line: 421, Stmt: 2
+	mov	x0,x28
+	bl	.P25  // _p_filep
+	cbnz	x0,.L97
+.L98:
+# Line: 423, Stmt: 0
+	mov	x0,x28
+	bl	.P26  // _p_addfile
+# Line: 424, Stmt: 0
+	mov	x0,x28
+	bl	.P25  // _p_filep
+	str	x0,[x29,16]
+.L96:
+.L97:
+	ldr	x28,[x29,-8]
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
 	ret
 	.text
 	.align 2
@@ -575,8 +853,8 @@ _p_reset:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,48]
 	add	x29,sp,48
-# Line: 295, Stmt: 1
-# Line: 296, Stmt: 2
+# Line: 430, Stmt: 1
+# Line: 431, Stmt: 2
 	str	x0,[x29,-8]
 	str	x1,[x29,-16]
 	str	x2,[x29,-24]
@@ -588,8 +866,8 @@ _p_reset:
 	ldr	x3,[x29,-24]
 	ldr	x4,[x29,-32]
 	ldr	x5,[x29,-40]
-	bl	.P22  // _p_open
-.L77:
+	bl	.P28  // _p_open
+.L99:
 	ldp	x30,x29,[sp,48]
 	add	sp,sp,64
 	ret
@@ -603,8 +881,8 @@ _p_rewrite:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,48]
 	add	x29,sp,48
-# Line: 301, Stmt: 1
-# Line: 302, Stmt: 2
+# Line: 436, Stmt: 1
+# Line: 437, Stmt: 2
 	str	x0,[x29,-8]
 	str	x1,[x29,-16]
 	str	x2,[x29,-24]
@@ -616,8 +894,8 @@ _p_rewrite:
 	ldr	x3,[x29,-24]
 	ldr	x4,[x29,-32]
 	ldr	x5,[x29,-40]
-	bl	.P22  // _p_open
-.L78:
+	bl	.P28  // _p_open
+.L100:
 	ldp	x30,x29,[sp,48]
 	add	sp,sp,64
 	ret
@@ -632,46 +910,46 @@ _p_wtb_o:
 	stp	x30,x29,[sp,40]
 	add	x29,sp,40
 	str	x28,[x29,-8]
-# Line: 309, Stmt: 1
+# Line: 444, Stmt: 1
 	str	x0,[x29,-16]
-# Line: 310, Stmt: 2
+# Line: 445, Stmt: 2
 	eor	w15,w0,1
 	mov	x14,5
 	add	w15,w14,w15
 	str	x1,[x29,-32]
 	mov	x28,x15
-.L81:
+.L103:
 	cmp	w28,w1
-	b.gt	.L80
-# Line: 311, Stmt: 0
+	b.gt	.L102
+# Line: 446, Stmt: 0
 	mov	x0,32
 	mov	x1,1
 	bl	_p_wtc_o 
 	ldr	x0,[x29,-16]
 	ldr	x1,[x29,-32]
 	adds	w28,w28,1
-	b.vc	.L81
-.L80:
-# Line: 312, Stmt: 0
+	b.vc	.L103
+.L102:
+# Line: 447, Stmt: 0
 	ldr	x15,[x29,-16]
-	cbz	w15,.L82
-.L83:
-# Line: 313, Stmt: 0
+	cbz	w15,.L104
+.L105:
+# Line: 448, Stmt: 0
 	adrp	x15,.L32765@PAGE
-	add	x0,x15,.L32765+67@PAGEOFF
+	add	x0,x15,.L32765+161@PAGEOFF
 	mov	x1,4
 	mov	x2,x1
 	bl	_p_wts_o 
-	b	.L84
-.L82:
-# Line: 315, Stmt: 0
+	b	.L106
+.L104:
+# Line: 450, Stmt: 0
 	adrp	x15,.L32765@PAGE
-	add	x0,x15,.L32765+73@PAGEOFF
+	add	x0,x15,.L32765+167@PAGEOFF
 	mov	x1,5
 	mov	x2,x1
 	bl	_p_wts_o 
-.L79:
-.L84:
+.L101:
+.L106:
 	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
@@ -687,26 +965,26 @@ _p_wtc_o:
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
 	str	x28,[x29,-8]
-# Line: 322, Stmt: 1
-# Line: 323, Stmt: 2
+# Line: 457, Stmt: 1
+# Line: 458, Stmt: 2
 	str	x0,[x29,-16]
 	str	x1,[x29,-24]
 	mov	x28,2
-.L87:
+.L109:
 	cmp	w28,w1
-	b.gt	.L86
-# Line: 323, Stmt: 0
+	b.gt	.L108
+# Line: 458, Stmt: 0
 	mov	x0,32
 	bl	_putchar
 	ldr	x0,[x29,-16]
 	ldr	x1,[x29,-24]
 	adds	w28,w28,1
-	b.vc	.L87
-.L86:
-# Line: 324, Stmt: 0
+	b.vc	.L109
+.L108:
+# Line: 459, Stmt: 0
 	ldr	x0,[x29,-16]
 	bl	_putchar
-.L85:
+.L107:
 	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,24]
 	add	sp,sp,48
@@ -723,75 +1001,75 @@ _p_wti_o:
 	add	x29,sp,48
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
-# Line: 335, Stmt: 1
+# Line: 470, Stmt: 1
 	mov	x26,x0
-# Line: 336, Stmt: 2
+# Line: 471, Stmt: 2
 	mov	x27,xzr
-# Line: 337, Stmt: 0
+# Line: 472, Stmt: 0
 	cmp	w26,wzr
 	cset	w15,lt
 	mov	x25,x15
-# Line: 338, Stmt: 0
+# Line: 473, Stmt: 0
 	str	x1,[x29,-40]
-	cbz	w25,.L93
-.L94:
-# Line: 340, Stmt: 0
+	cbz	w25,.L115
+.L116:
+# Line: 475, Stmt: 0
 	neg	w26,w26
-# Line: 341, Stmt: 0
+# Line: 476, Stmt: 0
 	mov	x15,xzr
 	add	w27,w15,1
-.L93:
-# Line: 344, Stmt: 0
+.L115:
+# Line: 479, Stmt: 0
 	mov	x28,xzr
-.L89:
-.L92:
-# Line: 345, Stmt: 0
-# Line: 346, Stmt: 0
+.L111:
+.L114:
+# Line: 480, Stmt: 0
+# Line: 481, Stmt: 0
 	add	x15,x29,w28, sxtw 0
 	mov	x14,10
 	sdiv	w12,w26,w14
 	msub	w11,w12,w14,w26
 	add	w14,w11,48
 	strb	w14,[x15,16]
-# Line: 347, Stmt: 0
+# Line: 482, Stmt: 0
 	add	w28,w28,1
-# Line: 348, Stmt: 0
+# Line: 483, Stmt: 0
 	mov	x26,x12
-# Line: 349, Stmt: 0
+# Line: 484, Stmt: 0
 	add	w27,w27,1
-	cbnz	w26,.L92
-.L95:
-# Line: 352, Stmt: 0
+	cbnz	w26,.L114
+.L117:
+# Line: 487, Stmt: 0
 	add	w15,w27,1
 	mov	x27,x15
-.L97:
+.L119:
 	cmp	w27,w1
-	b.gt	.L96
-# Line: 353, Stmt: 0
+	b.gt	.L118
+# Line: 488, Stmt: 0
 	mov	x0,32
 	bl	_putchar
 	ldr	x1,[x29,-40]
 	adds	w27,w27,1
-	b.vc	.L97
-.L96:
-# Line: 355, Stmt: 0
-	cbz	w25,.L90
-.L98:
-# Line: 356, Stmt: 0
+	b.vc	.L119
+.L118:
+# Line: 490, Stmt: 0
+	cbz	w25,.L112
+.L120:
+# Line: 491, Stmt: 0
 	mov	x0,45
 	bl	_putchar
-.L90:
-.L91:
-# Line: 358, Stmt: 0
-# Line: 359, Stmt: 0
+.L112:
+.L113:
+# Line: 493, Stmt: 0
+# Line: 494, Stmt: 0
 	sub	w28,w28,1
-# Line: 360, Stmt: 0
+# Line: 495, Stmt: 0
 	add	x15,x29,w28, sxtw 0
 	ldrb	w0,[x15,16]
 	bl	_putchar
-	cbnz	w28,.L91
-.L88:
-.L99:
+	cbnz	w28,.L113
+.L110:
+.L121:
 	ldp	x27,x28,[x29,-16]
 	ldp	x25,x26,[x29,-32]
 	ldp	x30,x29,[sp,48]
@@ -808,41 +1086,41 @@ _p_wts_o:
 	stp	x30,x29,[sp,40]
 	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
-# Line: 369, Stmt: 1
+# Line: 504, Stmt: 1
 	mov	x27,x0
 	str	x1,[x29,-24]
-# Line: 370, Stmt: 2
+# Line: 505, Stmt: 2
 	sub	w15,w2,w1
 	sub	w14,w15,1
 	str	x14,[x29,-32]
 	mov	x28,xzr
-.L103:
+.L125:
 	cmp	w28,w14
-	b.gt	.L102
-# Line: 371, Stmt: 0
+	b.gt	.L124
+# Line: 506, Stmt: 0
 	mov	x0,32
 	bl	_putchar
 	ldr	x1,[x29,-24]
 	ldr	x14,[x29,-32]
 	adds	w28,w28,1
-	b.vc	.L103
-.L102:
-# Line: 372, Stmt: 0
+	b.vc	.L125
+.L124:
+# Line: 507, Stmt: 0
 	ldr	x14,[x29,-24]
 	sub	w15,w14,1
 	str	x15,[x29,-24]
 	mov	x28,xzr
-.L105:
+.L127:
 	cmp	w28,w15
-	b.gt	.L104
-# Line: 373, Stmt: 0
+	b.gt	.L126
+# Line: 508, Stmt: 0
 	ldrb	w0,[x27, w28, sxtw]
 	bl	_putchar
 	ldr	x15,[x29,-24]
 	adds	w28,w28,1
-	b.vc	.L105
-.L104:
-.L100:
+	b.vc	.L127
+.L126:
+.L122:
 	ldp	x27,x28,[x29,-16]
 	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
@@ -856,11 +1134,11 @@ _p_wts_o:
 _p_wtln_o:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
-# Line: 378, Stmt: 1
-# Line: 379, Stmt: 0
+# Line: 513, Stmt: 1
+# Line: 514, Stmt: 0
 	mov	x0,10
 	bl	_putchar
-.L106:
+.L128:
 	ldp	x30,x29,[sp],16
 	ret
 	.text
@@ -873,14 +1151,14 @@ _p_new:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-# Line: 383, Stmt: 1
-# Line: 384, Stmt: 2
+# Line: 518, Stmt: 1
+# Line: 519, Stmt: 2
 	str	x0,[x29,-16]
 	mov	x0,x1
 	bl	_malloc
 	ldr	x15,[x29,-16]
 	str	x0,[x15]
-.L107:
+.L129:
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
@@ -894,16 +1172,16 @@ _p_dispos:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-# Line: 388, Stmt: 1
-# Line: 389, Stmt: 2
+# Line: 523, Stmt: 1
+# Line: 524, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x15,[x29,-8]
 	ldr	x0,[x15]
 	bl	_free
-# Line: 390, Stmt: 0
+# Line: 525, Stmt: 0
 	ldr	x15,[x29,-8]
 	str	xzr,[x15]
-.L108:
+.L130:
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
@@ -919,12 +1197,13 @@ _main:
 # Line: 3, Stmt: 1
 # Line: 4, Stmt: 2
 	adrp	x15,.L32765@PAGE
-	add	x0,x15,.L32765+80@PAGEOFF
+	add	x0,x15,.L32765+174@PAGEOFF
 	mov	x1,12
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
-.L109:
+.L131:
 	ldp	x30,x29,[sp],16
 	ret
 	.comm	.L32766,16,12
+	.comm	_p_paslib,8,12
