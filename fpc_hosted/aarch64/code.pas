@@ -5715,7 +5715,7 @@ procedure blockexitx;
     blockcost: integer; {max bytes allocated on the stack}
     spoffset: integer; {size of stack save area}
     p, p1: nodeptr;
-    savetempkey, fptemp, sptemp, linktemp, ip0temp, ip1temp, spoffsettemp,
+    savetempkey, spoffsettemp,
     saveregtemp, savereg2temp, saveregoffsettemp, spadjusttemp, labelkey,
     t1key, t2key: keyindex;
     regcost, regcount, fpregcost, fpregcount: integer;
@@ -5778,11 +5778,6 @@ procedure blockexitx;
       }
 
       savetempkey := tempkey;
-      linktemp := settemp(long, reg_oprnd(link));
-      sptemp := settemp(long, reg_oprnd(sp));
-      fptemp := settemp(long, reg_oprnd(fp));
-      ip0temp := settemp(long, reg_oprnd(ip0));
-      ip1temp := settemp(long, reg_oprnd(ip1));
 
   { DRB allocate no space for frame and return pointer}
       if not hasframeptr then
@@ -5821,14 +5816,14 @@ procedure blockexitx;
 
       if hasframeptr then
         begin
-        gen3(p1, buildinst(stp, true, false), linktemp, fptemp, spoffsettemp);
+        gen3(p1, buildinst(stp, true, false), regkeys[link], regkeys[fp], spoffsettemp);
         if not prepost then
           handle_offset9_oprnd(p1^.prevnode, true, ip0, p1^.oprnds[3]);
 
         if (keytable[spoffsettemp].oprnd.reg <> sp) and
            (keytable[spoffsettemp].oprnd.index = 0) then
   { can this possibly work in all cases? }
-          gen2(p1, buildinst(mov, true, false), fptemp,
+          gen2(p1, buildinst(mov, true, false), regkeys[fp],
                settemp(long, reg_oprnd(keytable[spoffsettemp].oprnd.reg)))
         else
           makeoffsetptr(p1, spoffset, sp, fp);
@@ -5837,11 +5832,11 @@ procedure blockexitx;
 
       if (blockref = 0) and savemainsp then
         begin
-        gen2(p1, buildinst(mov, true, false), ip1temp, sptemp);
+        gen2(p1, buildinst(mov, true, false), regkeys[ip1], regkeys[sp]);
         labelkey := settemp(long, dataref_oprnd(savesplabel, false, 0, false, libinitsp));
-        genadrp(p1, false, ip0temp, labelkey);
+        genadrp(p1, false, regkeys[ip0], labelkey);
         keytable[labelkey].oprnd.lowbits := true;
-        genstr(p1, long, ip1temp,
+        genstr(p1, long, regkeys[ip1],
                settemp(long, labeloffset_oprnd(ip0, savesplabel, false, 0, libinitsp)));
         end;
 
@@ -5870,7 +5865,7 @@ procedure blockexitx;
         else
           begin
           makeoffsetptr(lastnode, blockcost, sp, 1);
-          gensimplemove(lastnode, sptemp, settemp(long, reg_oprnd(0)));
+          gensimplemove(lastnode, regkeys[sp], settemp(long, reg_oprnd(0)));
           callsupport(libcloseinrange, true);
           end;
         end;
@@ -5945,7 +5940,7 @@ procedure blockexitx;
 
       if hasframeptr then
         begin
-        gen3(lastnode, buildinst(ldp, true, false), linktemp, fptemp, spoffsettemp);
+        gen3(lastnode, buildinst(ldp, true, false), regkeys[link], regkeys[fp], spoffsettemp);
         if not prepost then
           handle_offset9_oprnd(lastnode^.prevnode, true, ip0, lastnode^.oprnds[3]);
         end;
@@ -6606,8 +6601,8 @@ begin {addstrx}
   keytable[rightregkey].oprnd.index := byte;
   unlock(right);
 
-  countkey := settemp(word, reg_oprnd(ip0));
-  maxsizekey := settemp(word, reg_oprnd(ip1));
+  countkey := regkeys[ip0];
+  maxsizekey := regkeys[ip1];
   tempregkey := settemp(word, reg_oprnd(getreg));
   lock(tempregkey);
   tempreg2key := settemp(word, reg_oprnd(getreg));
@@ -6746,8 +6741,8 @@ begin {cmpstrx}
   keytable[rightregkey].oprnd.index := byte;
   unlock(right);
 
-  countkey := settemp(word, reg_oprnd(ip0));
-  maxsizekey := settemp(word, reg_oprnd(ip1));
+  countkey := regkeys[ip0];
+  maxsizekey := regkeys[ip1];
   tempregkey := settemp(word, reg_oprnd(getreg));
   lock(tempregkey);
   tempreg2key := settemp(word, reg_oprnd(getreg));
