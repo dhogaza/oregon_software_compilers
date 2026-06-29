@@ -3021,8 +3021,7 @@ procedure handle_intconst12(var after:  nodeptr; var k: keyindex);
           k := settemp(len, imm12_oprnd(int_value div $1000, true))
         else if ((int_value and $F000 = 0) and (int_value <= $FFFFFF)) then
           begin
-            gen2(after, buildinst(movz, true, false),
-                 settemp(len, reg_oprnd(ip0)),
+            gen2(after, buildinst(movz, true, false), regkeys[ip0],
                  settemp(len, imm16_oprnd((int_value div $10000) and $FFFF, 16)));
             k := settemp(len, imm12_oprnd(int_value, false))
           end
@@ -3073,7 +3072,6 @@ procedure gensimplemove(var after: nodeptr; src: keyindex; dst: keyindex);
 
   var
     i: insts;
-    ip0temp: keyindex;
 
   begin {gensimplemove}
     if (keytable[src].oprnd.mode = intconst) and
@@ -3092,12 +3090,11 @@ procedure gensimplemove(var after: nodeptr; src: keyindex; dst: keyindex);
       genldr(after, keytable[src].len, keytable[src].signed, dst, src)
     else if keytable[src].oprnd.mode <> register then
       begin
-      ip0temp := settemp(keytable[dst].len, reg_oprnd(ip0));
       if keytable[src].oprnd.mode = imm16 then
-        gen2(after, buildinst(mov, keytable[dst].len = long, false), ip0temp, src)
+        gen2(after, buildinst(mov, keytable[dst].len = long, false), regkeys[ip0], src)
       else
-        genldr(after, keytable[src].len, keytable[src].signed, ip0temp, src);
-      genstr(after, keytable[dst].len, ip0temp, dst);
+        genldr(after, keytable[src].len, keytable[src].signed, regkeys[ip0], src);
+      genstr(after, keytable[dst].len, regkeys[ip0], dst);
       end
     else genstr(after, keytable[dst].len, src, dst);
   end {gensimplemove} ;
@@ -4040,7 +4037,7 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
 
   var
     c: conds;
-    regkey, tempkey: keyindex; {descriptor of for-index register}
+    regkey: keyindex; {descriptor of for-index register}
 
 
   begin {fortopx}
@@ -4069,8 +4066,7 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
       then
         if keytable[forkey].regenoprnd.mode <> nomode then
           begin
-          tempkey := settemp(long, reg_oprnd(ip0));
-          genadrp(lastnode, true, tempkey,
+          genadrp(lastnode, true, regkeys[ip0],
                settemp(long, keytable[forkey].regenoprnd));
           gen2(lastnode, strinst(keytable[forkey].len),
                regkey,
@@ -4936,8 +4932,8 @@ begin {setarithmetic}
     begin
     addressboth;
     settargetortemp(len);
-    temp0key := settemp(long, reg_oprnd(ip0));
-    temp1key := settemp(long, reg_oprnd(ip1)); 
+    temp0key := regkeys[ip0];
+    temp1key := regkeys[ip1];
     if len >= quad then
       begin
       temp2key := settemp(long, reg_oprnd(getreg));
@@ -6150,7 +6146,7 @@ procedure movintptrx;
 procedure movptrx;
 
   var
-    regkey, reg2key, ip0key, rightregkey, onekey: keyindex;
+    regkey, reg2key, rightregkey, onekey: keyindex;
 
   begin {movptrx}
     if keytable[left].oprnd.mode = tworeg then
@@ -6214,7 +6210,7 @@ procedure pshprocx;
 
   var
     addrkey: keyindex;
-    stackkey, ip0key, procrefkey: keyindex;
+    stackkey, procrefkey: keyindex;
 
   begin {pshprocx}
     address(left, 0);
@@ -6225,20 +6221,19 @@ procedure pshprocx;
     stackkey := settemp(long, keytable[key].oprnd);
     gensimplemove(lastnode, addrkey, stackkey);
     keytable[stackkey].oprnd.index := keytable[stackkey].oprnd.index + long;
-    ip0key := settemp(long, reg_oprnd(ip0));
     if proctable[pseudoinst.oprnds[2]].externallinkage then
       begin
       procrefkey := settemp(long, procref_oprnd(extprocref, pseudoinst.oprnds[2], false));
-      genadrp(lastnode, true, ip0key, procrefkey);
+      genadrp(lastnode, true, regkeys[ip0], procrefkey);
       keytable[procrefkey].oprnd.proclowbits := true;
-      gen3(lastnode, buildinst(add, true, false), ip0key, ip0key, procrefkey);
+      gen3(lastnode, buildinst(add, true, false), regkeys[ip0], regkeys[ip0], procrefkey);
       end
     else
       begin
       procrefkey := settemp(long, procref_oprnd(localprocref, pseudoinst.oprnds[2], false));
-      gen2(lastnode, buildinst(adr, true, false), ip0key, procrefkey);
+      gen2(lastnode, buildinst(adr, true, false), regkeys[ip0], procrefkey);
       end;
-    genstr(lastnode, long, ip0key, stackkey);
+    genstr(lastnode, long, regkeys[ip0], stackkey);
     dontchangevalue := dontchangevalue - 1;
   end {pshprocx};
 
@@ -6252,7 +6247,7 @@ procedure movemultiple(src, dst: keyindex);
 }
 
 var
-  srcregkey, dstregkey, ip0key, ip1key, labelkey: keyindex;
+  srcregkey, dstregkey, ip1key, labelkey: keyindex;
   l: addressrange;
 
   begin {movemultiple}
@@ -6268,26 +6263,25 @@ var
     keytable[srcregkey].oprnd.index := byte;
     keytable[dstregkey].oprnd.mode := post_index;
     keytable[dstregkey].oprnd.index := byte;
-    ip0key := settemp(byte, reg_oprnd(ip0));
     ip1key := settemp(byte, reg_oprnd(ip1));
     l := len;
     if l <= 4 then
       while l > 0 do
         begin
-        genldr(lastnode, byte, false, ip0key, srcregkey);
-        genstr(lastnode, byte, ip0key, dstregkey);
+        genldr(lastnode, byte, false, regkeys[ip0], srcregkey);
+        genstr(lastnode, byte, regkeys[ip0], dstregkey);
         l := l - 1;
         end
     else
       begin
-      gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), ip0key);
+      gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), regkeys[ip0]);
       labelkey := settemp(long, labeltarget_oprnd(lastlabel));
       definelastlabel;
       genldr(lastnode, byte, false, ip1key, srcregkey);
       genstr(lastnode, byte, ip1key, dstregkey);
-      gen3(lastnode, buildinst(sub, true, true), ip0key, ip0key,
+      gen3(lastnode, buildinst(sub, true, true), regkeys[ip0], regkeys[ip0],
                      settemp(long, imm12_oprnd(1, false)));
-      gen2(lastnode, buildinst(cbnz, true, false), ip0key, labelkey);
+      gen2(lastnode, buildinst(cbnz, true, false), regkeys[ip0], labelkey);
       end
   end {movemultiple};
 
@@ -6305,7 +6299,7 @@ procedure movcstructx;
 }
 
   var
-    count, onekey, leftregkey, rightregkey, ip0key, labelkey: keyindex;
+    count, onekey, leftregkey, rightregkey, labelkey: keyindex;
 
   begin
     count := target;
@@ -6316,7 +6310,6 @@ procedure movcstructx;
     address(count, 0);
     loadreg(count, 0);
     onekey := settemp(long, imm12_oprnd(1, false));
-    ip0key := settemp(long, reg_oprnd(ip0));
     lock(count);
     addressboth;
     if (keytable[left].oprnd.mode <> register) or (keytable[left].refcount > 0) then
@@ -6342,8 +6335,8 @@ procedure movcstructx;
     keytable[right].oprnd.index := byte;
     labelkey := settemp(long, labeltarget_oprnd(lastlabel));
     definelastlabel;
-    genldr(lastnode, byte, false, ip0key, right);
-    genstr(lastnode, byte, ip0key, left);
+    genldr(lastnode, byte, false, regkeys[ip0], right);
+    genstr(lastnode, byte, regkeys[ip0], left);
     gen3(lastnode, buildinst(sub, true, false), count, count, onekey);
     gen2(lastnode, buildinst(cbnz, true, false), count, labelkey);
   end; {movcstructx}
@@ -6363,11 +6356,10 @@ procedure movestring(src, dst: keyindex);
 }
 
 var
-  dstregkey, srcregkey, ip0key, ip1key, onekey, labelkey, skiplabelkey: keyindex;
+  dstregkey, srcregkey, ip1key, onekey, labelkey, skiplabelkey: keyindex;
   skiplabel: labelindex;
 
 begin {movestring}
-  ip0key := settemp(byte, reg_oprnd(ip0));
   ip1key := settemp(byte, reg_oprnd(ip1));
   onekey := settemp(word, imm12_oprnd(1, false));
   lock(dst);
@@ -6386,7 +6378,7 @@ begin {movestring}
 
   { Pick up the length of the source string.
   }
-  genldr(lastnode, byte, false, ip0key, srcregkey);
+  genldr(lastnode, byte, false, regkeys[ip0], srcregkey);
 
   { The first byte of the source string is the number of data bytes, exclusive
     of the length byte and trailing null, so we take that into effect here.
@@ -6402,14 +6394,14 @@ begin {movestring}
 
     { compute how many bytes to move.
     }
-    gen2(lastnode, buildinst(cmp, false, false), ip0key, ip1key);
-    gen4(lastnode, buildinst(csel, false, false), ip0key, ip0key, ip1key,
+    gen2(lastnode, buildinst(cmp, false, false), regkeys[ip0], ip1key);
+    gen4(lastnode, buildinst(csel, false, false), regkeys[ip0], regkeys[ip0], ip1key,
                    settemp(0, cond_oprnd(lo)));
     end;
 
   { Store the computed length as the first byte of the destination string.
   }
-  genstr(lastnode, byte, ip0key, dstregkey);
+  genstr(lastnode, byte, regkeys[ip0], dstregkey);
 
   { Move the data bytes, if any, truncated if the source string is too long
     for the destination string.
@@ -6420,12 +6412,12 @@ begin {movestring}
   lastlabel := lastlabel - 1;
   labelkey := settemp(long, labeltarget_oprnd(lastlabel));
 
-  gen2(lastnode, buildinst(cbz, true, false), ip0key, skiplabelkey);
+  gen2(lastnode, buildinst(cbz, true, false), regkeys[ip0], skiplabelkey);
   definelastlabel;
   genldr(lastnode, byte, false, ip1key, srcregkey);
   genstr(lastnode, byte, ip1key, dstregkey);
-  gen3(lastnode, buildinst(sub, true, true), ip0key, ip0key, onekey);
-  gen2(lastnode, buildinst(cbnz, true, false), ip0key, labelkey);
+  gen3(lastnode, buildinst(sub, true, true), regkeys[ip0], regkeys[ip0], onekey);
+  gen2(lastnode, buildinst(cbnz, true, false), regkeys[ip0], labelkey);
 
   { done moving data bytes, add a null
   }
@@ -6463,22 +6455,20 @@ procedure chrstrx;
   }
 
   var
-    ip0key, ip1key: keyindex;
+    ip0indexkey, ip1key: keyindex;
 
 begin {chrstrx}
   {unpackshrink(left, len);}
   address(left, 0);
   settargetortemp(long);
-  ip0key := settemp(long, reg_oprnd(ip0));
-  genmoveaddress(lastnode, key, ip0key);
-  keytable[ip0key].oprnd.mode := post_index;
-  keytable[ip0key].oprnd.index := byte;
+  genmoveaddress(lastnode, key, regkeys[ip0]);
+  ip0indexkey := settemp(long, index_oprnd(post_index, ip0, byte, false));
   ip1key := settemp(byte, reg_oprnd(ip1));
   gensimplemove(lastnode, settemp(byte, intconst_oprnd(1)), ip1key);
-  genstr(lastnode, byte, ip1key, ip0key);
+  genstr(lastnode, byte, ip1key, ip0indexkey);
   loadreg(left, key);
-  genstr(lastnode, byte, left, ip0key);
-  genstr(lastnode, byte, settemp(word, reg_oprnd(zero)), ip0key);
+  genstr(lastnode, byte, left, ip0indexkey);
+  genstr(lastnode, byte, settemp(word, reg_oprnd(zero)), ip0indexkey);
 end {chrstrx};
 
 procedure arraystrx;
@@ -6493,44 +6483,40 @@ procedure arraystrx;
   }
 
   var
-    ip0key, ip1key, countkey, tempregkey, labelkey: keyindex;
+    ip0indexkey, ip1indexkey, countkey, tempregkey, labelkey: keyindex;
 
 
 begin {arraystrx}
   {unpackshrink(left, len);}
   address(left, 0);
   settargetortemp(long);
+  ip0indexkey := settemp(long, index_oprnd(post_index, ip0, byte, false));
+  ip1indexkey := settemp(long, index_oprnd(post_index, ip1, byte, false));
   lock(key);
-  ip0key := settemp(long, reg_oprnd(ip0));
-  ip1key := settemp(long, reg_oprnd(ip1));
   countkey := settemp(long, reg_oprnd(getreg));
   lock(countkey);
-  genmoveaddress(lastnode, key, ip0key);
-  keytable[ip0key].oprnd.mode := post_index;
-  keytable[ip0key].oprnd.index := byte;
-  genmoveaddress(lastnode, left, ip1key);
-  keytable[ip1key].oprnd.mode := post_index;
-  keytable[ip1key].oprnd.index := byte;
+  genmoveaddress(lastnode, key, regkeys[ip0]);
+  genmoveaddress(lastnode, left, regkeys[ip1]);
   tempregkey := settemp(long, reg_oprnd(getreg));
 
   { Set up count, which is also the stored length for the new string.
   }
   gensimplemove(lastnode, settemp(long, intconst_oprnd(len - 2)), countkey);
-  genstr(lastnode, byte, countkey, ip0key);
+  genstr(lastnode, byte, countkey, ip0indexkey);
 
   { Move the data bytes.
   }
   labelkey := settemp(long, labeltarget_oprnd(lastlabel));
   definelastlabel;
-  genldr(lastnode, byte, false, tempregkey, ip1key);
-  genstr(lastnode, byte, tempregkey, ip0key);
+  genldr(lastnode, byte, false, tempregkey, ip1indexkey);
+  genstr(lastnode, byte, tempregkey, ip0indexkey);
   gen3(lastnode, buildinst(sub, true, true), countkey, countkey,
                  settemp(long, imm12_oprnd(1, false)));
   gen2(lastnode, buildinst(cbnz, true, false), countkey, labelkey);
 
   { Append null byte.
   }
-  genstr(lastnode, byte, settemp(word, reg_oprnd(zero)), ip0key);
+  genstr(lastnode, byte, settemp(word, reg_oprnd(zero)), ip0indexkey);
   unlock(countkey);
   unlock(key);
 end {arraystrx};
@@ -7131,7 +7117,6 @@ procedure callroutinex(s: boolean {signed function value} );
     slkey: keyindex; {tempkey holding static link descriptor}
     framekey: keyindex; {tempkey holding address of base of current frame}
     paramkey: keyindex; {tempkey holding procedure param address}
-    ip0key: keyindex; {tempkey holding address of procedure param's procedure}
     param: integer; {parameter count for creating unix standard list}
     notcopied: 0..1; {1 if last parameter was already the right size}
     returnform: types; {reals, ints, etc, for return register determination}
@@ -7168,6 +7153,10 @@ procedure callroutinex(s: boolean {signed function value} );
 
     levelhack := 0;
     notcopied := 0;
+    linkreg := (pseudoinst.oprnds[3] > 0) or
+               proctable[pseudoinst.oprnds[1]].intlevelrefs and
+               (proctable[pseudoinst.oprnds[1]].level > 2);
+
 
     if pseudoinst.oprnds[3] <= 0 then
       begin
@@ -7176,9 +7165,6 @@ procedure callroutinex(s: boolean {signed function value} );
       {we use static link when calling top level procs in aarch64 for
        gotos to the global level ...
       }
-
-      linkreg := proctable[pseudoinst.oprnds[1]].intlevelrefs and
-                 (proctable[pseudoinst.oprnds[1]].level > 2);
 
       if linkreg then
         begin
@@ -7207,9 +7193,8 @@ procedure callroutinex(s: boolean {signed function value} );
       paramkey := settemp(long, keytable[left].oprnd);
       genldr(lastnode, long, false, slkey, paramkey);
       keytable[paramkey].oprnd.index := keytable[paramkey].oprnd.index + long;
-      ip0key := settemp(long, reg_oprnd(ip0));
-      genldr(lastnode, long, false, ip0key, paramkey);
-      gen1(lastnode, buildinst(blr, true, false), ip0key);
+      genldr(lastnode, long, false, regkeys[ip0], paramkey);
+      gen1(lastnode, buildinst(blr, true, false), regkeys[ip0]);
       end;
 
     context[contextsp].lastbranch := lastnode;
