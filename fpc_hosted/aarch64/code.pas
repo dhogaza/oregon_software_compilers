@@ -4822,7 +4822,7 @@ procedure moveset(src, dst: keyindex);
 { will morph into genmovestruct later }
 
 var
-  srcregkey, dstregkey, ip0key, ip1key: keyindex;
+  srcregkey, dstregkey: keyindex;
   l: addressrange;
 
   begin {moveset}
@@ -4838,19 +4838,17 @@ var
     keytable[srcregkey].oprnd.index := quad;
     keytable[dstregkey].oprnd.mode := post_index;
     keytable[dstregkey].oprnd.index := quad;
-    ip0key := settemp(long, reg_oprnd(ip0));
-    ip1key := settemp(long, reg_oprnd(ip1));
     l := len;
     while l >= quad do
       begin
-      gen3(lastnode, buildinst(ldp, true, false), ip0key, ip1key, srcregkey);
-      gen3(lastnode, buildinst(stp, true, false), ip0key, ip1key, dstregkey);
+      gen3(lastnode, buildinst(ldp, true, false), regkeys[ip0], regkeys[ip1], srcregkey);
+      gen3(lastnode, buildinst(stp, true, false), regkeys[ip0], regkeys[ip1], dstregkey);
       l := l - quad;
       end;
     if l = long then
       begin
-      gen2(lastnode, buildinst(ldr, true, false), ip0key, srcregkey);
-      gen2(lastnode, buildinst(str, true, false), ip0key, dstregkey);
+      gen2(lastnode, buildinst(ldr, true, false), regkeys[ip0], srcregkey);
+      gen2(lastnode, buildinst(str, true, false), regkeys[ip0], dstregkey);
       end;
   end {moveset};
       
@@ -5006,7 +5004,7 @@ procedure setinsertx;
 
 
   var
-    bitkey, insertkey, targetregkey, limitkey, ip0key, ip1key: keyindex;
+    bitkey, insertkey, targetregkey, limitkey: keyindex;
     setlen: addressrange;
     looplabel, skiplabel: labelrange;
 
@@ -5056,15 +5054,13 @@ procedure setinsertx;
       end
     else
       begin
-      ip0key := settemp(long, reg_oprnd(ip0));
-      ip1key := settemp(long, reg_oprnd(ip1));
       targetregkey := settemp(long, reg_oprnd(getreg));
       genmoveaddress(lastnode, target, targetregkey);
       gen3(lastnode,
-           buildinst(asrinst, true, false), ip0key, insertkey,
+           buildinst(asrinst, true, false), regkeys[ip0], insertkey,
                      settemp(long, imm12_oprnd(3, false)));
       gen3(lastnode,
-           buildinst(andinst, true, false), ip1key, insertkey,
+           buildinst(andinst, true, false), regkeys[ip1], insertkey,
                      settemp(long, imm12_oprnd(7, false)));
       with keytable[targetregkey].oprnd do
         begin
@@ -5074,10 +5070,10 @@ procedure setinsertx;
         extend := xtx;
         signed := false;
         end;
-      gen3(lastnode, buildinst(lslinst, true, false), bitkey, bitkey, ip1key);
-      genldr(lastnode, byte, false, ip1key, targetregkey);
-      gen3(lastnode, buildinst(orinst, true, false), ip1key, ip1key, bitkey);
-      genstr(lastnode, byte, ip1key, targetregkey);
+      gen3(lastnode, buildinst(lslinst, true, false), bitkey, bitkey, regkeys[ip1]);
+      genldr(lastnode, byte, false, regkeys[ip1], targetregkey);
+      gen3(lastnode, buildinst(orinst, true, false), regkeys[ip1], regkeys[ip1], bitkey);
+      genstr(lastnode, byte, regkeys[ip1], targetregkey);
       end;
     if (right <> 0) then
       begin
@@ -5096,13 +5092,11 @@ procedure setinsertx;
   procedure insetx;
 
   var
-    ip0key, ip1key, rightregkey, maxvaluekey, power2key: keyindex;
+    rightregkey, maxvaluekey, power2key: keyindex;
     adjustoffset: integer;
 
   begin {insetx}
     addressboth;
-    ip0key := settemp(long, reg_oprnd(ip0));
-    ip1key := settemp(long, reg_oprnd(ip1));
     if len <= long then
       begin
       loadreg(right, left);
@@ -5112,13 +5106,13 @@ procedure setinsertx;
         begin
         power2key := settemp(long, intconst_oprnd(power2(keytable[left].oprnd.int_value)));
         handle_bitmask(power2key);
-        gen3(lastnode, buildinst(andinst, len = long, true), ip0key, right, power2key);
+        gen3(lastnode, buildinst(andinst, len = long, true), regkeys[ip0], right, power2key);
         end
       else  
         begin
         loadreg(left, right);
-        gen3(lastnode, buildinst(lsrinst, len = long, false), ip0key, right, left);
-        gen3(lastnode, buildinst(andinst, len = long, true), ip0key, ip0key,
+        gen3(lastnode, buildinst(lsrinst, len = long, false), regkeys[ip0], right, left);
+        gen3(lastnode, buildinst(andinst, len = long, true), regkeys[ip0], regkeys[ip0],
              settemp(long, imm12_oprnd(1, false)));
         end
       end
@@ -5145,8 +5139,8 @@ procedure setinsertx;
           index := index + adjustoffset
         else
           labeloffset := labeloffset + adjustoffset;
-        genldr(lastnode, byte, false, ip0key, rightregkey);
-        gen3(lastnode, buildinst(andinst, false, true), ip0key, ip0key, power2key);
+        genldr(lastnode, byte, false, regkeys[ip0], rightregkey);
+        gen3(lastnode, buildinst(andinst, false, true), regkeys[ip0], regkeys[ip0], power2key);
         end
       else
         begin
@@ -5156,10 +5150,10 @@ procedure setinsertx;
         unlock(left);
         genmoveaddress(lastnode, right, rightregkey);
         gen3(lastnode,
-            buildinst(asrinst, true, false), ip0key, left,
+            buildinst(asrinst, true, false), regkeys[ip0], left,
                       settemp(long, imm12_oprnd(3, false)));
         gen3(lastnode,
-             buildinst(andinst, true, false), ip1key, left,
+             buildinst(andinst, true, false), regkeys[ip1], left,
                        settemp(long, imm12_oprnd(7, false)));
         with keytable[rightregkey].oprnd do
           begin
@@ -5169,9 +5163,9 @@ procedure setinsertx;
           extend := xtx;
           signed := false;
           end;
-        genldr(lastnode, byte, false, ip0key, rightregkey);
-        gen3(lastnode, buildinst(asrinst, true, false), ip0key, ip0key, ip1key);
-        gen3(lastnode, buildinst(andinst, true, true), ip0key, ip0key,
+        genldr(lastnode, byte, false, regkeys[ip0], rightregkey);
+        gen3(lastnode, buildinst(asrinst, true, false), regkeys[ip0], regkeys[ip0], regkeys[ip1]);
+        gen3(lastnode, buildinst(andinst, true, true), regkeys[ip0], regkeys[ip0],
              settemp(long, imm12_oprnd(1, false)));
         end;
       end;
@@ -5562,9 +5556,8 @@ procedure sysfnstringx;
 
 
     begin {stringstringfn}
-      markreg(8);
-      settemp(long, reg_oprnd(8));
-      genmoveaddress(lastnode, stackcounter, tempkey);
+      markreg(sr);
+      genmoveaddress(lastnode, stackcounter, regkeys[sr]);
       callsupport(libroutine, true);
       setvalue(index_oprnd(abstract_offset, 8, 0, false));
       keytable[key].regenoprnd := keytable[stackcounter].oprnd;
@@ -7199,8 +7192,7 @@ procedure callroutinex(s: boolean {signed function value} );
 
       if structreturn then
         begin
-        settemp(long, reg_oprnd(8));
-        genmoveaddress(lastnode, stackcounter, tempkey);
+        genmoveaddress(lastnode, stackcounter, regkeys[sr]);
         end;
 
       gen1(lastnode, buildinst(bl, false, false),
@@ -7237,7 +7229,7 @@ procedure callroutinex(s: boolean {signed function value} );
 
     if structreturn then
       begin
-      setvalue(index_oprnd(abstract_offset, 8, 0, false));
+      setvalue(index_oprnd(abstract_offset, sr, 0, false));
       keytable[key].regenoprnd := keytable[stackcounter].oprnd;
       end
     else if returnform in [reals, doubles] then
@@ -7500,7 +7492,7 @@ procedure pascallabelx;
 
   var
     t: integer; {amount to fudge sp (no static link at level 2)}
-    stackoffsetkey, spkey, slkey, fpkey, ip0temp, ip1temp, labelkey: keyindex;
+    stackoffsetkey, labelkey: keyindex;
 
   begin {pascallabelx}
     clearcontext;
@@ -7510,28 +7502,23 @@ procedure pascallabelx;
       for t := 0 to sl - ord(level <> 1)  do regused[t] := true;
       jumpx(pseudoinst.oprnds[1]);
       definelabel(pseudoinst.oprnds[1] - 1);
-      spkey := settemp(long, reg_oprnd(sp));
-      fpkey := settemp(long, reg_oprnd(fp));
-      slkey := settemp(long, reg_oprnd(sl));
       stackoffsetkey := settemp(long, imm12_oprnd(undefinedaddr, false));
       if level = 1 then 
         begin
         { restore from the initial value saved at program start}
-        ip0temp := settemp(long, reg_oprnd(ip0));
-        ip1temp := settemp(long, reg_oprnd(ip1));
         labelkey := settemp(long, dataref_oprnd(savesplabel, false, 0, false, libinitsp));
-        genadrp(lastnode, true, ip0temp, labelkey);
+        genadrp(lastnode, true, regkeys[ip0], labelkey);
         keytable[labelkey].oprnd.lowbits := true;
-        genldr(lastnode, long, false, ip1temp,
+        genldr(lastnode, long, false, regkeys[ip1],
                settemp(long, labeloffset_oprnd(ip0, savesplabel, false, 0, libinitsp)));
-        gen2(lastnode, buildinst(mov, true, false), spkey, ip1temp);
-        gen3(lastnode, buildinst(add, true, false), fpkey, spkey, stackoffsetkey);
+        gen2(lastnode, buildinst(mov, true, false), regkeys[sp], regkeys[ip1]);
+        gen3(lastnode, buildinst(add, true, false), regkeys[fp], regkeys[sp], stackoffsetkey);
         end
       else
         begin
         { magic value to be fixed up in finalizestackoffsets }
-        gen3(lastnode, buildinst(sub, true, false), spkey, slkey, stackoffsetkey);
-        gensimplemove(lastnode, slkey, fpkey);
+        gen3(lastnode, buildinst(sub, true, false), regkeys[sp], regkeys[sl], stackoffsetkey);
+        gensimplemove(lastnode, regkeys[sl], regkeys[fp]);
         end;
       end;
     definelabel(pseudoinst.oprnds[1]);
