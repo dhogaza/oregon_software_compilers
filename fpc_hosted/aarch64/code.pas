@@ -3076,7 +3076,7 @@ procedure gensimplemove(var after: nodeptr; src: keyindex; dst: keyindex);
   begin {gensimplemove}
     if (keytable[src].oprnd.mode = intconst) and
        (keytable[src].oprnd.int_value = 0) then
-      src := settemp(len, reg_oprnd(zero));
+      src := regkeys[zero];
     if (keytable[dst].oprnd.mode = register) and
        (keytable[src].oprnd.mode = intconst) then
       handle_intconst16(after, src, keytable[dst].oprnd.reg)
@@ -5366,8 +5366,7 @@ procedure wrcommon(libroutine: libroutines; {formatting routine to call}
       { whee hardcoding parameter registers!}
       markreg(formatinfo.regcount + 1);
       gensimplemove(lastnode,
-                    settemp(long, intconst_oprnd(deffmt)),
-                    settemp(long, reg_oprnd(1)));
+                    settemp(long, intconst_oprnd(deffmt)), regkeys[1]);
       end;
     calliosupport(libroutine);
     formatinfo.count := 0;
@@ -5429,7 +5428,7 @@ procedure fileparamx;
 
 begin {fileparamx}
   markreg(0);
-  gensimplemove(lastnode, stackcounter, settemp(long, reg_oprnd(0)));
+  gensimplemove(lastnode, stackcounter, regkeys[0]);
   firstreg := 1;
 end {fileparamx};
 
@@ -5448,18 +5447,16 @@ procedure closerangex;
 
 
 var
-  tkey, indrx0key, x0key, x1key: keyindex;
+  tkey, indrx0key: keyindex;
 
 begin {closerangex}
   tkey := newtemp(quad);
   indrx0key := settemp(long, index_oprnd(unsigned_offset, 0, 0, false));
-  x0key := settemp(long, reg_oprnd(0));
-  x1key := settemp(long, reg_oprnd(1));
-  gen3(lastnode, buildinst(stp, true, false), x0key, x1key, tkey);
-  gensimplemove(lastnode, indrx0key, x0key);
-  gen3(lastnode, buildinst(add, true, false), x1key, x0key, x1key);
+  gen3(lastnode, buildinst(stp, true, false), regkeys[0], regkeys[1], tkey);
+  gensimplemove(lastnode, indrx0key, regkeys[0]);
+  gen3(lastnode, buildinst(add, true, false), regkeys[1], regkeys[0], regkeys[1]);
   callsupport(libcloseinrange, true);
-  gen3(lastnode, buildinst(ldp, true, false), x0key, x1key, tkey);
+  gen3(lastnode, buildinst(ldp, true, false), regkeys[0], regkeys[1], tkey);
 end {closerangex};
 
 procedure sysfnintx;
@@ -5482,7 +5479,7 @@ procedure sysfnintx;
       settargetorreg;
       loadreg(left, key);
       gen2(lastnode, buildinst(cmp, keytable[left].len = long, false), left,
-                     settemp(long, reg_oprnd(zero)));
+                               regkeys[zero]);
       gen3(lastnode, buildinst(cneg, keytable[left].len = long, false), key, left,
                     settemp(0, cond_oprnd(mi)));
     end {absintx} ;
@@ -5497,7 +5494,7 @@ procedure sysfnintx;
       address(left, 0);
       loadreg(left, 0);
       gen3(lastnode, buildinst(andinst, keytable[left].len = long, true),
-                    settemp(long, reg_oprnd(zero)), left,
+                    regkeys[zero], left,
                     settemp(long, imm12_oprnd(1, false)));
       setvalue(cond_oprnd(ne));
     end {oddx} ;
@@ -5579,16 +5576,14 @@ procedure sysroutinex;
 
     var
       regkey: keyindex;
-      zerokey: keyindex;
 
     begin
-      zerokey := settemp(long, reg_oprnd(zero));
       regkey := settemp(long, reg_oprnd(firstreg));
       for firstreg := firstreg to 4 do
         begin
         markreg(firstreg);
         keytable[regkey].oprnd.reg := firstreg;
-        gensimplemove(lastnode, zerokey, regkey);
+        gensimplemove(lastnode, regkeys[zero], regkey);
         end;
       callsupport(libroutine, true);
    end;
@@ -5849,23 +5844,23 @@ procedure blockexitx;
             t1key := settemp(long, dataref_oprnd(globaldatalabel, false, 0, false, 0));
             t2key := settemp(long,
                              dataref_oprnd(globaldatalabel, false, 0, false, globalsize));
-            genmoveaddress(lastnode, t2key, settemp(long, reg_oprnd(1)));
-            genmoveaddress(lastnode, t1key, settemp(long, reg_oprnd(0)));
+            genmoveaddress(lastnode, t2key, regkeys[1]);
+            genmoveaddress(lastnode, t1key, regkeys[0]);
             callsupport(libcloseinrange, true);
             end;
           if ownsize > 0 then
             begin
             t1key := settemp(long, ownref_oprnd(false, 0));
             t2key := settemp(long, ownref_oprnd(false, ownsize));
-            genmoveaddress(lastnode, t2key, settemp(long, reg_oprnd(1)));
-            genmoveaddress(lastnode, t1key, settemp(long, reg_oprnd(0)));
+            genmoveaddress(lastnode, t2key, regkeys[1]);
+            genmoveaddress(lastnode, t1key, regkeys[0]);
             callsupport(libcloseinrange, true);
             end
           end
         else
           begin
           makeoffsetptr(lastnode, blockcost, sp, 1);
-          gensimplemove(lastnode, regkeys[sp], settemp(long, reg_oprnd(0)));
+          gensimplemove(lastnode, regkeys[sp], regkeys[0]);
           callsupport(libcloseinrange, true);
           end;
         end;
@@ -6415,7 +6410,7 @@ begin {movestring}
   { done moving data bytes, add a null
   }
   definelabel(skiplabel);
-  genstr(lastnode, byte, settemp(word, reg_oprnd(zero)), dstregkey);
+  genstr(lastnode, byte, regkeys[zero], dstregkey);
 end {movestring};
 
 procedure movstrx;
@@ -6448,7 +6443,7 @@ procedure chrstrx;
   }
 
   var
-    ip0indexkey, ip1key: keyindex;
+    ip0indexkey: keyindex;
 
 begin {chrstrx}
   {unpackshrink(left, len);}
@@ -6456,12 +6451,11 @@ begin {chrstrx}
   settargetortemp(long);
   genmoveaddress(lastnode, key, regkeys[ip0]);
   ip0indexkey := settemp(long, index_oprnd(post_index, ip0, byte, false));
-  ip1key := settemp(byte, reg_oprnd(ip1));
-  gensimplemove(lastnode, settemp(byte, intconst_oprnd(1)), ip1key);
-  genstr(lastnode, byte, ip1key, ip0indexkey);
+  gensimplemove(lastnode, settemp(byte, intconst_oprnd(1)), regkeys[ip1]);
+  genstr(lastnode, byte, regkeys[ip1], ip0indexkey);
   loadreg(left, key);
   genstr(lastnode, byte, left, ip0indexkey);
-  genstr(lastnode, byte, settemp(word, reg_oprnd(zero)), ip0indexkey);
+  genstr(lastnode, byte, regkeys[zero], ip0indexkey);
 end {chrstrx};
 
 procedure arraystrx;
@@ -6509,7 +6503,7 @@ begin {arraystrx}
 
   { Append null byte.
   }
-  genstr(lastnode, byte, settemp(word, reg_oprnd(zero)), ip0indexkey);
+  genstr(lastnode, byte, regkeys[zero], ip0indexkey);
   unlock(countkey);
   unlock(key);
 end {arraystrx};
@@ -6698,7 +6692,7 @@ begin {addstrx}
   }
 
   definelabel(skiplabel);
-  genstr(lastnode, byte, settemp(word, reg_oprnd(zero)), dstregkey);
+  genstr(lastnode, byte, regkeys[zero], dstregkey);
 
 end {addstrx};
 
@@ -7508,15 +7502,11 @@ procedure pascalgotox;
 
   procedure closerange;
 
-    var
-      fpkey, x0key, x1key: keyindex;
 
     begin
     if proctable[blockref].opensfile then
       begin
-      fpkey := settemp(long, reg_oprnd(fp));
-      x0key := settemp(long, reg_oprnd(0));
-      gensimplemove(lastnode, fpkey, x0key);
+      gensimplemove(lastnode, regkeys[fp], regkeys[0]);
       makeoffsetptr(lastnode, blksize, fp, 1);
       callsupport(libcloseinrange, true);
       end;
