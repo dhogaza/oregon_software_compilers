@@ -7805,16 +7805,6 @@ procedure codeone;
     adjusttemps;
 }
 
-    { This prevents stumbling on an old key later.
-    }
-
-    while (keytable[lastkey].refcount = 0) and
-          (lastkey >= context[contextsp].keymark) do
-      begin
-      keytable[lastkey] := keytable[lowestkey];
-      lastkey := lastkey - 1;
-      end;
-
     if switcheverplus[test] then
       begin
       dumppseudo(macfile);
@@ -7825,6 +7815,17 @@ procedure codeone;
 
 }
       end;
+
+    { This prevents stumbling on an old key later.
+    }
+
+    while (keytable[lastkey].refcount = 0) and
+          (lastkey >= context[contextsp].keymark) do
+      begin
+      keytable[lastkey] := keytable[lowestkey];
+      lastkey := lastkey - 1;
+      end;
+
   end {codeone};
 
 
