@@ -3251,9 +3251,6 @@ procedure genmoveaddress(var after: nodeptr; src, dst: keyindex);
       otherwise
         begin
         write('bad operand in genmoveaddress key: ', src, ' mode: ', ord(mode));
-{
-writeln(macfile, 'bad operand in genmoveaddress key: ', src, ' mode: ', ord(mode));
-}
         compilerabort(inconsistent);
         end;
       end;
@@ -3742,7 +3739,7 @@ procedure savelabelx;
       end;
 
     for i := context[contextsp - 1].keymark to lastkey do
-      adjustregcount(i, - keytable[i].refcount);
+      adjustregcount(i, -keytable[i].refcount);
 
   end {savelabelx} ;
 
@@ -7385,13 +7382,6 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
     labeltarget := settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1]));
     if keytable[right].oprnd.mode = cond then
       begin
-if right = 44 then
-begin
-{
-writeln(keytable[right].oprnd.mode, keytable[right].oprnd.reg, keytable[right].oprnd.reg2);
-writeln(registers[1]);
-}
-end;
       c := keytable[right].oprnd.condition
       end
     else
@@ -7828,9 +7818,6 @@ procedure codeone;
     if switcheverplus[test] then
       begin
       dumppseudo(macfile);
-{
-writeln(macfile, 'lastkey: ', lastkey, ' refcount: ', keytable[lastkey].refcount, ' keymark: ', context[contextsp].keymark);
-}
       if keytable[key].first <> nil then
         write_nodes(keytable[key].first, keytable[key].last);
 {
