@@ -2661,10 +2661,17 @@ procedure build;
             if not litflag and not (deadcode and
                (removedeadcode in genset)) then
               begin
-              if (l > 1) then
+              { we want to force copy nodes for special regparam ops that
+                were inserted into context level one.
+              }
+              if (l > 0) then
                 begin
                 originallink := p;
-                for j := l + 1 to contextlevel do
+                { We don't want to build copy nodes to regparams in context
+                  level two, as the code generator sees context levels one
+                  and two as being at the same context level.
+                }
+                for j := max(l + 1, 3) to contextlevel do
                   with context[j] do
                     begin
                     n1 := firstblock^.precode;
