@@ -9,6 +9,7 @@ type
     Pascal library procs.
   }
 
+
   _p_charptr = ^char; 
   _p_intptr = ^integer;
   _p_stringarray = array [0..maxint] of char;
@@ -18,7 +19,7 @@ type
   _p_stringrange = 0.._p_maxstringlen;
   _p_address = int64; {for now}
   _p_addressptr = ^_p_address; {for now}
-  _p_streamptr = ^integer; {for now}
+  _p_streamptr = ^int64; {for now}
 
   { The first three must be matched in the code generator. These
     are taken from the MC68000 library and not all will apply
@@ -29,8 +30,8 @@ type
     _p_eof,     { at end of file }
     _p_eoln,    { at end of line }
     _p_text,    { set for text file, clear for binary file }
-    _p_inp,     { input operations allowed ( reset() ) }
-    _p_out,     { output operations allowed ( rewrite() ) }
+    _p_read,     { input operations allowed ( reset() ) }
+    _p_write,     { output operations allowed ( rewrite() ) }
     _p_newl,    { new input line should be read }
     _p_int,     { interactive device (for lazy I/O }
     _p_perm,    { file can't be closed (input and output) }
@@ -58,10 +59,18 @@ var
   _p_filelist: _p_filerecordptr;
 
 {glibc}
+
+type
+  _p_seekwhence = (_p_seek_set, _p_seek_cur, _p_seek_end);
+
 procedure exit(const code: integer); nonpascal;
 procedure putchar(const ch: char); nonpascal;
 function malloc(const size: int64): _p_charptr; nonpascal;
 procedure free(const p: _p_charptr); nonpascal;
+function fopen(const filename, flags: _p_charptr): _p_streamptr; nonpascal;
+function fclose(const streamp: _p_addressptr): integer; nonpascal;
+function fseek(const streamp: _p_addressptr; pos: integer;
+               whence: _p_seekwhence): integer; nonpascal;
 
 { pascal-2 lib declarations }
 
@@ -71,6 +80,7 @@ procedure _p_caseerr; external;
 { I/O }
 procedure _p_dumpfilelist; external;
 procedure _p_close(filevar: _p_addressptr); external;
+procedure _p_clsall; external;
 procedure _p_clsrng(firstfilevar, lastfilevar: _p_addressptr); external;
 procedure _p_reset(filevar: _p_addressptr; const size:integer; const str1ptr, str2ptr:
                    _p_stringptr; errptr: _p_intptr); external;
@@ -278,9 +288,14 @@ procedure _p_caseerr;
     exit(1);
   end;
 
-{I/O}
+procedure _p_liberror(const err: _p_string);
 
-type seekwhence = (SEEK_SET, SEEK_CUR, SEEK_END);
+begin
+  writeln(err);
+  exit(1);
+end;
+
+{I/O}
 
 procedure _p_dumpfilelist;
 
@@ -320,7 +335,7 @@ begin {_p_filep}
   _p_filep := p;
 end {_p_filep};
 
-procedure _p_addfile(filevar: _p_addressptr);
+function _p_addfile(filevar: _p_addressptr): _p_filerecordptr;
 
 { Add a new filerecord to the list of files.  _p_filelist will point
   to the new entry. Caller guarantees that it doesn't already exist
@@ -340,6 +355,7 @@ begin {_p_addfile}
   p^.err := 0;
   p^.streamp := nil;
   _p_filelist := p;
+  _p_addfile := p;
 end {_p_addfile};
 
 procedure _p_removefile(var filep: _p_filerecordptr);
@@ -364,9 +380,17 @@ begin {_p_removefile}
     _p_filelist := filep^.nextfile
   else
     prevp^.nextfile := filep^.nextfile;
-  filep^.filevar^ := loophole(_p_address, nil);
   dispose(filep);
 end {_p_removefile};
+
+procedure _p_closeonly(filep: _p_filerecordptr);
+
+begin
+  if fclose(filep^.streamp) <> 0 then
+    _p_liberror('fclose failed');
+  filep^.filevar^ := loophole(_p_address, nil);
+end;
+  
 
 procedure _p_close;
 
@@ -381,7 +405,7 @@ begin {_p_close}
   p := _p_filep(filevar);
   if p <> nil then
     begin
-    { close the file, of course}
+    _p_closeonly(p);
     _p_removefile(p);
     end;
 end {_p_close};
@@ -403,6 +427,7 @@ begin {_p_clsrng}
         _p_filelist := nextp
       else
         prevp^.nextfile := nextp;
+      _p_closeonly(curp);
       curp^.filevar^ := loophole(_p_address, nil);
       dispose(curp);
       end
@@ -412,29 +437,107 @@ begin {_p_clsrng}
     end;
 end {_p_clsrng};
 
-procedure _p_open(reset: boolean; filevar: _p_addressptr; size:integer; str1ptr, str2ptr:
-                   _p_stringptr; errptr: _p_intptr);
+procedure _p_clsall;
 
-var p: _p_filerecordptr;
+{ Called when the main procedure terminates.
+}
+
+var
+  curp, nextp: _p_filerecordptr;
+
+begin {_p_clsall}
+  curp := _p_filelist;
+  while (curp <> nil) do
+    begin
+    nextp := curp^.nextfile;
+    _p_closeonly(curp);
+    dispose(curp);
+    curp := nextp;
+    end;
+end {_p_clsall};
+
+{ We will need to deal with passing errors back to the caller when
+  asked.  Gotos will be involved.
+}
+
+procedure _p_filecommon(filevar: _p_addressptr;
+                  const size:integer; {-1 for text, otherwise binary file}
+                  const str1ptr, str2ptr: _p_stringptr; {might be nil}
+                  errptr: _p_intptr; {might be nil}
+                  const defflags:_p_string);
+
+var
+  filep: _p_filerecordptr;
+  streamp: _p_streamptr;
+  filename, str2, ext, flags: _p_string;
+  extpos, flagspos: integer;
 
 begin
+  if (str1ptr = nil) and (str2ptr <> nil) then
+    _p_liberror('Missing file name.');
+  filep := _p_filep(filevar);
+  if (filep = nil) and (str1ptr = nil) and (str2ptr = nil) then
+    _p_liberror('File name is required to open a new file.');
+
+  { If the file is already open and a file name is provided, close
+    it and then do a reset/write with the file name.
+  }
+  if (filep <> nil) and (str1ptr <> nil) then
+    _p_close(filevar);
+
+  { check if the filevar is still in the list of open files.
+  }
   if _p_filep(filevar) = nil then
     begin
-    _p_addfile(filevar);
-    p := _p_filep(filevar);
-    end;
+    filename := str1ptr^;
+    flags := defflags;
+    if str2ptr <> nil then
+      begin
+      str2 := str2ptr^;
+      flagspos := pos(str2, ':');
+      if flagspos = 0 then
+        ext := str2
+      else
+        begin
+        if flagspos = length(str2) then
+          _p_liberror('empty flags parameter');
+        ext := copy(str2, 1, flagspos - 1);
+        flags := copy(str2, flagspos + 1, length(str2));
+        if defflags[1] <> flags[flagspos] then
+          _p_liberror('flags incompatible with reset or rewrite call');
+        end;
+      if pos(filename, '.') = 0 then
+        filename := filename + ext;
+      end;
+    if size > 0 then
+      flags := flags + 'b';
+    streamp := fopen(cstring(filename), cstring(flags));
+    if streamp = nil then
+      _p_liberror('Can''t open file');
+    filep := _p_addfile(filevar);
+    filep^.streamp := streamp;
+    if pos(flags, '+') <> 0 then
+      filep^.status := [_p_read, _p_write, _p_ran]
+    else if flags[1] = 'r' then
+      filep^.status := [_p_read]
+    else
+      filep^.status := [_p_write];
+    end
+  else
+    if fseek(filep^.streamp, 0, _p_seek_set) <> 0 then
+      _p_liberror('seek failed');
 end;
 
 procedure _p_reset;
 
 begin
-  _p_open(true, filevar, size, str1ptr, str2ptr, errptr);
+  _p_filecommon(filevar, size, str1ptr, str2ptr, errptr, 'r');
 end;
 
 procedure _p_rewrite;
 
 begin
-  _p_open(false, filevar, size, str1ptr, str2ptr, errptr);
+  _p_filecommon(filevar, size, str1ptr, str2ptr, errptr, 'w');
 end;
 
 procedure _p_wtb_o;
