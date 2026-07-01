@@ -27,6 +27,8 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
+   -- prologue/epilogue no longer use stp/ldp for pairs of registers.
+
    -- dispose of a non-ref param assigned to a register generates a bad
       operand in genmove address.  Needs to be forced to copy to a memory
       (forcememory command).  See _p_removefile() and the dispose call

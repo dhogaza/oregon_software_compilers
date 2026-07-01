@@ -5779,15 +5779,16 @@ procedure blockexitx;
       spoffsettemp := settemp(long, index_oprnd(abstract_offset, sp, spoffset, true));
 
       if hasframeptr then
-        saveregoffsettemp := settemp(long, index_oprnd(signed_offset, fp, 0, false))
+        begin
+        saveregoffsettemp := settemp(long, index_oprnd(signed_offset, fp, 0, false));
+        finalizestackoffsets(firstnode, lastnode, maxstackoffset, regcost)
+        end
       else
+        begin
         saveregoffsettemp := settemp(long, index_oprnd(abstract_offset, sp,
                                      spoffset, true));
-
-      if hasframeptr then
-        finalizestackoffsets(firstnode, lastnode, maxstackoffset, regcost)
-      else
         finalizestackoffsets(firstnode, lastnode, spoffset, regcost);
+        end;
 
       { for using STP/LDP to save callee-saved registers }
       saveregtemp := settemp(long, reg_oprnd(0));
@@ -5866,10 +5867,15 @@ procedure blockexitx;
       while i <= regcount do
         begin
         keytable[saveregtemp].oprnd.reg := reglist[i].r;
-        if (i = regcount) or (spoffset > 504) then
+        if (i = regcount) or
+           (hasframeptr and (reglist[i + 1].index < -512)) or
+           (not hasframeptr and (reglist[i + 1].index + spoffset > 504)) then
           begin
           if hasframeptr then
+            begin
+            keytable[saveregoffsettemp].oprnd.mode := signed_offset;
             keytable[saveregoffsettemp].oprnd.index := reglist[i].index
+            end
           else
             begin
             keytable[saveregoffsettemp].oprnd.mode := abstract_offset;
@@ -5881,14 +5887,12 @@ procedure blockexitx;
           end
         else
           begin
+          keytable[saveregoffsettemp].oprnd.mode := signed_offset;
           keytable[savereg2temp].oprnd.reg := reglist[i + 1].r;
           if hasframeptr then
             keytable[saveregoffsettemp].oprnd.index := reglist[i + 1].index
           else
-            begin
-            keytable[saveregoffsettemp].oprnd.mode := signed_offset;
             keytable[saveregoffsettemp].oprnd.index := spoffset + reglist[i + 1].index;
-            end;
           { ordering important to make sure sl is in the right place if needed }
           gen3(p1, buildinst(stp, true, false), savereg2temp, saveregtemp,
                saveregoffsettemp);

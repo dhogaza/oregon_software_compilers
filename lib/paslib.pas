@@ -461,10 +461,10 @@ end {_p_clsall};
 }
 
 procedure _p_filecommon(filevar: _p_addressptr;
-                  const size:integer; {-1 for text, otherwise binary file}
-                  const str1ptr, str2ptr: _p_stringptr; {might be nil}
-                  errptr: _p_intptr; {might be nil}
-                  const defflags:_p_string);
+                        const size:integer; {-1 for text, otherwise binary file}
+                        const str1ptr, str2ptr: _p_stringptr; {might be nil}
+                        errptr: _p_intptr; {might be nil}
+                        const defflags:_p_string);
 
 var
   filep: _p_filerecordptr;
@@ -485,8 +485,9 @@ begin
   if (filep <> nil) and (str1ptr <> nil) then
     _p_close(filevar);
 
-  { check if the filevar is still in the list of open files.
+  { check if the filevar is in the list of open files.
   }
+
   if _p_filep(filevar) = nil then
     begin
     filename := str1ptr^;
