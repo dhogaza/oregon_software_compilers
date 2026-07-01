@@ -51,6 +51,7 @@ type
       filevar: _p_addressptr; { back pointer to file var }
       err: integer; { available to the caller if _p_noerror is set }
       streamp: _p_addressptr; { pointer to the unix stream }
+      filename: _p_string; {for error messages, primarily}
     end;
 
 {$own='_p_paslib'}
@@ -314,7 +315,8 @@ begin {_p_dumpfilelist}
               ' nextfile: ', loophole(_p_address, nextfile):1,
               ' filevar: ', loophole(_p_address, filevar):1,
               ' streamp: ', loophole(_p_address, streamp):1,
-              ' err: ',err:1);
+              ' err: ',err:1,
+              ' filename: ',filename);
       p := p^.nextfile;
       end;
   writeln('end dump file list');
@@ -387,7 +389,7 @@ procedure _p_closeonly(filep: _p_filerecordptr);
 
 begin
   if fclose(filep^.streamp) <> 0 then
-    _p_liberror('fclose failed');
+    _p_liberror(filep^.filename + ': fclose failed');
   filep^.filevar^ := loophole(_p_address, nil);
 end;
   
@@ -476,7 +478,7 @@ begin
   if (str1ptr = nil) and (str2ptr <> nil) then
     _p_liberror('Missing file name.');
   filep := _p_filep(filevar);
-  if (filep = nil) and (str1ptr = nil) and (str2ptr = nil) then
+  if (filep = nil) and (str1ptr = nil) then
     _p_liberror('File name is required to open a new file.');
 
   { If the file is already open and a file name is provided, close
@@ -499,24 +501,23 @@ begin
       if flagspos = 0 then
         ext := str2
       else
-        begin
-        if flagspos = length(str2) then
-          _p_liberror('empty flags parameter');
         ext := copy(str2, 1, flagspos - 1);
-        flags := copy(str2, flagspos + 1, length(str2));
-        if defflags[1] <> flags[flagspos] then
-          _p_liberror('flags incompatible with reset or rewrite call');
-        end;
       if pos(filename, '.') = 0 then
         filename := filename + ext;
+      if flagspos = length(str2) then
+        _p_liberror(filename + ': empty flags parameter');
+      flags := copy(str2, flagspos + 1, length(str2));
+      if defflags[1] <> flags[flagspos] then
+        _p_liberror(filename + ': flags incompatible with reset or rewrite call');
       end;
     if size > 0 then
       flags := flags + 'b';
     streamp := fopen(cstring(filename), cstring(flags));
     if streamp = nil then
-      _p_liberror('Can''t open file');
+      _p_liberror(filename + ': Can''t open file');
     filep := _p_addfile(filevar);
     filep^.streamp := streamp;
+    filep^.filename := filename;
     if pos(flags, '+') <> 0 then
       filep^.status := [_p_read, _p_write, _p_ran]
     else if flags[1] = 'r' then
@@ -526,7 +527,7 @@ begin
     end
   else
     if fseek(filep^.streamp, 0, _p_seek_set) <> 0 then
-      _p_liberror('seek failed');
+      _p_liberror(filename + ': reset/rewrite of open file failed');
 end;
 
 procedure _p_reset;
