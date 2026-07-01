@@ -100,8 +100,7 @@ _main:
 	add	x16,sp,56
 	stp	x30,x29,[x16,504]
 	add	x29,sp,560
-	str	x28,[x29,-8]
-	str	x27,[x29,-16]
+	stp	x27,x28,[x29,-16]
 	str	x26,[x29,-24]
 # Line: 90, Stmt: 1
 # Line: 91, Stmt: 2
@@ -999,8 +998,7 @@ _main:
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
 .L2:
-	ldr	x28,[x29,-8]
-	ldr	x27,[x29,-16]
+	ldp	x27,x28,[x29,-16]
 	ldr	x26,[x29,-24]
 	add	x16,sp,56
 	ldp	x30,x29,[x16,504]
