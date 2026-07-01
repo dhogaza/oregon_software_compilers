@@ -102,6 +102,7 @@ procedure libname(libroutine: libroutines;
       libcinit:         s := '_p_centry  ';  { for C }
       libminit:         s := '_p_minit   ';  { for Modula-2 }
       libclose:         s := '_p_close   ';
+      libcloseall:      s := '_p_clsall  ';
       libcloseinrange:  s := '_p_clsrng  ';
       libconnect:       s := '_p_connect ';
       libcopy:          s := '_p_copy    ';

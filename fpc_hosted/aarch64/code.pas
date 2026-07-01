@@ -5833,34 +5833,14 @@ procedure blockexitx;
         end;
 
       if proctable[blockref].opensfile then
-        begin
         if blockref = 0 then
-          begin { one or both of these two cases will be true }
-          if globalsize > 0 then
-            begin
-            t1key := settemp(long, dataref_oprnd(globaldatalabel, false, 0, false, 0));
-            t2key := settemp(long,
-                             dataref_oprnd(globaldatalabel, false, 0, false, globalsize));
-            genmoveaddress(lastnode, t2key, regkeys[1]);
-            genmoveaddress(lastnode, t1key, regkeys[0]);
-            callsupport(libcloseinrange, true);
-            end;
-          if ownsize > 0 then
-            begin
-            t1key := settemp(long, ownref_oprnd(false, 0));
-            t2key := settemp(long, ownref_oprnd(false, ownsize));
-            genmoveaddress(lastnode, t2key, regkeys[1]);
-            genmoveaddress(lastnode, t1key, regkeys[0]);
-            callsupport(libcloseinrange, true);
-            end
-          end
+          callsupport(libcloseall, true)
         else
           begin
           makeoffsetptr(lastnode, blockcost, sp, 1);
           gensimplemove(lastnode, regkeys[sp], regkeys[0]);
           callsupport(libcloseinrange, true);
           end;
-        end;
 
       { Procedure exit code. Restore callee-saved registers, link and frame pointer
         registers, and shrink stack.

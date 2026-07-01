@@ -122,6 +122,7 @@ type
     libcinit,
     libminit, { Modula-2 only -- Initialize main body }
     libclose,
+    libcloseall,
     libcloseinrange,
     libconnect,
     libcopy,
