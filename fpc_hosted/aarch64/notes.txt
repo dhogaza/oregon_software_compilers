@@ -27,8 +27,6 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
-   -- prologue/epilogue no longer use stp/ldp for pairs of registers.
-
    -- dispose of a non-ref param assigned to a register generates a bad
       operand in genmove address.  Needs to be forced to copy to a memory
       (forcememory command).  See _p_removefile() and the dispose call
@@ -48,11 +46,6 @@ if seeking value, wzr is replaced with a register.
 
    -- why aren't param spills in _p_copy deleted as the reg is never
       destroyed?
-
-   -- test everything with empty strings, some of the code assumes non-zero
-      length.
-
-      how is '' handled in the front end? does it work in codegen?
 
    -- code like add x0,x0,foo leads to x0's saved location on the stack
       begin marked "used" even if we never load from the saved location.
@@ -77,6 +70,8 @@ if seeking value, wzr is replaced with a register.
 
 --- current work
 
+  -- look into shortvisit/unnestparams morass.
+
   -- cstring
 
      fold if possible, if not emit cstring function
@@ -88,12 +83,6 @@ if seeking value, wzr is replaced with a register.
      Will need an assembly stub or separate pascal header file(?) to deal
      with darwin ___stdinp vs linux stdin naming difference stupidty. Probably
      the assembler thing, sources in darwin/linux subdirs.
-
-     File syntax "file<.ext><:flags>.  ext argument can provide default extension
-     and/or flags: ".ext", ":flags", ".ext:flags".   reset flags "r" by default,
-     rewrite flags "w" by default.  Reset demands first flag char be "r" if given,
-     reset "w" unless "temp", in which case tmpfile() is used which uses "w+b".
-     We handle the "b" suffix for ordinary file opens.
 
   -- shared/def/use variable
 
