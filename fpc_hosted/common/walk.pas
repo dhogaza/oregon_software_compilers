@@ -394,7 +394,8 @@ procedure shortvisit(root: nodeindex; {tree to visit}
         walknode(root, k, 0, false)
       else
         begin
-        inpushaddr := inpushaddr or (op = pushaddr) or (op = pushstraddr);
+        inpushaddr := inpushaddr or (op = pushaddr) or (op = pushstraddr) or
+                                    (op = regtargetop);
         if inpushaddr and (language <> c) then
           for j := 1 to 3 do
             if ptr^.nodeoprnd[j] then
@@ -403,7 +404,8 @@ procedure shortvisit(root: nodeindex; {tree to visit}
                 oprndptr := @(bignodetable[ptr^.oprnds[j]]);
               if (oprndptr^.op in
                  [originop, call, callparam, unscall, unscallparam]) or
-                 (oprndptr^.form in [sets, strings]) then
+                 ((oprndptr^.form = sets) and (op <> regtargetop)) or
+                 (oprndptr^.form = strings) then
                 begin
                 walknode(ptr^.oprnds[j], k, 0, false);
                 if bigcompilerversion then ptr := @(bignodetable[newroot]);
