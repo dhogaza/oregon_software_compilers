@@ -21,10 +21,10 @@ type
   _p_addressptr = ^_p_address; {for now}
   _p_streamptr = ^int64; {for now}
 
-  { The first three must be matched in the code generator. These
-    are taken from the MC68000 library and not all will apply
-    to our files.
+  { The first three enum valued must be matched in the code generator. These
+    are taken from the MC68000 library and not all will apply to our files.
   }
+
   _p_filestatusenum = (
     _p_def,     { current data defined (lazy I/O) }
     _p_eof,     { at end of file }
@@ -42,12 +42,13 @@ type
     _p_cont     { contiguous file });
   _p_filestatustype = set of _p_filestatusenum;
 
-  _p_filerecordptr = ^_p_filerecord;
-  _p_filerecord =
+  _p_fileinfoptr = ^_p_fileinfo;
+  _p_fileinfo =
     record
-      currentp: _p_charptr; { get byte, get a byte, get a byte byte byte }
+      bufferp: _p_charptr;
       status: _p_filestatustype; { see above }
-      nextfile: _p_filerecordptr; { pointer to next file or nil }
+      size: integer;
+      nextfile: _p_fileinfoptr; { pointer to next file or nil }
       filevar: _p_addressptr; { back pointer to file var }
       err: integer; { available to the caller if _p_noerror is set }
       streamp: _p_addressptr; { pointer to the unix stream }
@@ -57,7 +58,7 @@ type
 {$own='_p_paslib'}
 
 var
-  _p_filelist: _p_filerecordptr;
+  _p_filelist: _p_fileinfoptr;
 
 {glibc}
 
@@ -66,12 +67,18 @@ type
 
 procedure exit(const code: integer); nonpascal;
 procedure putchar(const ch: char); nonpascal;
-function malloc(const size: int64): _p_charptr; nonpascal;
+function malloc(const size: integer): _p_charptr; nonpascal;
 procedure free(const p: _p_charptr); nonpascal;
 function fopen(const filename, flags: _p_charptr): _p_streamptr; nonpascal;
 function fclose(const streamp: _p_addressptr): integer; nonpascal;
 function fseek(const streamp: _p_addressptr; pos: integer;
                whence: _p_seekwhence): integer; nonpascal;
+function fread(bufferp: _p_charptr; size: integer; count: integer;
+               streamp: _p_addressptr): integer; nonpascal;
+function fwrite(bufferp: _p_charptr; size: integer; count: integer;
+                streamp: _p_addressptr): integer; nonpascal;
+function feof(streamp: _p_addressptr): boolean; nonpascal;
+function ferror(streamp: _p_addressptr): integer; nonpascal;
 
 { pascal-2 lib declarations }
 
@@ -87,6 +94,9 @@ procedure _p_reset(filevar: _p_addressptr; const size:integer; const str1ptr, st
                    _p_stringptr; errptr: _p_intptr); external;
 procedure _p_rewrite(filevar: _p_addressptr; const size:integer; const str1ptr, str2ptr:
                      _p_stringptr; errptr: _p_intptr); external;
+procedure _p_define(filevar: _p_addressptr); external;
+procedure _p_get(filevar: _p_addressptr); external;
+procedure _p_put(filevar: _p_addressptr); external;
 procedure _p_wtc_o(ch: char; width: integer); external;
 procedure _p_wti_o(i: integer; width: integer); external;
 procedure _p_wtb_o(b: boolean; width: integer); external;
@@ -101,8 +111,8 @@ function _p_trimleft(const src: _p_string):_p_string; external;
 function _p_trimright(const src: _p_string):_p_string; external;
 
 { dynamic memory }
-procedure _p_new(var p: _p_charptr; size: int64); external;
-procedure _p_dispos(var p: _p_charptr; size: int64); external;
+procedure _p_new(var p: _p_charptr; size: integer); external;
+procedure _p_dispos(var p: _p_charptr; size: integer); external;
 
 { pascal-2 library implementations }
 
@@ -296,12 +306,36 @@ begin
   exit(1);
 end;
 
-{I/O}
+{ File I/O routines.
+
+  The implementation is lifted from the MC68000 library for both Motorola's
+  VERSAdos operating system and our standalone multitasking runtime environment.
+
+  A list of open files is kept which allows us to track if a file operation is
+  being executed on an open file or not.  The state of the file is tracked as a
+  set of states.
+
+  The Pascal semantics are built on top of streams.
+
+  The code implements "lazy I/O" to read files.  Code is generated to check if
+  the buffer value is defined for various operations, and the I/O routines use
+  this to decide when to read data from the the stream.
+
+  Pascal semantics are allowed to differentiate between text chars and (binary)
+  files of chars.  When reading from a file of char, eoln is not set and nl and cr
+  are directly available to the user code.  To deal with text files one generally
+  will used the predefined text file type.  Formatted read procedures only work
+  with these as does readln.  
+}
 
 procedure _p_dumpfilelist;
 
+{ This dumps the list of currently open files.  Very useful for debugging
+  purposes.
+}
+
 var
-  p: _p_filerecordptr;
+  p: _p_fileinfoptr;
 
 begin {_p_dumpfilelist}
   writeln('dump file list');
@@ -310,7 +344,7 @@ begin {_p_dumpfilelist}
     begin
     with p^ do
       writeln('address: ', loophole(_p_address, p):1,
-              ' currentp: ', loophole(_p_address, currentp):1,
+              ' bufferp: ', loophole(_p_address, bufferp):1,
               ' status: ', loophole(_p_address, status):1,
               ' nextfile: ', loophole(_p_address, nextfile):1,
               ' filevar: ', loophole(_p_address, filevar):1,
@@ -322,13 +356,14 @@ begin {_p_dumpfilelist}
   writeln('end dump file list');
 end {_p_dumpfilelist};
 
-function _p_filep(filevar: _p_addressptr): _p_filerecordptr;
+function _p_filep(filevar: _p_addressptr): _p_fileinfoptr;
 
-{ check the list of open files to see if this file is already open.
+{ check the list of open files to see if this file is already open and
+  return a pointer to the file info if it is.  Return nil if not.
 }
 
 var
-  p: _p_filerecordptr;
+  p: _p_fileinfoptr;
 
 begin {_p_filep}
   p := _p_filelist;
@@ -337,21 +372,21 @@ begin {_p_filep}
   _p_filep := p;
 end {_p_filep};
 
-function _p_addfile(filevar: _p_addressptr): _p_filerecordptr;
+function _p_addfile(filevar: _p_addressptr): _p_fileinfoptr;
 
-{ Add a new filerecord to the list of files.  _p_filelist will point
-  to the new entry. Caller guarantees that it doesn't already exist
+{ Add a new fileinfo to the list of files.  _p_filelist will point
+  to the new entry. Caller must guarantee that it doesn't already exist
   in the list of active files.
 }
 
 var
-  p: _p_filerecordptr;
+  p: _p_fileinfoptr;
 
 begin {_p_addfile}
   new(p);
   filevar^ := loophole(_p_address, p);
   p^.nextfile := _p_filelist;
-  p^.currentp := nil;
+  p^.bufferp := nil;
   p^.status := [];
   p^.filevar := filevar;  
   p^.err := 0;
@@ -360,14 +395,15 @@ begin {_p_addfile}
   _p_addfile := p;
 end {_p_addfile};
 
-procedure _p_removefile(var filep: _p_filerecordptr);
+procedure _p_removefile(var filep: _p_fileinfoptr);
 
 { Remove a file from the list of files.  f is guaranteed by the caller
-  to exist.
+  to exist.  The caller should close the stream before removing the
+  file from the list.
 }
 
 var
-  curp, prevp: _p_filerecordptr;
+  curp, prevp: _p_fileinfoptr;
 
 begin {_p_removefile}
   prevp := nil;
@@ -385,23 +421,30 @@ begin {_p_removefile}
   dispose(filep);
 end {_p_removefile};
 
-procedure _p_closeonly(filep: _p_filerecordptr);
+procedure _p_closeonly(filep: _p_fileinfoptr);
+
+{ Close the file and dispose of the buffer but nothing else.  The
+  caller is expected to remove it from the list of open files.
+}
 
 begin
   if fclose(filep^.streamp) <> 0 then
     _p_liberror(filep^.filename + ': fclose failed');
   filep^.filevar^ := loophole(_p_address, nil);
+  if filep^.bufferp <> nil then
+    dispose(filep^.bufferp);
 end;
-  
 
 procedure _p_close;
 
 { Close a file and remove it from the file list and set filevar
-  to nil.
+  to nil.  Since files are automatically closed closed when the scope
+  it was opened in exits, this shouldn't really be called by most
+  user code.
 }
 
 var
-  p: _p_filerecordptr;
+  p: _p_fileinfoptr;
 
 begin {_p_close}
   p := _p_filep(filevar);
@@ -413,8 +456,14 @@ begin {_p_close}
 end {_p_close};
 
 procedure _p_clsrng;
+ 
+{ When we exit a scope, this procedure will be called with the lower and
+  upper bounds of the stack space used in that scope, and file info entries
+  with filevar backpointers that lie within that range are closed.
+
+}
 var
-  curp, prevp, nextp: _p_filerecordptr;
+  curp, prevp, nextp: _p_fileinfoptr;
 
 begin {_p_clsrng}
   prevp := nil;
@@ -441,11 +490,13 @@ end {_p_clsrng};
 
 procedure _p_clsall;
 
-{ Called when the main procedure terminates.
+{ Called when the main procedure terminates.  It closes all files opened by the
+  program that haven't been closed when earlier scoped were exited.  Global files,
+  in essence.
 }
 
 var
-  curp, nextp: _p_filerecordptr;
+  curp, nextp: _p_fileinfoptr;
 
 begin {_p_clsall}
   curp := _p_filelist;
@@ -459,7 +510,7 @@ begin {_p_clsall}
 end {_p_clsall};
 
 { We will need to deal with passing errors back to the caller when
-  asked.  Gotos will be involved.
+  asked.  Gotos will be involved.  Currently all errors are fatal.
 }
 
 procedure _p_filecommon(filevar: _p_addressptr;
@@ -468,8 +519,21 @@ procedure _p_filecommon(filevar: _p_addressptr;
                         errptr: _p_intptr; {might be nil}
                         const defflags:_p_string);
 
+{ The first string parameter points to the base filename.  The second string
+  parameter points to an optional file extension and stream flags.
+
+  An example would be "reset('foo', '.ext:r+')". Since the filename does not
+  include an extension ".ext" will be appended to it.  "r+" will be passed to
+  fopen as the flag string.   The reset and rewrite procedures ensure that flags
+  sent to reset are read flags (as in the example) and those sent to rewrite are
+  write flags.  In the streams world, "r+" allows both reads and writes but checks
+  that the file already exists, while "w+" also allows both but replaces an
+  existing file.  Reset defaults to "r" while rewrite defaults to "w".  The code
+  automatically adds "b" to the flags if the file is a binary file.
+}
+
 var
-  filep: _p_filerecordptr;
+  filep: _p_fileinfoptr;
   streamp: _p_streamptr;
   filename, str2, ext, flags: _p_string;
   extpos, flagspos: integer;
@@ -518,17 +582,34 @@ begin
     filep := _p_addfile(filevar);
     filep^.streamp := streamp;
     filep^.filename := filename;
+    if size > 0 then
+      filep^.bufferp := malloc(size);
+    filep^.size := size;
     if pos(flags, '+') <> 0 then
-      filep^.status := [_p_read, _p_write, _p_ran]
+      begin
+      filep^.status := [_p_read, _p_write, _p_ran];
+      if flags[1] = 'w' then
+        filep^.status := filep^.status + [_p_def];
+      end
     else if flags[1] = 'r' then
       filep^.status := [_p_read]
     else
-      filep^.status := [_p_write];
+      filep^.status := [_p_def, _p_write];
     end
-  else
-    if fseek(filep^.streamp, 0, _p_seek_set) <> 0 then
-      _p_liberror(filename + ': reset/rewrite of open file failed');
+  else if fseek(filep^.streamp, 0, _p_seek_set) <> 0 then
+    _p_liberror(filename + ': reset/rewrite of open file failed');
 end;
+
+{ reset and rewrite are standard pascal procedures, the use of file names,
+  optional default extension and flags, and an error variable to return
+  error codes is not.
+
+  Pascal was originally implemented on a CDC 6000 family 64 bit computer with
+  a batch operating system the assigned files to programs at invocation.  So
+  "reset(foo)" would attach the file specified at invocation to "foo".  In
+  some vague way not all that different than "helloworld >helloworld.txt" or
+  "helloworld >/dev/null" being associated with stdout in unix shells.
+}
 
 procedure _p_reset;
 
@@ -541,6 +622,91 @@ procedure _p_rewrite;
 begin
   _p_filecommon(filevar, size, str1ptr, str2ptr, errptr, 'w');
 end;
+
+function _p_checkio(filevar: _p_addressptr; state: _p_filestatusenum): _p_fileinfoptr;
+
+{ Checks that the filevar points to an open file with either _p_read or _p_write
+  in its status.
+}
+
+var
+  filep: _p_fileinfoptr;
+
+begin
+  filep := _p_filep(filevar);
+  if filep = nil then
+    _p_liberror('file variable not found');
+  if not (state in filep^.status) then
+    _p_liberror(filep^.filename + ': illegal operation');
+  _p_checkio := filep;
+end;
+
+{ Input operations on files are implemented using lazy I/O.
+}
+
+procedure _p_define;
+
+{ This is called by the generated code if the file's buffer content is currently
+  undefined.  The generated code depends on pointer checking to guard against
+  trying to use a file that's not open.  This procedure is more robust.
+
+  This is where fread() is called to read data from the stream.  Data is read
+  and the _p_def is set.
+
+}
+var
+  filep: _p_fileinfoptr;
+  bytesread: integer;
+
+begin
+  filep := _p_checkio(filevar, _p_read);
+  bytesread := fread(filep^.bufferp, filep^.size, 1, filep^.streamp);
+  if bytesread < filep^.size then
+    if feof(filep^.streamp) then
+      filep^.status := filep^.status + [_p_eof];
+  filep^.status :=filep^.status + [_p_def];
+end;
+
+procedure _p_get;
+
+{ If the usual paradigm to check for eof() before trying to read data is
+  used, the file buffer will already be defined.  In which case we simply set
+  it to undefined.  Which will case the next operation on the file to call
+  _p_define to read data and set eof if appropriate.
+}
+
+var
+  filep: _p_fileinfoptr;
+
+begin
+  filep := _p_checkio(filevar, _p_read);
+  if not (_p_def in filep^.status) then
+    _p_define(filevar)
+  else if _p_eof in filep^.status then
+    _p_liberror(filep^.filename + ': attempt to read past end of file')
+  else
+    filep^.status := filep^.status - [_p_def];
+end;
+
+procedure _p_put;
+
+{ This code assumes we're at the end of the file for now.
+}
+
+var
+  filep: _p_fileinfoptr;
+  byteswritten: integer;
+
+begin
+  filep := _p_checkio(filevar, _p_write);
+  byteswritten := fwrite(filep^.bufferp, filep^.size, 1, filep^.streamp);
+  if ferror(filep^.streamp) <> 0 then
+    _p_liberror(filep^.filename + ': write error');
+end;
+  
+
+{ Write to standard output.  This is going to change drastically soon.
+}
 
 procedure _p_wtb_o;
 
