@@ -70,6 +70,8 @@ if seeking value, wzr is replaced with a register.
 
 --- current work
 
+  -- short sets should be passed as integers (up to 32 bits at the moment)
+
   -- look into shortvisit/unnestparams morass.
 
   -- cstring

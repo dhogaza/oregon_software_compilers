@@ -1777,8 +1777,10 @@ var
   p, p1: tempsaveptr;
 
 begin {processregsaves}
+{
   if not switcheverplus[test] then
   begin
+}
     k := stackcounter;
     while activetemp(k) do
       begin
@@ -1786,7 +1788,9 @@ begin {processregsaves}
         deleteregsave(k);
       k := k + 1;
       end;
+{
   end;
+}
 end {processregsaves};
 
 procedure consolidatestack;
@@ -1841,7 +1845,9 @@ procedure splittemp(k: keyindex; size: addressrange);
       compilerabort(inconsistent);
 
     if not keytable[k].tempflag then
-      deleteregsave(k);
+      deleteregsave(k)
+    else
+      keytable[k].saves := nil; 
 
     if keytable[k].len > size then
       begin
@@ -2314,7 +2320,8 @@ procedure savekey(k: keyindex {operand to save} );
                 volatilereg(reg) then
                 begin
                 savedreg := savereg(reg, true);
-                if keytable[savedreg].regenoprnd.mode <> nomode then
+                if (savedreg < stackcounter) and
+                   (keytable[savedreg].regenoprnd.mode <> nomode) then
                   regenoprnd := keytable[savedreg].regenoprnd
                 else properreg := savedreg;
                 regsaved := true;
@@ -2512,7 +2519,6 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
 
         if restorereg then
           begin
-
           t := settemp(long, reg_oprnd(reg));
           t1 := settemp(long, regenoprnd);
           recall_reg(reg, properreg);
@@ -5303,12 +5309,12 @@ end {cmpsetinclusion} ;
 
 procedure definelazyx;
 
-{ Checks "defined" bit in file status word.  If not set calls "get".
-  File to check is in "left".
+{ If the defined bit is not set in the file's status, call the library to fill
+  the buffer.
 }
 
 var
-  bitkey: keyindex;
+  bitkey, regkey, statuskey: keyindex;
 
 
 begin {definelazyx}
@@ -5323,14 +5329,26 @@ begin {definelazyx}
   else
 }
   address(left, 0);
-  gensimplemove(lastnode, left, regkeys[0]);
+  lock(left);
+  setvalue(reg_oprnd(getreg));
+  gensimplemove(lastnode, left, key);
+  savekey(key);
+  statuskey := settemp(long, index_oprnd(unsigned_offset, keytable[key].oprnd.reg,
+                       ptrsize, false));
   bitkey := settemp(long, imm12_oprnd(lazybit, false));
-  gen3(lastnode, buildinst(tbnz, len = long, true),regkeys[0], bitkey,
+  lock(key);
+  regkey := settemp(long, reg_oprnd(getreg));
+  unlock(key);
+  gensimplemove(lastnode, statuskey, regkey);
+  gen3(lastnode, buildinst(tbnz, len = long, true), regkey, bitkey,
        settemp(long, labeltarget_oprnd(lastlabel)));
+  genmoveaddress(lastnode, left, regkeys[0]);
+  unlock(left);
   callsupport(libdefinebuf, true);
   definelastlabel;
-  setallfields(left);
+  keytable[key].regvalid := false;
 end {definelazyx} ;
+
    
 procedure eolneofx(whichbit: integer {mask to choose condition bit} );
 
@@ -5340,14 +5358,19 @@ procedure eolneofx(whichbit: integer {mask to choose condition bit} );
 }
 
 var
-  power2key: keyindex;
+  power2key, bufferptrkey: keyindex;
 
 begin
   address(left, 0);
   loadreg(left, 0);
-  power2key := settemp(long, intconst_oprnd(whichbit));
+  bufferptrkey := settemp(long, index_oprnd(unsigned_offset, keytable[left].oprnd.reg,
+                          ptrsize, false));
+  loadreg(bufferptrkey, 0);
+  power2key := settemp(long, intconst_oprnd(power2(whichbit)));
   handle_bitmask(power2key);
-  gen3(lastnode, buildinst(andinst, len = long, true), regkeys[zero], left, power2key);
+  loadreg(bufferptrkey, regkeys[0]);
+  gen3(lastnode, buildinst(andinst, len = long, true), regkeys[zero],
+                 bufferptrkey, power2key);
   setvalue(cond_oprnd(ne));
 end {eolnx} ;
 
