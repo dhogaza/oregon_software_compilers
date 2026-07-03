@@ -52,7 +52,8 @@ type
       filevar: _p_addressptr; { back pointer to file var }
       err: integer; { available to the caller if _p_noerror is set }
       streamp: _p_addressptr; { pointer to the unix stream }
-      filename: _p_string; {for error messages, primarily}
+      filename: _p_string; { for error messages, primarily }
+      flags: _p_string; { also for error messages, primarily }
     end;
 
 {$own='_p_paslib'}
@@ -69,14 +70,18 @@ procedure exit(const code: integer); nonpascal;
 procedure putchar(const ch: char); nonpascal;
 function malloc(const size: integer): _p_charptr; nonpascal;
 procedure free(const p: _p_charptr); nonpascal;
+function remove(const filename: _p_charptr): integer; nonpascal;
 function fopen(const filename, flags: _p_charptr): _p_streamptr; nonpascal;
 function fclose(const streamp: _p_addressptr): integer; nonpascal;
+function ftell(streamp: _p_addressptr): integer; nonpascal;
 function fseek(const streamp: _p_addressptr; pos: integer;
                whence: _p_seekwhence): integer; nonpascal;
 function fread(bufferp: _p_charptr; size: integer; count: integer;
                streamp: _p_addressptr): integer; nonpascal;
 function fwrite(bufferp: _p_charptr; size: integer; count: integer;
                 streamp: _p_addressptr): integer; nonpascal;
+function ftruncate(fd: integer; size: integer): integer; nonpascal;
+function fileno(streamp: _p_addressptr): integer; nonpascal;
 function feof(streamp: _p_addressptr): boolean; nonpascal;
 function ferror(streamp: _p_addressptr): integer; nonpascal;
 
@@ -97,6 +102,7 @@ procedure _p_rewrite(filevar: _p_addressptr; const size:integer; const str1ptr, 
 procedure _p_define(filevar: _p_addressptr); external;
 procedure _p_get(filevar: _p_addressptr); external;
 procedure _p_put(filevar: _p_addressptr); external;
+procedure _p_delete(filevar: _p_addressptr); external;
 procedure _p_wtc_o(ch: char; width: integer); external;
 procedure _p_wti_o(i: integer; width: integer); external;
 procedure _p_wtb_o(b: boolean; width: integer); external;
@@ -306,6 +312,13 @@ begin
   exit(1);
 end;
 
+procedure _p_libfileerror(filep: _p_fileinfoptr; const err: _p_string);
+
+begin
+  writeln(err, 'on file ', filep^.filename, ':', filep^.flags);
+  exit(1);
+end;
+
 { File I/O routines.
 
   The implementation is lifted from the MC68000 library for both Motorola's
@@ -429,7 +442,7 @@ procedure _p_closeonly(filep: _p_fileinfoptr);
 
 begin
   if fclose(filep^.streamp) <> 0 then
-    _p_liberror(filep^.filename + ': fclose failed');
+    _p_libfileerror(filep, 'fclose failed');
   filep^.filevar^ := loophole(_p_address, nil);
   if filep^.bufferp <> nil then
     dispose(filep^.bufferp);
@@ -530,6 +543,8 @@ procedure _p_filecommon(filevar: _p_addressptr;
   that the file already exists, while "w+" also allows both but replaces an
   existing file.  Reset defaults to "r" while rewrite defaults to "w".  The code
   automatically adds "b" to the flags if the file is a binary file.
+
+  Not sure what to do about append mode or seek regarding _p_def.
 }
 
 var
@@ -569,19 +584,20 @@ begin
       if pos(filename, '.') = 0 then
         filename := filename + ext;
       if flagspos = length(str2) then
-        _p_liberror(filename + ': empty flags parameter');
+        _p_liberror('empty flags parameter for ' + filename);
       flags := copy(str2, flagspos + 1, length(str2));
-      if defflags[1] <> flags[flagspos] then
-        _p_liberror(filename + ': flags incompatible with reset or rewrite call');
+      if (defflags[1] <> flags[1]) then
+        _p_liberror('flags incompatible with reset or rewrite call for ' + filename);
       end;
     if size > 0 then
       flags := flags + 'b';
     streamp := fopen(cstring(filename), cstring(flags));
     if streamp = nil then
-      _p_liberror(filename + ': Can''t open file');
+      _p_liberror('Can''t open ' + filename);
     filep := _p_addfile(filevar);
     filep^.streamp := streamp;
     filep^.filename := filename;
+    filep^.flags := flags;
     if size > 0 then
       filep^.bufferp := malloc(size);
     filep^.size := size;
@@ -596,8 +612,20 @@ begin
     else
       filep^.status := [_p_def, _p_write];
     end
-  else if fseek(filep^.streamp, 0, _p_seek_set) <> 0 then
-    _p_liberror(filename + ': reset/rewrite of open file failed');
+  else
+    begin
+      if defflags[1] = 'w' then
+        begin
+        if ftruncate(fileno(filep^.streamp), 0) <> 0 then
+          _p_libfileerror(filep,'failed to truncate file during rewrite');
+        filep^.status := filep^.status + [_p_def]
+        end
+      else if defflags[1] = 'r' then
+        filep^.status := filep^.status - [_p_def, _p_eof, _p_eoln];
+      if fseek(filep^.streamp, 0, _p_seek_set) <> 0 then
+        _p_libfileerror(filep, 'reset/rewrite of open file failed');
+    end;
+       
 end;
 
 { reset and rewrite are standard pascal procedures, the use of file names,
@@ -704,6 +732,25 @@ begin
     _p_liberror(filep^.filename + ': write error');
 end;
   
+procedure _p_delete;
+
+{ Delete a file that is already open.  First we close it to ensure that
+  it is removed from _p_filelist.
+}
+
+var
+  filep: _p_fileinfoptr;
+  filename: _p_string;
+
+begin
+  filep := _p_filep(filevar);
+  if filep = nil then
+    _p_liberror('can''t delete a file that is not open');
+  filename := filep^.filename;
+  _p_close(filevar);
+  if remove(cstring(filename)) <> 0 then
+    _p_liberror('delete failed for ' + filename);
+end;
 
 { Write to standard output.  This is going to change drastically soon.
 }
