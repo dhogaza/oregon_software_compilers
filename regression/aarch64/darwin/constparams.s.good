@@ -1,0 +1,97 @@
+#
+#  Constants
+#
+	.section	__TEXT,__const
+	.align 12
+.L32765:
+	.byte	0x03,0x78,0x79,0x7A,0x00,0x03,0x61,0x62,0x63,0x00
+	.text
+	.align 2
+#
+#	p
+#
+.P1:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
+# Line: 5, Stmt: 1
+# Line: 6, Stmt: 2
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	ldrb	w1,[x15]
+	add	x0,x15,xzr
+	add	x0,x0,1
+	mov	x2,x1
+	bl	_p_wts_o 
+	bl	_p_wtln_o 
+.L2:
+	ldp	x30,x29,[sp,16]
+	add	sp,sp,32
+	ret
+	.text
+	.align 2
+#
+#	p1
+#
+.P2:
+	sub	sp,sp,48
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
+# Line: 11, Stmt: 1
+# Line: 12, Stmt: 2
+	str	x0,[x29,-8]
+	sub	w15,w1,w1
+	ldr	x14,[x29,-8]
+	ldrb	w0,[x14, w15, sxtw]
+	mov	x1,1
+	bl	_p_wtc_o 
+	bl	_p_wtln_o 
+.L3:
+	ldp	x30,x29,[sp,24]
+	add	sp,sp,48
+	ret
+	.text
+	.align 2
+#
+#	p2
+#
+.P3:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
+# Line: 16, Stmt: 1
+# Line: 17, Stmt: 2
+	mov	x1,12
+	bl	_p_wti_o 
+	bl	_p_wtln_o 
+.L4:
+	ldp	x30,x29,[sp,16]
+	add	sp,sp,32
+	ret
+	.text
+	.align 2
+#
+#	 (main)
+#
+	.global _main
+_main:
+	stp	x30,x29,[sp,-16]!
+	add	x29,sp,xzr
+# Line: 20, Stmt: 1
+# Line: 21, Stmt: 0
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765@PAGEOFF
+	bl	.P1  // p
+# Line: 22, Stmt: 0
+	adrp	x15,.L32765@PAGE
+	add	x0,x15,.L32765+6@PAGEOFF
+	mov	x1,1
+	mov	x2,3
+	bl	.P2  // p1
+# Line: 23, Stmt: 0
+	mov	x0,42
+	bl	.P3  // p2
+.L5:
+	ldp	x30,x29,[sp],16
+	ret
+	.comm	.L32766,16,12
