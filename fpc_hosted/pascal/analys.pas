@@ -696,6 +696,7 @@ procedure onevar(id: integer; {Scope in which to enter ident}
       namekind := varkind;
       lastinsection := false;
       univparam := false;
+      refparam := false;
       vartab_state := new_entry;
 
       if sharedvar and (token in [definesym, usesym, originsym]) then
