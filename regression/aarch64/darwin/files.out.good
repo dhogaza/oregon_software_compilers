@@ -29,4 +29,4 @@ fi
 
 try to do a put on the read-only file ../env.sh
 
-../env.sh: illegal operation
+Illegal operation on file ../env.sh:rb
