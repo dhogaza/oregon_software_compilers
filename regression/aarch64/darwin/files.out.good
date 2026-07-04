@@ -1,2 +1,32 @@
+write, read, and print foo.txt
+
 abcdefghijklmnopqrstuvwxyz
+rewrite, read, and print foo.txt
+
 zyxwvutsrqponmlkjihgfedcba
+delete foo.txt
+
+
+read and print ../env.h
+
+#!/bin/bash
+os=`uname`
+os="$(echo $os | tr '[A-Z]' '[a-z]')"
+arch=`uname -m`
+if [[ "$arch" == "arm64" ]]; then
+  arch="aarch64"
+fi
+if [[ "$arch" != "aarch64" ]]; then
+  echo "Not an aarch64 machine"
+  exit
+fi
+src="$HOME/oregon_software_compilers/regression/src"
+lib="$HOME/oregon_software_compilers/lib"
+pasdir="$HOME/oregon_software_compilers/fpc_hosted/aarch64"
+if [ ! -d "$os" ]; then
+  mkdir $os
+fi
+
+try to do a put on the read-only file ../env.sh
+
+../env.sh: illegal operation
