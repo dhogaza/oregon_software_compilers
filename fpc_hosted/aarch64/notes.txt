@@ -50,11 +50,10 @@ if seeking value, wzr is replaced with a register.
 
    -- 64-bit arithmetic doesn't work, not suprisingly.
 
-  -- set arithmetic with the empty set fails unless the other set oprnds are 32 bit.
-     front end limitation.
+  -- set arithmetic with the empty set fails unless the other set oprnds are
+     longer than 32 bits.
 
-     Might be fixable in improve's smooth functionality.  Or if necessary an additional
-     set-fixer-upper procedure.
+     code generator needs to be able to shrink set operands.
 
 --- current work
 

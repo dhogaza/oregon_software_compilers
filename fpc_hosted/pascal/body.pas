@@ -686,37 +686,48 @@ procedure genoprnd;
               if emptyset and emptysetgenerated then setcount := emptysetcount
               else
                 begin
-                if scanalys then
+                kludge.s := setvalue^;
+                { can we just pass this as in integer constant? }
+writeln(oprndlen);
+                if oprndlen <= setintbytes then
                   begin
-                  newlim := forcealign(stringfilecount,
-                                       setalign(oprndlen) * hostfileunits, false);
-                  while newlim > stringfilecount do putbyte(0);
-                  setcount := stringfilecount;
+                  genop(intop);
+                  {doesn't take byte swapping into account but who cares nowadays?}
+                  genint(kludge.i[0]);
                   end
                 else
                   begin
-                  newlim := forcealign(consttablelimit,
-                                       setalign(oprndlen) * hostfileunits, false);
-                  while newlim > consttablelimit do putbyte(0);
-                  setcount := consttablelimit - stringtablelimit +
-                              stringfilecount;
+                  if scanalys then
+                    begin
+                    newlim := forcealign(stringfilecount,
+                                         setalign(oprndlen) * hostfileunits, false);
+                    while newlim > stringfilecount do putbyte(0);
+                    setcount := stringfilecount;
+                    end
+                  else
+                    begin
+                    newlim := forcealign(consttablelimit,
+                                         setalign(oprndlen) * hostfileunits, false);
+                    while newlim > consttablelimit do putbyte(0);
+                    setcount := consttablelimit - stringtablelimit +
+                                stringfilecount;
+                    end;
+                  if emptyset then
+                    begin
+                    emptysetgenerated := true;
+                    emptysetcount := setcount;
+                    for i := 0 to setvaluebytes do putbyte(0);
+                    end
+                  else
+                    begin
+                    for i := 0 to oprndlen * hostfileunits - 1 do
+                      putbyte(kludge.b[i]);
+                    end;
+                  genop(structop);
+                  genint(setcount);
+                  genint(oprndlen);
                   end;
-                if emptyset then
-                  begin
-                  emptysetgenerated := true;
-                  emptysetcount := setcount;
-                  for i := 0 to setvaluebytes do putbyte(0);
-                  end
-                else
-                  begin
-                  kludge.s := setvalue^;
-                  for i := 0 to oprndlen * hostfileunits - 1 do
-                    putbyte(kludge.b[i]);
-                  end;
-                end;
-              genop(structop);
-              genint(setcount);
-              genint(oprndlen);
+              end;
               dispose(setvalue);
               end;
             otherwise; {in case of syntax errors}

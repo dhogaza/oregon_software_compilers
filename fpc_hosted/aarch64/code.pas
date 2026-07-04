@@ -4870,15 +4870,27 @@ procedure dosetx;
      getting the length issue fixed in the front end after all of these endless
      years}
 
+{wrong place of all of this ... }
+
     if (pseudobuff.op = movset) and (pseudobuff.len < len) then
       begin
       len := pseudobuff.len;
-      keytable[left].len := len; {naughty goes away with smart nil}
+      keytable[left].len := len; {naughty depends on dostruct never begin a cse}
       end;
    
     {drag short sets into a register}
 
-    if len <= long then
+    if len > long then    
+      begin
+      settargetortemp(len);
+      moveset(left, key);
+      end
+    else if keytable[left].oprnd.mode = intconst then
+      begin
+      settargetorreg;
+      gensimplemove(lastnode, left, key);
+      end
+    else
       begin
       tempreg := getreg;
       tempregkey := settemp(len, reg_oprnd(tempreg));
@@ -4895,11 +4907,6 @@ procedure dosetx;
       settargetorreg;
       unlock(tempregkey);
       genldr(lastnode, len, false, key, structkey);
-      end
-    else
-      begin
-      settargetortemp(len);
-      moveset(left, key);
       end;
    target := key;
   end {dosetx} ;
