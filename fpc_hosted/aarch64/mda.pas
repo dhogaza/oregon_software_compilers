@@ -38,6 +38,8 @@ uses config, hdr, utils, hdra, a_t;
 
 function initialblocksize(blocklevel: levelindex): addressrange;
 
+function setalign(size: addressrange): addressrange;
+
 { determines the offset from the fp for the first variable }
 
 function paramalloc(paramptr, typeptr: entryptr): allockind;
@@ -287,6 +289,12 @@ begin {initialblocksize}
   else
     initialblocksize := 2 * ptrsize;
 end; {initialblocksize}
+
+function setalign(size:addressrange): addressrange;
+
+begin {setalign}
+  setalign := min(size, ptrsize);
+end {setalign};
 
 function paramalloc(paramptr, typeptr: entryptr): allockind;
 

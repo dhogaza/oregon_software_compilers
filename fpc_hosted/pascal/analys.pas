@@ -1726,14 +1726,13 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           if (targetmachine = mc68000) and (m > bitsperunit) then
             size := forcealign(m, 1 { a byte }, true)
           else size := roundpackedsize(m, true);
-          if size > bitsperunit then align := setalign * bitsperunit
+          if size > bitsperunit then align := setalign(size) * bitsperunit
           else align := 1;
           end
         else
           begin
           size := (m + bitsperunit - 1) div bitsperunit;
-          if size = unitsize then align := unitsize
-          else align := setalign;
+          align := setalign(size);
           size := forcealign(size, align, false);
           end;
         end;

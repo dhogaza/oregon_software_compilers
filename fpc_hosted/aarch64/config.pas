@@ -338,7 +338,6 @@ const
   charsetsize = 256; {number of elements in the character set}
   maxsetord = 255; {max ord allowed in a set}
   setvaluebytes = 31; {maximum set size (bytes), for set values}
-  setalign = 8; {alignment requirement for a set}
   intalign = 4; {alignment for an integer}
   longintalign = 8; {alignment for int64/uint64}
   shortintalign = 2; {alignment for a short integer}

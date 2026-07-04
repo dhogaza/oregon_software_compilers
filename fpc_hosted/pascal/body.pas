@@ -689,14 +689,14 @@ procedure genoprnd;
                 if scanalys then
                   begin
                   newlim := forcealign(stringfilecount,
-                                       setalign * hostfileunits, false);
+                                       setalign(oprndlen) * hostfileunits, false);
                   while newlim > stringfilecount do putbyte(0);
                   setcount := stringfilecount;
                   end
                 else
                   begin
                   newlim := forcealign(consttablelimit,
-                                       setalign * hostfileunits, false);
+                                       setalign(oprndlen) * hostfileunits, false);
                   while newlim > consttablelimit do putbyte(0);
                   setcount := consttablelimit - stringtablelimit +
                               stringfilecount;
@@ -6058,8 +6058,8 @@ procedure statement(follow: tokenset {legal following symbols} );
                  [ints, chars, bools, scalars, subranges] then
                 begin
                 size := ((upper(baseptr) + bitsperunit) div bitsperunit);
-                if not packedflag and (size > unitsize) then
-                  size := forcealign(size, setalign, false);
+                if not packedflag then
+                  size := forcealign(size, setalign(size), false);
                 end;
               oprndstk[sp].oprndlen := size;
               end;

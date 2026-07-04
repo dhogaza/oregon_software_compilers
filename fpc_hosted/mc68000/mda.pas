@@ -46,6 +46,8 @@ procedure initregparams(var regparams: regparamstype);
 
 }
 
+function setalign(size:addressrange): addressrange;
+
 procedure forcememoryparam(varlev: levelindex; paramptr: entryptr);
 
 {Register parameters must be assigned to the stack if it is referenced
@@ -291,6 +293,15 @@ procedure makeregparamaddressable(varlev: levelindex; varptr: entryptr);
 
 implementation
 
+
+function setalign(size:addressrange): addressrange;
+
+begin {setalign}
+  if size = unitsize then
+    setalign := unitsize
+  else
+    setalign := intalign;
+end {setalign};
 procedure makeregparamaddressable(varlev: levelindex; varptr: entryptr);
 
 { mc68000 implemenation doesn't pass pascal parameters in registers }
