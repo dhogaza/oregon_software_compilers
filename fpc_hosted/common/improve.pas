@@ -372,28 +372,29 @@ procedure assignregs;
           offset := exprp^.oprnds[2];
           third := 0;
           if (leftp^.op = levop) and (leftp^.oprnds[1] = level) then
-          begin
-            { This hashes the var's offset, really should be a function call.
-              However it would be called in several high bandwidth places and
-              places an unneeded speed penalty on this phase.
-              This code is replicated in procedures: doreference, killasreg
-              and dodefine in travrs.
-            }
-          j := (offset div targetintsize) mod (regtablelimit + 1);
-          while ((regvars[j].offset <> offset) or regvars[j].parameter) and
-                (regvars[j].worth >= 0) do
-            j := (j + 1) mod (regtablelimit + 1);
-          if regvars[j].regid <> 0 then
             begin
-            case regvars[j].regkind of
-              reg, bytereg: exprp^.op := regtempop;
-              realreg: exprp^.op := realtempop;
-              ptrreg: exprp^.op := ptrtempop;
+              { This hashes the var's offset, really should be a function call.
+                However it would be called in several high bandwidth places and
+                places an unneeded speed penalty on this phase.
+                This code is replicated in procedures: doreference, killasreg
+                and dodefine in travrs.
+              }
+            j := (offset div targetintsize) mod (regtablelimit + 1);
+            while ((regvars[j].offset <> offset) or regvars[j].parameter) and
+                  (regvars[j].worth >= 0) do
+              j := (j + 1) mod (regtablelimit + 1);
+            if regvars[j].regid <> 0 then
+              begin
+              case regvars[j].regkind of
+                reg, bytereg: exprp^.op := regtempop;
+                realreg: exprp^.op := realtempop;
+                ptrreg: exprp^.op := ptrtempop;
+                end;
+              exprp^.oprnds[2] := 0;
+              exprp^.oprnds[3] := regvars[j].regid;
               end;
-            exprp^.oprnds[2] := 0;
-            exprp^.oprnds[3] := regvars[j].regid;
-            end;
-          end;
+            end
+          else applytoexprnode(left);
         end {applytoindexnode};
 
     begin {applytoexprnode}
@@ -433,6 +434,7 @@ procedure assignregs;
       begin {applytostmt}
       if bigcompilerversion then p := @(bignodetable[stmt]);
       currentstmt := p^;
+writeln(currentstmt.stmtkind);
       with currentstmt do
         begin
         case stmtkind of
@@ -1338,7 +1340,7 @@ procedure loops;
            bldset, setelt, setpair, bldnil, bldfmt, inop, pushaddr, pushvalue,
            pushcvalue, pushfinal, pushlitvalue, call, unscall, callparam,
            copystackop, unscallparam, reserve, pushproc, rd, wr, switchstack,
-           closerangeop, definelazyop, filebufindrop,
+           closerangeop, definelazyop, filebufindrop, structop,
            setbinfileop, sysfn, dummyargop]) or
            (ptr^.op in [rangechkop, indxchkop]) and (nowwalking or
            nowdebugging) or not dominating and
