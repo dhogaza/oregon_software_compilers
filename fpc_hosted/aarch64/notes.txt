@@ -5,8 +5,6 @@ pseudops like eoln/eof/inset and others that in some cases do a single bit test
 followed by a setvalue(cond) can peek ahead for a jumpcond pseudo op, poach
 its label, and to a tb[n]z directly if it has a refcount of one.  
 
-global regkeys[regindex] defined, now just use it.
-
 i in [a..b] with no non-emptyset constant component can be transformed into:
 
 if (i>=a) and (i<=b)
@@ -21,7 +19,7 @@ implmentation in codegen could be something like ...
         cset ip0 0 or 1
       	cmp	x0, <b>
         cset ip1 zero or 1
-        ands, wzr, ip0, ip1
+        ands, wzr, ip0, ip1 <- t[b]nz
  
 if seeking value, wzr is replaced with a register.
 
@@ -51,16 +49,6 @@ if seeking value, wzr is replaced with a register.
       begin marked "used" even if we never load from the saved location.
 
    -- 64-bit arithmetic doesn't work, not suprisingly.
-
-   -- sets with > 8 elements and < 17 elements are allocated 64 bits.  Not 16 or 32
-      bits probably because of copying allocation stuff from mc68000 mda. More curious
-      than crucial.  But we really should be able to do length/align 1/1, 2/2, 4/4 and
-      8/8 sets.
-
-      This is due to setalign being set to 8 in config.pas.  Code in analys jam sets
-      size to be setalign unless it is a single unit (byte) in length.  Should be
-      something like min(size (rounded to next power of 2), setalign)?  We want
-      setalign to be 8 for performance of longer sets.
 
   -- set arithmetic with the empty set fails unless the other set oprnds are 32 bit.
      front end limitation.
