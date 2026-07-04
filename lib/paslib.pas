@@ -349,6 +349,7 @@ procedure _p_dumpfilelist;
 
 var
   p: _p_fileinfoptr;
+  s: _p_filestatusenum;
 
 begin {_p_dumpfilelist}
   writeln('dump file list');
@@ -356,16 +357,37 @@ begin {_p_dumpfilelist}
   while p <> nil do
     begin
     with p^ do
-      writeln('address: ', loophole(_p_address, p):1,
-              ' bufferp: ', loophole(_p_address, bufferp):1,
-              ' status: ', loophole(_p_address, status):1,
-              ' nextfile: ', loophole(_p_address, nextfile):1,
+      begin
+      write('address: ', loophole(_p_address, p):1,
+            ' bufferp: ', loophole(_p_address, bufferp):1,
+            ' status: [');
+      for s := _p_def to _p_cont do
+        if s in status then
+          case s of
+            _p_def: write('_p_def,');
+            _p_eof: write('_p_eof,');
+            _p_eoln: write('_p_eoln,');
+            _p_text: write('_p_text,');
+            _p_read: write('_p_read,');
+            _p_write: write('_p_write,');
+            _p_newl: write('_p_newl,');
+            _p_int: write('_p_int,');
+            _p_perm: write('_p_perm,');
+            _p_ran: write('_p_ran,');
+            _p_noerror: write('_p_noerror,');
+            _p_necho: write('_p_necho,');
+            _p_sngl: write('_p_sngl,');
+            _p_cont: write('_p_cont,');
+          end;
+ 
+      writeln('] nextfile: ', loophole(_p_address, nextfile):1,
               ' filevar: ', loophole(_p_address, filevar):1,
               ' streamp: ', loophole(_p_address, streamp):1,
               ' err: ',err:1,
               ' filename: ',filename);
       p := p^.nextfile;
       end;
+  end;
   writeln('end dump file list');
 end {_p_dumpfilelist};
 
