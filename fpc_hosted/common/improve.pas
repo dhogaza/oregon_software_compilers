@@ -434,7 +434,6 @@ procedure assignregs;
       begin {applytostmt}
       if bigcompilerversion then p := @(bignodetable[stmt]);
       currentstmt := p^;
-writeln(currentstmt.stmtkind);
       with currentstmt do
         begin
         case stmtkind of
