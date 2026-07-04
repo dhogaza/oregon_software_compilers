@@ -99,6 +99,7 @@ procedure _p_reset(filevar: _p_addressptr; const size:integer; const str1ptr, st
                    _p_stringptr; errptr: _p_intptr); external;
 procedure _p_rewrite(filevar: _p_addressptr; const size:integer; const str1ptr, str2ptr:
                      _p_stringptr; errptr: _p_intptr); external;
+procedure _p_seek(filevar: _p_addressptr; const offset: integer); external;
 procedure _p_define(filevar: _p_addressptr); external;
 procedure _p_get(filevar: _p_addressptr); external;
 procedure _p_put(filevar: _p_addressptr); external;
@@ -315,7 +316,7 @@ end;
 procedure _p_libfileerror(filep: _p_fileinfoptr; const err: _p_string);
 
 begin
-  writeln(err, 'on file ', filep^.filename, ':', filep^.flags);
+  writeln(err, ' on file ', filep^.filename, ':', filep^.flags);
   exit(1);
 end;
 
@@ -687,9 +688,24 @@ begin
   if filep = nil then
     _p_liberror('file variable not found');
   if not (state in filep^.status) then
-    _p_liberror(filep^.filename + ': illegal operation');
+    _p_libfileerror(filep, 'Illegal operation');
   _p_checkio := filep;
 end;
+
+procedure _p_seek;
+
+var
+  filep: _p_fileinfoptr;
+
+begin {_p_seek}
+  filep := _p_checkio(filevar, _p_ran);
+  if fseek(filep^.streamp, offset, _p_seek_set) <> 0 then
+    _p_libfileerror(filep, 'seek failed');
+  if _p_read in filep^.status then
+    _p_define(filevar)
+  else
+    filep^.status := filep^.status - [_p_eof];
+end {_p_seek};
 
 { Input operations on files are implemented using lazy I/O.
 }
@@ -733,7 +749,7 @@ begin
   if not (_p_def in filep^.status) then
     _p_define(filevar)
   else if _p_eof in filep^.status then
-    _p_liberror(filep^.filename + ': attempt to read past end of file')
+    _p_libfileerror(filep, 'attempt to read past end of file')
   else
     filep^.status := filep^.status - [_p_def];
 end;
@@ -751,7 +767,7 @@ begin
   filep := _p_checkio(filevar, _p_write);
   byteswritten := fwrite(filep^.bufferp, filep^.size, 1, filep^.streamp);
   if ferror(filep^.streamp) <> 0 then
-    _p_liberror(filep^.filename + ': write error');
+    _p_libfileerror(filep, 'write error');
 end;
   
 procedure _p_delete;
