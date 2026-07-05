@@ -2464,6 +2464,7 @@ _main:
 # Line: 34, Stmt: 0
 	adrp	x15,_p_paslib@PAGE
 	ldr	x15,[x15,_p_paslib+280@PAGEOFF]
+	str	x15,[x29,-8]
 	mov	w16,10
 	str	w16,[x15]
 # Line: 35, Stmt: 0
@@ -2477,13 +2478,11 @@ _main:
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
 # Line: 36, Stmt: 0
-	adrp	x15,_p_paslib@PAGE
-	ldr	x15,[x15,_p_paslib+280@PAGEOFF]
+	ldr	x15,[x29,-8]
 	ldrsw	x0,[x15]
 	mov	x1,3
 	bl	_p_wti_o 
-	adrp	x15,_p_paslib@PAGE
-	ldr	x15,[x15,_p_paslib+280@PAGEOFF]
+	ldr	x15,[x29,-8]
 	ldrsw	x0,[x15,4]
 	mov	x1,3
 	bl	_p_wti_o 
@@ -2505,6 +2504,7 @@ _main:
 	adrp	x15,.L32765@PAGE
 	add	x1,x15,.L32765+813@PAGEOFF
 	bl	_p_pos 
+	str	x0,[x29,-8]
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -2520,6 +2520,7 @@ _main:
 	adrp	x15,.L32765@PAGE
 	add	x1,x15,.L32765+836@PAGEOFF
 	bl	_p_pos 
+	str	x0,[x29,-8]
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -2535,6 +2536,7 @@ _main:
 	adrp	x15,.L32765@PAGE
 	add	x1,x15,.L32765+859@PAGEOFF
 	bl	_p_pos 
+	str	x0,[x29,-8]
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -2550,6 +2552,7 @@ _main:
 	adrp	x15,.L32765@PAGE
 	add	x1,x15,.L32765+884@PAGEOFF
 	bl	_p_pos 
+	str	x0,[x29,-8]
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
