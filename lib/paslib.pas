@@ -702,7 +702,7 @@ begin {_p_seek}
   filep := _p_checkio(filevar, _p_ran);
 }
   filep := _p_filep(filevar);
-  if fseek(filep^.streamp, offset, _p_seek_set) <> 0 then
+  if fseek(filep^.streamp, offset * filep^.size, _p_seek_set) <> 0 then
     _p_libfileerror(filep, 'seek failed');
 {
   if _p_read in filep^.status then
