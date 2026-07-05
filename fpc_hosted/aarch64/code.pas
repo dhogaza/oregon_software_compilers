@@ -1745,20 +1745,21 @@ function uselesstemp(k: keyindex): boolean;
                    and not precedeslastbranch(k);
   end {uselesstemp} ;
 
-procedure deleteregsave(k: keyindex);
+procedure processregsave(k: keyindex);
   var p, p1: tempsaveptr;
 
-  begin
+  begin {processregsave}
     p := keytable[k].saves;
     while p <> nil do
       begin
-      deletenodes(p^.first, p^.last);
+      if uselesstemp(k) and not keytable[k].tempflag then
+        deletenodes(p^.first, p^.last);
       p1 := p;
       p := p^.nextsave;
       dispose(p1);
       end;
     keytable[k].saves := nil;
-  end;
+  end {processregsave};
 
 procedure processregsaves;
 
@@ -1784,8 +1785,7 @@ begin {processregsaves}
     k := stackcounter;
     while activetemp(k) do
       begin
-      if uselesstemp(k) and not keytable[k].tempflag then
-        deleteregsave(k);
+      processregsave(k);
       k := k + 1;
       end;
 {
@@ -1806,7 +1806,7 @@ var
   len: addressrange;
   i: integer;
 
-begin
+begin {consolidatestack}
   k := stackcounter;
   while activetemp(k) do
     begin
@@ -1817,8 +1817,7 @@ begin
     while uselesstemp(k) do
       begin
       len := len + keytable[k].len;
-      if uselesstemp(k) and not keytable[k].tempflag then
-        deleteregsave(k);
+      processregsave(k);
       k := k + 1;
       end;
     movecnt := k - k1 - 1;
@@ -1830,7 +1829,7 @@ begin
       stackcounter := stackcounter + movecnt;
       end;
     end;
-end;
+end {consolidatestack};
 
 procedure splittemp(k: keyindex; size: addressrange);
 
@@ -1854,10 +1853,7 @@ procedure splittemp(k: keyindex; size: addressrange);
       compilerabort(inconsistent);
       end;
 
-    if not keytable[k].tempflag then
-      deleteregsave(k)
-    else
-      keytable[k].saves := nil; 
+    processregsave(k);
 
     if keytable[k].len > size then
       begin
