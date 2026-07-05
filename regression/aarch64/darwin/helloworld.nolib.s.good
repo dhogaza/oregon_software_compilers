@@ -1778,8 +1778,12 @@ _p_seek:
 	bl	.P44  // _p_filep
 	mov	x28,x0
 # Line: 705, Stmt: 0
+	ldr	x15,[x29,-24]
+	ldrsw	x14,[x28,12]
+	mul	w15,w15,w14
+	str	x15,[x29,-16]
 	ldr	x0,[x28,40]
-	ldr	x1,[x29,-24]
+	mov	x1,x15
 	mov	x2,xzr
 	bl	_fseek
 	cbz	w0,.L176

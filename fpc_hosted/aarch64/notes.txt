@@ -3,7 +3,16 @@
 
 pseudops like eoln/eof/inset and others that in some cases do a single bit test
 followed by a setvalue(cond) can peek ahead for a jumpcond pseudo op, poach
-its label, and to a tb[n]z directly if it has a refcount of one.  
+its label, and to a tb[n]z directly if it has a refcount of one.  First peephole
+optimization?
+
+optimizing sets ...
+
+write another pass in improve?  doset lengths could be set to the eventual
+length that's needed, for instance, though the code generator can hack that
+easily enough.  
+
+Also ...
 
 i in [a..b] with no non-emptyset constant component can be transformed into:
 
@@ -22,6 +31,11 @@ implmentation in codegen could be something like ...
         ands, wzr, ip0, ip1 <- t[b]nz
  
 if seeking value, wzr is replaced with a register.
+
+structure is bldset node's left operand is zero if no set insertions, last
+set insertion's left node is 0.  This is now used to flag to the code generator
+whether or not doset should put its left operand someplace where it can be
+clobbered by setinsert pseudoops (hopefully the target).
 
 *** current bugs
 

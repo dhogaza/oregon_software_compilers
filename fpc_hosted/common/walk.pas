@@ -1766,8 +1766,14 @@ with target = 0.
 
     procedure bldsetnode;
 
-{ This operator defines a set for use by the set insert operators.
-  The right node defines the set const, the left has the inserts.
+{ This operator defines a set for use possible use by the set insert
+  operators.  The right node defines the set const, the left has the
+  inserts, if any.
+
+  The doset pseudoop's second operand is passed as one if it is the target
+  of one or more set insertions, zero if not.  If it is one the code generator
+  needs to put the result of the doset pseudoop in a location that can safely
+  be modified by set insertion.
 }
 
 
@@ -1777,7 +1783,8 @@ with target = 0.
         walknode(r, rkey, 0, true);
         mapkey;
         if walkdepth > 2 then targetkey := 0;
-        genpseudo(doset, len, key, refcount, copycount, rkey, 0, targetkey);
+        genpseudo(doset, len, key, refcount, copycount, rkey,
+                  ord(l <> 0), targetkey);
         walknode(l, lkey, key, true);
         clearkeys;
       end {bldsetnode} ;
