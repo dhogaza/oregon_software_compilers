@@ -4,6 +4,8 @@ abcdefghijklmnopqrstuvwxyz
 rewrite, read, and print foo.txt
 
 zyxwvutsrqponmlkjihgfedcba
+zy!wvutsrqponmlkjihgfedcba
+vutsrqponmlkjihgfedcba
 delete foo.txt
 
 
