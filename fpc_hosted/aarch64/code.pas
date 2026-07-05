@@ -1834,6 +1834,13 @@ end;
 
 procedure splittemp(k: keyindex; size: addressrange);
 
+{ Only called at the moment when the size matches the size
+  of the temp, so no actual split happens.
+
+  To broaden the use of this, need to scan the keytable and set properreg[2]
+  fields to shuffled temps to point to the new location.
+}
+
   var
     k1: keyindex;
 
@@ -1841,8 +1848,11 @@ procedure splittemp(k: keyindex; size: addressrange);
     size := (size + (stackalign - 1)) and - stackalign;
 
     if not uselesstemp(k) or
-       (keytable[k].len < size) then
+       (keytable[k].len <> size) then
+      begin
+      write('Can''t reused ', k:1, ' in splittemp');
       compilerabort(inconsistent);
+      end;
 
     if not keytable[k].tempflag then
       deleteregsave(k)
@@ -1867,6 +1877,9 @@ procedure splittemp(k: keyindex; size: addressrange);
 
 function besttemp(size: addressrange): keyindex;
 
+{ can't use this until splittemp is made to work, low priority
+}
+
   var
     bestsize: addressrange;
     k: keyindex;
@@ -1888,6 +1901,26 @@ function besttemp(size: addressrange): keyindex;
       k := k - 1;
     end;
   end {besttemp} ;
+
+function reusabletemp(size: addressrange): keyindex;
+
+  var
+    k: keyindex;
+    found: boolean;
+
+  begin {reusabletemp}
+    size := (size + (stackalign - 1)) and - stackalign;
+    k := stackbase - 1;
+    reusabletemp := 0;
+
+    while (k >= stackcounter) and
+          (not uselesstemp(k) or (keytable[k].len <> size)) do
+      k := k - 1;
+
+   if k >= stackcounter then
+     reusabletemp := k;
+
+  end {reusabletemp} ;
 
 function newtemp(size: addressrange {size of temp to allocate} ): keyindex;
 
@@ -1926,6 +1959,7 @@ function newtemp(size: addressrange {size of temp to allocate} ): keyindex;
         refcount := 0;
         first := nil;
         last := nil;
+        saves := nil;
         oprnd := index_oprnd(abstract_offset, sp, -stackoffset, false);
         end;
       end;
@@ -1963,6 +1997,7 @@ function newparamtemp(size: addressrange {size of temp to allocate} ): keyindex;
         refcount := 0;
         first := nil;
         last := nil;
+        saves := nil;
         oprnd := index_oprnd(abstract_offset, sp, paramoffset, true);
         end;
       end;
@@ -1971,12 +2006,17 @@ function newparamtemp(size: addressrange {size of temp to allocate} ): keyindex;
   end {newparamtemp} ;
 
 function stacktemp(size: addressrange): keyindex;
+
+{ an easy hack would be to split the top item on the stack, as that would
+  not require adjusting properreg[2] fields.
+}
+
   var
     k: keyindex;
 
   begin {stacktemp}
-    size := (size + (stackalign - 1)) and - stackalign;
-    k := besttemp(size);
+    size := (size + (stackalign - 1)) and -stackalign;
+    k := reusabletemp(size);
     if k <> 0 then
       begin
       stacktemp := k;
@@ -2068,7 +2108,7 @@ function savereg(r: regindex; regenok: boolean {caller can handle regen}) : keyi
         begin
         with keytable[i], oprnd do
           if refcount > 0 then
-            if r = reg then
+            if regvalid and (r = reg) then
               begin
               if regenok and (regenoprnd.mode <> nomode) then
                 begin
@@ -2084,7 +2124,7 @@ function savereg(r: regindex; regenok: boolean {caller can handle regen}) : keyi
                 saved := regsaved;
                 end
               end
-            else if (r = reg2) and keytable[properreg2].validtemp and
+            else if reg2valid and (r = reg2) and keytable[properreg2].validtemp and
                ((properreg2 >= stackcounter){ or (properreg2 <= lastkey)}) then
               begin
               found := true;
@@ -2749,6 +2789,7 @@ procedure initblock;
     }
 
     stackbase := keysize;
+    keytable[stackbase].validtemp := false;
     stackcounter := stackbase;
     stackoffset := 0;
     maxstackoffset := 0;

@@ -39,6 +39,9 @@ clobbered by setinsert pseudoops (hopefully the target).
 
 *** current bugs
 
+   -- assignment to a regparam is, as the procedure's comments say, what
+      triggers addtempsaves to do so.
+
    -- dispose of a non-ref param assigned to a register generates a bad
       operand in genmove address.  Needs to be forced to copy to a memory
       (forcememory command).  See _p_removefile() and the dispose call
@@ -70,6 +73,17 @@ clobbered by setinsert pseudoops (hopefully the target).
      code generator needs to be able to shrink set operands.
 
 --- current work
+
+  -- now that stacktemp has been improved we should be able to use it 
+     much more often.
+
+  -- instead of deleting instruction nodes, mark them with a "deleted" flag.
+     If the compiler's details switch (or some other?) is given then write out
+     the instruction as a comment, otherwise just skip over it.  Could help
+     quite a bit with debugging these reg save/restore bugs, and also might
+     be very helpful when debugging peephole optimizatios (like replacing
+     "ands single bit bitmask/b.[ne/eq] label" with "tb[n]z bit#, label").
+
 
   -- short sets should be passed as integers (up to 32 bits at the moment)
 
