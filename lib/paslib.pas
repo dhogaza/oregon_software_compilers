@@ -626,7 +626,7 @@ begin
     filep^.size := size;
     if pos(flags, '+') <> 0 then
       begin
-      filep^.status := [_p_read, _p_write, _p_ran];
+      filep^.status := [_p_read, _p_write{, _p_ran}];
       if flags[1] = 'w' then
         filep^.status := filep^.status + [_p_def];
       end
@@ -698,13 +698,18 @@ var
   filep: _p_fileinfoptr;
 
 begin {_p_seek}
+{
   filep := _p_checkio(filevar, _p_ran);
+}
+  filep := _p_filep(filevar);
   if fseek(filep^.streamp, offset, _p_seek_set) <> 0 then
     _p_libfileerror(filep, 'seek failed');
+{
   if _p_read in filep^.status then
     _p_define(filevar)
   else
-    filep^.status := filep^.status - [_p_eof];
+}
+    filep^.status := filep^.status - [_p_def, _p_eoln, _p_eof];
 end {_p_seek};
 
 { Input operations on files are implemented using lazy I/O.
@@ -727,10 +732,14 @@ var
 begin
   filep := _p_checkio(filevar, _p_read);
   bytesread := fread(filep^.bufferp, filep^.size, 1, filep^.streamp);
-  if bytesread < filep^.size then
-    if feof(filep^.streamp) then
-      filep^.status := filep^.status + [_p_eof];
+
+  if (bytesread < filep^.size) and feof(filep^.streamp) then
+    filep^.status := filep^.status + [_p_eof]
+  else
+    filep^.status := filep^.status - [_p_eof];
+
   filep^.status :=filep^.status + [_p_def];
+
 end;
 
 procedure _p_get;
