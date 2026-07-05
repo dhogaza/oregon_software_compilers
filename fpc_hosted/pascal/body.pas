@@ -3206,6 +3206,7 @@ procedure statement(follow: tokenset {legal following symbols} );
   procedure selector(variantok: boolean; {true if case selector ok}
                      nowvariant: boolean; {true if now a case selector}
                      packedok: boolean; {packed field is ok}
+                     newflag: boolean; {from variable}
                      var unpacking: boolean; {unpacking a field?}
                      var constpart: addressrange; {const part of addr}
                      var len: addressrange; {operand length}
@@ -3542,7 +3543,8 @@ procedure statement(follow: tokenset {legal following symbols} );
             if switchcounters[nilcheck] > 0 then genunary(ptrchkop, ints);
             if (typ = files) then
               begin
-              genunary(definelazyop, files);
+              if oldlazy or not newflag then
+                genunary(definelazyop, files);
               genunary(filebufindrop, ints); {can't be a cse}
               end;
             genunary(indrop, ints);
@@ -3594,7 +3596,7 @@ procedure statement(follow: tokenset {legal following symbols} );
       else warn(wantvarname);
       gettoken;
       if token in [lbrack, dot, uparrow] then
-        selector(true, false, true, unpacking, constpart, len, dummy1, dummy2,
+        selector(true, false, true, false, unpacking, constpart, len, dummy1, dummy2,
                  unpacking)
       else if token = lpar then parameterlist(0);
       newresulttype(noneindex);
@@ -3885,7 +3887,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                 begin
                 gettoken;
                 if token in [lbrack, dot, uparrow] then
-                  selector(variantok, varianttag, packedok, unpacking,
+                  selector(variantok, varianttag, packedok, newflag, unpacking,
                            constpart, len, off, varlev, ownvar);
                 end;
               if namekind in [funcparam, procparam] then len := procparamsize;
@@ -5976,7 +5978,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                       oprndstk[sp].operandkind := varoperand;
                       oprndstk[sp].cost := 0;
                       ownvar := false;
-                      selector(true, false, true, unpacking, constpart,
+                      selector(true, false, true, false, unpacking, constpart,
                                constantlen, off, varlev, ownvar);
                       lastindex(unpacking, constpart, constantlen);
                       if unsigned(resultptr, constantlen, unpacking) then

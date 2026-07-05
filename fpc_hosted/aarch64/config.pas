@@ -449,6 +449,8 @@ const
   supportlibdata = 12; {points to support lib private data}
   globalbase = 16; {offset of first global variable}
 
+  oldlazy = false;
+
   {Entry points for read and write support routines.  Name is P$nn.}
   {note:  these use default files, entry + 2 is specified file}
 
