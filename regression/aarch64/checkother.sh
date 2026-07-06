@@ -24,17 +24,18 @@ for f in $src/*.pas; do
     else
       gcc $base.s
     fi
-    ./a.out > $base.out
-    diff $base.out ../$other/$base.out.good >../$other/$base.out.diff
-    if [ -s "../$other/$base.out.diff" ]; then
+    ./a.out > ../other/$base.out
+    diff ../other/$base.out ../$other/$base.out.good >../other/$base.out.diff
+    if [ -s "../other/$base.out.diff" ]; then
       echo "$base.out is different than ../$other/$base.out.good"
     fi
   elif [[ "$type" == "errors" ]]; then
-    $pasdir/pas2arm64 $f --include=$lib >$base.out
-    diff $base.out $base.out.good >$base.out.diff
-    if [ -s "$base.out.diff" ]; then
-      echo "$base.out is different than $f.out.good"
+    $pasdir/pas2arm64 $f --include=$lib >../other/$base.out
+    diff ../other/$base.out ../$other/$base.out.good >../other/$base.out.diff
+    if [ -s "../other/$base.out.diff" ]; then
+      echo "$base.out is different than $base.out.good"
     fi
   fi
+  rm -f *.tmp a.out
   popd >/dev/null
 done

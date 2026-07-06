@@ -27,5 +27,6 @@ for f in $src/*.pas; do
       echo "$base.out is different than $f.out.good"
     fi
   fi
+  rm -f *.tmp a.out
   popd >/dev/null
 done
