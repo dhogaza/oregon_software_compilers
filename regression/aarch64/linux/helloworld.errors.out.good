@@ -1,6 +1,3 @@
-Pascal-2 ARM64  2.3.0.1     today!     Page 1-1
-/home/dhogaza/oregon_software_compilers/regression/src/helloworld.errors
-
     3        writeln("hello world!"); 
                      ^2 ^63^45   ^2
 ***  2: Illegal character
