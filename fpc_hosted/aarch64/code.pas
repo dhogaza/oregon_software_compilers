@@ -2701,7 +2701,7 @@ begin {settargetortemp}
     setallfields(target)
   else
     begin
-    t := newtemp(len);
+    t := stacktemp(len);
     setallfields(t);
     end;
 end {settargetortemp};
@@ -4890,11 +4890,14 @@ var
       
 procedure dosetx;
 
-{ Define the set base for a set insertion.  This is the constant part of
-  a set constructor, which may be followed by zero or more setinsert
+{ If pseudooprnds[2] is non-zero, Define the set base for a set insertion.  This is the
+  constant part of a set constructor, which will followed by at least one  setinsert
   pseudo-operations.  Sets "settarget" to the desired target of the
   set insertion operators.  Some special things:  If "settarget" has
   "packedaccess" set.
+
+  If pseudoprnds[2] is zero, the code generator is free to treat it like an
+  ordinary dostruct.
 }
 
   var structkey, labelkey, tempregkey: keyindex;
@@ -4907,57 +4910,63 @@ procedure dosetx;
      getting the length issue fixed in the front end after all of these endless
      years}
 
-{wrong place of all of this ... }
-
-    if (pseudobuff.op = movset) and (pseudobuff.len < len) then
-      begin
-      len := pseudobuff.len;
-      keytable[left].len := len; {naughty depends on dostruct never begin a cse}
-      end;
-   
-    {drag short sets into a register}
-
-    if len > long then    
-      begin
-      settargetortemp(len);
-      moveset(left, key);
-      end
-    else if keytable[left].oprnd.mode = intconst then
-      begin
-      settargetorreg;
-      gensimplemove(lastnode, left, key);
-      end
+    if pseudoinst.oprnds[2] = 0 then
+      setallfields(left)
     else
       begin
-      tempreg := getreg;
-      tempregkey := settemp(len, reg_oprnd(tempreg));
-      with keytable[left].oprnd do
-      labelkey := settemp(long, dataref_oprnd(labelno, labelownflag, externref, false,
-                          labeloffset + pseudoinst.oprnds[2]));
-      genadrp(lastnode, true, tempregkey, labelkey);
-      structkey := settemp(len,
-                           labeloffset_oprnd(tempreg, keytable[labelkey].oprnd.labelno,
-                                             keytable[labelkey].oprnd.labelownflag,
-                                             keytable[labelkey].oprnd.externref,
-                                             keytable[labelkey].oprnd.labeloffset));
-      lock(tempregkey);
-      settargetorreg;
-      unlock(tempregkey);
-      genldr(lastnode, len, false, key, structkey);
-      end;
-   target := key;
+      if len <= long then    
+        begin
+        settargetorreg;
+        if keytable[left].oprnd.mode <> intconst then
+          begin
+          settemp(long, intconst_oprnd(0));
+          left := tempkey;
+          end;
+        gensimplemove(lastnode, left, key);
+        end
+      else
+        begin
+        if (pseudobuff.op = movset) and (pseudobuff.len < len) then
+          begin
+          len := pseudobuff.len;
+          keytable[left].len := len; {naughty depends on dostruct never begin a cse}
+          end;
+        settargetortemp(len);
+        moveset(left, key);
+        end;
+      target := key;
+    end;
   end {dosetx} ;
 
 procedure movsetx;
+
+{ emptysetkludge goes away when improve smooths set op lengths
+}
+
+var
+  emptysetkludge: keyindex;
 
 begin {movsetx}
   addressboth;
   if not equivaddr(left, right) then
   begin
     if len <= long then
+      begin
+      if len < keytable[right].len then
+        begin
+        emptysetkludge := settemp(long, reg_oprnd(ip0));
+        genmoveaddress(lastnode, right, emptysetkludge);
+        keytable[emptysetkludge].oprnd :=
+          index_oprnd(unsigned_offset, ip0, 0, false);
+        keytable[emptysetkludge].len := len;
+        right := emptysetkludge;
+        end;
       gensimplemove(lastnode, right, left)
+      end
     else
+      begin
       moveset(right, left);
+      end;
   end;
 end {movsetx};
 
@@ -5514,7 +5523,7 @@ var
   tkey, indrx0key: keyindex;
 
 begin {closerangex}
-  tkey := newtemp(quad);
+  tkey := stacktemp(quad);
   indrx0key := settemp(long, index_oprnd(unsigned_offset, 0, 0, false));
   gen3(lastnode, buildinst(stp, true, false), regkeys[0], regkeys[1], tkey);
   gensimplemove(lastnode, indrx0key, regkeys[0]);
@@ -7097,7 +7106,7 @@ procedure stacktargetx;
   begin
     if pseudoinst.oprnds[1] = 1
       then stackkey := newparamtemp(len)
-      else stackkey := newtemp(len);
+      else stackkey := stacktemp(len);
     keytable[stackkey].tempflag := true;
     keytable[key].regsaved := true;
     keytable[key].properreg := stackkey;
@@ -7112,6 +7121,9 @@ procedure makeroomx;
   structures.
 }
 
+var
+  temp: keyindex;
+
 begin {makeroomx}
   saveactivekeys;
   paramoffset := 0;
@@ -7124,8 +7136,8 @@ from the front end.
 }
   if len > long then
     begin
-    newtemp(len);
-    setallfields(stackcounter);
+    temp := stacktemp(len);
+    setallfields(temp);
     end;
 
   end {makeroomx} ;

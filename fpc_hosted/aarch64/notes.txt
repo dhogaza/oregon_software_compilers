@@ -39,6 +39,9 @@ clobbered by setinsert pseudoops (hopefully the target).
 
 *** current bugs
 
+   -- set arithmetic probably doesn't really handle intconsts
+      correctly, need to check for handle bitmasks?
+
    -- assignment to a regparam is, as the procedure's comments say, what
       triggers addtempsaves to do so.
 
