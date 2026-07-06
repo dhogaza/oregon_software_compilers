@@ -9,6 +9,11 @@ else
   other="darwin"
 fi
 
+# yes, other not $other
+if [ ! -d "other" ]; then
+  mkdir other
+fi
+
 for f in $src/*.pas; do
   echo "--- testing $(basename $f) ---"
   . ./fileattrs.sh $f
