@@ -917,8 +917,9 @@ _p_dumpfilelist:
 	str	xzr,[x14]
 # Line: 426, Stmt: 0
 	adrp	x12,.L32765@PAGE
-	ldrh	w11,[x12,.L32765+296@PAGEOFF]
-	strh	w11,[x14,8]
+	add	x16,x12,.L32765+296@PAGEOFF
+	ldrsh	w16,[x16]
+	strh	w16,[x14,8]
 # Line: 427, Stmt: 0
 	str	x15,[x14,24]
 # Line: 428, Stmt: 0
@@ -1795,9 +1796,8 @@ _p_seek:
 	bl	.P43  // _p_libfileerror
 .L176:
 # Line: 712, Stmt: 0
-	mov	x15,7
 	ldrh	w14,[x28,8]
-	bic	w15,w14,w15
+	bic	w15,w14,7
 	strh	w15,[x28,8]
 .L175:
 	ldr	x28,[x29,-8]
@@ -1850,9 +1850,8 @@ _p_define:
 	strh	w15,[x28,8]
 .L182:
 # Line: 741, Stmt: 0
-	mov	x15,1
 	ldrh	w14,[x28,8]
-	orr	w15,w14,w15
+	orr	w15,w14,1
 	strh	w15,[x28,8]
 .L178:
 	ldr	x28,[x29,-8]

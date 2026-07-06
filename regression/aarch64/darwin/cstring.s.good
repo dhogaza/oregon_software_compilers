@@ -134,7 +134,7 @@ _main:
 # Line: 69, Stmt: 0
 	adrp	x14,.L32765@PAGE
 	add	x15,x14,.L32765+5@PAGEOFF
-	sub	x14,x29,24
+	sub	x14,x29,16
 	ldrb	w16,[x15],1
 	mov	x17,3
 	cmp	w16,w17
@@ -148,7 +148,7 @@ _main:
 	cbnz	x16,.L32760
 .L32761:
 	strb	wzr,[x14],1
-	sub	x0,x29,24
+	sub	x0,x29,16
 	bl	.P2  // cstring
 	bl	_printf
 # Line: 70, Stmt: 0
@@ -157,7 +157,7 @@ _main:
 	adrp	x15,.L32766@PAGE
 	adrp	x13,.L32765@PAGE
 	add	x14,x13,.L32765+10@PAGEOFF
-	sub	x13,x29,32
+	sub	x13,x29,24
 	ldrb	w16,[x14],1
 	mov	x17,6
 	cmp	w16,w17
@@ -171,12 +171,12 @@ _main:
 	cbnz	x16,.L32758
 .L32759:
 	strb	wzr,[x13],1
-	sub	x0,x29,32
+	sub	x0,x29,24
 	bl	.P2  // cstring
-	str	x0,[x29,-16]
+	str	x0,[x29,-32]
 	adrp	x15,.L32766@PAGE
 	add	x0,x15,.L32766+16@PAGEOFF
-	ldr	x1,[x29,-16]
+	ldr	x1,[x29,-32]
 	bl	.P1  // toshortstring
 # Line: 72, Stmt: 0
 	adrp	x15,.L32766@PAGE

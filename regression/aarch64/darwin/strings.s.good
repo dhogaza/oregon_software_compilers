@@ -335,10 +335,10 @@
 #
 	.global _main
 _main:
-	sub	sp,sp,576
-	add	x16,sp,56
+	sub	sp,sp,560
+	add	x16,sp,40
 	stp	x30,x29,[x16,504]
-	add	x29,sp,560
+	add	x29,sp,544
 # Line: 59, Stmt: 1
 # Line: 60, Stmt: 0
 	adrp	x15,.L32765@PAGE
@@ -464,13 +464,13 @@ _main:
 	bl	_p_wts_o 
 # Line: 83, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	sub	x16,x29,24
+	sub	x16,x29,16
 	mov	x17,1
 	strb	w17,[x16],1
 	ldrb	w15,[x15,.L32766+543@PAGEOFF]
 	strb	w15,[x16],1
 	strb	wzr,[x16],1
-	sub	x0,x29,24
+	sub	x0,x29,16
 	bl	.P3  // tests255
 # Line: 84, Stmt: 0
 	bl	_p_wtln_o 
@@ -602,7 +602,7 @@ _main:
 # Line: 99, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	add	x15,x15,.L32766+274@PAGEOFF
-	sub	x14,x29,288
+	sub	x14,x29,280
 	ldrb	w16,[x15],1
 	strb	w16,[x14],1
 	cbz	x16,.L32748
@@ -613,7 +613,7 @@ _main:
 	cbnz	x16,.L32747
 .L32748:
 	strb	wzr,[x14],1
-	sub	x0,x29,288
+	sub	x0,x29,280
 	bl	.P5  // tests255mod
 # Line: 100, Stmt: 0
 	adrp	x15,.L32765@PAGE
@@ -1707,7 +1707,7 @@ _main:
 	bl	_p_wts_o 
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+1602@PAGEOFF
-	sub	x8,x29,552
+	sub	x8,x29,544
 	bl	.P1  // tests255func
 	ldrb	w1,[x8]
 	add	x0,x8,xzr
@@ -1716,8 +1716,8 @@ _main:
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
 .L13:
-	add	x16,sp,56
+	add	x16,sp,40
 	ldp	x30,x29,[x16,504]
-	add	sp,sp,576
+	add	sp,sp,560
 	ret
 	.comm	.L32766,544,12

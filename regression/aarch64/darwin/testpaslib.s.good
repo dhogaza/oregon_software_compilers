@@ -41,10 +41,9 @@
 #
 	.global _main
 _main:
-	sub	sp,sp,2080
-	add	x16,sp,1560
-	stp	x30,x29,[x16,504]
-	add	x29,sp,2064
+	sub	sp,sp,288
+	stp	x30,x29,[sp,272]
+	add	x29,sp,272
 # Line: 20, Stmt: 1
 # Line: 21, Stmt: 2
 	adrp	x15,.L32766@PAGE
@@ -269,7 +268,7 @@ _main:
 	bl	_p_wts_o 
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+180@PAGEOFF
-	sub	x8,x29,520
+	sub	x8,x29,264
 	bl	_p_trimleft 
 	ldrb	w1,[x8]
 	add	x0,x8,xzr
@@ -288,7 +287,7 @@ _main:
 	bl	_p_wts_o 
 	adrp	x15,.L32765@PAGE
 	add	x0,x15,.L32765+212@PAGEOFF
-	sub	x8,x29,776
+	sub	x8,x29,264
 	bl	_p_trim 
 	ldrb	w1,[x8]
 	add	x0,x8,xzr
@@ -309,7 +308,7 @@ _main:
 	add	x0,x15,.L32765+245@PAGEOFF
 	mov	x1,3
 	mov	x2,10
-	sub	x8,x29,1032
+	sub	x8,x29,264
 	bl	_p_copy 
 	ldrb	w1,[x8]
 	add	x0,x8,xzr
@@ -330,7 +329,7 @@ _main:
 	add	x0,x15,.L32765+270@PAGEOFF
 	mov	x1,20
 	mov	x2,10
-	sub	x8,x29,1288
+	sub	x8,x29,264
 	bl	_p_copy 
 	ldrb	w1,[x8]
 	add	x0,x8,xzr
@@ -351,7 +350,7 @@ _main:
 	add	x0,x15,.L32765+295@PAGEOFF
 	mov	x1,1
 	mov	w2,4294967291
-	sub	x8,x29,1544
+	sub	x8,x29,264
 	bl	_p_copy 
 	ldrb	w1,[x8]
 	add	x0,x8,xzr
@@ -372,7 +371,7 @@ _main:
 	add	x0,x15,.L32765+326@PAGEOFF
 	mov	x1,1
 	mov	x2,6
-	sub	x8,x29,1800
+	sub	x8,x29,264
 	bl	_p_copy 
 	ldrb	w1,[x8]
 	add	x0,x8,xzr
@@ -393,7 +392,7 @@ _main:
 	add	x0,x15,.L32765+351@PAGEOFF
 	mov	x1,xzr
 	mov	x2,10
-	sub	x8,x29,2056
+	sub	x8,x29,264
 	bl	_p_copy 
 	ldrb	w1,[x8]
 	add	x0,x8,xzr
@@ -405,8 +404,7 @@ _main:
 	bl	_p_wtc_o 
 	bl	_p_wtln_o 
 .L2:
-	add	x16,sp,1560
-	ldp	x30,x29,[x16,504]
-	add	sp,sp,2080
+	ldp	x30,x29,[sp,272]
+	add	sp,sp,288
 	ret
 	.comm	.L32766,296,12
