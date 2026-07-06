@@ -1,0 +1,946 @@
+#
+#  Constants
+#
+	.section	.rodata
+	.align 12
+.L32765:
+	.byte	0x04,0x74,0x72,0x75,0x65,0x00,0x05,0x66,0x61,0x6C,0x73,0x65
+	.byte	0x00,0x28,0x74,0x65,0x73,0x74,0x20,0x69,0x6E,0x74,0x65,0x67
+	.byte	0x65,0x72,0x20,0x63,0x6F,0x6E,0x73,0x74,0x20,0x67,0x65,0x6E
+	.byte	0x65,0x72,0x61,0x74,0x69,0x6F,0x6E,0x20,0x61,0x6E,0x64,0x20
+	.byte	0x70,0x75,0x74,0x69,0x6E,0x74,0x00,0x03,0x30,0x3F,0x20,0x00
+	.byte	0x06,0x31,0x32,0x33,0x34,0x3F,0x20,0x00,0x07,0x36,0x35,0x35
+	.byte	0x33,0x35,0x3F,0x20,0x00,0x07,0x36,0x35,0x35,0x33,0x36,0x3F
+	.byte	0x20,0x00,0x07,0x36,0x35,0x35,0x33,0x37,0x3F,0x20,0x00,0x07
+	.byte	0x36,0x35,0x35,0x33,0x35,0x39,0x20,0x00,0x04,0x2D,0x31,0x3F
+	.byte	0x20,0x00,0x08,0x2D,0x36,0x35,0x35,0x33,0x36,0x3F,0x20,0x00
+	.byte	0x08,0x2D,0x36,0x35,0x35,0x33,0x37,0x3F,0x20,0x00,0x08,0x2D
+	.byte	0x36,0x35,0x35,0x33,0x39,0x3F,0x20,0x00,0x0C,0x32,0x30,0x30
+	.byte	0x34,0x33,0x31,0x38,0x30,0x37,0x31,0x3F,0x20,0x00,0x30,0x65
+	.byte	0x6E,0x64,0x20,0x6F,0x66,0x20,0x69,0x6E,0x74,0x65,0x67,0x65
+	.byte	0x72,0x20,0x63,0x6F,0x6E,0x73,0x74,0x20,0x67,0x65,0x6E,0x65
+	.byte	0x72,0x61,0x74,0x69,0x6F,0x6E,0x20,0x61,0x6E,0x64,0x20,0x70
+	.byte	0x75,0x74,0x69,0x6E,0x74,0x20,0x74,0x65,0x73,0x74,0x73,0x00
+	.byte	0x16,0x74,0x65,0x73,0x74,0x69,0x6E,0x67,0x20,0x77,0x69,0x74
+	.byte	0x68,0x20,0x6F,0x74,0x68,0x65,0x72,0x77,0x69,0x73,0x65,0x00
+	.byte	0x27,0x63,0x61,0x6E,0x27,0x74,0x20,0x63,0x6F,0x6D,0x70,0x69
+	.byte	0x6C,0x65,0x20,0x77,0x69,0x74,0x68,0x20,0x63,0x68,0x65,0x63
+	.byte	0x6B,0x69,0x6E,0x67,0x20,0x65,0x6E,0x61,0x62,0x6C,0x65,0x64
+	.byte	0x20,0x79,0x65,0x74,0x00,0x32,0x74,0x65,0x73,0x74,0x69,0x6E
+	.byte	0x67,0x20,0x77,0x69,0x74,0x68,0x6F,0x75,0x74,0x20,0x6F,0x74
+	.byte	0x68,0x65,0x72,0x77,0x69,0x73,0x65,0x2C,0x20,0x73,0x68,0x6F
+	.byte	0x75,0x6C,0x64,0x20,0x74,0x68,0x72,0x6F,0x77,0x20,0x63,0x61
+	.byte	0x73,0x65,0x20,0x65,0x72,0x72,0x6F,0x72,0x00
+	.text
+	.align 2
+#
+#	putln
+#
+	.global putln
+putln:
+	stp	x30,x29,[sp,-16]!
+	add	x29,sp,xzr
+# Line: 21, Stmt: 1
+# Line: 22, Stmt: 2
+	mov	x0,10
+	bl	putchar
+.L2:
+	ldp	x30,x29,[sp],16
+	ret
+	.text
+	.align 2
+#
+#	putstring
+#
+	.global putstring
+putstring:
+	sub	sp,sp,64
+	stp	x30,x29,[sp,40]
+	add	x29,sp,40
+	stp	x27,x28,[x29,-16]
+	str	x26,[x29,-24]
+# Line: 27, Stmt: 1
+	mov	x26,x0
+	mov	x27,x1
+# Line: 28, Stmt: 2
+	str	x2,[x29,-32]
+	mov	x28,x27
+.L6:
+	cmp	w28,w2
+	b.gt	.L5
+# Line: 28, Stmt: 0
+	sub	w15,w28,w27
+	ldrb	w0,[x26, w15, sxtw]
+	bl	putchar
+	ldr	x2,[x29,-32]
+	adds	w28,w28,1
+	b.vc	.L6
+.L5:
+.L3:
+	ldp	x27,x28,[x29,-16]
+	ldr	x26,[x29,-24]
+	ldp	x30,x29,[sp,40]
+	add	sp,sp,64
+	ret
+	.text
+	.align 2
+#
+#	putstringln
+#
+	.global putstringln
+putstringln:
+	sub	sp,sp,64
+	stp	x30,x29,[sp,40]
+	add	x29,sp,40
+	stp	x27,x28,[x29,-16]
+	str	x26,[x29,-24]
+# Line: 33, Stmt: 1
+	mov	x26,x0
+	mov	x27,x1
+# Line: 34, Stmt: 2
+	str	x2,[x29,-32]
+	mov	x28,x27
+.L10:
+	cmp	w28,w2
+	b.gt	.L9
+# Line: 34, Stmt: 0
+	sub	w15,w28,w27
+	ldrb	w0,[x26, w15, sxtw]
+	bl	putchar
+	ldr	x2,[x29,-32]
+	adds	w28,w28,1
+	b.vc	.L10
+.L9:
+# Line: 35, Stmt: 0
+	bl	putln
+.L7:
+	ldp	x27,x28,[x29,-16]
+	ldr	x26,[x29,-24]
+	ldp	x30,x29,[sp,40]
+	add	sp,sp,64
+	ret
+	.text
+	.align 2
+#
+#	puthex
+#
+	.global puthex
+puthex:
+	sub	sp,sp,64
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
+	stp	x27,x28,[x29,-16]
+# Line: 44, Stmt: 1
+	mov	x27,x0
+# Line: 45, Stmt: 2
+	mov	x28,xzr
+.L12:
+.L15:
+# Line: 46, Stmt: 0
+# Line: 47, Stmt: 0
+	and	w15,w27,15
+	cmp	w15,9
+	b.ls	.L16
+.L17:
+# Line: 48, Stmt: 0
+	add	x14,x29,w28, sxtw 0
+	sub	w13,w15,10
+	add	w13,w13,65
+	strb	w13,[x14,16]
+	b	.L18
+.L16:
+# Line: 50, Stmt: 0
+	add	x14,x29,w28, sxtw 0
+	add	w13,w15,48
+	strb	w13,[x14,16]
+.L18:
+# Line: 51, Stmt: 0
+	add	w28,w28,1
+# Line: 52, Stmt: 0
+	lsr	w27,w27,4
+	cbnz	w27,.L15
+.L13:
+.L14:
+# Line: 55, Stmt: 0
+# Line: 56, Stmt: 0
+	sub	w28,w28,1
+# Line: 57, Stmt: 0
+	add	x15,x29,w28, sxtw 0
+	ldrb	w0,[x15,16]
+	bl	putchar
+	cbnz	w28,.L14
+.L11:
+.L19:
+	ldp	x27,x28,[x29,-16]
+	ldp	x30,x29,[sp,24]
+	add	sp,sp,64
+	ret
+	.text
+	.align 2
+#
+#	puthexln
+#
+	.global puthexln
+puthexln:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
+# Line: 64, Stmt: 1
+# Line: 65, Stmt: 2
+	bl	puthex
+# Line: 66, Stmt: 0
+	bl	putln
+.L20:
+	ldp	x30,x29,[sp,16]
+	add	sp,sp,32
+	ret
+	.text
+	.align 2
+#
+#	putint
+#
+	.global putint
+putint:
+	sub	sp,sp,64
+	stp	x30,x29,[sp,24]
+	add	x29,sp,24
+	stp	x27,x28,[x29,-16]
+# Line: 76, Stmt: 1
+	mov	x27,x0
+# Line: 77, Stmt: 2
+	cmp	w27,wzr
+	b.ge	.L26
+.L27:
+# Line: 79, Stmt: 0
+	mov	x0,45
+	bl	putchar
+# Line: 80, Stmt: 0
+	neg	w27,w27
+.L26:
+# Line: 83, Stmt: 0
+	mov	x28,xzr
+.L22:
+.L25:
+# Line: 84, Stmt: 0
+# Line: 85, Stmt: 0
+	add	x15,x29,w28, sxtw 0
+	mov	x14,10
+	sdiv	w12,w27,w14
+	msub	w11,w12,w14,w27
+	add	w14,w11,48
+	strb	w14,[x15,16]
+# Line: 86, Stmt: 0
+	add	w28,w28,1
+# Line: 87, Stmt: 0
+	mov	x27,x12
+	cbnz	w27,.L25
+.L23:
+.L24:
+# Line: 90, Stmt: 0
+# Line: 91, Stmt: 0
+	sub	w28,w28,1
+# Line: 92, Stmt: 0
+	add	x15,x29,w28, sxtw 0
+	ldrb	w0,[x15,16]
+	bl	putchar
+	cbnz	w28,.L24
+.L21:
+.L28:
+	ldp	x27,x28,[x29,-16]
+	ldp	x30,x29,[sp,24]
+	add	sp,sp,64
+	ret
+	.text
+	.align 2
+#
+#	putintln
+#
+	.global putintln
+putintln:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
+# Line: 99, Stmt: 1
+# Line: 100, Stmt: 2
+	bl	putint
+# Line: 101, Stmt: 0
+	bl	putln
+.L29:
+	ldp	x30,x29,[sp,16]
+	add	sp,sp,32
+	ret
+	.text
+	.align 2
+#
+#	putbool
+#
+	.global putbool
+putbool:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
+# Line: 106, Stmt: 1
+# Line: 107, Stmt: 2
+	cbz	w0,.L31
+.L32:
+# Line: 107, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+1
+	mov	x1,1
+	mov	x2,4
+	bl	putstring
+	b	.L33
+.L31:
+# Line: 108, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+7
+	mov	x1,1
+	mov	x2,5
+	bl	putstring
+.L30:
+.L33:
+	ldp	x30,x29,[sp,16]
+	add	sp,sp,32
+	ret
+	.text
+	.align 2
+#
+#	putboolln
+#
+	.global putboolln
+putboolln:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
+# Line: 113, Stmt: 1
+# Line: 114, Stmt: 2
+	bl	putbool
+# Line: 115, Stmt: 0
+	mov	x0,10
+	bl	putchar
+.L34:
+	ldp	x30,x29,[sp,16]
+	add	sp,sp,32
+	ret
+	.text
+	.align 2
+#
+#	putcharln
+#
+	.global putcharln
+putcharln:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
+# Line: 120, Stmt: 1
+# Line: 121, Stmt: 2
+	bl	putchar
+# Line: 122, Stmt: 0
+	bl	putln
+.L35:
+	ldp	x30,x29,[sp,16]
+	add	sp,sp,32
+	ret
+	.text
+	.align 2
+#
+#	p
+#
+.P12:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
+# Line: 10, Stmt: 1
+# Line: 11, Stmt: 2
+	cmp	w0,97
+	b.lo	.L65
+	mov	x15,x0
+	sub	w15,w15,97
+	cmp	w15,25
+	b.hi	.L64
+	adrp	x14,.L32763
+	add	x14,x14,:lo12:.L32763
+	ldr	w15,[x14, w15, uxtw 2]
+	adr	x14,.L32762
+	add	x15,x14,w15, uxtw 0
+	br	x15
+.L32762:
+	.section	.rodata
+.L32763:
+	.long	.L38-.L32762
+	.long	.L39-.L32762
+	.long	.L40-.L32762
+	.long	.L41-.L32762
+	.long	.L42-.L32762
+	.long	.L43-.L32762
+	.long	.L44-.L32762
+	.long	.L45-.L32762
+	.long	.L46-.L32762
+	.long	.L47-.L32762
+	.long	.L48-.L32762
+	.long	.L49-.L32762
+	.long	.L50-.L32762
+	.long	.L51-.L32762
+	.long	.L52-.L32762
+	.long	.L53-.L32762
+	.long	.L54-.L32762
+	.long	.L55-.L32762
+	.long	.L56-.L32762
+	.long	.L57-.L32762
+	.long	.L58-.L32762
+	.long	.L59-.L32762
+	.long	.L60-.L32762
+	.long	.L61-.L32762
+	.long	.L62-.L32762
+	.long	.L63-.L32762
+	.text
+	.align 2
+.L65:
+	cmp	w0,49
+	b.eq	.L37
+	b	.L64
+.L37:
+# Line: 12, Stmt: 0
+	mov	x0,49
+	bl	putchar
+	b	.L64
+.L38:
+# Line: 13, Stmt: 0
+	mov	x0,97
+	bl	putchar
+	b	.L64
+.L39:
+# Line: 14, Stmt: 0
+	mov	x0,98
+	bl	putchar
+	b	.L64
+.L40:
+# Line: 15, Stmt: 0
+	mov	x0,99
+	bl	putchar
+	b	.L64
+.L41:
+# Line: 16, Stmt: 0
+	mov	x0,100
+	bl	putchar
+	b	.L64
+.L42:
+# Line: 17, Stmt: 0
+	mov	x0,101
+	bl	putchar
+	b	.L64
+.L43:
+# Line: 18, Stmt: 0
+	mov	x0,102
+	bl	putchar
+	b	.L64
+.L44:
+# Line: 19, Stmt: 0
+	mov	x0,103
+	bl	putchar
+	b	.L64
+.L45:
+# Line: 20, Stmt: 0
+	mov	x0,104
+	bl	putchar
+	b	.L64
+.L46:
+# Line: 21, Stmt: 0
+	mov	x0,105
+	bl	putchar
+	b	.L64
+.L47:
+# Line: 22, Stmt: 0
+	mov	x0,106
+	bl	putchar
+	b	.L64
+.L48:
+# Line: 23, Stmt: 0
+	mov	x0,107
+	bl	putchar
+	b	.L64
+.L49:
+# Line: 24, Stmt: 0
+	mov	x0,108
+	bl	putchar
+	b	.L64
+.L50:
+# Line: 25, Stmt: 0
+	mov	x0,109
+	bl	putchar
+	b	.L64
+.L51:
+# Line: 26, Stmt: 0
+	mov	x0,110
+	bl	putchar
+	b	.L64
+.L52:
+# Line: 27, Stmt: 0
+	mov	x0,111
+	bl	putchar
+	b	.L64
+.L53:
+# Line: 28, Stmt: 0
+	mov	x0,112
+	bl	putchar
+	b	.L64
+.L54:
+# Line: 29, Stmt: 0
+	mov	x0,113
+	bl	putchar
+	b	.L64
+.L55:
+# Line: 30, Stmt: 0
+	mov	x0,114
+	bl	putchar
+	b	.L64
+.L56:
+# Line: 31, Stmt: 0
+	mov	x0,115
+	bl	putchar
+	b	.L64
+.L57:
+# Line: 32, Stmt: 0
+	mov	x0,116
+	bl	putchar
+	b	.L64
+.L58:
+# Line: 33, Stmt: 0
+	mov	x0,117
+	bl	putchar
+	b	.L64
+.L59:
+# Line: 34, Stmt: 0
+	mov	x0,118
+	bl	putchar
+	b	.L64
+.L60:
+# Line: 35, Stmt: 0
+	mov	x0,119
+	bl	putchar
+	b	.L64
+.L61:
+# Line: 36, Stmt: 0
+	mov	x0,120
+	bl	putchar
+	b	.L64
+.L62:
+# Line: 37, Stmt: 0
+	mov	x0,121
+	bl	putchar
+	b	.L64
+.L63:
+# Line: 38, Stmt: 0
+	mov	x0,122
+	bl	putchar
+	b	.L64
+.L64:
+# Line: 40, Stmt: 0
+	mov	x0,10
+	bl	putchar
+.L36:
+	ldp	x30,x29,[sp,16]
+	add	sp,sp,32
+	ret
+	.text
+	.align 2
+#
+#	p1
+#
+.P13:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
+# Line: 45, Stmt: 1
+# Line: 46, Stmt: 2
+	str	x0,[x29,-8]
+	cmp	w0,97
+	b.lo	.L95
+	mov	x15,x0
+	sub	w15,w15,97
+	cmp	w15,25
+	b.hi	.L94
+	adrp	x14,.L32761
+	add	x14,x14,:lo12:.L32761
+	ldr	w15,[x14, w15, uxtw 2]
+	adr	x14,.L32760
+	add	x15,x14,w15, uxtw 0
+	br	x15
+.L32760:
+	.section	.rodata
+.L32761:
+	.long	.L69-.L32760
+	.long	.L70-.L32760
+	.long	.L94-.L32760
+	.long	.L71-.L32760
+	.long	.L72-.L32760
+	.long	.L73-.L32760
+	.long	.L74-.L32760
+	.long	.L75-.L32760
+	.long	.L76-.L32760
+	.long	.L77-.L32760
+	.long	.L78-.L32760
+	.long	.L79-.L32760
+	.long	.L80-.L32760
+	.long	.L81-.L32760
+	.long	.L82-.L32760
+	.long	.L83-.L32760
+	.long	.L84-.L32760
+	.long	.L85-.L32760
+	.long	.L86-.L32760
+	.long	.L87-.L32760
+	.long	.L88-.L32760
+	.long	.L89-.L32760
+	.long	.L90-.L32760
+	.long	.L91-.L32760
+	.long	.L92-.L32760
+	.long	.L93-.L32760
+	.text
+	.align 2
+.L95:
+	cmp	w0,49
+	b.eq	.L67
+	cmp	w0,56
+	b.eq	.L68
+	b	.L94
+.L67:
+# Line: 47, Stmt: 0
+	mov	x0,49
+	bl	putchar
+	b	.L96
+.L68:
+# Line: 48, Stmt: 0
+	mov	x0,56
+	bl	putchar
+	b	.L96
+.L69:
+# Line: 49, Stmt: 0
+	mov	x0,97
+	bl	putchar
+	b	.L96
+.L70:
+# Line: 50, Stmt: 0
+	mov	x0,98
+	bl	putchar
+	b	.L96
+.L71:
+# Line: 51, Stmt: 0
+	mov	x0,100
+	bl	putchar
+	b	.L96
+.L72:
+# Line: 52, Stmt: 0
+	mov	x0,101
+	bl	putchar
+	b	.L96
+.L73:
+# Line: 53, Stmt: 0
+	mov	x0,102
+	bl	putchar
+	b	.L96
+.L74:
+# Line: 54, Stmt: 0
+	mov	x0,103
+	bl	putchar
+	b	.L96
+.L75:
+# Line: 55, Stmt: 0
+	mov	x0,104
+	bl	putchar
+	b	.L96
+.L76:
+# Line: 56, Stmt: 0
+	mov	x0,105
+	bl	putchar
+	b	.L96
+.L77:
+# Line: 57, Stmt: 0
+	mov	x0,106
+	bl	putchar
+	b	.L96
+.L78:
+# Line: 58, Stmt: 0
+	mov	x0,107
+	bl	putchar
+	b	.L96
+.L79:
+# Line: 59, Stmt: 0
+	mov	x0,108
+	bl	putchar
+	b	.L96
+.L80:
+# Line: 60, Stmt: 0
+	mov	x0,109
+	bl	putchar
+	b	.L96
+.L81:
+# Line: 61, Stmt: 0
+	mov	x0,110
+	bl	putchar
+	b	.L96
+.L82:
+# Line: 62, Stmt: 0
+	mov	x0,111
+	bl	putchar
+	b	.L96
+.L83:
+# Line: 63, Stmt: 0
+	mov	x0,112
+	bl	putchar
+	b	.L96
+.L84:
+# Line: 64, Stmt: 0
+	mov	x0,113
+	bl	putchar
+	b	.L96
+.L85:
+# Line: 65, Stmt: 0
+	mov	x0,114
+	bl	putchar
+	b	.L96
+.L86:
+# Line: 66, Stmt: 0
+	mov	x0,115
+	bl	putchar
+	b	.L96
+.L87:
+# Line: 67, Stmt: 0
+	mov	x0,116
+	bl	putchar
+	b	.L96
+.L88:
+# Line: 68, Stmt: 0
+	mov	x0,117
+	bl	putchar
+	b	.L96
+.L89:
+# Line: 69, Stmt: 0
+	mov	x0,118
+	bl	putchar
+	b	.L96
+.L90:
+# Line: 70, Stmt: 0
+	mov	x0,119
+	bl	putchar
+	b	.L96
+.L91:
+# Line: 71, Stmt: 0
+	mov	x0,120
+	bl	putchar
+	b	.L96
+.L92:
+# Line: 72, Stmt: 0
+	mov	x0,121
+	bl	putchar
+	b	.L96
+.L93:
+# Line: 73, Stmt: 0
+	mov	x0,122
+	bl	putchar
+	b	.L96
+.L94:
+# Line: 76, Stmt: 0
+	mov	x0,63
+	bl	putchar
+# Line: 77, Stmt: 0
+	ldr	x0,[x29,-8]
+	bl	putchar
+	b	.L96
+.L96:
+# Line: 80, Stmt: 0
+	mov	x0,10
+	bl	putchar
+.L66:
+	ldp	x30,x29,[sp,16]
+	add	sp,sp,32
+	ret
+	.text
+	.align 2
+#
+#	 (main)
+#
+	.global main
+main:
+	stp	x30,x29,[sp,-16]!
+	add	x29,sp,xzr
+# Line: 83, Stmt: 1
+# Line: 85, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+14
+	mov	x1,1
+	mov	x2,40
+	bl	putstringln
+# Line: 87, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+56
+	mov	x1,1
+	mov	x2,3
+	bl	putstring
+# Line: 88, Stmt: 0
+	mov	x0,xzr
+	bl	putintln
+# Line: 90, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+61
+	mov	x1,1
+	mov	x2,6
+	bl	putstring
+# Line: 91, Stmt: 0
+	mov	x0,1234
+	bl	putintln
+# Line: 93, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+69
+	mov	x1,1
+	mov	x2,7
+	bl	putstring
+# Line: 94, Stmt: 0
+	mov	x0,65535
+	bl	putintln
+# Line: 96, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+78
+	mov	x1,1
+	mov	x2,7
+	bl	putstring
+# Line: 97, Stmt: 0
+	mov	w0,65536
+	bl	putintln
+# Line: 99, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+87
+	mov	x1,1
+	mov	x2,7
+	bl	putstring
+# Line: 100, Stmt: 0
+	mov	w0,65537
+	bl	putintln
+# Line: 102, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+96
+	mov	x1,1
+	mov	x2,7
+	bl	putstring
+# Line: 103, Stmt: 0
+	movz	x0,3
+	movk	x0,1,lsl 16
+	bl	putintln
+# Line: 105, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+105
+	mov	x1,1
+	mov	x2,4
+	bl	putstring
+# Line: 106, Stmt: 0
+	movz	x0,65535
+	movk	x0,65535,lsl 16
+	bl	putintln
+# Line: 108, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+111
+	mov	x1,1
+	mov	x2,8
+	bl	putstring
+# Line: 109, Stmt: 0
+	mov	w0,4294901760
+	bl	putintln
+# Line: 111, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+121
+	mov	x1,1
+	mov	x2,8
+	bl	putstring
+# Line: 112, Stmt: 0
+	mov	w0,4294901759
+	bl	putintln
+# Line: 114, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+131
+	mov	x1,1
+	mov	x2,8
+	bl	putstring
+# Line: 115, Stmt: 0
+	movz	x0,65533
+	movk	x0,65534,lsl 16
+	bl	putintln
+# Line: 117, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+141
+	mov	x1,1
+	mov	x2,12
+	bl	putstring
+# Line: 118, Stmt: 0
+	mov	w0,2004318071
+	bl	putintln
+# Line: 120, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+155
+	mov	x1,1
+	mov	x2,48
+	bl	putstringln
+# Line: 121, Stmt: 0
+	bl	putln
+# Line: 123, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+205
+	mov	x1,1
+	mov	x2,22
+	bl	putstringln
+# Line: 124, Stmt: 0
+	mov	x0,97
+	bl	.P13  // p1
+# Line: 125, Stmt: 0
+	mov	x0,113
+	bl	.P13  // p1
+# Line: 126, Stmt: 0
+	mov	x0,101
+	bl	.P13  // p1
+# Line: 127, Stmt: 0
+	mov	x0,100
+	bl	.P13  // p1
+# Line: 128, Stmt: 0
+	mov	x0,122
+	bl	.P13  // p1
+# Line: 129, Stmt: 0
+	mov	x0,99
+	bl	.P13  // p1
+# Line: 130, Stmt: 0
+	mov	x0,48
+	bl	.P13  // p1
+# Line: 131, Stmt: 0
+	mov	x0,49
+	bl	.P13  // p1
+# Line: 132, Stmt: 0
+	mov	x0,56
+	bl	.P13  // p1
+# Line: 134, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+229
+	mov	x1,1
+	mov	x2,39
+	bl	putstringln
+# Line: 135, Stmt: 0
+	adrp	x15,.L32765
+	add	x0,x15,:lo12:.L32765+270
+	mov	x1,1
+	mov	x2,50
+	bl	putstringln
+# Line: 136, Stmt: 0
+	mov	x0,97
+	bl	.P12  // p
+# Line: 137, Stmt: 0
+	mov	x0,113
+	bl	.P12  // p
+# Line: 138, Stmt: 0
+	mov	x0,101
+	bl	.P12  // p
+# Line: 139, Stmt: 0
+	mov	x0,100
+	bl	.P12  // p
+# Line: 140, Stmt: 0
+	mov	x0,122
+	bl	.P12  // p
+.L97:
+	ldp	x30,x29,[sp],16
+	ret
+	.comm	.L32766,16,12

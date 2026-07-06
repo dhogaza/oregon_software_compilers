@@ -1,5 +1,9 @@
 s1:[one, two, five, func(four)]  true  true false  true  true false false false 
 s2:[eight, two..five] false  true  true  true  true false false  true 
+b2:five in s2:  true
+succ(b2):six in s2: false
+five in s2:  true
+six in s2: false
 s1 + s2  true  true  true  true  true false false  true 
 s1 * s2 false  true false  true  true false false false 
 s1 - s2  true false false false false false false false 
@@ -9,3 +13,6 @@ sa1 = sa2 false
 sa1 <> sa2 false
 sa1:[b, e, k] <= [b, e] false
 sa1:[b, e, k] >= [b, e]  true
+a2:c in sa2:[c..j]  true
+j in sa2:[c..j]  true
+a in sa2:[c..j] false

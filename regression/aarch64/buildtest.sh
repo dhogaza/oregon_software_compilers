@@ -22,9 +22,8 @@ elif [[ "$type" == "errors" ]]; then
   $pasdir/pas2arm64 $src/$1 --include=$lib >$1.out
   if [ $? == 0 ]; then
     echo "*** no compilation error detected ***" 
-  else
-    mv $1.out $1.out.good
   fi
+  mv $1.out $1.out.good
 fi
 rm -f a.out *.tmp
 popd >/dev/null

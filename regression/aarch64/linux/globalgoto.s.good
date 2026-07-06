@@ -104,6 +104,7 @@ main:
 	adrp	x16,.L32760
 	ldr	x17,[x16,:lo12:.L32760]
 	mov	sp,x17
+	add	x29,sp,88
 .L32766:
 # Line: 30, Stmt: 0
 	adrp	x28,.L32761
@@ -143,6 +144,7 @@ main:
 	adrp	x16,.L32760
 	ldr	x17,[x16,:lo12:.L32760]
 	mov	sp,x17
+	add	x29,sp,88
 .L32764:
 # Line: 40, Stmt: 0
 	adrp	x28,.L32761
