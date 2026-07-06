@@ -1,6 +1,3 @@
-Pascal-2 ARM64  2.3.0.1     today!     Page 1-1
-/Users/dhogaza/oregon_software_compilers/regression/src/constparams.errors
-
    13        s[1] := 'a'; 
              ^113
 *** 113: Illegal assignment to CONST parameter
