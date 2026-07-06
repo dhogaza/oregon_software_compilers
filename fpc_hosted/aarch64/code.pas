@@ -3027,7 +3027,7 @@ procedure genstr(var after: nodeptr;
   by walking the generated code.
 }
 
-procedure handle_bitmask(var k: keyindex);
+procedure handle_bitmask(var after: nodeptr; var k: keyindex);
 
 { Materializes an intconst into either a bitmask immediate or register }
 
@@ -3038,7 +3038,7 @@ procedure handle_bitmask(var k: keyindex);
           k := settemp(len, immbitmask_oprnd(int_value))
         else
           begin
-          genlongint(lastnode, int_value, ip0);
+          genlongint(after, int_value, ip0);
           k := settemp(len, reg_oprnd(ip0));
           end;
   end {handle_bitmask};
@@ -4327,7 +4327,7 @@ procedure logicalarithmetic(inst: insts);
     lock(key);
     loadreg(left, right);
     if keytable[right].oprnd.mode = intconst then
-      handle_bitmask(right)
+      handle_bitmask(lastnode, right)
     else if not (keytable[right].oprnd.mode in [register, shift_reg]) then
       loadreg(right, left);
     unlock(key);
@@ -4983,7 +4983,7 @@ var
 
 begin {setarithmetic}
   if len <= long then
-    integerarithmetic(inst)
+    logicalarithmetic(inst)
   else
     begin
     addressboth;
@@ -5157,7 +5157,7 @@ procedure setinsertx;
          (keytable[left].oprnd.int_value < 32) then
         begin
         power2key := settemp(long, intconst_oprnd(power2(keytable[left].oprnd.int_value)));
-        handle_bitmask(power2key);
+        handle_bitmask(lastnode, power2key);
         gen3(lastnode, buildinst(andinst, len = long, true), regkeys[ip0], right, power2key);
         end
       else  
@@ -5174,7 +5174,7 @@ procedure setinsertx;
         begin
         power2key :=
           settemp(long, intconst_oprnd(power2(keytable[left].oprnd.int_value mod 8)));
-        handle_bitmask(power2key);
+        handle_bitmask(lastnode, power2key);
         if keytable[right].oprnd.mode in [abstract_offset, label_offset] then
           rightregkey := settemp(word, keytable[right].oprnd)
         else
@@ -5302,12 +5302,17 @@ begin {cmpsetinclusion}
   address(operand1, 0);
   lock(operand1);
   address(operand2, 0);
+  unlock(operand1);
   if len <= long then
     begin
-    unlock(operand1);
-    loadreg(operand1, operand2);
+    lock(operand2);
+    if keytable[operand1].oprnd.mode = intconst then
+      handle_bitmask(lastnode, operand1)
+    else if not (keytable[operand1].oprnd.mode in [register, shift_reg]) then
+      loadreg(operand1, operand2);
+    unlock(operand2);
     loadreg(operand2, operand1);
-    gen3(lastnode, buildinst(bic, true, true), operand1, operand2, operand1);
+    gen3(lastnode, buildinst(bic, true, true), regkeys[zero], operand2, operand1);
     end
   else
     begin
@@ -5322,7 +5327,6 @@ begin {cmpsetinclusion}
     keytable[operand2regkey].oprnd.mode := post_index;
     keytable[operand2regkey].oprnd.index := quad;
     unlock(operand2);
-    unlock(operand1);
     lock(operand2regkey);
     tempregkey := regkeys[ip0];
     tempreg2key := regkeys[ip1];
@@ -5340,7 +5344,7 @@ begin {cmpsetinclusion}
       begin
       gen3(lastnode, buildinst(ldp, true, false), tempregkey, tempreg2key, operand1regkey);
       gen3(lastnode, buildinst(ldp, true, false), tempreg3key, tempreg4key, operand2regkey);
-      gen3(lastnode, buildinst(bic, true, true), tempregkey, tempreg3key, tempregkey);
+      gen3(lastnode, buildinst(bic, true, true), regkeys[zero], tempreg3key, tempregkey);
       genbcond(lastnode, ne, skiplabel);
       gen3(lastnode, buildinst(bic, true, true), tempreg2key, tempreg4key, tempreg2key);
       len := len - quad;
@@ -5351,7 +5355,7 @@ begin {cmpsetinclusion}
       begin
       genldr(lastnode, long, false, tempregkey, operand1regkey);
       genldr(lastnode, long, false, tempreg3key, operand2regkey);
-      gen3(lastnode, buildinst(bic, true, true), tempregkey, tempreg3key, tempregkey);
+      gen3(lastnode, buildinst(bic, true, true), regkeys[zero], tempreg3key, tempregkey);
       end;
     definelabel(skiplabel);
     end;
@@ -5420,7 +5424,7 @@ begin
                           ptrsize, false));
   loadreg(bufferptrkey, 0);
   power2key := settemp(long, intconst_oprnd(power2(whichbit)));
-  handle_bitmask(power2key);
+  handle_bitmask(lastnode, power2key);
   loadreg(bufferptrkey, regkeys[0]);
   gen3(lastnode, buildinst(andinst, len = long, true), regkeys[zero],
                  bufferptrkey, power2key);
