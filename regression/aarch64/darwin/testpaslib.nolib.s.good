@@ -944,10 +944,7 @@ _p_dumpfilelist:
 # Line: 426, Stmt: 0
 	str	xzr,[x14]
 # Line: 427, Stmt: 0
-	adrp	x12,.L32765@PAGE
-	add	x16,x12,.L32765+296@PAGEOFF
-	ldrsh	w16,[x16]
-	strh	w16,[x14,8]
+	strh	wzr,[x14,8]
 # Line: 428, Stmt: 0
 	str	x15,[x14,24]
 # Line: 429, Stmt: 0
