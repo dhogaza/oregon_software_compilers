@@ -24,7 +24,7 @@ for f in $src/*.pas; do
     $pasdir/pas2arm64 $f --include=$lib >$base.out
     diff $base.out $base.out.good >$base.out.diff
     if [ -s "$base.out.diff" ]; then
-      echo "$base.out is different than $f.out.good"
+      echo "$base.out is different than $base.out.good"
     fi
   fi
   rm -f *.tmp a.out
