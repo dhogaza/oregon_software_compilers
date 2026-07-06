@@ -5,8 +5,9 @@ const
 
 type
 
-  { For faking out C strings and passing packed array strings to
-    Pascal library procs.
+  { For faking out C strings and passing optional packed array string parameters
+    to Pascal library procs.  The latter are passed as nil if they aren't given
+    as part of the parameter list.
   }
 
 
@@ -21,8 +22,8 @@ type
   _p_addressptr = ^_p_address; {for now}
   _p_streamptr = ^int64; {for now}
 
-  { The first three enum valued must be matched in the code generator. These
-    are taken from the MC68000 library and not all will apply to our files.
+  { The first three enum valued must be matched in the code generator. The
+    others are taken from the MC68000 library and not all will apply to our files.
   }
 
   _p_filestatusenum = (
