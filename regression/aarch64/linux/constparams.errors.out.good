@@ -1,0 +1,50 @@
+Pascal-2 ARM64  2.3.0.1     today!     Page 1-1
+/home/dhogaza/oregon_software_compilers/regression/src/constparams.errors
+
+   13        s[1] := 'a'; 
+             ^113
+*** 113: Illegal assignment to CONST parameter
+
+   14        pi := ref(j); 
+                       ^115
+*** 115: CONST parameters can't be modified
+
+   15        cp := ref(s[1]); 
+                       ^115
+*** 115: CONST parameters can't be modified
+
+   16        j := 3; 
+             ^113
+*** 113: Illegal assignment to CONST parameter
+
+   17        for j := 1 to 10 do; 
+                 ^113
+*** 113: Illegal assignment to CONST parameter
+
+   20        p(j); 
+               ^115
+*** 115: CONST parameters can't be modified
+
+   24      procedure p2(const i: integer); 
+                          ^114
+*** 114: CONST parameters are nonstandard
+
+   28      procedure p3(const a:array[i..j:integer] of integer); 
+                          ^114
+*** 114: CONST parameters are nonstandard
+
+   40        aa[2] := 3; 
+             ^113
+*** 113: Illegal assignment to CONST parameter
+
+   41        ptr := ref(aa[1]); 
+                        ^115
+*** 115: CONST parameters can't be modified
+
+   42        p4(aa); 
+                ^115
+*** 115: CONST parameters can't be modified
+
+
+ *** There were 11 lines with errors detected ***
+?Errors detected: 11

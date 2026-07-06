@@ -44,7 +44,7 @@
 #	sets
 #
 .P1:
-	sub	sp,sp,288
+	sub	sp,sp,48
 # Line: 101, Stmt: 1
 	adrp	x13,.L32766
 # Line: 102, Stmt: 2
@@ -106,7 +106,7 @@
 # Line: 112, Stmt: 0
 	add	x10,x13,:lo12:.L32766+32
 	add	x9,x13,:lo12:.L32766+56
-	add	x8,sp,240
+	add	x8,sp,0
 	ldp	x16,x17,[x10],16
 	ldp	x12,x11,[x9],16
 	orr	x16,x16,x12
@@ -116,7 +116,7 @@
 	ldr	x17,[x9],16
 	orr	x16,x16,x17
 	str	x16,[x8],16
-	add	x10,sp,240
+	add	x10,sp,0
 	add	x9,x13,:lo12:.L32766+32
 	add	x8,x13,:lo12:.L32766+32
 	ldp	x16,x17,[x10],16
@@ -129,37 +129,21 @@
 	and	x16,x16,x17
 	str	x16,[x8],16
 # Line: 113, Stmt: 0
-	mov	x12,89
-	add	x11,x13,:lo12:.L32766+32
-	asr	x16,x12,3
-	and	x17,x12,7
-	ldrb	w16,[x11, x16]
-	asr	x16,x16,x17
-	ands	x16,x16,1
+	ldrb	w16,[x13,:lo12:.L32766+43]
+	ands	w16,w16,2
 	cset	w12,ne
 	strb	w12,[x13,:lo12:.L32766+116]
 # Line: 114, Stmt: 0
-	mov	x12,191
-	add	x11,x13,:lo12:.L32766+32
-	asr	x16,x12,3
-	and	x17,x12,7
-	ldrb	w16,[x11, x16]
-	asr	x16,x16,x17
-	ands	x16,x16,1
+	ldrb	w16,[x13,:lo12:.L32766+55]
+	ands	w16,w16,128
 	cset	w12,ne
 	eor	w12,w12,1
 	strb	w12,[x13,:lo12:.L32766+117]
 # Line: 115, Stmt: 0
-	adrp	x11,.L32765
-	add	x12,x11,:lo12:.L32765+72
-	add	x11,sp,216
-	ldp	x16,x17,[x12],16
-	stp	x16,x17,[x11],16
-	ldr	x16,[x12],16
-	str	x16,[x11],16
 	add	x10,x13,:lo12:.L32766+32
-	add	x9,sp,216
-	add	x8,sp,192
+	adrp	x8,.L32765
+	add	x9,x8,:lo12:.L32765+72
+	add	x8,sp,0
 	ldp	x16,x17,[x10],16
 	ldp	x12,x11,[x9],16
 	bic	x16,x16,x12
@@ -169,26 +153,15 @@
 	ldr	x17,[x9],16
 	bic	x16,x16,x17
 	str	x16,[x8],16
-	mov	x12,xzr
-	add	x11,sp,192
-	asr	x16,x12,3
-	and	x17,x12,7
-	ldrb	w16,[x11, x16]
-	asr	x16,x16,x17
-	ands	x16,x16,1
+	ldrb	w16,[sp]
+	ands	w16,w16,1
 	cset	w12,ne
 	eor	w12,w12,1
 	strb	w12,[x13,:lo12:.L32766+118]
 # Line: 116, Stmt: 0
-	adrp	x11,.L32765
-	add	x12,x11,:lo12:.L32765+96
-	add	x11,sp,168
-	ldp	x16,x17,[x12],16
-	stp	x16,x17,[x11],16
-	ldr	x16,[x12],16
-	str	x16,[x11],16
 	add	x10,x13,:lo12:.L32766+32
-	add	x9,sp,168
+	adrp	x8,.L32765
+	add	x9,x8,:lo12:.L32765+96
 	add	x8,x13,:lo12:.L32766+32
 	ldp	x16,x17,[x10],16
 	ldp	x12,x11,[x9],16
@@ -200,13 +173,9 @@
 	orr	x16,x16,x17
 	str	x16,[x8],16
 # Line: 118, Stmt: 0
-	adrp	x11,.L32765
-	add	x12,x11,:lo12:.L32765+120
-	add	x11,sp,152
-	ldp	x16,x17,[x12],16
-	stp	x16,x17,[x11],16
 	add	x12,x13,:lo12:.L32766+16
-	add	x11,sp,152
+	adrp	x10,.L32765
+	add	x11,x10,:lo12:.L32765+120
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
 	cmp	x16,x10
@@ -216,13 +185,9 @@
 	cset	w12,eq
 	strb	w12,[x13,:lo12:.L32766+119]
 # Line: 119, Stmt: 0
-	adrp	x11,.L32765
-	add	x12,x11,:lo12:.L32765+136
-	add	x11,sp,136
-	ldp	x16,x17,[x12],16
-	stp	x16,x17,[x11],16
 	add	x12,x13,:lo12:.L32766+16
-	add	x11,sp,136
+	adrp	x10,.L32765
+	add	x11,x10,:lo12:.L32765+136
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
 	cmp	x16,x10
@@ -232,16 +197,12 @@
 	cset	w12,ne
 	strb	w12,[x13,:lo12:.L32766+120]
 # Line: 120, Stmt: 0
-	adrp	x11,.L32765
-	add	x12,x11,:lo12:.L32765+152
-	add	x11,sp,120
-	ldp	x16,x17,[x12],16
-	stp	x16,x17,[x11],16
 	add	x12,x13,:lo12:.L32766+16
-	add	x11,sp,120
+	adrp	x10,.L32765
+	add	x11,x10,:lo12:.L32765+152
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
-	bics	x16,x10,x16
+	bics	xzr,x10,x16
 	b.ne	.L32759
 	bics	x17,x9,x17
 .L32759:
@@ -250,29 +211,19 @@
 # Line: 121, Stmt: 0
 	adrp	x11,.L32765
 	add	x12,x11,:lo12:.L32765+168
-	add	x11,sp,104
-	ldp	x16,x17,[x12],16
-	stp	x16,x17,[x11],16
-	add	x12,sp,104
 	add	x11,x13,:lo12:.L32766+16
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
-	bics	x16,x10,x16
+	bics	xzr,x10,x16
 	b.ne	.L32758
 	bics	x17,x9,x17
 .L32758:
 	cset	w12,eq
 	strb	w12,[x13,:lo12:.L32766+121]
 # Line: 123, Stmt: 0
-	adrp	x11,.L32765
-	add	x12,x11,:lo12:.L32765+184
-	add	x11,sp,80
-	ldp	x16,x17,[x12],16
-	stp	x16,x17,[x11],16
-	ldr	x16,[x12],16
-	str	x16,[x11],16
 	add	x12,x13,:lo12:.L32766+56
-	add	x11,sp,80
+	adrp	x10,.L32765
+	add	x11,x10,:lo12:.L32765+184
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
 	cmp	x16,x10
@@ -286,15 +237,9 @@
 	cset	w12,eq
 	strb	w12,[x13,:lo12:.L32766+123]
 # Line: 124, Stmt: 0
-	adrp	x11,.L32765
-	add	x12,x11,:lo12:.L32765+208
-	add	x11,sp,56
-	ldp	x16,x17,[x12],16
-	stp	x16,x17,[x11],16
-	ldr	x16,[x12],16
-	str	x16,[x11],16
 	add	x12,x13,:lo12:.L32766+56
-	add	x11,sp,56
+	adrp	x10,.L32765
+	add	x11,x10,:lo12:.L32765+208
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
 	cmp	x16,x10
@@ -310,44 +255,32 @@
 # Line: 125, Stmt: 0
 	adrp	x11,.L32765
 	add	x12,x11,:lo12:.L32765+232
-	add	x11,sp,32
-	ldp	x16,x17,[x12],16
-	stp	x16,x17,[x11],16
-	ldr	x16,[x12],16
-	str	x16,[x11],16
-	add	x12,sp,32
 	add	x11,x13,:lo12:.L32766+56
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
-	bics	x16,x10,x16
+	bics	xzr,x10,x16
 	b.ne	.L32755
 	bics	x17,x9,x17
 	b.ne	.L32755
 	ldr	x16,[x12],16
 	ldr	x10,[x11],16
-	bics	x16,x10,x16
+	bics	xzr,x10,x16
 .L32755:
 	cset	w12,eq
 	strb	w12,[x13,:lo12:.L32766+125]
 # Line: 126, Stmt: 0
-	adrp	x11,.L32765
-	add	x12,x11,:lo12:.L32765+256
-	add	x11,sp,8
-	ldp	x16,x17,[x12],16
-	stp	x16,x17,[x11],16
-	ldr	x16,[x12],16
-	str	x16,[x11],16
 	add	x12,x13,:lo12:.L32766+56
-	add	x11,sp,8
+	adrp	x10,.L32765
+	add	x11,x10,:lo12:.L32765+256
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
-	bics	x16,x10,x16
+	bics	xzr,x10,x16
 	b.ne	.L32754
 	bics	x17,x9,x17
 	b.ne	.L32754
 	ldr	x16,[x12],16
 	ldr	x10,[x11],16
-	bics	x16,x10,x16
+	bics	xzr,x10,x16
 .L32754:
 	cset	w12,eq
 	strb	w12,[x13,:lo12:.L32766+126]
@@ -362,7 +295,7 @@
 	b.le	.L5
 .L8:
 .L2:
-	add	sp,sp,288
+	add	sp,sp,48
 	ret
 	.text
 	.align 2

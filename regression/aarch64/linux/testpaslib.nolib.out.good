@@ -1,0 +1,17 @@
+yz  a 100!
+abc xyz xyz
+false truefalsetrue     false      true
+expecting 10 20
+ 10 20
+execting 2: 2
+expecting 0: 0
+expecting 1: 1
+expecting 2: 2
+expecting '   xyz': '   xyz'
+expecting 'xyz    ': 'xyz    '
+expecting 'xyz': 'xyz'
+expecting 'cdef': 'cdef'
+expecting '': ''
+expecting '': ''
+expecting 'abcdef': 'abcdef'
+expecting '': ''

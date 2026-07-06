@@ -1,0 +1,33 @@
+abc
+boolean compares =, <>, <, >, <=, >=
+testing 'abc' vs 'xyz'
+expect false false
+expect true  true
+expect true  true
+expect false false
+expect true  true
+expect false false
+
+testing 'abc' vs 'abcd'
+expect false false
+expect true  true
+expect true  true
+expect false false
+expect true  true
+expect false false
+
+testing 'abc' vs 'ab'
+expecting false false
+expecting true  true
+expecting false false
+expecting true  true
+expecting false false
+expecting true  true
+
+testing 'abc' vs 'abc'
+expecting true  true
+expecting false false
+expecting false false
+expecting false false
+expecting true  true
+expecting true  true

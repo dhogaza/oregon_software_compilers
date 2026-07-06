@@ -220,5 +220,5 @@ begin {main}
       halt(1);
       end;
     end;
-    halt(ord(lasterror > 1));
+    halt(ord(lasterror > 0));
 end {main} .
