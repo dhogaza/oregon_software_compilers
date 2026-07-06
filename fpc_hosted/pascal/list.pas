@@ -742,7 +742,7 @@ procedure printlisting(var listing: text {file on which listing is output} );
 	    pageline := pageline + 2 + ord(not fakelist);
 	    end;
 
-        if topofpage then listtitle;
+        if not fakelist and topofpage then listtitle;
 
         if sourcelevel > 1 then wl_int(sourcelevel, 1)
         else wl_chr(' ');
