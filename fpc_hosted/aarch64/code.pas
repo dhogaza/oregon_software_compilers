@@ -4940,12 +4940,6 @@ procedure dosetx;
 
 procedure movsetx;
 
-{ emptysetkludge goes away when improve smooths set op lengths
-}
-
-var
-  emptysetkludge: keyindex;
-
 begin {movsetx}
   addressboth;
   if not equivaddr(left, right) then
@@ -4953,14 +4947,7 @@ begin {movsetx}
     if len <= long then
       begin
       if len < keytable[right].len then
-        begin
-        emptysetkludge := settemp(long, reg_oprnd(ip0));
-        genmoveaddress(lastnode, right, emptysetkludge);
-        keytable[emptysetkludge].oprnd :=
-          index_oprnd(unsigned_offset, ip0, 0, false);
-        keytable[emptysetkludge].len := len;
-        right := emptysetkludge;
-        end;
+        right := settemp(len, intconst_oprnd(0));
       gensimplemove(lastnode, right, left)
       end
     else
