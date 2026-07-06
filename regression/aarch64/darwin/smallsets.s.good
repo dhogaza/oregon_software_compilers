@@ -382,9 +382,9 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766@PAGE
-	mov	x14,18
+	movz	x16,18
 	ldrh	w15,[x15,.L32766+22@PAGEOFF]
-	bics	x14,x15,x14
+	bics	xzr,x15,x16
 	cset	w0,eq
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -398,7 +398,7 @@ _main:
 	adrp	x15,.L32766@PAGE
 	ldrh	w15,[x15,.L32766+22@PAGEOFF]
 	mov	x14,18
-	bics	x15,x14,x15
+	bics	xzr,x14,x15
 	cset	w0,eq
 	mov	x1,5
 	bl	_p_wtb_o 

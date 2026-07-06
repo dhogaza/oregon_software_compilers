@@ -202,7 +202,7 @@
 	add	x11,x10,.L32765+152@PAGEOFF
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
-	bics	x16,x10,x16
+	bics	xzr,x10,x16
 	b.ne	.L32759
 	bics	x17,x9,x17
 .L32759:
@@ -214,7 +214,7 @@
 	add	x11,x13,.L32766+16@PAGEOFF
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
-	bics	x16,x10,x16
+	bics	xzr,x10,x16
 	b.ne	.L32758
 	bics	x17,x9,x17
 .L32758:
@@ -258,13 +258,13 @@
 	add	x11,x13,.L32766+56@PAGEOFF
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
-	bics	x16,x10,x16
+	bics	xzr,x10,x16
 	b.ne	.L32755
 	bics	x17,x9,x17
 	b.ne	.L32755
 	ldr	x16,[x12],16
 	ldr	x10,[x11],16
-	bics	x16,x10,x16
+	bics	xzr,x10,x16
 .L32755:
 	cset	w12,eq
 	strb	w12,[x13,.L32766+125@PAGEOFF]
@@ -274,13 +274,13 @@
 	add	x11,x10,.L32765+256@PAGEOFF
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
-	bics	x16,x10,x16
+	bics	xzr,x10,x16
 	b.ne	.L32754
 	bics	x17,x9,x17
 	b.ne	.L32754
 	ldr	x16,[x12],16
 	ldr	x10,[x11],16
-	bics	x16,x10,x16
+	bics	xzr,x10,x16
 .L32754:
 	cset	w12,eq
 	strb	w12,[x13,.L32766+126@PAGEOFF]

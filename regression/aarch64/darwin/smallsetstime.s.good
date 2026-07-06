@@ -193,15 +193,15 @@ _main:
 	cset	w25,eq
 # Line: 59, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	mov	x14,18
+	movz	x16,18
 	ldrh	w15,[x15,.L32766+22@PAGEOFF]
-	bics	x14,x15,x14
+	bics	xzr,x15,x16
 	cset	w24,eq
 # Line: 60, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	ldrh	w15,[x15,.L32766+22@PAGEOFF]
 	mov	x14,18
-	bics	x15,x14,x15
+	bics	xzr,x14,x15
 	cset	w23,eq
 # Line: 61, Stmt: 0
 	mov	x15,18
