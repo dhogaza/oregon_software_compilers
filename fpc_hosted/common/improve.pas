@@ -421,6 +421,9 @@ procedure assignregs;
    { apply register allocations to a list of statements.
    }
 
+    var
+      p: nodeptr; { for access to statement node }
+
     procedure applytostmt(stmt: nodeindex);
 
     { apply register allocations to a list of statements.
@@ -451,9 +454,6 @@ procedure assignregs;
           end;
         end;
       end {applytostmt};
-
-    var
-      p: nodeptr; { for access to statement node }
 
     begin {applytostmtlist}
       while firststmt <> 0 do
@@ -1722,6 +1722,230 @@ procedure loops;
 
   end {loops} ;
 
+procedure sets;
+
+
+  procedure applytotree;
+
+{
+    Purpose:
+      Replace indxops with regtmps if that address has been assigned
+      to a variable.
+
+    Inputs:
+      Head of a list of basic blocks.
+
+    Outputs:
+      None:
+
+    Algorithm:
+      Walk basic blocks, statements, and expressions recursively and for
+      each expression in the DAG, look for indxops that reference either
+      a levelop or a [real/ptr]regop.  If this corresponds to a variable or
+      parameter that has been assigned to a regtemp, replace.
+
+    Sideeffects:
+      Current procedure is modified.  Hopefully for the better.
+
+}
+
+    procedure applytoexprnode(expr: nodeindex);
+
+    var
+      exprp: nodeptr;
+      i: oprndindex;
+
+      procedure applytoregparamnode(expr: nodeindex);
+
+{
+    Purpose:
+      See if this regparam is worthy of being promoted to a callee-saved
+      register.  If so, the regparam node is modified to include that register
+      so the code generator can move on proc entry.
+
+    Inputs:
+      An expr which is known to be a regparam, ptrregparam, or realregparam  node
+
+    Outputs:
+      None
+
+    Algorithm:
+      Inspects the regparam node to see if it has been allocated to a callee-saved
+      register.
+
+    Sideeffects:
+      May transform the index node into a regtemp node.
+}
+
+        var
+          exprp: nodeptr;
+          offset: addressrange;
+          j: 0..regtablelimit; { var for temp search }
+
+        begin {applytoregparamnode}
+
+          exprp := @(bignodetable[expr]);
+          offset := exprp^.oprnds[2];
+            { This hashes the var's offset, really should be a function call.
+              However it would be called in several high bandwidth places and
+              places an unneeded speed penalty on this phase.
+              This code is replicated in procedures: doreference, killasreg
+              and dodefine in travrs.
+            }
+          j := (offset div targetintsize) mod (regtablelimit + 1);
+          while ((regvars[j].offset <> offset) or not regvars[j].parameter) and
+                (regvars[j].worth >= 0) do
+            j := (j + 1) mod (regtablelimit + 1);
+          if regvars[j].regid <> 0 then
+            begin
+            exprp^.oprnds[1] := -1;
+            exprp^.oprnds[2] := regvars[j].regid;
+            end;
+        end {applytoregparamnode};
+     
+
+      procedure applytoindexnode(expr: nodeindex);
+
+{
+    Purpose:
+      See if this indx node can be replaced with a regtemp node.
+
+    Inputs:
+      An expr which is known to be an index node
+
+    Outputs:
+      None
+
+    Algorithm:
+      Inspects the indx node to see if its offset and matches any register that's
+      been permanently allocated to a variable.
+
+    Sideeffects:
+      May transform the index node into a regtemp node.
+}
+
+
+        var
+          left: nodeindex;
+          exprp,leftp: nodeptr;
+          possibletemp: boolean; {true if local var or regparam and possible
+                                  temp loc}
+          offset: addressrange; {variable offset if possibletemp}
+          j: 0..regtablelimit; { var for temp search }
+          third: integer; {third operand, zero or temp number}
+
+        begin {applytoindexnode}
+          exprp := @(bignodetable[expr]);
+          left := exprp^.oprnds[1];
+          leftp := @(bignodetable[left]);
+          offset := exprp^.oprnds[2];
+          third := 0;
+          if (leftp^.op = levop) and (leftp^.oprnds[1] = level) then
+            begin
+              { This hashes the var's offset, really should be a function call.
+                However it would be called in several high bandwidth places and
+                places an unneeded speed penalty on this phase.
+                This code is replicated in procedures: doreference, killasreg
+                and dodefine in travrs.
+              }
+            j := (offset div targetintsize) mod (regtablelimit + 1);
+            while ((regvars[j].offset <> offset) or regvars[j].parameter) and
+                  (regvars[j].worth >= 0) do
+              j := (j + 1) mod (regtablelimit + 1);
+            if regvars[j].regid <> 0 then
+              begin
+              case regvars[j].regkind of
+                reg, bytereg: exprp^.op := regtempop;
+                realreg: exprp^.op := realtempop;
+                ptrreg: exprp^.op := ptrtempop;
+                end;
+              exprp^.oprnds[2] := 0;
+              exprp^.oprnds[3] := regvars[j].regid;
+              end;
+            end
+          else applytoexprnode(left);
+        end {applytoindexnode};
+
+    begin {applytoexprnode}
+      if expr <> 0 then
+        begin
+        if bigcompilerversion then exprp := @(bignodetable[expr]);
+        if exprp^.action = copy then
+          exprp := @(bignodetable[exprp^.directlink]);
+        if (exprp^.op < intop) and (exprp^.slink <> 0) then
+          applytoexprnode(exprp^.slink);
+        case exprp^.op of
+          indxop: applytoindexnode(expr);
+          regparamop, ptrregparamop,realregparamop: applytoregparamnode(expr);
+          otherwise
+            for i := 1 to maxoprnd do
+              if exprp^.nodeoprnd[i] then
+                applytoexprnode(exprp^.oprnds[i]);
+          end;
+        end;
+    end {applytoexprnode};
+
+    procedure applytostmtlist(firststmt: nodeindex);
+
+   { apply register allocations to a list of statements.
+   }
+
+    var
+      p: nodeptr; { for access to statement node }
+
+    procedure applytostmt(stmt: nodeindex);
+
+    { apply register allocations to a list of statements.
+    }
+
+    var
+      currentstmt: node; { current stmt node }
+      p: nodeptr;
+
+
+      begin {applytostmt}
+      if bigcompilerversion then p := @(bignodetable[stmt]);
+      currentstmt := p^;
+      with currentstmt do
+        begin
+        case stmtkind of
+          blkhdr, labelhdr, gotohdr, nohdr, caseerrhdr, loopbrkhdr, cswbrkhdr,
+          loopconthdr, swbrkhdr, caselabhdr, casegroup, whilebothdr, loopbothdr,
+          loophdr: { no expressions };
+          casehdr: applytoexprnode(selector);
+          whilehdr, rpthdr, ifhdr, foruphdr, fordnhdr, withhdr, simplehdr,
+          syscallhdr, untilhdr, cforhdr, cforbothdr, returnhdr, forbothdr:
+            begin
+            applytoexprnode(expr1);
+            applytoexprnode(expr2);
+            end;
+          otherwise writeln('statement missing from applytostmt ', ord(stmtkind))
+          end;
+        end;
+      end {applytostmt};
+
+    begin {applytostmtlist}
+      while firststmt <> 0 do
+        begin
+        if bigcompilerversion then p := @(bignodetable[firststmt]);
+        applytostmt(firststmt);
+        firststmt := p^.nextstmt;
+        end;
+    end {applytostmtlist};
+
+    begin {applytotree}
+      { now walk the block in dfo }
+      currentblock := root;
+      repeat
+        if not currentblock^.isdead then
+          applytostmtlist(currentblock^.beginstmt);
+        currentblock := currentblock^.dfolist;
+      until currentblock = nil;
+    end {applytotree};
+
+begin {sets}
+  applytotree;
+end {sets};
 
 procedure smooth;
 {
@@ -2022,6 +2246,7 @@ procedure improve;
 
   begin {improve}
     assignregs;
+{sets;}
     { smooth before hoisting }
     case targetmachine of
       iAPX86, mc68000:; { Smoothing causes poor code for these machines. }
