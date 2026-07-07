@@ -5492,11 +5492,11 @@ begin {setbinfilex}
     binfilereg := getreg;
     setvalue(reg_oprnd(binfilereg));
     gensimplemove(lastnode, left, key);
-    lock(key);
     firstreg := savedfirstreg;
     filenamed := true;
     dontchangevalue := dontchangevalue + 1;
     end;
+    lock(key);
 end {setbinfilex} ;
 
 procedure rdwrbin(libroutine: libroutines);
@@ -5539,8 +5539,6 @@ end {fileparamx};
 procedure removefileparam;
 
 begin {removefileparam}
-  if filenamed then
-    unlock(settemp(long, reg_oprnd(binfilereg)));
   filenamed := false;
 end {removefileparam};
 
@@ -7919,7 +7917,6 @@ procedure codeone;
 
 }
       end;
-
 
   end {codeone};
 
