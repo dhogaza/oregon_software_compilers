@@ -7002,7 +7002,12 @@ procedure statement(follow: tokenset {legal following symbols} );
               writefile := true;
               filetype := resulttype;
               verify1([comma, rpar], badparamerr);
-              genunary(pushaddr, ptrs);
+              { let the codegen decide how to handle the address, reg or stack?
+              }
+              if newsetfile then
+                genunary(addrop, ptrs)
+              else
+                genunary(pushaddr, ptrs);
               restoresp := sp;
               if filetype = textindex then genunary(setfileop, none);
               if (filetype <> textindex) and (procid = writelnid) then
