@@ -2085,11 +2085,17 @@ procedure foldplusminus(sign: integer {1 if add, -1 if sub} );
 
 
   begin {foldplusminus}
+
     if binaryform = strings then foldstringplus
     else if (binaryform = ints) or (binaryform = subranges) then
       foldintplusminus(sign)
     else if binaryform = reals then foldrealplusminus(sign) {!!!}
     else foldedbinary := false;
+
+    { Correct for mismatched length in case of the empty set }
+    if binaryform = sets then
+      newlen := min(oprndstk[l].oprndlen, oprndstk[r].oprndlen);
+
   end {foldplusminus} ;
 
 
@@ -2164,6 +2170,11 @@ procedure foldmul;
     if (binaryform = ints) or (binaryform = subranges) then foldintmul
     else if binaryform = reals then foldrealmul
     else foldedbinary := false;
+
+    { Correct for mismatched length in case of the empty set }
+    if binaryform = sets then
+      newlen := min(oprndstk[l].oprndlen, oprndstk[r].oprndlen);
+
   end {foldmul} ;
 
 
@@ -2207,6 +2218,11 @@ procedure folddiv;
       divide_range := oprndstk[l].value_range;
       divide_extended := oextended;
       end;
+
+    { Correct for mismatched length in case of the empty set }
+    if binaryform = sets then
+      newlen := min(oprndstk[l].oprndlen, oprndstk[r].oprndlen);
+
   end {folddiv} ;
 
 
@@ -2225,6 +2241,11 @@ procedure foldslash;
       returnreal(getrealvalue(l) / getrealvalue(r))
     else if rconst and (getrealvalue(r) = 1.0) then returnoprnd(l)
     else foldedbinary := false;
+
+    { Correct for mismatched length in case of the empty set }
+    if binaryform = sets then
+      newlen := min(oprndstk[l].oprndlen, oprndstk[r].oprndlen);
+
   end {foldslash} ;
 
 
@@ -6819,7 +6840,13 @@ procedure statement(follow: tokenset {legal following symbols} );
             if (filetype <> textindex) and (procid = readlnid) then
               warnbefore(nottextfile);
             if (procid = readid) and (token = rpar) then warn(noreadarg);
-            genunary(pushaddr, ptrs);
+
+            { let the codegen decide how to handle the address, reg or stack?
+            }
+            if newsetfile then
+              genunary(addrop, ptrs)
+            else
+             genunary(pushaddr, ptrs);
             if filetype = textindex then genunary(setfileop, none);
             readfile := true;
             end
