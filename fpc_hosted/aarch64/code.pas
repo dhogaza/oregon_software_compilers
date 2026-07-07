@@ -5471,6 +5471,46 @@ begin {setfilex}
   dontchangevalue := dontchangevalue + 1;
 end {setfilex} ;
 
+procedure setbinfilex;
+
+{ Set target/source for move portion of a binary read/write file operation.
+  Net effect is to more the address of the file variable to a callee-saved
+  register, which is then locked.
+}
+
+var
+  savedfirstreg: regindex;
+
+begin {setbinfilex}
+  if  filenamed then
+    setvalue(reg_oprnd(binfilereg))
+  else
+    begin
+    address(left, 0);
+    savedfirstreg := firstreg;
+    firstreg := pr + 1; 
+    binfilereg := getreg;
+    setvalue(reg_oprnd(binfilereg));
+    gensimplemove(lastnode, left, key);
+    lock(key);
+    firstreg := savedfirstreg;
+    filenamed := true;
+    dontchangevalue := dontchangevalue + 1;
+    end;
+end {setbinfilex} ;
+
+procedure rdwrbin(libroutine: libroutines);
+
+var
+  binfileregkey: keyindex;
+
+begin {rdwrfile}
+  binfileregkey := settemp(long, reg_oprnd(binfilereg));
+  unlock(binfileregkey);
+  gensimplemove(lastnode, binfileregkey, regkeys[0]);
+  callsupport(libroutine, true);
+end {rdwrfile};
+
 procedure fmtx;
 
 begin {fmtx}
@@ -5499,7 +5539,9 @@ end {fileparamx};
 procedure removefileparam;
 
 begin {removefileparam}
-  if filenamed then removeparamtemps(1);
+  if filenamed then
+    unlock(settemp(long, reg_oprnd(binfilereg)));
+  filenamed := false;
 end {removefileparam};
 
 procedure closerangex;
@@ -7726,8 +7768,8 @@ procedure codeone;
       fmt: fmtx;
       closerange: closerangex;
       definelazy: definelazyx;
-{
       setbinfile: setbinfilex;
+{
       rdint: rdintcharx(libreadint, defaulttargetintsize);
       rdchar: rdintcharx(libreadchar, byte);
       rdreal: rdintcharx(libreadreal, len);
@@ -7736,8 +7778,8 @@ procedure codeone;
         else callandpop(libreadstringi, 2);
       rdxstr: rdxstrx;
 }
-      rdbin: callsupport(libget, true);
-      wrbin: callsupport(libput, true);
+      rdbin: rdwrbin(libget);
+      wrbin: rdwrbin(libput);
       wrst: wrstx;
       wrxstr: wrstx;
       wrint: wrcommon(libwriteint, 12);
@@ -7848,12 +7890,20 @@ procedure codeone;
         end;
       end;
 
-{writeln(macfile, registers[1]);}
     if key > lastkey then lastkey := key;
-
 
     with keytable[key] do
       if refcount + copycount > 1 then savekey(key);
+
+    { This prevents stumbling on an old key later.
+    }
+
+    while (keytable[lastkey].refcount = 0) and
+          (lastkey >= context[contextsp].keymark) do
+      begin
+      keytable[lastkey] := keytable[lowestkey];
+      lastkey := lastkey - 1;
+      end;
 
 {
     adjusttemps;
@@ -7870,15 +7920,6 @@ procedure codeone;
 }
       end;
 
-    { This prevents stumbling on an old key later.
-    }
-
-    while (keytable[lastkey].refcount = 0) and
-          (lastkey >= context[contextsp].keymark) do
-      begin
-      keytable[lastkey] := keytable[lowestkey];
-      lastkey := lastkey - 1;
-      end;
 
   end {codeone};
 

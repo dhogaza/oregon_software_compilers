@@ -96,6 +96,8 @@ const
   modified when the compiler is moved
 }
 
+  newsetfile = true;
+
   maxregparams = 8;
   maxrealregparams = 8;
   maxptrregparams = 0;
