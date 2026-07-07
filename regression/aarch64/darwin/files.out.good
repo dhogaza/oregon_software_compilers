@@ -1,6 +1,6 @@
-rewrite(f, 'foo.txt', ':w+'), put, get, and print foo.txt
-abcdefghijklmnopqrstuvwxyzrewrite(f), put, get, and print foo.txt
-zyxwvutsrqponmlkjihgfedcbaseek(f,2), put, get, and print foo.txt
+rewrite(f, 'foo.txt', ':w+'), put, get and print foo.txt
+abcdefghijklmnopqrstuvwxyzrewrite(f), put, get and print foo.txt
+zyxwvutsrqponmlkjihgfedcbaseek(f,2), put, get and print foo.txt
 zy!wvutsrqponmlkjihgfedcbaseek(f,4), get and print foo.txt
 vutsrqponmlkjihgfedcbaseek(f,4), read and print foo.txt
 zy!wvutsrqponmlkjihgfedcbadelete foo.txt
