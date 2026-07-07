@@ -3,7 +3,7 @@ var f: file of char;
 
 begin
 
-  writeln('rewrite(f, ''foo.txt'', '':w+''), put, get, and print foo.txt');
+  writeln('rewrite(f, ''foo.txt'', '':w+''), put, get and print foo.txt');
 
   rewrite(f, 'foo.txt', ':w+');
 
@@ -19,7 +19,7 @@ begin
     get(f);
     end;
 
-  writeln('rewrite(f), put, get, and print foo.txt');
+  writeln('rewrite(f), put, get and print foo.txt');
 
   rewrite(f);
   for ch := 'z' downto 'a' do
@@ -34,7 +34,7 @@ begin
     get(f);
     end;
 
-  writeln('seek(f,2), put, get, and print foo.txt');
+  writeln('seek(f,2), put, get and print foo.txt');
 
   seek(f, 2);
   f^ := '!';
