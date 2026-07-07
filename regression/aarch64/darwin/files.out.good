@@ -1,16 +1,10 @@
-write, read, and print foo.txt
-
-abcdefghijklmnopqrstuvwxyz
-rewrite, read, and print foo.txt
-
-zyxwvutsrqponmlkjihgfedcba
-zy!wvutsrqponmlkjihgfedcba
-vutsrqponmlkjihgfedcba
-delete foo.txt
-
-
+rewrite(f, 'foo.txt', ':w+'), put, get, and print foo.txt
+abcdefghijklmnopqrstuvwxyzrewrite(f), put, get, and print foo.txt
+zyxwvutsrqponmlkjihgfedcbaseek(f,2), put, get, and print foo.txt
+zy!wvutsrqponmlkjihgfedcbaseek(f,4), get and print foo.txt
+vutsrqponmlkjihgfedcbaseek(f,4), read and print foo.txt
+zy!wvutsrqponmlkjihgfedcbadelete foo.txt
 read and print ../env.h
-
 #!/bin/bash
 os=`uname`
 os="$(echo $os | tr '[A-Z]' '[a-z]')"
@@ -28,7 +22,5 @@ pasdir="$HOME/oregon_software_compilers/fpc_hosted/aarch64"
 if [ ! -d "$os" ]; then
   mkdir $os
 fi
-
 try to do a put on the read-only file ../env.sh
-
 Illegal operation on file ../env.sh:rb

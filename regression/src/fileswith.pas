@@ -1,13 +1,16 @@
-var f: file of
+type ftype =
          record
            c: char;
            i: integer;
          end;
+var
+  f: file of ftype;
+  data: ftype;
   ch: char;
 
 begin
 
-  writeln('write, read, and print foo.txt'); writeln;
+  writeln('rewrite(f, ''foo.txt'','':w+''), put, get, and print foo.txt');
 
   rewrite(f, 'foo.txt', ':w+');
 
@@ -27,9 +30,8 @@ begin
       writeln(c, i);
     get(f);
     end;
-  writeln;
 
-  writeln('rewrite, read, and print foo.txt'); writeln;
+  writeln('rewrite, put, reset, get, and print');
 
   rewrite(f);
   for ch := 'z' downto 'a' do
@@ -48,7 +50,8 @@ begin
       writeln(c, i);
     get(f);
     end;
-  writeln;
+
+  writeln('seek(f,2), put, reset, get, and print');
 
   seek(f, 2);
   with f^ do
@@ -64,7 +67,8 @@ begin
       writeln(c, i);
     get(f);
     end;
-  writeln;
+
+  writeln('seek(f,4), get, and print');
 
   seek(f,4);
   while not eof(f) do
@@ -73,9 +77,17 @@ begin
       writeln(c, i);
     get(f);
     end;
-  writeln;
 
-  writeln('delete foo.txt'); writeln;
+  writeln('reset(f), read, and print');
+
+  reset(f);
+  while not eof(f) do
+    begin
+    read(f, data);
+    writeln(data.c, data.i);
+  end;
+
+  writeln('delete foo.txt');
 
   delete(f);
 

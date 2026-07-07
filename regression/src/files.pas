@@ -3,7 +3,7 @@ var f: file of char;
 
 begin
 
-  writeln('write, read, and print foo.txt'); writeln;
+  writeln('rewrite(f, ''foo.txt'', '':w+''), put, get, and print foo.txt');
 
   rewrite(f, 'foo.txt', ':w+');
 
@@ -18,9 +18,8 @@ begin
     write(f^);
     get(f);
     end;
-  writeln;
 
-  writeln('rewrite, read, and print foo.txt'); writeln;
+  writeln('rewrite(f), put, get, and print foo.txt');
 
   rewrite(f);
   for ch := 'z' downto 'a' do
@@ -34,7 +33,8 @@ begin
     write(f^);
     get(f);
     end;
-  writeln;
+
+  writeln('seek(f,2), put, get, and print foo.txt');
 
   seek(f, 2);
   f^ := '!';
@@ -45,7 +45,8 @@ begin
     write(f^);
     get(f);
     end;
-  writeln;
+
+  writeln('seek(f,4), get and print foo.txt');
 
   seek(f,4);
   while not eof(f) do
@@ -53,14 +54,21 @@ begin
     write(f^);
     get(f);
     end;
-  writeln;
 
+  writeln('seek(f,4), read and print foo.txt');
 
-  writeln('delete foo.txt'); writeln;
+  reset(f);
+  while not eof(f) do
+    begin
+    read(f, ch);
+    write(ch);
+  end;
+
+  writeln('delete foo.txt');
 
   delete(f);
 
-  writeln; writeln('read and print ../env.h'); writeln;
+  writeln('read and print ../env.h');
 
   reset(f, '../env.sh');
   while not eof(f) do
@@ -69,7 +77,7 @@ begin
     get(f);
     end;
 
-  writeln; writeln('try to do a put on the read-only file ../env.sh'); writeln;
+  writeln('try to do a put on the read-only file ../env.sh');
   put(f);
 
 end.
