@@ -6571,9 +6571,10 @@ procedure statement(follow: tokenset {legal following symbols} );
 
       begin {resetrewrite}
         fileparam(true, true, false, regparams);
+{
         genunary(setfileop, none);
-        if token in
-           [comma, eql..andsym, ident, intconst..stringconst, lbrack, lpar,
+}
+        if token in [comma, eql..andsym, ident, intconst..stringconst, lbrack, lpar,
            notsym, nilsym] then
           begin
           warnnonstandard(filenameerr);
@@ -6720,13 +6721,17 @@ procedure statement(follow: tokenset {legal following symbols} );
         allocstdparam(ptrs, regparams, alloc, dummy);
         if not constcheck(sp) then genop(switchstack);
         if alloc = normalalloc then
-          genop(copystackop)
+          begin
+          genop(copystackop);
+          genint(len);
+          genint(0);
+          genform(ptrs);
+          if not constcheck(sp) then genop(switchstack);
+          end;
+{
        else
           genop(fileparamop);
-        genint(len);
-        genint(0);
-        genform(ptrs);
-        if not constcheck(sp) then genop(switchstack);
+}
       end {gencopystack} ;
 
     procedure readprocedure;

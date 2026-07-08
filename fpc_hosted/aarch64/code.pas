@@ -2249,7 +2249,8 @@ function regvalue(r: regindex): unsigned;
 }
 
   begin {regvalue}
-    regvalue := registers[r] + ord(context[contextsp].bump[r]) * 4 +
+    regvalue := registers[r] +
+                ord(context[contextsp].bump[r] and (registers[r] > 0)) * 4 +
                 ord((r > pr) and not regused[r]) * 2 + ord(r <= lastscratchreg) +
                 maxint * ord((r > lastscratchreg) and (r <= pr));
   end {regvalue} ;
@@ -5418,11 +5419,26 @@ begin
   setvalue(cond_oprnd(ne));
 end {eolnx} ;
 
+procedure removefileparam;
+
+  var
+    binfileregkey: keyindex;
+
+begin {removefileparam}
+  if filenamed then
+    begin
+    binfileregkey := settemp(long, reg_oprnd(binfilereg));
+    unlock(binfileregkey);
+    end;
+  filenamed := false;
+end {removefileparam};
+
 
 procedure wrcommon(libroutine: libroutines; {formatting routine to call}
                    deffmt: integer {default width if needed} );
+
   var
-    regkey: keyindex;
+    binfileregkey: keyindex;
 
   begin {wrcommon}
     if formatinfo.count = 0 then
@@ -5430,11 +5446,17 @@ procedure wrcommon(libroutine: libroutines; {formatting routine to call}
       { whee hardcoding parameter registers!}
       markreg(formatinfo.regcount + 1);
       gensimplemove(lastnode,
-                    settemp(long, intconst_oprnd(deffmt)), regkeys[1]);
+                    settemp(long, intconst_oprnd(deffmt)),
+                    regkeys[formatinfo.regcount + 1]);
+      end;
+    formatinfo.count := 0;
+    formatinfo.regcount := ord(filenamed);
+    if filenamed then
+      begin
+      binfileregkey := settemp(long, reg_oprnd(binfilereg));
+      gensimplemove(lastnode, binfileregkey, regkeys[0]);
       end;
     calliosupport(libroutine);
-    formatinfo.count := 0;
-    formatinfo.regcount := 0;
     dontchangevalue := 0;
   end {wrcommon};
 
@@ -5448,6 +5470,7 @@ procedure wrstx;
 }
 
   var lengthregkey, widthregkey: keyindex;
+    binfileregkey: keyindex;
 
   begin
     if formatinfo.count = 0 then
@@ -5456,20 +5479,30 @@ procedure wrstx;
       widthregkey := settemp(long, reg_oprnd(formatinfo.regcount + 2));
       gensimplemove(lastnode, lengthregkey, widthregkey);
       end;
-    calliosupport(libwritestring)
+    formatinfo.count := 0;
+    formatinfo.regcount := ord(filenamed);
+    if filenamed then
+      begin
+      binfileregkey := settemp(long, reg_oprnd(binfilereg));
+      gensimplemove(lastnode, binfileregkey, regkeys[0]);
+      end;
+    calliosupport(libwritestring);
   end {wrstx} ;
 
-procedure setfilex;
+procedure writelnx;
 
-{ Flags beginning of file processing of some sort or another.  "Filenamed"
-  is used to differentiate between implicit and explicit files for read/write.
-  "Filestkcnt" is used for clearing the stack for reset/rewrite.
-}
+  var
+    binfileregkey: keyindex;
 
-begin {setfilex}
-  filenamed := true;
-  dontchangevalue := dontchangevalue + 1;
-end {setfilex} ;
+  begin {writelnx}
+    if filenamed then
+      begin
+      binfileregkey := settemp(long, reg_oprnd(binfilereg));
+      gensimplemove(lastnode, binfileregkey, regkeys[0]);
+      end;
+    calliosupport(libwriteln);
+    removefileparam;
+  end {writelnx};
 
 procedure setbinfilex;
 
@@ -5478,26 +5511,58 @@ procedure setbinfilex;
   register, which is then locked.
 }
 
-var
-  savedfirstreg: regindex;
-
 begin {setbinfilex}
   if  filenamed then
     setvalue(reg_oprnd(binfilereg))
   else
     begin
     address(left, 0);
-    savedfirstreg := firstreg;
     firstreg := pr + 1; 
     binfilereg := getreg;
     setvalue(reg_oprnd(binfilereg));
     gensimplemove(lastnode, left, key);
-    firstreg := savedfirstreg;
+    filenamed := true;
+    end;
+  dontchangevalue := dontchangevalue + 1;
+  firstreg := 1;
+  lock(key);
+end {setbinfilex} ;
+
+procedure setfilex;
+
+{ Flags beginning of file processing of some sort or another.  "Filenamed"
+  is used to differentiate between implicit and explicit files for read/write.
+  "Filestkcnt" is used for clearing the stack for reset/rewrite.
+}
+
+var
+  savedfirstreg: regindex;
+  binfileregkey: keyindex;
+
+begin {setfilex}
+  address(left, 0);
+{
+  if  filenamed then
+    binfileregkey := settemp(long, reg_oprnd(binfilereg))
+  else
+  if not filenamed then
+    begin
+}
+    firstreg := pr + 1; 
+    binfilereg := getreg;
+    binfileregkey := settemp(long, reg_oprnd(binfilereg));
+    gensimplemove(lastnode, left, binfileregkey);
     filenamed := true;
     dontchangevalue := dontchangevalue + 1;
+{
     end;
-    lock(key);
-end {setbinfilex} ;
+}
+  lock(binfileregkey);
+  dontchangevalue := dontchangevalue + 1;
+  formatinfo.count := 0;
+  formatinfo.regcount := 1;
+  firstreg := 1;
+end {setfilex} ;
 
 procedure rdwrbin(libroutine: libroutines);
 
@@ -5506,7 +5571,9 @@ var
 
 begin {rdwrfile}
   binfileregkey := settemp(long, reg_oprnd(binfilereg));
+{
   unlock(binfileregkey);
+}
   gensimplemove(lastnode, binfileregkey, regkeys[0]);
   callsupport(libroutine, true);
 end {rdwrfile};
@@ -5521,26 +5588,6 @@ begin {fmtx}
   formatinfo.regcount := firstreg;
   firstreg := firstreg + 1;
 end {fmtx};
-
-procedure fileparamx;
-
-{ A kludgey artifact of modifying this very old compiler system to pass
-  parameters by register rather than on the stack.  For write[ln]/read[ln]
-  function calls the optional file argument is saved on the stack, and 
-  passed in x0 for each wrint/wrbool/etc call.
-}
-
-begin {fileparamx}
-  markreg(0);
-  gensimplemove(lastnode, stackcounter, regkeys[0]);
-  firstreg := 1;
-end {fileparamx};
-
-procedure removefileparam;
-
-begin {removefileparam}
-  filenamed := false;
-end {removefileparam};
 
 procedure closerangex;
 
@@ -5710,11 +5757,7 @@ procedure sysroutinex;
       noioerrorid: callsupport(libnoioerror, true);
       deleteid: callsupport(libdelete, true);
       writeid, readid: removefileparam;
-      writelnid:
-        begin
-        removefileparam;
-        calliosupport(libwriteln);
-        end;
+      writelnid: writelnx;
       readlnid: calliosupport(libreadln);
       insertid: callsupport(libinsert, true);
       deletestrid: callsupport(libdeletestr, true);
@@ -7762,7 +7805,6 @@ procedure codeone;
       pshstruct: pshstructx;
       pshset: pshsetx;
       setfile: setfilex;
-      fileparam: fileparamx;
       fmt: fmtx;
       closerange: closerangex;
       definelazy: definelazyx;
