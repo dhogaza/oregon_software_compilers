@@ -2245,7 +2245,8 @@ function regvalue(r: regindex): unsigned;
   first use invokes a save/restore.  After being used once, they're cheaper
   than scratch registers due to the fact that proc calls kill all
   scratch registers.  This kludge actually fails miserably but we'll work
-  on it as we get further on.  
+  on it as we get further on.  The issue is when to force that first use
+  into a callee-saved register.
 }
 
   begin {regvalue}
@@ -4453,7 +4454,10 @@ procedure cmpintptrx(signedcond, unsignedcond: conds {for branching on result});
 
     if signedoprnds then c := signedcond
     else c := unsignedcond;
-
+{
+if (left = 36) and (right = 21) then
+writeln('left:',keytable[left].regvalid, ' ',keytable[left].oprnd.mode,keytable[left].oprnd.reg:3);
+}
     loadreg(left, right);
     loadreg(right, left);
     gen2(lastnode, buildinst(cmp, len = long, false), left, right);
