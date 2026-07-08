@@ -6719,9 +6719,9 @@ procedure statement(follow: tokenset {legal following symbols} );
 
       begin {gencopystack}
         allocstdparam(ptrs, regparams, alloc, dummy);
-        if not constcheck(sp) then genop(switchstack);
         if alloc = normalalloc then
           begin
+          if not constcheck(sp) then genop(switchstack);
           genop(copystackop);
           genint(len);
           genint(0);
@@ -6782,14 +6782,14 @@ procedure statement(follow: tokenset {legal following symbols} );
                 gencopystack(resultlen, readregparams);
                 end
               else if readfile and ((token <> rpar) or not readflag) then
-                gencopystack(0, readregparams);
+                gencopystack(ptrsize, readregparams);
 
               if not (readform in [none, ints, reals, doubles, chars]) then
                 begin
                 if ((readform <> arrays) or not resultptr^.stringtype) and
                    (readform <> strings) or (switchcounters[standard] > 0) then
                   warnbefore(badreadtype)
-                else pushstringparam(false, regparams);
+                else pushstringparam(false, readregparams);
                 end;
               end;
             genunary(rd, readform);
@@ -6920,10 +6920,7 @@ procedure statement(follow: tokenset {legal following symbols} );
           var
             writeform: types; {form of argument}
             writelen: addressrange; {length of write parameter}
-            writealloc: allockind; {register or stack}
-            writeregid: regrange; {for register param}
             writeregparams: regparamstype; {for tracking param alloc}
-
             stringflag: boolean; {used to check for string argument}
             basetype: index; {pointer to base type}
 
@@ -6945,7 +6942,7 @@ procedure statement(follow: tokenset {legal following symbols} );
               else stringflag := writeform = strings;
 
               if writefile and ((token <> rpar) or not writeflag) then
-                gencopystack(0, writeregparams);
+                gencopystack(ptrsize, writeregparams);
 
               case writeform of
                 bools, chars, ints:
