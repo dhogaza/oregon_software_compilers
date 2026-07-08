@@ -103,8 +103,8 @@ _main:
 	b.ne	.L13
 .L14:
 # Line: 18, Stmt: 0
-	ldr	x14,[x15]
-	ldrb	w0,[x14]
+	ldr	x15,[x15]
+	ldrb	w0,[x15]
 	mov	x1,1
 	bl	_p_wtc_o 
 # Line: 19, Stmt: 0
@@ -171,8 +171,8 @@ _main:
 	b.ne	.L17
 .L18:
 # Line: 33, Stmt: 0
-	ldr	x14,[x15]
-	ldrb	w0,[x14]
+	ldr	x15,[x15]
+	ldrb	w0,[x15]
 	mov	x1,1
 	bl	_p_wtc_o 
 # Line: 34, Stmt: 0
@@ -229,8 +229,8 @@ _main:
 	b.ne	.L19
 .L20:
 # Line: 45, Stmt: 0
-	ldr	x14,[x15]
-	ldrb	w0,[x14]
+	ldr	x15,[x15]
+	ldrb	w0,[x15]
 	mov	x1,1
 	bl	_p_wtc_o 
 # Line: 46, Stmt: 0
@@ -269,8 +269,8 @@ _main:
 	b.ne	.L21
 .L22:
 # Line: 54, Stmt: 0
-	ldr	x14,[x15]
-	ldrb	w0,[x14]
+	ldr	x15,[x15]
+	ldrb	w0,[x15]
 	mov	x1,1
 	bl	_p_wtc_o 
 # Line: 55, Stmt: 0
@@ -377,8 +377,8 @@ _main:
 	b.ne	.L25
 .L26:
 # Line: 76, Stmt: 0
-	ldr	x14,[x15]
-	ldrb	w0,[x14]
+	ldr	x15,[x15]
+	ldrb	w0,[x15]
 	mov	x1,1
 	bl	_p_wtc_o 
 # Line: 77, Stmt: 0
