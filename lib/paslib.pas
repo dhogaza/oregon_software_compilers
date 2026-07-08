@@ -326,7 +326,7 @@ end {_p_trimright};
     
 procedure _p_caseerr;
   begin
-    writeln('case error');
+    writeln('Case error');
     exit(1);
   end;
 
@@ -798,7 +798,7 @@ begin
   with filep^ do
     if _p_def in status then
       if _p_eof in filep^.status then
-        _p_libfileerror(filep, 'attempt to read past end of file')
+        _p_libfileerror(filep, 'Attempt to read past end of file')
       else filep^.status := filep^.status - [_p_def]
     else
       _p_define(filevar)
@@ -833,11 +833,11 @@ var
 begin
   filep := _p_filep(filevar);
   if filep = nil then
-    _p_liberror('can''t delete a file that is not open');
+    _p_liberror('Can''t delete a file that is not open');
   filename := filep^.filename;
   _p_close(filevar);
   if remove(cstring(filename)) <> 0 then
-    _p_liberror('delete failed for ' + filename);
+    _p_liberror('Delete failed for ' + filename);
 end;
 
 procedure wrchar(filep: _p_fileinfoptr; ch: char);
