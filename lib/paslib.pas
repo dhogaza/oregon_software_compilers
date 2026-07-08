@@ -83,6 +83,7 @@ function fread(bufferp: _p_charptr; size: integer; count: integer;
 function fwrite(bufferp: _p_charptr; size: integer; count: integer;
                 streamp: _p_addressptr): integer; nonpascal;
 function fputc(ch: char; streamp: _p_addressptr): integer; nonpascal;
+function fgetc(streamp: _p_addressptr): integer; nonpascal;
 function ftruncate(fd: integer; size: integer): integer; nonpascal;
 function fileno(streamp: _p_addressptr): integer; nonpascal;
 function feof(streamp: _p_addressptr): boolean; nonpascal;
@@ -107,6 +108,20 @@ procedure _p_define(filevar: _p_addressptr); external;
 procedure _p_get(filevar: _p_addressptr); external;
 procedure _p_put(filevar: _p_addressptr); external;
 procedure _p_delete(filevar: _p_addressptr); external;
+function _p_rdc(filevar: _p_addressptr): char; external;
+function _p_rdi(filevar: _p_addressptr): integer; external;
+function _p_rdd(filevar: _p_addressptr): double; external;
+function _p_rdf(filevar: _p_addressptr): real; external;
+procedure _p_rdln(filevar: _p_addressptr); external;
+procedure _p_rds(filevar: _p_addressptr); external;
+procedure _p_rdxs(filevar: _p_addressptr); external;
+function _p_rdc_i: char; external;
+function _p_rdi_i: integer; external;
+function _p_rdd_i: double; external;
+function _p_rdf_i: real; external;
+procedure _p_rdln_i; external;
+procedure _p_rds_i; external;
+procedure _p_rdxs_i; external;
 procedure _p_wtc(filevar: _p_addressptr; ch: char; width: integer); external;
 procedure _p_wti(filevar: _p_addressptr; i: integer; width: integer); external;
 procedure _p_wtb(filevar: _p_addressptr; b: boolean; width: integer); external;
@@ -479,7 +494,7 @@ begin
     if fclose(filep^.streamp) <> 0 then
       _p_libfileerror(filep, 'fclose failed');
     filep^.filevar^ := loophole(_p_address, nil);
-    if filep^.bufferp <> nil then
+    if (not (_p_text in filep^.status)) and (filep^.bufferp <> nil) then
       dispose(filep^.bufferp);
     end;
 end;
@@ -640,7 +655,7 @@ begin
       filep^.size := size;
       end
     else
-      filep^.status := filep^.status + [_p_text];
+      filep^.bufferp := ref(filep^.ch);
     if pos(flags, '+') <> 0 then
       begin
       filep^.status := [_p_read, _p_write{, _p_ran}];
@@ -651,6 +666,8 @@ begin
       filep^.status := [_p_read]
     else
       filep^.status := [_p_def, _p_write];
+    if size < 0 then
+      filep^.status := filep^.status + [_p_text];
     end
   else
     begin
@@ -715,17 +732,9 @@ var
   filep: _p_fileinfoptr;
 
 begin {_p_seek}
-{
-  filep := _p_checkio(filevar, _p_ran);
-}
   filep := _p_filep(filevar);
   if fseek(filep^.streamp, offset * filep^.size, _p_seek_set) <> 0 then
     _p_libfileerror(filep, 'seek failed');
-{
-  if _p_read in filep^.status then
-    _p_define(filevar)
-  else
-}
     filep^.status := filep^.status - [_p_def, _p_eoln, _p_eof];
 end {_p_seek};
 
@@ -738,26 +747,40 @@ procedure _p_define;
   undefined.  The generated code depends on pointer checking to guard against
   trying to use a file that's not open.  This procedure is more robust.
 
-  This is where fread() is called to read data from the stream.  Data is read
-  and the _p_def is set.
-
+  This is where fread or fgetc is called to read data from the stream.  Data is
+  read and _p_def is set, optionally along with _p_eoln or _p_eof.
 }
+
 var
   filep: _p_fileinfoptr;
   bytesread: integer;
+  ch: integer; {-1 for eof}
 
-begin
+begin {_p_define}
   filep := _p_checkio(filevar, _p_read);
-  bytesread := fread(filep^.bufferp, filep^.size, 1, filep^.streamp);
-
-  if (bytesread < filep^.size) and feof(filep^.streamp) then
-    filep^.status := filep^.status + [_p_eof]
+  if _p_text in filep^.status then
+    begin
+    ch := fgetc(filep^.streamp);
+    if ch < 0 then
+      filep^.status := filep^.status + [_p_eof, _p_eoln]
+    else
+      begin
+      filep^.status := filep^.status - [_p_eof, _p_eoln];
+      if ch = 10 then
+        filep^.status := filep^.status + [_p_eoln];
+      filep^.ch := chr(ch);
+      end;
+    end
   else
-    filep^.status := filep^.status - [_p_eof];
-
+    begin
+    bytesread := fread(filep^.bufferp, filep^.size, 1, filep^.streamp);
+    if (bytesread < filep^.size) and feof(filep^.streamp) then
+      filep^.status := filep^.status + [_p_eof]
+    else
+      filep^.status := filep^.status - [_p_eof];
+    end;
   filep^.status :=filep^.status + [_p_def];
-
-end;
+end {_p_define};
 
 procedure _p_get;
 
@@ -772,12 +795,13 @@ var
 
 begin
   filep := _p_checkio(filevar, _p_read);
-  if not (_p_def in filep^.status) then
-    _p_define(filevar)
-  else if _p_eof in filep^.status then
-    _p_libfileerror(filep, 'attempt to read past end of file')
-  else
-    filep^.status := filep^.status - [_p_def];
+  with filep^ do
+    if _p_def in status then
+      if _p_eof in filep^.status then
+        _p_libfileerror(filep, 'attempt to read past end of file')
+      else filep^.status := filep^.status - [_p_def]
+    else
+      _p_define(filevar)
 end;
 
 procedure _p_put;
@@ -1000,6 +1024,36 @@ procedure _p_wtln_o;
 begin
   putchar(chr(10));
 end;
+
+{ read text files }
+
+function _p_rdc;
+
+{ read one character from the given text file }
+
+var
+  filep: _p_fileinfoptr;
+
+begin {_p_rdc}
+  filep := _p_checkio(filevar, _p_read);
+  if not (_p_def in filep^.status) then
+    _p_define(filevar);
+  _p_rdc := filep^.ch;
+  if not (_p_eoln in filep^.status) then
+    filep^.status := filep^.status - [_p_def];
+end {_p_rdc};
+
+procedure _p_rdln;
+
+var
+  filep: _p_fileinfoptr;
+
+begin {_p_rdln}
+  filep := _p_checkio(filevar, _p_read);
+  while not (_p_eoln in filep^.status) do
+    _p_get(filevar);
+  _p_get(filevar);
+end {p_rdln};
 
 procedure _p_new;
 begin
