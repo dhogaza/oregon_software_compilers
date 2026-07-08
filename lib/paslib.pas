@@ -48,6 +48,7 @@ type
     record
       bufferp: _p_charptr;
       status: _p_filestatustype; { see above }
+      ch: char; {for text files unless I just read directly to the caller}
       size: integer;
       nextfile: _p_fileinfoptr; { pointer to next file or nil }
       filevar: _p_addressptr; { back pointer to file var }
@@ -81,6 +82,7 @@ function fread(bufferp: _p_charptr; size: integer; count: integer;
                streamp: _p_addressptr): integer; nonpascal;
 function fwrite(bufferp: _p_charptr; size: integer; count: integer;
                 streamp: _p_addressptr): integer; nonpascal;
+function fputc(ch: char; streamp: _p_addressptr): integer; nonpascal;
 function ftruncate(fd: integer; size: integer): integer; nonpascal;
 function fileno(streamp: _p_addressptr): integer; nonpascal;
 function feof(streamp: _p_addressptr): boolean; nonpascal;
@@ -105,6 +107,12 @@ procedure _p_define(filevar: _p_addressptr); external;
 procedure _p_get(filevar: _p_addressptr); external;
 procedure _p_put(filevar: _p_addressptr); external;
 procedure _p_delete(filevar: _p_addressptr); external;
+procedure _p_wtc(filevar: _p_addressptr; ch: char; width: integer); external;
+procedure _p_wti(filevar: _p_addressptr; i: integer; width: integer); external;
+procedure _p_wtb(filevar: _p_addressptr; b: boolean; width: integer); external;
+procedure _p_wts(filevar: _p_addressptr; const str: _p_stringarray;
+                 length: integer; width: integer); external;
+procedure _p_wtln(filevar: _p_addressptr); external;
 procedure _p_wtc_o(ch: char; width: integer); external;
 procedure _p_wti_o(i: integer; width: integer); external;
 procedure _p_wtb_o(b: boolean; width: integer); external;
@@ -425,6 +433,7 @@ begin {_p_addfile}
   p^.nextfile := _p_filelist;
   p^.bufferp := nil;
   p^.status := [];
+  p^.size := 0;
   p^.filevar := filevar;  
   p^.err := 0;
   p^.streamp := nil;
@@ -465,11 +474,14 @@ procedure _p_closeonly(filep: _p_fileinfoptr);
 }
 
 begin
-  if fclose(filep^.streamp) <> 0 then
-    _p_libfileerror(filep, 'fclose failed');
-  filep^.filevar^ := loophole(_p_address, nil);
-  if filep^.bufferp <> nil then
-    dispose(filep^.bufferp);
+  if not (_p_perm in filep^.status) then
+    begin
+    if fclose(filep^.streamp) <> 0 then
+      _p_libfileerror(filep, 'fclose failed');
+    filep^.filevar^ := loophole(_p_address, nil);
+    if filep^.bufferp <> nil then
+      dispose(filep^.bufferp);
+    end;
 end;
 
 procedure _p_close;
@@ -623,8 +635,12 @@ begin
     filep^.filename := filename;
     filep^.flags := flags;
     if size > 0 then
+      begin
       filep^.bufferp := malloc(size);
-    filep^.size := size;
+      filep^.size := size;
+      end
+    else
+      filep^.status := filep^.status + [_p_text];
     if pos(flags, '+') <> 0 then
       begin
       filep^.status := [_p_read, _p_write{, _p_ran}];
@@ -800,85 +816,190 @@ begin
     _p_liberror('delete failed for ' + filename);
 end;
 
+procedure wrchar(filep: _p_fileinfoptr; ch: char);
+
+begin {wrchar}
+  if fputc(ch, filep^.streamp) < 0 then
+    _p_libfileerror(filep, 'write error');
+end {wrchar};
+
+procedure _p_wtc;
+
+var
+  i: integer;
+  filep: _p_fileinfoptr;
+
+begin {_p_wtc}
+  filep := _p_checkio(filevar, _p_write);
+  begin
+    for i := 2 to width do wrchar(filep, ' ');
+    wrchar(filep, ch);
+  end;
+end {_p_wtc};
+
+procedure _p_wtb;
+
+var
+  i: integer;
+  filep: _p_fileinfoptr;
+  s: string[5];
+
+
+begin
+  filep := _p_checkio(filevar, _p_write);
+  for i := 5 + ord(not b) to width do
+    wrchar(filep, ' ');
+ if b then
+   s := 'true'
+ else
+   s := 'false';
+ for i := 1 to length(s) do
+   wrchar(filep, s[i]);
+end;
+
+procedure _p_wti;
+
+var
+  digits: packed array [0..18] of char;
+  j: integer;
+  count: integer;
+  minus: boolean;
+  filep: _p_fileinfoptr;
+
+begin
+  filep := _p_checkio(filevar, _p_write);
+  count := 0;
+  minus := i < 0;
+  if minus then
+  begin
+    i := -i;
+    count := count + 1;
+  end;
+
+  j := 0;
+  repeat
+    digits[j] := chr(i mod 10 + ord('0'));
+    j := j + 1;
+    i := i div 10;
+    count := count + 1;
+  until i = 0;
+
+  for count := count + 1 to width do
+    wrchar(filep, ' ');
+
+  if minus then
+    wrchar(filep, '-');
+
+  repeat
+    j := j - 1;
+    wrchar(filep, digits[j]);
+  until j = 0;
+
+end;
+
+procedure _p_wts;
+
+var
+  i: integer;
+  filep: _p_fileinfoptr;
+
+begin
+  filep := _p_checkio(filevar, _p_write);
+  for i := 0 to width - length - 1 do
+    wrchar(filep, ' ');
+  for i := 0 to length - 1 do
+    wrchar(filep, str[i]);
+end;
+
+procedure _p_wtln;
+
+  var
+    filep: _p_fileinfoptr;
+
+begin {_p_wtln}
+  filep := _p_checkio(filevar, _p_write);
+  wrchar(filep, chr(10));
+end {_p_wtln};
+
 { Write to standard output.  This is going to change drastically soon.
 }
 
 procedure _p_wtb_o;
 
-  var i: integer;
+var i: integer;
 
-  begin
-    for i := 5 + ord(not b) to width do
-      write(' ');
-   if b then
-     write('true')
-   else
-     write('false');
-  end;
+begin
+  for i := 5 + ord(not b) to width do
+    write(' ');
+ if b then
+   write('true')
+ else
+   write('false');
+end;
 
 procedure _p_wtc_o;
 
-  var i: integer;
+var i: integer;
 
-  begin
-    for i := 2 to width do putchar(' ');
-    putchar(ch);
-  end;
+begin
+  for i := 2 to width do putchar(' ');
+  putchar(ch);
+end;
 
 procedure _p_wti_o;
 
-  var
-    digits: packed array [0..18] of char;
-    j: integer;
-    count: integer;
-    minus: boolean;
+var
+  digits: packed array [0..18] of char;
+  j: integer;
+  count: integer;
+  minus: boolean;
 
+begin
+  count := 0;
+  minus := i < 0;
+  if minus then
   begin
-    count := 0;
-    minus := i < 0;
-    if minus then
-    begin
-      i := -i;
-      count := count + 1;
-    end;
-
-    j := 0;
-    repeat
-      digits[j] := chr(i mod 10 + ord('0'));
-      j := j + 1;
-      i := i div 10;
-      count := count + 1;
-    until i = 0;
-
-    for count := count + 1 to width do
-      putchar(' ');
-
-    if minus then
-      putchar('-');
-
-    repeat
-      j := j - 1;
-      putchar(digits[j]);
-    until j = 0;
-
+    i := -i;
+    count := count + 1;
   end;
+
+  j := 0;
+  repeat
+    digits[j] := chr(i mod 10 + ord('0'));
+    j := j + 1;
+    i := i div 10;
+    count := count + 1;
+  until i = 0;
+
+  for count := count + 1 to width do
+    putchar(' ');
+
+  if minus then
+    putchar('-');
+
+  repeat
+    j := j - 1;
+    putchar(digits[j]);
+  until j = 0;
+
+end;
 
 procedure _p_wts_o;
 
-  var i: integer;
+var i: integer;
 
-  begin
-    for i := 0 to width - length - 1 do
-      putchar(' ');
-    for i := 0 to length - 1 do
-      putchar(str[i]);
-  end;
+begin
+  for i := 0 to width - length - 1 do
+    putchar(' ');
+  for i := 0 to length - 1 do
+    putchar(str[i]);
+end;
 
 procedure _p_wtln_o;
 
-  begin
-    putchar(chr(10));
-  end;
+begin
+  putchar(chr(10));
+end;
 
 procedure _p_new;
 begin
