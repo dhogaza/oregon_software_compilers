@@ -5426,13 +5426,13 @@ end {eolnx} ;
 procedure removefileparam;
 
   var
-    binfileregkey: keyindex;
+    fileregkey: keyindex;
 
 begin {removefileparam}
   if filenamed then
     begin
-    binfileregkey := settemp(long, reg_oprnd(binfilereg));
-    unlock(binfileregkey);
+    fileregkey := settemp(long, reg_oprnd(filereg));
+    unlock(fileregkey);
     end;
   filenamed := false;
 end {removefileparam};
@@ -5442,7 +5442,7 @@ procedure wrcommon(libroutine: libroutines; {formatting routine to call}
                    deffmt: integer {default width if needed} );
 
   var
-    binfileregkey: keyindex;
+    fileregkey: keyindex;
 
   begin {wrcommon}
     if formatinfo.count = 0 then
@@ -5457,8 +5457,8 @@ procedure wrcommon(libroutine: libroutines; {formatting routine to call}
     formatinfo.regcount := ord(filenamed);
     if filenamed then
       begin
-      binfileregkey := settemp(long, reg_oprnd(binfilereg));
-      gensimplemove(lastnode, binfileregkey, regkeys[0]);
+      fileregkey := settemp(long, reg_oprnd(filereg));
+      gensimplemove(lastnode, fileregkey, regkeys[0]);
       end;
     calliosupport(libroutine);
     dontchangevalue := 0;
@@ -5474,7 +5474,7 @@ procedure wrstx;
 }
 
   var lengthregkey, widthregkey: keyindex;
-    binfileregkey: keyindex;
+    fileregkey: keyindex;
 
   begin
     if formatinfo.count = 0 then
@@ -5487,26 +5487,26 @@ procedure wrstx;
     formatinfo.regcount := ord(filenamed);
     if filenamed then
       begin
-      binfileregkey := settemp(long, reg_oprnd(binfilereg));
-      gensimplemove(lastnode, binfileregkey, regkeys[0]);
+      fileregkey := settemp(long, reg_oprnd(filereg));
+      gensimplemove(lastnode, fileregkey, regkeys[0]);
       end;
     calliosupport(libwritestring);
   end {wrstx} ;
 
-procedure writelnx;
+procedure readwritelnx(libroutine: libroutines);
 
   var
-    binfileregkey: keyindex;
+    fileregkey: keyindex;
 
-  begin {writelnx}
+  begin {readwritelnx}
     if filenamed then
       begin
-      binfileregkey := settemp(long, reg_oprnd(binfilereg));
-      gensimplemove(lastnode, binfileregkey, regkeys[0]);
+      fileregkey := settemp(long, reg_oprnd(filereg));
+      gensimplemove(lastnode, fileregkey, regkeys[0]);
       end;
-    calliosupport(libwriteln);
+    calliosupport(libroutine);
     removefileparam;
-  end {writelnx};
+  end {readwritelnx};
 
 procedure setbinfilex;
 
@@ -5517,13 +5517,13 @@ procedure setbinfilex;
 
 begin {setbinfilex}
   if  filenamed then
-    setvalue(reg_oprnd(binfilereg))
+    setvalue(reg_oprnd(filereg))
   else
     begin
     address(left, 0);
     firstreg := pr + 1; 
-    binfilereg := getreg;
-    setvalue(reg_oprnd(binfilereg));
+    filereg := getreg;
+    setvalue(reg_oprnd(filereg));
     gensimplemove(lastnode, left, key);
     filenamed := true;
     end;
@@ -5541,44 +5541,64 @@ procedure setfilex;
 
 var
   savedfirstreg: regindex;
-  binfileregkey: keyindex;
+  fileregkey: keyindex;
 
 begin {setfilex}
   address(left, 0);
-{
-  if  filenamed then
-    binfileregkey := settemp(long, reg_oprnd(binfilereg))
-  else
-  if not filenamed then
-    begin
-}
-    firstreg := pr + 1; 
-    binfilereg := getreg;
-    binfileregkey := settemp(long, reg_oprnd(binfilereg));
-    gensimplemove(lastnode, left, binfileregkey);
-    filenamed := true;
-    dontchangevalue := dontchangevalue + 1;
-{
-    end;
-}
-  lock(binfileregkey);
+  firstreg := pr + 1; 
+  filereg := getreg;
+  fileregkey := settemp(long, reg_oprnd(filereg));
+  gensimplemove(lastnode, left, fileregkey);
+  filenamed := true;
+  dontchangevalue := dontchangevalue + 1;
+  lock(fileregkey);
   dontchangevalue := dontchangevalue + 1;
   formatinfo.count := 0;
   formatinfo.regcount := 1;
   firstreg := 1;
-end {setfilex} ;
+end {setfilex};
+
+procedure  rdintcharx(libroutine: libroutines; len: addressrange);
+
+  var
+    fileregkey: keyindex;
+
+begin {rdintcharx}
+  if filenamed then
+    begin
+    fileregkey := settemp(long, reg_oprnd(filereg));
+    gensimplemove(lastnode, fileregkey, regkeys[0]);
+    end;
+  calliosupport(libroutine);
+  address(left, 0);
+  gensimplemove(lastnode, regkeys[0], left);
+end {rdintcharx};
+
+procedure rdxstrx;
+
+  var
+    fileregkey: keyindex;
+
+begin {rdxstrx}
+  if filenamed then
+    begin
+    fileregkey := settemp(long, reg_oprnd(filereg));
+    gensimplemove(lastnode, fileregkey, regkeys[0]);
+    end;
+  calliosupport(libreadxstring);
+end {rdxstrx};
 
 procedure rdwrbin(libroutine: libroutines);
 
 var
-  binfileregkey: keyindex;
+  fileregkey: keyindex;
 
 begin {rdwrfile}
-  binfileregkey := settemp(long, reg_oprnd(binfilereg));
+  fileregkey := settemp(long, reg_oprnd(filereg));
 {
-  unlock(binfileregkey);
+  unlock(fileregkey);
 }
-  gensimplemove(lastnode, binfileregkey, regkeys[0]);
+  gensimplemove(lastnode, fileregkey, regkeys[0]);
   callsupport(libroutine, true);
 end {rdwrfile};
 
@@ -5761,8 +5781,8 @@ procedure sysroutinex;
       noioerrorid: callsupport(libnoioerror, true);
       deleteid: callsupport(libdelete, true);
       writeid, readid: removefileparam;
-      writelnid: writelnx;
-      readlnid: calliosupport(libreadln);
+      writelnid: readwritelnx(libwriteln);
+      readlnid: readwritelnx(libreadln);
       insertid: callsupport(libinsert, true);
       deletestrid: callsupport(libdeletestr, true);
 {     pascal extended string ops
@@ -7813,15 +7833,15 @@ procedure codeone;
       closerange: closerangex;
       definelazy: definelazyx;
       setbinfile: setbinfilex;
-{
       rdint: rdintcharx(libreadint, defaulttargetintsize);
       rdchar: rdintcharx(libreadchar, byte);
+{
       rdreal: rdintcharx(libreadreal, len);
       rdst:
         if filenamed then callandpop(libreadstring, 2)
         else callandpop(libreadstringi, 2);
-      rdxstr: rdxstrx;
 }
+      rdxstr: rdxstrx;
       rdbin: rdwrbin(libget);
       wrbin: rdwrbin(libput);
       wrst: wrstx;

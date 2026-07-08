@@ -625,7 +625,7 @@ var
 
   regkeys: array [regindex] of keyindex;
 
-  binfilereg: regindex; {the callee-saved register holding binfile for
+  filereg: regindex; {the callee-saved register holding binfile for
                          later access}
 
   firstbr: brlinkptr; {beginning of branch link data chain}
