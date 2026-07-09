@@ -112,10 +112,11 @@ function _p_rdc(filevar: _p_addressptr): char; external;
 function _p_rdi(filevar: _p_addressptr): integer; external;
 function _p_rdd(filevar: _p_addressptr): double; external;
 function _p_rdf(filevar: _p_addressptr): real; external;
-procedure _p_rdln(filevar: _p_addressptr); external;
-procedure _p_rds(filevar: _p_addressptr); external;
+procedure _p_rds(filevar: _p_addressptr; var result: _p_stringarray;
+                 size: integer); external;
 procedure _p_rdxs(filevar: _p_addressptr; var result: _p_string;
                   size: integer); external;
+procedure _p_rdln(filevar: _p_addressptr); external;
 function _p_rdc_i: char; external;
 function _p_rdi_i: integer; external;
 function _p_rdd_i: double; external;
@@ -1090,10 +1091,13 @@ end {_p_rdi};
 
 procedure _p_rdxs;
 
-{ This procedure is passed the file variable, a pointer to the extended
+{ Read a line of characters into an extended string.
+
+  This procedure is passed the file variable, a pointer to the extended
   string, and the maximum length of the string.
 
-  It will fill the string until it is filled or eoln is true.
+  It will fill the string until it is filled or eoln is true.  The string
+  is appended with a null (and the length set) in either case;
 
   It is a bit more efficient than filling the string yourself by reading
   single characters.
@@ -1120,6 +1124,49 @@ begin
     filep^.status := filep^.status - [_p_def];
   result[0] := chr(i);
   result[i + 1] := chr(0);
+end;
+
+
+procedure _p_rds;
+
+{ Read a line of characters into a Standard Pascal string, in other words a
+  packed array of char.
+
+  This procedure is passed the file variable, a pointer to the packed array
+  of char, and the maximum length of the string.
+
+  It will fill the string until it is filled or eoln is true.  If necessary
+  the packed array is padded with spaces;
+
+  It is a bit more efficient than filling the string yourself by reading
+  single characters.
+
+  _p_strarray is defined as starting at 0 rather than the Standard Pascal
+  definition of a string being a packed array[1..n] of char, which makes
+  it easier elsewhere to work with mixed extended strings and Pascal
+  strings.
+}
+
+var
+  datasize, i: integer;
+  filep: _p_fileinfoptr;
+
+begin
+  filep := _p_checkio(filevar, _p_read);
+  i := 0;
+  if not (_p_def in filep^.status) then
+    _p_define(filevar);
+  while (i <= size) and
+        (filep^.status - [_p_eoln, _p_eof] = filep^.status) do
+    begin
+    result[i] := filep^.ch;
+    i := i + 1;
+    _p_define(filevar);
+    end;
+  for i := i to size - 1 do
+    result[i] := ' ';
+  if not (_p_eoln in filep^.status) then
+    filep^.status := filep^.status - [_p_def];
 end;
 
 procedure _p_rdln;
