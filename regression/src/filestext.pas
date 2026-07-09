@@ -2,6 +2,9 @@ var f:text;
   ch: char;
   i,j: integer;
   s: string[255];
+  s1: string[5];
+  a: packed array [1..50] of char;
+  a1: packed array [1..5] of char;
 
 begin
 
@@ -32,6 +35,36 @@ begin
     write('"');
     readln(f, s);
     writeln(s,'"');
+    end;
+
+  writeln; writeln('reset, read and print using small string buffer'); writeln;
+
+  reset(f);
+  while not eof(f) do
+    begin
+    write('"');
+    readln(f, s1);
+    writeln(s1,'"');
+    end;
+
+  writeln; writeln('reset, read and print using packed array buffer'); writeln;
+
+  reset(f);
+  while not eof(f) do
+    begin
+    write('"');
+    readln(f, a);
+    writeln(a,'"');
+    end;
+
+  writeln; writeln('reset, read and print using short packed array buffer'); writeln;
+
+  reset(f);
+  while not eof(f) do
+    begin
+    write('"');
+    readln(f, a1);
+    writeln(a1,'"');
     end;
 
   writeln; writeln('rewrite, write integers, read/print'); writeln;

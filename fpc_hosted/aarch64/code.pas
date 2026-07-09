@@ -5574,7 +5574,7 @@ begin {rdintcharx}
   gensimplemove(lastnode, regkeys[0], left);
 end {rdintcharx};
 
-procedure rdxstrx;
+procedure rdstrx(libroutine: libroutines);
 
   var
     fileregkey: keyindex;
@@ -5585,7 +5585,7 @@ begin {rdxstrx}
     fileregkey := settemp(long, reg_oprnd(filereg));
     gensimplemove(lastnode, fileregkey, regkeys[0]);
     end;
-  calliosupport(libreadxstring);
+  calliosupport(libroutine);
 end {rdxstrx};
 
 procedure rdwrbin(libroutine: libroutines);
@@ -7837,11 +7837,10 @@ procedure codeone;
       rdchar: rdintcharx(libreadchar, byte);
 {
       rdreal: rdintcharx(libreadreal, len);
-      rdst:
-        if filenamed then callandpop(libreadstring, 2)
-        else callandpop(libreadstringi, 2);
 }
-      rdxstr: rdxstrx;
+      rdxstr: rdstrx(libreadxstring);
+      rdst: rdstrx(libreadstring);
+
       rdbin: rdwrbin(libget);
       wrbin: rdwrbin(libput);
       wrst: wrstx;
