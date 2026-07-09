@@ -1047,6 +1047,47 @@ begin {_p_rdc}
     filep^.status := filep^.status - [_p_def];
 end {_p_rdc};
 
+function _p_rdi;
+
+{ read an integer from a file
+}
+
+var
+  filep: _p_fileinfoptr;
+  value: integer;
+  minus: boolean;
+
+begin {_p_rdi}
+  filep := _p_checkio(filevar, _p_read);
+  if not (_p_def in filep^.status) then
+    _p_define(filevar);
+  {skip leading blank characters, including eoln.  eof will trigger an error,
+   of course.
+  }
+  while filep^.ch <= ' ' do
+    _p_define(filevar);
+  if filep^.ch = '-' then
+    begin
+    minus := true;
+    _p_define(filevar);
+    end
+  else
+    minus := false;
+  if ('0' > filep^.ch) or (filep^.ch > '9') then
+    _p_libfileerror(filep, 'Illegal integer');
+  value := 0;
+  while ('0' <= filep^.ch) and (filep^.ch <= '9') do
+    begin
+    { grouped this way to avoid needless overflow ...}
+    value := value * 10 + (ord(filep^.ch) - ord('0'));
+    _p_define(filevar);
+    end;
+  if minus then
+    _p_rdi := -value
+  else
+  _p_rdi := value;
+end {_p_rdi};
+
 procedure _p_rdxs;
 
 { This procedure is passed the file variable, a pointer to the extended
@@ -1075,7 +1116,8 @@ begin
     result[i] := filep^.ch;
     _p_define(filevar);
     end;
-  filep^.status := filep^.status - [_p_def];
+  if not (_p_eoln in filep^.status) then
+    filep^.status := filep^.status - [_p_def];
   result[0] := chr(i);
   result[i + 1] := chr(0);
 end;
