@@ -2760,64 +2760,55 @@ _p_rdxs:
 	stp	x25,x26,[x29,-32]
 	str	x24,[x29,-40]
 # Line: 1065, Stmt: 1
-	mov	x26,x0
-	mov	x25,x1
-	mov	x27,x2
+	mov	x25,x0
+	mov	x26,x1
+	mov	x28,x2
 # Line: 1066, Stmt: 2
-	mov	x0,x26
+	mov	x0,x25
 	mov	x1,4
 	bl	.P70  // _p_checkio
-	mov	x28,x0
+	mov	x27,x0
 # Line: 1067, Stmt: 0
-	sub	w24,w27,2
+	sub	w24,w28,2
 # Line: 1068, Stmt: 0
-	mov	x27,xzr
+	mov	x28,xzr
 # Line: 1069, Stmt: 0
-	ldrh	w15,[x28,8]
+	ldrh	w15,[x27,8]
 	ands	w16,w15,1
 	b.ne	.L281
 .L282:
 # Line: 1070, Stmt: 0
-	mov	x0,x26
+	mov	x0,x25
 	bl	_p_define
 .L281:
 .L280:
 # Line: 1071, Stmt: 0
-	cmp	w27,w24
+	cmp	w28,w24
 	b.ge	.L283
-	ldrh	w14,[x28,8]
+	ldrh	w14,[x27,8]
 	bic	w15,w14,6
-	ldrh	w14,[x28,8]
+	ldrh	w14,[x27,8]
 	cmp	w15,w14
 	b.ne	.L283
 .L284:
 # Line: 1074, Stmt: 0
-	add	w27,w27,1
+	add	w28,w28,1
 # Line: 1075, Stmt: 0
-	ldrb	w16,[x28,10]
-	strb	w16,[x25, w27, sxtw]
+	ldrb	w16,[x27,10]
+	strb	w16,[x26, w28, sxtw]
 # Line: 1076, Stmt: 0
-	mov	x0,x26
-	bl	_p_get
-# Line: 1077, Stmt: 0
-	ldrh	w15,[x28,8]
-	ands	w16,w15,1
-	b.ne	.L286
-.L287:
-# Line: 1078, Stmt: 0
-	mov	x0,x26
+	mov	x0,x25
 	bl	_p_define
-.L286:
 	b	.L280
 .L283:
-# Line: 1080, Stmt: 0
-	ldrh	w14,[x28,8]
+# Line: 1078, Stmt: 0
+	ldrh	w14,[x27,8]
 	bic	w15,w14,1
-	strh	w15,[x28,8]
-# Line: 1081, Stmt: 0
-	strb	w27,[x25]
-# Line: 1082, Stmt: 0
-	add	x15,x25,w27, sxtw 0
+	strh	w15,[x27,8]
+# Line: 1079, Stmt: 0
+	strb	w28,[x26]
+# Line: 1080, Stmt: 0
+	add	x15,x26,w28, sxtw 0
 	strb	wzr,[x15,1]
 .L279:
 	ldp	x27,x28,[x29,-16]
@@ -2837,28 +2828,28 @@ _p_rdln:
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
 	stp	x27,x28,[x29,-16]
-# Line: 1090, Stmt: 1
+# Line: 1088, Stmt: 1
 	mov	x28,x0
-# Line: 1091, Stmt: 2
+# Line: 1089, Stmt: 2
 	mov	x0,x28
 	mov	x1,4
 	bl	.P70  // _p_checkio
 	mov	x27,x0
-.L289:
-# Line: 1092, Stmt: 0
+.L287:
+# Line: 1090, Stmt: 0
 	ldrh	w15,[x27,8]
 	ands	w16,w15,4
-	b.ne	.L290
-.L291:
-# Line: 1093, Stmt: 0
+	b.ne	.L288
+.L289:
+# Line: 1091, Stmt: 0
 	mov	x0,x28
 	bl	_p_get
-	b	.L289
-.L290:
-# Line: 1094, Stmt: 0
-	mov	x0,x28
-	bl	_p_get
+	b	.L287
 .L288:
+# Line: 1092, Stmt: 0
+	mov	x0,x28
+	bl	_p_get
+.L286:
 	ldp	x27,x28,[x29,-16]
 	ldp	x30,x29,[sp,24]
 	add	sp,sp,48
@@ -2873,14 +2864,14 @@ _p_new:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-# Line: 1098, Stmt: 1
-# Line: 1099, Stmt: 2
+# Line: 1096, Stmt: 1
+# Line: 1097, Stmt: 2
 	str	x0,[x29,-16]
 	mov	x0,x1
 	bl	_malloc
 	ldr	x15,[x29,-16]
 	str	x0,[x15]
-.L292:
+.L290:
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
@@ -2894,16 +2885,16 @@ _p_dispos:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-# Line: 1103, Stmt: 1
-# Line: 1104, Stmt: 2
+# Line: 1101, Stmt: 1
+# Line: 1102, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x15,[x29,-8]
 	ldr	x0,[x15]
 	bl	_free
-# Line: 1105, Stmt: 0
+# Line: 1103, Stmt: 0
 	ldr	x15,[x29,-8]
 	str	xzr,[x15]
-.L293:
+.L291:
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
@@ -2924,7 +2915,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
-.L294:
+.L292:
 	ldp	x30,x29,[sp],16
 	ret
 	.comm	.L32766,16,12

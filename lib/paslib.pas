@@ -1073,9 +1073,7 @@ begin
     begin
     i := i + 1;
     result[i] := filep^.ch;
-    _p_get(filevar);
-    if not (_p_def in filep^.status) then
-      _p_define(filevar);
+    _p_define(filevar);
     end;
   filep^.status := filep^.status - [_p_def];
   result[0] := chr(i);
