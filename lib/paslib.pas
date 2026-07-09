@@ -114,7 +114,8 @@ function _p_rdd(filevar: _p_addressptr): double; external;
 function _p_rdf(filevar: _p_addressptr): real; external;
 procedure _p_rdln(filevar: _p_addressptr); external;
 procedure _p_rds(filevar: _p_addressptr); external;
-procedure _p_rdxs(filevar: _p_addressptr); external;
+procedure _p_rdxs(filevar: _p_addressptr; var result: _p_string;
+                  size: integer); external;
 function _p_rdc_i: char; external;
 function _p_rdi_i: integer; external;
 function _p_rdd_i: double; external;
@@ -735,7 +736,7 @@ begin {_p_seek}
   filep := _p_filep(filevar);
   if fseek(filep^.streamp, offset * filep^.size, _p_seek_set) <> 0 then
     _p_libfileerror(filep, 'seek failed');
-    filep^.status := filep^.status - [_p_def, _p_eoln, _p_eof];
+  filep^.status := filep^.status - [_p_def, _p_eoln, _p_eof];
 end {_p_seek};
 
 { Input operations on files are implemented using lazy I/O.
@@ -767,8 +768,11 @@ begin {_p_define}
       begin
       filep^.status := filep^.status - [_p_eof, _p_eoln];
       if ch = 10 then
+        begin
         filep^.status := filep^.status + [_p_eoln];
-      filep^.ch := chr(ch);
+        filep^.ch := ' '
+        end
+      else filep^.ch := chr(ch);
       end;
     end
   else
@@ -1042,6 +1046,41 @@ begin {_p_rdc}
   if not (_p_eoln in filep^.status) then
     filep^.status := filep^.status - [_p_def];
 end {_p_rdc};
+
+procedure _p_rdxs;
+
+{ This procedure is passed the file variable, a pointer to the extended
+  string, and the maximum length of the string.
+
+  It will fill the string until it is filled or eoln is true.
+
+  It is a bit more efficient than filling the string yourself by reading
+  single characters.
+}
+
+var
+  datasize, i: integer;
+  filep: _p_fileinfoptr;
+
+begin
+  filep := _p_checkio(filevar, _p_read);
+  datasize := size - 2; {one char for the size, one for the trailing null}
+  i := 0;
+  if not (_p_def in filep^.status) then
+    _p_define(filevar);
+  while (i < datasize) and
+        (filep^.status - [_p_eoln, _p_eof] = filep^.status) do
+    begin
+    i := i + 1;
+    result[i] := filep^.ch;
+    _p_get(filevar);
+    if not (_p_def in filep^.status) then
+      _p_define(filevar);
+    end;
+  filep^.status := filep^.status - [_p_def];
+  result[0] := chr(i);
+  result[i + 1] := chr(0);
+end;
 
 procedure _p_rdln;
 
