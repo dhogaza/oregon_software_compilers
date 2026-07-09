@@ -6703,7 +6703,8 @@ procedure statement(follow: tokenset {legal following symbols} );
       end {filehack} ;
 
 
-    procedure gencopystack(len: integer; var regparams: regparamstype );
+    procedure gencopystack(len: integer; var regparams: regparamstype;
+                           allowcopy: boolean);
 
 { Generate special code to copy the top element of the runtime stack
   into the proper place for a file parameter (stack or register)
@@ -6711,6 +6712,9 @@ procedure statement(follow: tokenset {legal following symbols} );
   argument to "read" or "write".  Complicated by the fact that the
   travrs operand stack (for building nodes) might or might not already
   contain the read/write argument.
+
+  Now that we have register parameters, we only copy if a parameter has
+  been allocated on the stack and if allowcopy is true.
 }
 
       var
@@ -6719,7 +6723,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 
       begin {gencopystack}
         allocstdparam(ptrs, regparams, alloc, dummy);
-        if alloc = normalalloc then
+        if allowcopy and (alloc = normalalloc) then
           begin
           if not constcheck(sp) then genop(switchstack);
           genop(copystackop);
@@ -6728,10 +6732,6 @@ procedure statement(follow: tokenset {legal following symbols} );
           genform(ptrs);
           if not constcheck(sp) then genop(switchstack);
           end;
-{
-       else
-          genop(fileparamop);
-}
       end {gencopystack} ;
 
     procedure readprocedure;
@@ -6779,11 +6779,10 @@ procedure statement(follow: tokenset {legal following symbols} );
                 begin
                 if readform = ints then resultlen := defaulttargetintsize
                 else resultlen := sizeof(resultptr, false);
-                gencopystack(resultlen, readregparams);
+                gencopystack(resultlen, readregparams, true);
                 end
-              else if readfile and ((token <> rpar) or not readflag) then
-                gencopystack(ptrsize, readregparams);
-
+              else if readfile then
+                gencopystack(ptrsize, readregparams, (token <> rpar) or not readflag);
               if not (readform in [none, ints, reals, doubles, chars]) then
                 begin
                 if ((readform <> arrays) or not resultptr^.stringtype) and
@@ -6942,7 +6941,7 @@ procedure statement(follow: tokenset {legal following symbols} );
               else stringflag := writeform = strings;
 
               if writefile and ((token <> rpar) or not writeflag) then
-                gencopystack(ptrsize, writeregparams);
+                gencopystack(ptrsize, writeregparams, true);
 
               case writeform of
                 bools, chars, ints:
