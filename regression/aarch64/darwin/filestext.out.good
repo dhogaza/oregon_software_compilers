@@ -1,5 +1,20 @@
+rewrite foo.txt, write text, reset, read/print char buffer
+
 "abc  a          42"
 "how about that?"
+
+append, reset, read and print using string buffer
+
 "abc  a          42"
 "how about that?"
 "append to the end"
+
+rewrite, write integers, read/print
+
+         123         456
+         654         321
+
+rewrite, write csv integers, read/print
+
+123,456
+654,321
