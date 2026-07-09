@@ -1120,8 +1120,6 @@ begin
     result[i] := filep^.ch;
     _p_define(filevar);
     end;
-  if not (_p_eoln in filep^.status) then
-    filep^.status := filep^.status - [_p_def];
   result[0] := chr(i);
   result[i + 1] := chr(0);
 end;
@@ -1156,7 +1154,7 @@ begin
   i := 0;
   if not (_p_def in filep^.status) then
     _p_define(filevar);
-  while (i <= size) and
+  while (i < size) and
         (filep^.status - [_p_eoln, _p_eof] = filep^.status) do
     begin
     result[i] := filep^.ch;
@@ -1165,8 +1163,6 @@ begin
     end;
   for i := i to size - 1 do
     result[i] := ' ';
-  if not (_p_eoln in filep^.status) then
-    filep^.status := filep^.status - [_p_def];
 end;
 
 procedure _p_rdln;

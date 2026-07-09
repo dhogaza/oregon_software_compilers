@@ -37,15 +37,37 @@ begin
     writeln(s,'"');
     end;
 
-  writeln; writeln('reset, read and print using small string buffer'); writeln;
+  writeln; writeln('reset, get, and print using f^'); writeln;
+
+  reset(f);
+  while not eof(f) do
+    begin
+      while not eoln(f) do
+      begin
+      write(f^);
+      get(f);
+      end;
+    writeln;
+    get(f);
+    end;
+  
+  writeln;
+  writeln('reset, read and print using multiple small string buffer reads');
+  writeln;
 
   reset(f);
   while not eof(f) do
     begin
     write('"');
-    readln(f, s1);
-    writeln(s1,'"');
+    while not eoln(f) do
+      begin
+      read(f, s1);
+      write(s1);
+      end;
+    readln(f);
+    writeln('"');
     end;
+
 
   writeln; writeln('reset, read and print using packed array buffer'); writeln;
 
@@ -65,6 +87,23 @@ begin
     write('"');
     readln(f, a1);
     writeln(a1,'"');
+    end;
+
+  writeln;
+  writeln('reset, read and print using multiple short packed array buffer');
+  writeln;
+
+  reset(f);
+  while not eof(f) do
+    begin
+    write('"');
+    while not eoln(f) do
+      begin
+      read(f, a1);
+      write(a1);
+      end;
+    readln(f);
+    writeln('"');
     end;
 
   writeln; writeln('rewrite, write integers, read/print'); writeln;
