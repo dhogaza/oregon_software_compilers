@@ -32,11 +32,6 @@ implmentation in codegen could be something like ...
  
 if seeking value, wzr is replaced with a register.
 
-structure is bldset node's left operand is zero if no set insertions, last
-set insertion's left node is 0.  This is now used to flag to the code generator
-whether or not doset should put its left operand someplace where it can be
-clobbered by setinsert pseudoops (hopefully the target).
-
 *** current bugs
 
    -- set arithmetic probably doesn't really handle intconsts
@@ -77,8 +72,26 @@ clobbered by setinsert pseudoops (hopefully the target).
 
 --- current work
 
-  -- now that stacktemp has been improved we should be able to use it 
-     much more often.
+  -- the precedes lastbranch code is safe but silly.  It is really where
+     labels are defined that is the issue, and if the key being considered
+     lies between a branch and its label.
+
+     <k>
+     beq forward
+     <changevalue k> safe to do to the copyaccess if any, i.e. the directly
+     referenced key>
+forward:
+
+is safe? (and the forward label will be undefined so we would know it is safe).
+
+     beq forward
+     <k>
+forward:
+     <changevalue k>
+
+Is not safe.>
+
+Needs more thinking.  Nodes probably need address labeling.
 
   -- instead of deleting instruction nodes, mark them with a "deleted" flag.
      If the compiler's details switch (or some other?) is given then write out
@@ -86,9 +99,6 @@ clobbered by setinsert pseudoops (hopefully the target).
      quite a bit with debugging these reg save/restore bugs, and also might
      be very helpful when debugging peephole optimizatios (like replacing
      "ands single bit bitmask/b.[ne/eq] label" with "tb[n]z bit#, label").
-
-
-  -- short sets should be passed as integers (up to 32 bits at the moment)
 
   -- look into shortvisit/unnestparams morass.
 
@@ -98,11 +108,16 @@ clobbered by setinsert pseudoops (hopefully the target).
 
   -- look into why smallsetstime genrates such trash code (Low priority)
 
-  -- things needed to really start implementing the library
+  -- things needed to finish implementing the library
 
      Will need an assembly stub or separate pascal header file(?) to deal
      with darwin ___stdinp vs linux stdin naming difference stupidty. Probably
-     the assembler thing, sources in darwin/linux subdirs.
+     the assembler thing, sources in darwin/linux subdirs.  Or extern pascal
+     var, like function _p_stdin, _p_stdout, and _p_stderr with either extern
+     stdin/out (linux) or ____stdinp/out/err for darwin, in the appropriate
+     linux/darwin directory chosen by a build script.  Would also need to be
+     handled by the regression test .nolib processing code by setting an
+     additional --include switch.
 
   -- shared/def/use variable
 
@@ -110,10 +125,11 @@ clobbered by setinsert pseudoops (hopefully the target).
      shared vars each definitely gets a commnode.   For use/define?  Need to see
      how to communicate with C library for standard input/ouput streams.
 
-     probably need to do a commc here.
-
-     maybe hold off for a bit and start files.
-
+     externs not defined need to use GOT crap.  For our code, if I add a
+     --dynlib or the like switch we would, too.  GOT operands shouldn't be used
+     as a regenoprnd because generation requires an ldr anyway, which is what
+     regenoprnd is meant to avoid in the first place.
+`
   -- error calls
 
      don't mark param regs when loading them.  don't mark scratch registers when
@@ -129,16 +145,7 @@ clobbered by setinsert pseudoops (hopefully the target).
 	ldr	x0, [x0, :got_lo12:stdout]
 
 
-     Binary file stuff should be easier in the compiler.
-
-     Doing this based on streams would seem to make the most sense though fds would
-     probably be easier.
-
     -- Library
-
-     This is going to be complex.  Figuring how to represent files is going to be
-     quite the trip on its own. The library code can probably be written in Pascal
-     interfacing to the C library.  Or the C library more likely ...
 
      Will have to figure out how to build a dynamic library (including GOT
      relocation?) in order to automatically initialize the library if called from
@@ -155,14 +162,6 @@ clobbered by setinsert pseudoops (hopefully the target).
      to frequent use.  Might generate some lousy code with extra moves?
 
      -- do for simplicity and clarity 
-
-     break handle_offset9_oprnd into two again?  The idea is that we want a general 
-     handle_abstract_offset_oprnd procedure that will handle neg offsets as signed_offset
-     and positive as unsigned_offset.
-
-     LDP/STP just handle as special case and is always a signed_offset.
-
-     Treat post/preindex as aborts if they are out of the signed range.
 
      Reg allocation has to get away from allocating 
      essentially exclusively to caller-saved regs but everything should be tested
@@ -189,40 +188,23 @@ clobbered by setinsert pseudoops (hopefully the target).
 
     This makes using 2, 4, 8, 16 byte moves possible for structs.
 
-0.4 fix up lastlabel/newlabel/definelastlabel bullshit
-
 2. improve for loops/fix
 
    a. if a register is loaded before the top compare and after
       last branch (boolean expressions in first or last expression),
       mark it.  It doesn't need to be reloaded at the bottom.
 
-4.  yet to be figured out how to put the reg return value forced
-   to physical reg 0 in leaf functions if allocated as a valuable
-   regtemp by improve?  Or is this really a viable
-   idea if param 0 is being used?
-
 9. lots of sign extension and the like issues?
 
 10.targeting logic sucks on this machine, too many instances
    of ld xn, mem/op xm,xn/mov xn,xm/ when xm is no longer useful.
 
-11. block moves should just use memcpy for now.  optimizing these is
-    very low on the priority list.
-
 -- more general
 
-1. if current block makes no calls allocate regtemps to
-   caller-saved registers.  Better, track calls to procs
-   including intrinsics and determine which scratch registers
-   are never used by called procedures in a block and 
+1. Track calls to procs including intrinsics and determine which scratch
+   registers are never used by called procedures in a block and 
    allocate those first so we can avoid saving them.  Track
    by context stack with more logic in travrs?
-
-2. Need to allow parameters that aren't required to be in
-   memory for nested procs to be assigned true regtemps
-   as frequent use of params in the context of many calls
-   to procs leads to horrendous number of spills
 
 3. what's with cseregions being zero?  bug in the code?  Try it! (config)
 

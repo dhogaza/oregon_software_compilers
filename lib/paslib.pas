@@ -130,11 +130,13 @@ procedure _p_wtb(filevar: _p_addressptr; b: boolean; width: integer); external;
 procedure _p_wts(filevar: _p_addressptr; const str: _p_stringarray;
                  length: integer; width: integer); external;
 procedure _p_wtln(filevar: _p_addressptr); external;
+procedure _p_page(filevar: _p_addressptr); external;
 procedure _p_wtc_o(ch: char; width: integer); external;
 procedure _p_wti_o(i: integer; width: integer); external;
 procedure _p_wtb_o(b: boolean; width: integer); external;
 procedure _p_wts_o(const str: _p_stringarray; length: integer; width: integer); external;
 procedure _p_wtln_o; external;
+procedure _p_page_o; external;
 
 { strings }
 function _p_pos(const src, match: _p_string): integer; external;
@@ -950,6 +952,16 @@ begin {_p_wtln}
   wrchar(filep, chr(10));
 end {_p_wtln};
 
+procedure _p_page;
+
+  var
+    filep: _p_fileinfoptr;
+
+begin {_p_page}
+  filep := _p_checkio(filevar, _p_write);
+  wrchar(filep, chr(12));
+end {_p_page};
+
 { Write to standard output.  This is going to change drastically soon.
 }
 
@@ -1030,6 +1042,12 @@ begin
   putchar(chr(10));
 end;
 
+procedure _p_page_o;
+
+begin
+  putchar(chr(12));
+end;
+
 { read text files }
 
 function _p_rdc;
@@ -1107,7 +1125,7 @@ var
   datasize, i: integer;
   filep: _p_fileinfoptr;
 
-begin
+begin {_p_rdxs}
   filep := _p_checkio(filevar, _p_read);
   datasize := size - 2; {one char for the size, one for the trailing null}
   i := 0;
@@ -1122,7 +1140,7 @@ begin
     end;
   result[0] := chr(i);
   result[i + 1] := chr(0);
-end;
+end {_p_rdxs};
 
 
 procedure _p_rds;
@@ -1149,7 +1167,7 @@ var
   datasize, i: integer;
   filep: _p_fileinfoptr;
 
-begin
+begin {_p_rds}
   filep := _p_checkio(filevar, _p_read);
   i := 0;
   if not (_p_def in filep^.status) then
@@ -1163,7 +1181,7 @@ begin
     end;
   for i := i to size - 1 do
     result[i] := ' ';
-end;
+end {_p_rds};
 
 procedure _p_rdln;
 

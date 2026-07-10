@@ -2558,13 +2558,12 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
         if restorereg then
           begin
           t := settemp(long, reg_oprnd(reg));
-          t1 := settemp(long, regenoprnd);
           recall_reg(reg, properreg);
           if {(mode = register) and }(regenoprnd.mode <> nomode) then
             case regenoprnd.mode of
               dataref:
                 begin
-                genadrp(lastnode, false, t, t1);
+                genadrp(lastnode, false, t, settemp(long, regenoprnd));
                 if mode <> label_offset then
                   if mode = register then
                     gen2(lastnode,
@@ -2581,7 +2580,8 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
                                            regenoprnd.externref, regenoprnd.labeloffset)))
                 end;
               abstract_offset:
-                gensimplemove(lastnode, t1, t);
+                gen2(lastnode, ldrinst(len, keytable[key].signed),
+                       t, settemp(len, regenoprnd));
               otherwise writeln('bad regenoprnd ', regenoprnd.mode);
             end
           else
@@ -2984,11 +2984,11 @@ begin {handle_offset12_oprnd}
 
 end {handle_offset12_oprnd};
 
+
 procedure genldr(var after: nodeptr;
                  len: addressrange;
                  signed: boolean;
                  dst, src: keyindex);
-
   { gen a ldr instruction and fix offset field if necessary and possible.
     sp offsets are finalized after a routine has finished compilation.
   }
@@ -5544,18 +5544,22 @@ var
   fileregkey: keyindex;
 
 begin {setfilex}
-  address(left, 0);
-  firstreg := pr + 1; 
-  filereg := getreg;
-  fileregkey := settemp(long, reg_oprnd(filereg));
-  gensimplemove(lastnode, left, fileregkey);
+  { artifact of front end I'm afraid }
+  if keytable[left].refcount <> 0 then
+    begin
+    address(left, 0);
+    firstreg := pr + 1; 
+    filereg := getreg;
+    fileregkey := settemp(long, reg_oprnd(filereg));
+    gensimplemove(lastnode, left, fileregkey);
+    dontchangevalue := dontchangevalue + 1;
+    lock(fileregkey);
+    dontchangevalue := dontchangevalue + 1;
+    formatinfo.count := 0;
+    formatinfo.regcount := 1;
+    firstreg := 1;
+    end;
   filenamed := true;
-  dontchangevalue := dontchangevalue + 1;
-  lock(fileregkey);
-  dontchangevalue := dontchangevalue + 1;
-  formatinfo.count := 0;
-  formatinfo.regcount := 1;
-  firstreg := 1;
 end {setfilex};
 
 procedure  rdintcharx(libroutine: libroutines; len: addressrange);

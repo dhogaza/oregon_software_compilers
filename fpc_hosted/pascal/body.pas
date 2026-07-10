@@ -6571,9 +6571,8 @@ procedure statement(follow: tokenset {legal following symbols} );
 
       begin {resetrewrite}
         fileparam(true, true, false, regparams);
-{
-        genunary(setfileop, none);
-}
+        if not newsetfile then
+          genunary(setfileop, none);
         if token in [comma, eql..andsym, ident, intconst..stringconst, lbrack, lpar,
            notsym, nilsym] then
           begin
