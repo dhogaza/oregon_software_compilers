@@ -34,6 +34,14 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
+   -- loop reg saves should go back to using stack temp because the
+      regenoprnd stuff is a mess.  loopsp stuff depends on stack values.
+      It's not really any more expensive to do so in terms of memory
+      accesses.  The real keys to making this more efficient lies in
+      making sure that more of the save instructions can be noted as
+      unused, and to be more aggressive about allocating to callee-saved
+      registers.
+
    -- set arithmetic probably doesn't really handle intconsts
       correctly, need to check for handle bitmasks?
 

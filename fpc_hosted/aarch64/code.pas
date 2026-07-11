@@ -6001,16 +6001,6 @@ procedure blockexitx;
 
         end;
 
-      if (blockref = 0) and savemainsp then
-        begin
-        gen2(p1, buildinst(mov, true, false), regkeys[ip1], regkeys[sp]);
-        labelkey := settemp(long, dataref_oprnd(savesplabel, false, 0, false, libinitsp));
-        genadrp(p1, false, regkeys[ip0], labelkey);
-        keytable[labelkey].oprnd.lowbits := true;
-        genstr(p1, long, regkeys[ip1],
-               settemp(long, labeloffset_oprnd(ip0, savesplabel, false, 0, libinitsp)));
-        end;
-
       if proctable[blockref].opensfile then
         if blockref = 0 then
           callsupport(libcloseall, true)
@@ -6021,7 +6011,7 @@ procedure blockexitx;
           callsupport(libcloseinrange, true);
           end;
 
-      { Procedure exit code. Restore callee-saved registers, link and frame pointer
+      { Save and restore callee-saved registers, link and frame pointer
         registers, and shrink stack.
 
         If this is a leaf proc, this is complicated by the fact that we have to
@@ -6077,6 +6067,21 @@ procedure blockexitx;
           gen3(lastnode, buildinst(ldp, true, false), savereg2temp, saveregtemp,
                saveregoffsettemp);
           i := i + 2;
+          end;
+        end;
+
+      if (blockref = 0) then
+        begin
+        gen1(p1, buildinst(bl, false, false),
+             settemp(long, libcall_oprnd(libinitialize)));
+        if savemainsp then
+          begin
+          gen2(p1, buildinst(mov, true, false), regkeys[ip1], regkeys[sp]);
+          labelkey := settemp(long, dataref_oprnd(savesplabel, false, 0, false, libinitsp));
+          genadrp(p1, false, regkeys[ip0], labelkey);
+          keytable[labelkey].oprnd.lowbits := true;
+          genstr(p1, long, regkeys[ip1],
+                 settemp(long, labeloffset_oprnd(ip0, savesplabel, false, 0, libinitsp)));
           end;
         end;
 

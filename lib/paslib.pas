@@ -92,10 +92,13 @@ function ferror(streamp: _p_addressptr): integer; nonpascal;
 { pascal-2 lib declarations }
 
 { errors }
+procedure exitst(code: integer); external;
 procedure _p_caseerr; external;
 
 { I/O }
-procedure _p_dumpfilelist; external;
+function _p_inputstream: _p_addressptr; nonpascal;
+function _p_outputstream: _p_addressptr; nonpascal;
+procedure _p_initio; external;
 procedure _p_close(filevar: _p_addressptr); external;
 procedure _p_clsall; external;
 procedure _p_clsrng(firstfilevar, lastfilevar: _p_addressptr); external;
@@ -122,8 +125,8 @@ function _p_rdi_i: integer; external;
 function _p_rdd_i: double; external;
 function _p_rdf_i: real; external;
 procedure _p_rdln_i; external;
-procedure _p_rds_i; external;
-procedure _p_rdxs_i; external;
+procedure _p_rds_i(var result: _p_stringarray; size: integer); external;
+procedure _p_rdxs_i(var result: _p_string; size: integer); external;
 procedure _p_wtc(filevar: _p_addressptr; ch: char; width: integer); external;
 procedure _p_wti(filevar: _p_addressptr; i: integer; width: integer); external;
 procedure _p_wtb(filevar: _p_addressptr; b: boolean; width: integer); external;
@@ -137,6 +140,7 @@ procedure _p_wtb_o(b: boolean; width: integer); external;
 procedure _p_wts_o(const str: _p_stringarray; length: integer; width: integer); external;
 procedure _p_wtln_o; external;
 procedure _p_page_o; external;
+procedure _p_dumpfilelist; external;
 
 { strings }
 function _p_pos(const src, match: _p_string): integer; external;
@@ -327,6 +331,18 @@ begin {_p_trimright}
     trimmed[i] := src[i];
   _p_trimright := trimmed;
 end {_p_trimright};
+
+{ Old target-independent exit status procedure from the Pascal-2
+  library.  Here, of course, we just call the glibc exit procedure.
+
+  A couple of the old utility examples use this so I'm including it.
+}
+
+procedure exitst;
+
+begin {exitst}
+  exit(code);
+end {exitst};
     
 procedure _p_caseerr;
   begin
@@ -344,7 +360,10 @@ end;
 procedure _p_libfileerror(filep: _p_fileinfoptr; const err: _p_string);
 
 begin
-  writeln(err, ' on file ', filep^.filename, ':', filep^.flags);
+  write(err, ' on file ', filep^.filename);
+  if length(filep^.flags) <> 0 then
+    write(':', filep^.flags);
+  writeln;
   exit(1);
 end;
 
@@ -662,7 +681,7 @@ begin
       filep^.bufferp := ref(filep^.ch);
     if pos(flags, '+') <> 0 then
       begin
-      filep^.status := [_p_read, _p_write{, _p_ran}];
+      filep^.status := [_p_read, _p_write];
       if flags[1] = 'w' then
         filep^.status := filep^.status + [_p_def];
       end
@@ -688,6 +707,28 @@ begin
     end;
        
 end;
+
+procedure _p_initio;
+
+var
+  filep: _p_fileinfoptr;
+begin
+  { define standard input }
+  filep := _p_addfile(loophole(_p_addressptr, ref(input)));
+  filep^.filename := '(standard input)';
+  filep^.streamp := _p_inputstream;
+  filep^.bufferp := ref(filep^.ch);
+  filep^.status := [_p_perm, _p_read, _p_text];
+
+  { define standard output }
+  filep := _p_addfile(loophole(_p_addressptr, ref(output)));
+  filep^.filename := '(standard output)';
+  filep^.streamp := _p_outputstream;
+  filep^.bufferp := ref(filep^.ch);
+  filep^.status := [_p_perm, _p_write, _p_def, _p_text];
+end;
+
+
 
 { reset and rewrite are standard pascal procedures, the use of file names,
   optional default extension and flags, and an error variable to return
@@ -967,85 +1008,38 @@ end {_p_page};
 
 procedure _p_wtb_o;
 
-var i: integer;
-
 begin
-  for i := 5 + ord(not b) to width do
-    write(' ');
- if b then
-   write('true')
- else
-   write('false');
+  _p_wtb(loophole(_p_addressptr, ref(output)), b, width);
 end;
 
 procedure _p_wtc_o;
 
-var i: integer;
-
 begin
-  for i := 2 to width do putchar(' ');
-  putchar(ch);
+  _p_wtc(loophole(_p_addressptr, ref(output)), ch, width);
 end;
 
 procedure _p_wti_o;
 
-var
-  digits: packed array [0..18] of char;
-  j: integer;
-  count: integer;
-  minus: boolean;
-
 begin
-  count := 0;
-  minus := i < 0;
-  if minus then
-  begin
-    i := -i;
-    count := count + 1;
-  end;
-
-  j := 0;
-  repeat
-    digits[j] := chr(i mod 10 + ord('0'));
-    j := j + 1;
-    i := i div 10;
-    count := count + 1;
-  until i = 0;
-
-  for count := count + 1 to width do
-    putchar(' ');
-
-  if minus then
-    putchar('-');
-
-  repeat
-    j := j - 1;
-    putchar(digits[j]);
-  until j = 0;
-
+  _p_wti(loophole(_p_addressptr, ref(output)), i, width);
 end;
 
 procedure _p_wts_o;
 
-var i: integer;
-
 begin
-  for i := 0 to width - length - 1 do
-    putchar(' ');
-  for i := 0 to length - 1 do
-    putchar(str[i]);
+  _p_wts(loophole(_p_addressptr, ref(output)), str, length, width);
 end;
 
 procedure _p_wtln_o;
 
 begin
-  putchar(chr(10));
+  _p_wtln(loophole(_p_addressptr, ref(output)));
 end;
 
 procedure _p_page_o;
 
 begin
-  putchar(chr(12));
+  _p_page(loophole(_p_addressptr, ref(output)));
 end;
 
 { read text files }
@@ -1194,6 +1188,36 @@ begin {_p_rdln}
     _p_get(filevar);
   _p_get(filevar);
 end {p_rdln};
+
+function _p_rdc_i;
+
+begin
+  _p_rdc_i := _p_rdc(loophole(_p_addressptr, ref(input)));
+end;
+
+function _p_rdi_i;
+
+begin
+  _p_rdi_i := _p_rdi(loophole(_p_addressptr, ref(input)));
+end;
+
+procedure _p_rdln_i;
+
+begin
+  _p_rdln(loophole(_p_addressptr, ref(input)));
+end;
+
+procedure _p_rdxs_i;
+
+begin
+  _p_rdxs(loophole(_p_addressptr, ref(input)), result, size);
+end;
+
+procedure _p_rds_i;
+
+begin
+  _p_rds(loophole(_p_addressptr, ref(input)), result, size);
+end;
 
 procedure _p_new;
 begin
