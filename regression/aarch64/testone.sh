@@ -9,10 +9,10 @@ if [[ "$type" == "pas" || "$type" == "nolib" ]]; then
   if [ -s "$1.s.diff" ]; then
       echo "$1.s is different than $1.s.good"
   fi
-  if [[ "$type" == "pas" ]]; then
-    gcc $HOME/oregon_software_compilers/lib/$os/paslib.o $1.s
-  else
-    gcc $1.s
+    if [[ "$type" == "pas" ]]; then
+      gcc $HOME/oregon_software_compilers/lib/$os/paslib.a $base.s
+    else
+      gcc $HOME/oregon_software_compilers/lib/$os/stdfiles.o $base.s
   fi
   ./a.out > $1.out
   diff $1.out $1.out.good >$1.out.diff

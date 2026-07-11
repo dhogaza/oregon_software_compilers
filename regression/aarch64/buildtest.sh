@@ -9,9 +9,9 @@ if [[ "$type" == "pas" || "$type" == "nolib" ]]; then
   $pasdir/pas2arm64 $src/$1 --include=$lib --noch --mac=$1
   if [ $? == 0 ]; then
     if [[ "$type" == "pas" ]]; then
-      gcc $HOME/oregon_software_compilers/lib/$os/paslib.o $1.s
+      gcc $HOME/oregon_software_compilers/lib/$os/paslib.a $base.s
     else
-      gcc $1.s
+      gcc $HOME/oregon_software_compilers/lib/$os/stdfiles.o $base.s
     fi
     mv $1.s $1.s.good
     ./a.out > $1.out.good
