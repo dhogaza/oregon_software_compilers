@@ -114,6 +114,7 @@
 _main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
+	bl	_p_initio 
 # Line: 67, Stmt: 1
 # Line: 68, Stmt: 0
 	adrp	x15,.L32766@PAGE

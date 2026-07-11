@@ -60,6 +60,7 @@ _main:
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
 	str	x24,[x29,-40]
+	bl	_p_initio 
 # Line: 9, Stmt: 1
 # Line: 11, Stmt: 2
 	adrp	x15,.L32765@PAGE

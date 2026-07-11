@@ -11,6 +11,7 @@ _main:
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
 	str	x24,[x29,-40]
+	bl	_p_initio 
 # Line: 15, Stmt: 1
 # Line: 16, Stmt: 2
 	mov	x24,1

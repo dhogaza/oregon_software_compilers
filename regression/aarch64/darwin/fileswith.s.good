@@ -34,6 +34,7 @@ _main:
 	stp	x30,x29,[sp,48]
 	add	x29,sp,48
 	stp	x27,x28,[x29,-16]
+	bl	_p_initio 
 # Line: 11, Stmt: 1
 # Line: 13, Stmt: 2
 	adrp	x15,.L32765@PAGE

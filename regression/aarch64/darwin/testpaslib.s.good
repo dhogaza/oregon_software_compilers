@@ -44,6 +44,7 @@ _main:
 	sub	sp,sp,288
 	stp	x30,x29,[sp,272]
 	add	x29,sp,272
+	bl	_p_initio 
 # Line: 20, Stmt: 1
 # Line: 21, Stmt: 2
 	adrp	x15,.L32766@PAGE

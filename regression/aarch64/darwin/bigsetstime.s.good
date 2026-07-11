@@ -306,6 +306,7 @@
 _main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
+	bl	_p_initio 
 # Line: 130, Stmt: 1
 # Line: 131, Stmt: 0
 	bl	.P1  // sets

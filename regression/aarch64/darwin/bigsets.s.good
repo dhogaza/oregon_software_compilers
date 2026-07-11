@@ -101,6 +101,7 @@ _main:
 	add	x29,sp,48
 	stp	x27,x28,[x29,-16]
 	str	x26,[x29,-24]
+	bl	_p_initio 
 # Line: 90, Stmt: 1
 # Line: 91, Stmt: 2
 	mov	x28,74
