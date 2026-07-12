@@ -84,7 +84,7 @@ _main:
 # Line: 16, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	mov	w16,3
-	str	w16,[x15,.L32766+16@PAGEOFF]
+	str	w16,[x15,.L32766+24@PAGEOFF]
 # Line: 18, Stmt: 0
 	mov	x0,1
 	mov	x1,2
@@ -187,4 +187,4 @@ _main:
 	ldp	x30,x29,[sp,32]
 	add	sp,sp,48
 	ret
-	.comm	.L32766,24,12
+	.comm	.L32766,32,12

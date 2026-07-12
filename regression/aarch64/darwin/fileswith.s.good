@@ -45,7 +45,7 @@ _main:
 	bl	_p_wtln_o 
 # Line: 15, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	mov	x1,8
 	adrp	x15,.L32765@PAGE
 	add	x2,x15,.L32765+57@PAGEOFF
@@ -59,14 +59,14 @@ _main:
 .L11:
 	str	x15,[x29,-24]
 # Line: 19, Stmt: 0
-	ldr	x14,[x15,.L32766+16@PAGEOFF]
+	ldr	x14,[x15,.L32766+24@PAGEOFF]
 	ldr	x14,[x14]
 # Line: 21, Stmt: 0
 	strb	w28,[x14]
 # Line: 22, Stmt: 0
 	str	w28,[x14,4]
 # Line: 24, Stmt: 0
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	bl	_p_put 
 	ldr	x15,[x29,-24]
 	add	w28,w28,1
@@ -75,7 +75,7 @@ _main:
 .L12:
 # Line: 26, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	mov	x1,8
 	mov	x2,xzr
 	mov	x3,xzr
@@ -86,11 +86,11 @@ _main:
 .L9:
 	ldr	x15,[x29,-24]
 # Line: 27, Stmt: 0
-	ldr	x14,[x15,.L32766+16@PAGEOFF]
+	ldr	x14,[x15,.L32766+24@PAGEOFF]
 	str	x14,[x29,-32]
 	ldr	x13,[x14,8]
 	tbnz	x13,0,.L32763
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	bl	_p_define 
 .L32763:
 	ldr	x15,[x29,-32]
@@ -100,7 +100,7 @@ _main:
 .L14:
 # Line: 29, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	ldr	x15,[x15,.L32766+16@PAGEOFF]
+	ldr	x15,[x15,.L32766+24@PAGEOFF]
 	ldr	x15,[x15]
 	str	x15,[x29,-40]
 # Line: 30, Stmt: 0
@@ -114,7 +114,7 @@ _main:
 	bl	_p_wtln_o 
 # Line: 31, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	bl	_p_get 
 	b	.L9
 .L13:
@@ -127,7 +127,7 @@ _main:
 	bl	_p_wtln_o 
 # Line: 36, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	mov	x1,8
 	mov	x2,xzr
 	mov	x3,xzr
@@ -139,7 +139,7 @@ _main:
 .L15:
 	str	x15,[x29,-24]
 # Line: 39, Stmt: 0
-	ldr	x14,[x15,.L32766+16@PAGEOFF]
+	ldr	x14,[x15,.L32766+24@PAGEOFF]
 	ldr	x14,[x14]
 	str	x14,[x29,-32]
 # Line: 41, Stmt: 0
@@ -147,7 +147,7 @@ _main:
 # Line: 42, Stmt: 0
 	str	w28,[x14,4]
 # Line: 44, Stmt: 0
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	bl	_p_put 
 	ldr	x15,[x29,-24]
 	sub	w28,w28,1
@@ -156,7 +156,7 @@ _main:
 .L16:
 # Line: 46, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	mov	x1,8
 	mov	x2,xzr
 	mov	x3,xzr
@@ -167,11 +167,11 @@ _main:
 .L7:
 	ldr	x15,[x29,-24]
 # Line: 47, Stmt: 0
-	ldr	x14,[x15,.L32766+16@PAGEOFF]
+	ldr	x14,[x15,.L32766+24@PAGEOFF]
 	str	x14,[x29,-32]
 	ldr	x13,[x14,8]
 	tbnz	x13,0,.L32762
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	bl	_p_define 
 .L32762:
 	ldr	x15,[x29,-32]
@@ -181,7 +181,7 @@ _main:
 .L18:
 # Line: 49, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	ldr	x15,[x15,.L32766+16@PAGEOFF]
+	ldr	x15,[x15,.L32766+24@PAGEOFF]
 	ldr	x15,[x15]
 	str	x15,[x29,-40]
 # Line: 50, Stmt: 0
@@ -195,7 +195,7 @@ _main:
 	bl	_p_wtln_o 
 # Line: 51, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	bl	_p_get 
 	b	.L7
 .L17:
@@ -208,12 +208,12 @@ _main:
 	bl	_p_wtln_o 
 # Line: 56, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	mov	x1,2
 	bl	_p_seek 
 # Line: 57, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	ldr	x15,[x15,.L32766+16@PAGEOFF]
+	ldr	x15,[x15,.L32766+24@PAGEOFF]
 	ldr	x15,[x15]
 	str	x15,[x29,-24]
 # Line: 59, Stmt: 0
@@ -224,11 +224,11 @@ _main:
 	str	w16,[x15,4]
 # Line: 62, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	bl	_p_put 
 # Line: 63, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	mov	x1,8
 	mov	x2,xzr
 	mov	x3,xzr
@@ -239,11 +239,11 @@ _main:
 .L6:
 	ldr	x15,[x29,-24]
 # Line: 64, Stmt: 0
-	ldr	x14,[x15,.L32766+16@PAGEOFF]
+	ldr	x14,[x15,.L32766+24@PAGEOFF]
 	str	x14,[x29,-32]
 	ldr	x13,[x14,8]
 	tbnz	x13,0,.L32761
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	bl	_p_define 
 .L32761:
 	ldr	x15,[x29,-32]
@@ -253,7 +253,7 @@ _main:
 .L20:
 # Line: 66, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	ldr	x15,[x15,.L32766+16@PAGEOFF]
+	ldr	x15,[x15,.L32766+24@PAGEOFF]
 	ldr	x15,[x15]
 	str	x15,[x29,-40]
 # Line: 67, Stmt: 0
@@ -267,7 +267,7 @@ _main:
 	bl	_p_wtln_o 
 # Line: 68, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	bl	_p_get 
 	b	.L6
 .L19:
@@ -280,7 +280,7 @@ _main:
 	bl	_p_wtln_o 
 # Line: 73, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	mov	x1,4
 	bl	_p_seek 
 	adrp	x15,.L32766@PAGE
@@ -288,11 +288,11 @@ _main:
 .L5:
 	ldr	x15,[x29,-24]
 # Line: 74, Stmt: 0
-	ldr	x14,[x15,.L32766+16@PAGEOFF]
+	ldr	x14,[x15,.L32766+24@PAGEOFF]
 	str	x14,[x29,-32]
 	ldr	x13,[x14,8]
 	tbnz	x13,0,.L32760
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	bl	_p_define 
 .L32760:
 	ldr	x15,[x29,-32]
@@ -302,7 +302,7 @@ _main:
 .L22:
 # Line: 76, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	ldr	x15,[x15,.L32766+16@PAGEOFF]
+	ldr	x15,[x15,.L32766+24@PAGEOFF]
 	ldr	x15,[x15]
 	str	x15,[x29,-40]
 # Line: 77, Stmt: 0
@@ -316,7 +316,7 @@ _main:
 	bl	_p_wtln_o 
 # Line: 78, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	bl	_p_get 
 	b	.L5
 .L21:
@@ -329,28 +329,28 @@ _main:
 	bl	_p_wtln_o 
 # Line: 83, Stmt: 0
 	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+16@PAGEOFF
+	add	x0,x15,.L32766+24@PAGEOFF
 	mov	x1,8
 	mov	x2,xzr
 	mov	x3,xzr
 	mov	x4,xzr
 	bl	_p_rewrite 
 	adrp	x15,.L32766@PAGE
-	add	x14,x15,.L32766+16@PAGEOFF
+	add	x14,x15,.L32766+24@PAGEOFF
 # Line: 84, Stmt: 0
 	str	x14,[x29,-24]
 	mov	x28,48
 .L23:
 	str	x15,[x29,-32]
 # Line: 86, Stmt: 0
-	strb	w28,[x15,.L32766+24@PAGEOFF]
+	strb	w28,[x15,.L32766+32@PAGEOFF]
 # Line: 87, Stmt: 0
-	str	w28,[x15,.L32766+28@PAGEOFF]
+	str	w28,[x15,.L32766+36@PAGEOFF]
 # Line: 88, Stmt: 0
 	mov	x27,x14
 	ldr	x14,[x27]
 	ldr	x14,[x14]
-	add	x15,x15,.L32766+24@PAGEOFF
+	add	x15,x15,.L32766+32@PAGEOFF
 	add	x14,x14,xzr
 	mov	x16,8
 .L32759:
@@ -368,7 +368,7 @@ _main:
 .L24:
 # Line: 90, Stmt: 0
 	adrp	x27,.L32766@PAGE
-	add	x0,x27,.L32766+16@PAGEOFF
+	add	x0,x27,.L32766+24@PAGEOFF
 	mov	x1,8
 	mov	x2,xzr
 	mov	x3,xzr
@@ -379,11 +379,11 @@ _main:
 .L3:
 	ldr	x27,[x29,-24]
 # Line: 91, Stmt: 0
-	ldr	x15,[x27,.L32766+16@PAGEOFF]
+	ldr	x15,[x27,.L32766+24@PAGEOFF]
 	str	x15,[x29,-32]
 	ldr	x14,[x15,8]
 	tbnz	x14,0,.L32758
-	add	x0,x27,.L32766+16@PAGEOFF
+	add	x0,x27,.L32766+24@PAGEOFF
 	bl	_p_define 
 .L32758:
 	ldr	x15,[x29,-32]
@@ -392,7 +392,7 @@ _main:
 	b.ne	.L25
 .L26:
 # Line: 93, Stmt: 0
-	add	x15,x27,.L32766+16@PAGEOFF
+	add	x15,x27,.L32766+24@PAGEOFF
 	mov	x27,x15
 	ldr	x15,[x27]
 	str	x15,[x29,-40]
@@ -405,7 +405,7 @@ _main:
 	ldr	x15,[x15]
 	adrp	x14,.L32766@PAGE
 	add	x15,x15,xzr
-	add	x14,x14,.L32766+24@PAGEOFF
+	add	x14,x14,.L32766+32@PAGEOFF
 	mov	x16,8
 .L32756:
 	ldrb	w17,[x15],1
@@ -416,11 +416,11 @@ _main:
 	bl	_p_get 
 # Line: 94, Stmt: 0
 	adrp	x27,.L32766@PAGE
-	ldrb	w0,[x27,.L32766+24@PAGEOFF]
+	ldrb	w0,[x27,.L32766+32@PAGEOFF]
 	mov	x1,1
 	bl	_p_wtc_o 
 	adrp	x27,.L32766@PAGE
-	ldrsw	x0,[x27,.L32766+28@PAGEOFF]
+	ldrsw	x0,[x27,.L32766+36@PAGEOFF]
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -435,7 +435,7 @@ _main:
 	bl	_p_wtln_o 
 # Line: 99, Stmt: 0
 	adrp	x27,.L32766@PAGE
-	add	x0,x27,.L32766+16@PAGEOFF
+	add	x0,x27,.L32766+24@PAGEOFF
 	bl	_p_delete 
 .L2:
 	bl	_p_clsall 
@@ -443,4 +443,4 @@ _main:
 	ldp	x30,x29,[sp,48]
 	add	sp,sp,64
 	ret
-	.comm	.L32766,40,12
+	.comm	.L32766,48,12

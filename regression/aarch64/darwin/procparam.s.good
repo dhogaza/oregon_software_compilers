@@ -234,4 +234,4 @@ _main:
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
-	.comm	.L32766,16,12
+	.comm	.L32766,24,12
