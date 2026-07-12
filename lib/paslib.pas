@@ -1,5 +1,21 @@
 {$nocheck,nomain}
 
+{ Thus far, all non-floating point I/O routines are working, though all errors
+  terminate the program (noerror does nothing yet).
+
+  Some string functions/procedures are missing (convert from string to value,
+  value to string).
+
+  And of course no floating point functions as so far there's no floating point
+  arithmetic (in practice these are going to call glibc anyway so won't take
+  much to implement was basic fp pseudo instructions are implemented).
+
+  None of the runtime error routines have been written mostly because I haven't
+  figured out how to get backtrace working on darwin correctly.
+
+  A few other things too.
+}
+
 const
   _p_maxstringlen = 255;
 
