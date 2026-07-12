@@ -3972,9 +3972,10 @@ procedure defforindexx(sgn, { true if signed induction var }
 }
 
   var
-    target: keyindex; {from pseudobuff}
+    fortarget: keyindex; {from pseudobuff}
 
   begin {defforindexx}
+    fortarget := pseudobuff.oprnds[3];
     saveactivekeys;
 {
     address(right);
@@ -3997,7 +3998,7 @@ procedure defforindexx(sgn, { true if signed induction var }
     keytable[key].signed := sgn;
 
     { Allocate a register unless this is a permanently assigned register
-      variable.  If target <> 0, we must preserve the running index in
+      variable.  If fortarget <> 0, we must preserve the running index in
       the actual variable, if not, we'll issue a "savekey" in "fortopx"
       to save the running index on the stack.  Often, this can later be
       deleted as with any other stack temp, making register-only loops
@@ -4007,7 +4008,7 @@ procedure defforindexx(sgn, { true if signed induction var }
     forsp := forsp + 1;
     with forstack[forsp], keytable[key] do
       begin
-      nonvolatile := target <> 0;
+      nonvolatile := fortarget <> 0;
       globalreg := (keytable[right].oprnd.mode = register) and
                    not volatilereg(keytable[right].oprnd.reg);
     if globalreg then
@@ -4020,13 +4021,13 @@ procedure defforindexx(sgn, { true if signed induction var }
          compilerabort(inconsistent);
          end;
 
-      if equivaddr(right, target) then
+      if equivaddr(right, fortarget) then
         begin
-        adjustregcount(target, -keytable[target].refcount);
-        keytable[target].oprnd.reg := getreg;
-        adjustregcount(target, keytable[target].refcount);
-        gensimplemove(lastnode, right, target);
-        savekey(target, false);
+        adjustregcount(fortarget, -keytable[fortarget].refcount);
+        keytable[fortarget].oprnd.reg := getreg;
+        adjustregcount(fortarget, keytable[fortarget].refcount);
+        gensimplemove(lastnode, right, fortarget);
+        savekey(fortarget, false);
         end
       end
     else
@@ -4058,9 +4059,6 @@ procedure defforindexx(sgn, { true if signed induction var }
     gensimplemove(lastnode, left, key);
 
     dontchangevalue := 0;
-{
-    rereference(key);
-}
   end {defforindexx} ;
 
 procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
@@ -4110,7 +4108,9 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
       enterloop;
 
       { see defforindexx for an explaination of this }
+{
         dereference(keytable[forkey].properreg);
+}
       end;
 
   end {fortopx} ;
@@ -4432,10 +4432,6 @@ procedure cmpintptrx(signedcond, unsignedcond: conds {for branching on result});
 
     if signedoprnds then c := signedcond
     else c := unsignedcond;
-{
-if (left = 36) and (right = 21) then
-writeln('left:',keytable[left].regvalid, ' ',keytable[left].oprnd.mode,keytable[left].oprnd.reg:3);
-}
     loadreg(left, right);
     loadreg(right, left);
     gen2(lastnode, buildinst(cmp, len = long, false), left, right);
@@ -5504,10 +5500,10 @@ begin {setbinfilex}
     setvalue(reg_oprnd(filereg));
     gensimplemove(lastnode, left, key);
     filenamed := true;
+    lock(key);
     end;
   dontchangevalue := dontchangevalue + 1;
   firstreg := 1;
-  lock(key);
 end {setbinfilex} ;
 
 procedure setfilex;
