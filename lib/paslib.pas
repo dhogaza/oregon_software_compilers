@@ -47,8 +47,8 @@ type
     _p_eof,     { at end of file }
     _p_eoln,    { at end of line }
     _p_text,    { set for text file, clear for binary file }
-    _p_read,     { input operations allowed ( reset() ) }
-    _p_write,     { output operations allowed ( rewrite() ) }
+    _p_read,    { input operations allowed ( reset() ) }
+    _p_write,   { output operations allowed ( rewrite() ) }
     _p_newl,    { new input line should be read }
     _p_int,     { interactive device (for lazy I/O }
     _p_perm,    { file can't be closed (input and output) }
@@ -129,6 +129,7 @@ procedure _p_seek(filevar: _p_addressptr; const offset: integer); external;
 procedure _p_define(filevar: _p_addressptr); external;
 procedure _p_get(filevar: _p_addressptr); external;
 procedure _p_put(filevar: _p_addressptr); external;
+procedure _p_break(filevar: _p_addressptr); external;
 procedure _p_delete(filevar: _p_addressptr); external;
 function _p_rdc(filevar: _p_addressptr): char; external;
 function _p_rdi(filevar: _p_addressptr): integer; external;
@@ -895,6 +896,26 @@ begin
   if ferror(filep^.streamp) <> 0 then
     _p_libfileerror(filep, 'write error');
 end;
+
+procedure _p_break;
+
+{ Included for completeness. This was used primarily to force command prompts
+  to be flushed with write rather than writeln on operating systems where
+  I/O is record-oriented.  In Unix-land we're writing individual characters
+  rather than building a record which is then flushed, normally by writeln.
+
+  Just to be obnoxious we'll give an error if this is called on a non-text
+  or non-writeable file.
+}
+
+var
+  filep: _p_fileinfoptr;
+
+begin {_p_break}
+  filep := _p_checkio(filevar, _p_write);
+  if not (_p_text in filep^.status) then
+    _p_libfileerror(filep, 'break on non-text file');
+end {_p_break};
   
 procedure _p_delete;
 
