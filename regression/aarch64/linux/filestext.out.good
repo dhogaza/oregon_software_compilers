@@ -1,0 +1,50 @@
+rewrite foo.txt, write text, reset, read/print char buffer
+
+"abc  a          42"
+"how about that?"
+
+append, reset, read and print using string buffer
+
+"abc  a          42"
+"how about that?"
+"append to the end"
+
+reset, get, and print using f^
+
+abc  a          42
+how about that?
+append to the end
+
+reset, read and print using multiple small string buffer reads
+
+"abc  a          42"
+"how about that?"
+"append to the end"
+
+reset, read and print using packed array buffer
+
+"abc  a          42                                "
+"how about that?                                   "
+"append to the end                                 "
+
+reset, read and print using short packed array buffer
+
+"abc  "
+"how a"
+"appen"
+
+reset, read and print using multiple short packed array buffer
+
+"abc  a          42  "
+"how about that?"
+"append to the end   "
+
+rewrite, write integers, read/print
+
+         123         456
+         654         321
+
+rewrite, write csv integers, read/print
+
+123,456
+654,321
