@@ -1,0 +1,12 @@
+rewrite(f, 'foo.txt',':w+'), write, reset, reset and print foo.txt
+0          48 a           5
+1          49 a           5
+2          50 a           5
+3          51 a           5
+4          52 a           5
+5          53 a           5
+6          54 a           5
+7          55 a           5
+8          56 a           5
+9          57 a           5
+delete foo.txt
