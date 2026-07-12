@@ -2333,7 +2333,7 @@ procedure savedstkey(k: keyindex);
         end;
   end;
 
-procedure savekey(k: keyindex {operand to save} );
+procedure savekey(k: keyindex {operand to save}; regenok: boolean {false force stack} );
 
 { Save all volatile registers required by given key.
   unless we can regenerate it from the saved copy of the
@@ -2357,7 +2357,7 @@ procedure savekey(k: keyindex {operand to save} );
               if regvalid and not regsaved and (reg <> noreg) and
                 volatilereg(reg) then
                 begin
-                savedreg := savereg(reg, true);
+                savedreg := savereg(reg, regenok);
                 if (savedreg < stackcounter) and
                    (keytable[savedreg].regenoprnd.mode <> nomode) then
                   regenoprnd := keytable[savedreg].regenoprnd
@@ -2390,7 +2390,7 @@ procedure savekey(k: keyindex {operand to save} );
       for i := context[contextsp].keymark to lastkey do
         with keytable[i] do
           if (refcount > 0) and not (regsaved and reg2saved)
-          then savekey(i);
+          then savekey(i, true);
       end;
     end {saveactivekeys} ;
 
@@ -2491,7 +2491,7 @@ procedure changevalue(var key1: keyindex; {key to be changed}
       bumptempcount(key1, refcount);
       adjustregcount(key1, refcount);
       end;
-    savekey(key1);
+    savekey(key1, true);
   end {changevalue} ;
 
 procedure makeaddressable(var k: keyindex; target: keyindex);
@@ -2558,7 +2558,6 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
         if restorereg then
           begin
           t := settemp(long, reg_oprnd(reg));
-          recall_reg(reg, properreg);
           if {(mode = register) and }(regenoprnd.mode <> nomode) then
             case regenoprnd.mode of
               dataref:
@@ -2586,6 +2585,7 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
             end
           else
             begin
+            recall_reg(reg, properreg);
             keytable[properreg].tempflag := true;
             gen2(lastnode, buildinst(ldr, true, false), t, properreg);
             end;
@@ -3500,6 +3500,8 @@ procedure enterloop;
                 begin
                 stackcopy := savereg(i, false);
                 { DRB: temporary hack }
+if stackcopy < stackcounter then
+writeln('key ', key, 'left ', left, 'right ', right, ' stackcopy < stackcounter ', stackcopy);
                 if stackcopy >= stackcounter then
                   keytable[stackcopy].refcount := keytable[stackcopy].refcount +
                                                 1;
@@ -4018,14 +4020,13 @@ procedure defforindexx(sgn, { true if signed induction var }
          compilerabort(inconsistent);
          end;
 
-      target := pseudobuff.oprnds[3];
       if equivaddr(right, target) then
         begin
         adjustregcount(target, -keytable[target].refcount);
         keytable[target].oprnd.reg := getreg;
         adjustregcount(target, keytable[target].refcount);
         gensimplemove(lastnode, right, target);
-        savekey(target);
+        savekey(target, false);
         end
       end
     else
@@ -4033,17 +4034,11 @@ procedure defforindexx(sgn, { true if signed induction var }
       setkeyvalue(settemp(long, reg_oprnd(getreg)));
       keytable[key].regsaved := true;
       if nonvolatile then
-        if keytable[right].regenoprnd.mode <> nomode then
-          keytable[key].regenoprnd := keytable[right].regenoprnd
-        else
           begin
           keytable[right].validtemp := true;
           keytable[key].properreg := right;
           end;
       end;
-
-
-
 
     unlock(left);
     unlock(right);
@@ -4104,35 +4099,18 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
         genbcond(lastnode, c, pseudoinst.oprnds[2]);
         end;
 
-      if nonvolatile and not globalreg
-      then
-        if keytable[forkey].regenoprnd.mode <> nomode then
-          begin
-          genadrp(lastnode, true, regkeys[ip0],
-               settemp(long, keytable[forkey].regenoprnd));
-          gen2(lastnode, strinst(keytable[forkey].len),
-               regkey,
-               settemp(long, labeloffset_oprnd(ip0,
-                             keytable[forkey].regenoprnd.labelno,
-                             keytable[forkey].regenoprnd.labelownflag,
-                             keytable[forkey].regenoprnd.externref,
-                             keytable[forkey].regenoprnd.labeloffset)))
-          end
-        else gensimplemove(lastnode, regkey, keytable[forkey].properreg)
+      if nonvolatile and not globalreg then
+        gensimplemove(lastnode, regkey, keytable[forkey].properreg)
       else
         begin
         keytable[forkey].regsaved := false;
-        savekey(forkey);
+        savekey(forkey, false);
         end;
 
       enterloop;
 
       { see defforindexx for an explaination of this }
-{      if nonvolatile and not globalreg then}
-{
         dereference(keytable[forkey].properreg);
-}
-{        dereference(forkey); }
       end;
 
   end {fortopx} ;
@@ -5381,7 +5359,7 @@ begin {definelazyx}
   lock(left);
   setvalue(reg_oprnd(getreg));
   gensimplemove(lastnode, left, key);
-  savekey(key);
+  savekey(key, true);
   statuskey := settemp(long, index_oprnd(unsigned_offset, keytable[key].oprnd.reg,
                        ptrsize, false));
   bitkey := settemp(long, imm12_oprnd(lazybit, false));
@@ -7060,9 +7038,6 @@ procedure indxx;
           end;
         abstract_offset:
           begin
-{
-          setkeyvalue(left);
-}
           setallfields(left);
           keytable[key].oprnd.index :=
             keytable[key].oprnd.index + pseudoinst.oprnds[2];
@@ -7457,11 +7432,6 @@ begin {casebranchx}
   baselabel := newlabel; {must be last temp label for caseeltx}
   gen2(lastnode, buildinst(ldr, false, false), scratch,
        settemp(word, reg_offset_oprnd(addressreg, scratchreg, 2, xtw, false)));
-{
-  linux?
-  gen2(lastnode, buildinst(adr, true, false), addresskey,
-       settemp(long, dataref_oprnd(baselabel, false, 0, false, 0)));
-}
   gen2(lastnode, buildinst(adr, true, false), addresskey,
        settemp(long, labeltarget_oprnd(baselabel)));
   gen3(lastnode, buildinst(add, true, false), scratch, addresskey,
@@ -7965,7 +7935,7 @@ procedure codeone;
     if key > lastkey then lastkey := key;
 
     with keytable[key] do
-      if refcount + copycount > 1 then savekey(key);
+      if refcount + copycount > 1 then savekey(key, true);
 
     { This prevents stumbling on an old key later.
     }
