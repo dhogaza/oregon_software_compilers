@@ -85,7 +85,6 @@ type
   _p_seekwhence = (_p_seek_set, _p_seek_cur, _p_seek_end);
 
 procedure exit(const code: integer); nonpascal;
-procedure putchar(const ch: char); nonpascal;
 function malloc(const size: integer): _p_charptr; nonpascal;
 procedure free(const p: _p_charptr); nonpascal;
 function remove(const filename: _p_charptr): integer; nonpascal;
