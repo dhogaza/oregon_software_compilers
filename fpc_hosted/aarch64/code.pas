@@ -7978,9 +7978,12 @@ procedure initcode;
 
   begin {initcode}
 
-    globaldatalabel := newlabel;
-    rodatalabel := newlabel;
-    savesplabel := newlabel;
+    { global labels should be set to three in config.pas}
+
+    globaldatalabel := maxlabel;
+    rodatalabel := maxlabel - 1;
+    savesplabel := maxlabel - 2;
+
     savemainsp := false;
 
     invertcond[eq] := ne;     invertcond[ne] := eq;     invertcond[lt] := ge;

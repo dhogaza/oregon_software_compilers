@@ -3319,7 +3319,7 @@ procedure initanalys;
     skipfactor := false;
     divfolded := false;
 
-    lastlabel := 32766;
+    lastlabel := maxlabel - globallabels;
     nextintcode := 0;
 
     blockheadset := [labelsym..functionsym];

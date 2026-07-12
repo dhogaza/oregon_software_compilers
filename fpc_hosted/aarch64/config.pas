@@ -86,9 +86,9 @@ const
   newtravrsinterface = false; {we are using old-style proctable and
                                case table interface}
 
-  useglobalcontext = false; {don't let travrs use the global context for things
-                             like "doint" because we need to generate code
-                             to create some of these}
+  maxlabel = 32767;
+  globallabels = 3;
+
 
 { Machine dependent parameters
   The machine dependent parameters here apply to more than one pass.

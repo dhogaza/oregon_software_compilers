@@ -3467,8 +3467,6 @@ procedure build;
   generator for dealing with such operations that might need to generate
   instructions to generate certain literals or references to certain addresses.
 
-  This behavior is controlled by the config parameter "useglobalcontext".
-
 }
 
           var
