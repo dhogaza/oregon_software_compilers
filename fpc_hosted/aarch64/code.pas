@@ -3499,9 +3499,9 @@ procedure enterloop;
               if active then
                 begin
                 stackcopy := savereg(i, false);
-                { DRB: temporary hack }
-if stackcopy < stackcounter then
-writeln('key ', key, 'left ', left, 'right ', right, ' stackcopy < stackcounter ', stackcopy);
+                { Can be true in forloop code where induction register is being
+                  stored in the variable's address.
+                }
                 if stackcopy >= stackcounter then
                   keytable[stackcopy].refcount := keytable[stackcopy].refcount +
                                                 1;
