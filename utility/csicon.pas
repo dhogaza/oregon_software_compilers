@@ -19,12 +19,8 @@
 
 procedure emt(i:integer); external;  
 
+type
+  opsystypes = (PROTKopsys, VMSopsys, RSXopsys, RSTSopsys, RT11opsys,
+                MSDOSopsys, VDOSopsys, UNIXopsys);
 const
-
-  PROTKopsys = false;  
-  VMSopsys = true;
-  RSXopsys = false;
-  RSTSopsys = false;
-  RT11opsys = false;
-  MSDOSopsys = false;
-  VDOSopsys = false;
+  opsys = UNIXopsys;

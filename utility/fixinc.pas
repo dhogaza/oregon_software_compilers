@@ -33,7 +33,7 @@ procedure FixFileInclude(arg, prefix: ArgValue;
     next := SkipToDelim(arg, 1, ['.', ';']);
     first := next;
     done := false;
-    if MSDOSopsys then
+    if opsys = MSDOSopsys then
       repeat
         if first = 1 then
           done := true
@@ -61,7 +61,7 @@ procedure FixFileInclude(arg, prefix: ArgValue;
     if first = 1 then
       begin
       AppendToArg(spec, prefix, 1, prefix.len);
-      if MSDOSopsys then
+      if opsys = MSDOSopsys then
       { Make sure prefix and filename are separated by a backslash }
         if spec.txt[spec.len] <> '\' then
           begin

@@ -53,7 +53,7 @@ procedure FixFileArg(arg: ArgValue;
       begin
       first := next;
       done := false;
-      if MSDOSopsys then
+      if opsys = MSDOSopsys then
         repeat
           if first = 1 then
             done := true

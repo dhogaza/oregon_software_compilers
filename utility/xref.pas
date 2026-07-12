@@ -38,8 +38,6 @@ label
 
 const
 
-  panic_space = 200; {bytes at which to quit}
-
   hash_max = 733; {size of hash table}
 
   blank12 = '            '; {12 blanks}
@@ -122,13 +120,6 @@ var
   current_letter: char; {current xref letter}
   line_length: integer;
 
-
-function space: integer;
-
-{ Returns the amount of stack space remaining
-}
-
-  external;
 
 
 {*---------------------------------*
@@ -419,58 +410,48 @@ procedure cross_ref;
     dst := 1;
     for i := 1 to 8 do indx := abs((indx * ord(id[i])) mod hash_max);
     total := total + 1;
-    if space >= panic_space then
+    new(ref);
+    if asg_ok then asg_ref := ref;
+    with ref^ do
       begin
-      new(ref);
-      if asg_ok then asg_ref := ref;
-      with ref^ do
-        begin
-        line := line_nmbr;
-        next := nil;
-        if decl and not def then kind := decl_kind
-        else kind := no_kind;
-        end;
-      repeat
-        with hash_table[indx] do
-          begin
-          if entri = id then
-            begin {found}
-            found := true;
-            ref^.next := last;
-            last := ref;
-            end
-          else if entri = blank12 then
-            begin {new entri}
-            found := true;
-            id_nmbr := id_nmbr + 1;
-            entri := id;
-            last := ref;
-            next_indx := last_indx;
-            last_indx := indx;
-            end
-          else
-            begin {collision}
-            indx := (indx + dst) mod hash_max;
-            dst := dst + 2;
-            if dst >= hash_max then
-              begin
-              writeln;
-              writeln('**** Too many unique identifiers.');
-              error := true;
-              error_line := line_nmbr;
-              found := true
-              end
-            end
-          end {with}
-      until found;
-      end
-    else
-      begin
-      writeln;
-      writeln('**** Too many references.');
-      error := true;
-      error_line := line_nmbr;
+      line := line_nmbr;
+      next := nil;
+      if decl and not def then kind := decl_kind
+      else kind := no_kind;
       end;
+    repeat
+      with hash_table[indx] do
+        begin
+        if entri = id then
+          begin {found}
+          found := true;
+          ref^.next := last;
+          last := ref;
+          end
+        else if entri = blank12 then
+          begin {new entri}
+          found := true;
+          id_nmbr := id_nmbr + 1;
+          entri := id;
+          last := ref;
+          next_indx := last_indx;
+          last_indx := indx;
+          end
+        else
+          begin {collision}
+          indx := (indx + dst) mod hash_max;
+          dst := dst + 2;
+          if dst >= hash_max then
+            begin
+            writeln;
+            writeln('**** Too many unique identifiers.');
+            error := true;
+            error_line := line_nmbr;
+            found := true
+            end
+          end
+        end {with}
+    until found;
   end {cross_ref} ;
 
 

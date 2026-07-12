@@ -102,100 +102,107 @@ procedure GetCS(ArgDefs: ArgDefTable;
 
       { Prompt for command string. }
 
-      if RSTSopsys then
-        begin
-        { Determine how we got started, via CCL or by a RUN }
-        status_word := 4000B;
-        emt(255);
-        emt(46);
-        run_entry := (status_bits >= 0);
-
-        if run_entry {entered by rsts RUN command} then
+      case opsys of
+        RSTSopsys:
           begin
-          ReadRstsCmd;
-          end
-        else
-          begin {entered by RSTS CCL}
-          cc_len := ord(cc_len_char);
-          c := 1;
-          while (c <= cc_len) and not (cc[c] in [' ', '/']) do
-            c := c + 1;
-          if c > cc_len then
-            begin {treat ccl's with no arguments like RUN}
-            run_entry := true;
+          { Determine how we got started, via CCL or by a RUN }
+          status_word := 4000B;
+          emt(255);
+          emt(46);
+          run_entry := (status_bits >= 0);
+          if run_entry {entered by rsts RUN command} then
+            begin
             ReadRstsCmd;
             end
           else
-            begin {load the command line}
-            cmd.len := 0;
-            while cmd.len < cc_len - c do
-              begin
-              cmd.len := cmd.len + 1;
-              cmd.txt[cmd.len] := cc[c + cmd.len];
+            begin {entered by RSTS CCL}
+            cc_len := ord(cc_len_char);
+            c := 1;
+            while (c <= cc_len) and not (cc[c] in [' ', '/']) do
+              c := c + 1;
+            if c > cc_len then
+              begin {treat ccl's with no arguments like RUN}
+              run_entry := true;
+              ReadRstsCmd;
+              end
+            else
+              begin {load the command line}
+              cmd.len := 0;
+              while cmd.len < cc_len - c do
+                begin
+                cmd.len := cmd.len + 1;
+                cmd.txt[cmd.len] := cc[c + cmd.len];
+                end;
               end;
             end;
           end;
-        end
-      else if VMSopsys then
-        begin
-        p_get_foreign(CSIprompt, cmd.txt, vmslen);
-        if vmslen > (mArgValue - 2) then
-          cmd.len := mArgValue - 2
-        else
-          cmd.len := vmslen;
-        end
-      else if MSDOSopsys then
-        begin
-        p_getcmdline(cmd.txt, msdoslen);
-        if msdoslen > (mArgValue - 2) then
-          cmd.len := mArgValue - 2
-        else
-          cmd.len := msdoslen;
-        end
-      else if PROTKopsys or RSXopsys then
-        begin
-        gmcr;
-        if (not PROTKopsys) and (input^ <> ' ') then
+        VMSopsys:
           begin
-          repeat
-            get(input)
-          until (input^ in [' ', '/']); {look for initial switches}
-          while not eoln(input) and (input^ = ' ') do
-            get(input);
+          p_get_foreign(CSIprompt, cmd.txt, vmslen);
+          if vmslen > (mArgValue - 2) then
+            cmd.len := mArgValue - 2
+          else
+            cmd.len := vmslen;
           end;
-        if input^ = ' ' then
+        MSDOSopsys:
+          begin
+          p_getcmdline(cmd.txt, msdoslen);
+          if msdoslen > (mArgValue - 2) then
+            cmd.len := mArgValue - 2
+          else
+            cmd.len := msdoslen;
+          end;
+        PROTKopsys, RSXopsys:
+          begin
+          gmcr;
+          if (opsys <> PROTKopsys) and (input^ <> ' ') then
+            begin
+            repeat
+              get(input)
+            until (input^ in [' ', '/']); {look for initial switches}
+            while not eoln(input) and (input^ = ' ') do
+              get(input);
+            end;
+          if input^ = ' ' then
           write(CSIprompt);
-        if eoln(input) then
-          readln(input);
-        end;
-
+          if eoln(input) then
+            readln(input);
+          end;
+        UNIXopsys:
+          begin
+          write(CSIprompt);
+          end;
+      end;
       { Get command string. }
 
-      if RT11opsys then
-        begin
-        GetLine(RT11Kludge, n);
-        RT11Kludge.len := n;
-        Cmd := RT11Kludge;
-        end
-      else if VDOSopsys then begin
-        p_getcmd(cmd.txt, vmslen);
-        cmd.len := vmslen;
-        end
-      else if RSXopsys then
-        begin
-        Cmd.len := 0;
-        while not eoln(input) do
+      case opsys of
+        RT11opsys:
           begin
-          if Cmd.len < mArgValue - 2 then
-            begin
-            Cmd.len := Cmd.len + 1;
-            read(input, Cmd.txt[Cmd.len]);
-            end
-          else
-            get(input);
+          GetLine(RT11Kludge, n);
+          RT11Kludge.len := n;
+          Cmd := RT11Kludge;
           end;
-        readln(input);
-        end;
+        VDOSopsys:
+          begin
+          p_getcmd(cmd.txt, vmslen);
+          cmd.len := vmslen;
+          end;
+        RSXopsys, UNIXopsys:
+          begin
+          Cmd.len := 0;
+          while not eoln(input) do
+            begin
+            if Cmd.len < mArgValue - 2 then
+              begin
+              Cmd.len := Cmd.len + 1;
+              read(input, Cmd.txt[Cmd.len]);
+              end
+            else
+              get(input);
+            end;
+          readln(input);
+          end;
+      end;
     end; { GetCmdStr }
 
 
@@ -364,7 +371,6 @@ procedure GetCS(ArgDefs: ArgDefTable;
   begin { GetCS }
 
     { Get command string, note starting argument position }
-
     GetCmdString;
 
     { Process any switch arguments, blanking as we go }
