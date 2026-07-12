@@ -1,5 +1,6 @@
 #!/bin/bash
 . ./env.sh
+libdir="$HOME/oregon_software_compilers/lib/$os"
 echo "--- testing $1 ---"
 . ./fileattrs.sh $1
 pushd $os >/dev/null
@@ -10,9 +11,9 @@ if [[ "$type" == "pas" || "$type" == "nolib" ]]; then
       echo "$1.s is different than $1.s.good"
   fi
     if [[ "$type" == "pas" ]]; then
-      gcc $HOME/oregon_software_compilers/lib/$os/paslib.a $base.s
+      gcc $libdir/stdfiles.o $libdir/paslib.o $base.s
     else
-      gcc $HOME/oregon_software_compilers/lib/$os/stdfiles.o $base.s
+      gcc $libdir/stdfiles.o $base.s
   fi
   ./a.out > $1.out
   diff $1.out $1.out.good >$1.out.diff

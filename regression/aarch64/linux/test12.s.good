@@ -193,6 +193,7 @@
 main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
+	bl	_p_initio 
 # Line: 44, Stmt: 1
 # Line: 45, Stmt: 0
 	mov	x0,97
@@ -221,4 +222,4 @@ main:
 .L22:
 	ldp	x30,x29,[sp],16
 	ret
-	.comm	.L32766,16,12
+	.comm	.L32766,24,12

@@ -114,188 +114,189 @@
 main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
+	bl	_p_initio 
 # Line: 67, Stmt: 1
 # Line: 68, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+16
+	add	x0,x15,:lo12:.L32766+24
 	mov	x1,xzr
 	mov	x2,xzr
 	bl	.P2  // fill
 # Line: 69, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+16
+	add	x0,x15,:lo12:.L32766+24
 	mov	x1,xzr
 	mov	x2,xzr
 	bl	.P3  // p
 # Line: 70, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+16
+	add	x0,x15,:lo12:.L32766+24
 	mov	x1,xzr
 	mov	x2,xzr
 	bl	.P4  // p1
 # Line: 72, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+18
+	add	x0,x15,:lo12:.L32766+26
 	mov	x1,xzr
 	mov	x2,1
 	bl	.P2  // fill
 # Line: 73, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+18
+	add	x0,x15,:lo12:.L32766+26
 	mov	x1,xzr
 	mov	x2,1
 	bl	.P3  // p
 # Line: 74, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+18
+	add	x0,x15,:lo12:.L32766+26
 	mov	x1,xzr
 	mov	x2,1
 	bl	.P4  // p1
 # Line: 76, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+20
+	add	x0,x15,:lo12:.L32766+28
 	mov	x1,xzr
 	mov	x2,2
 	bl	.P2  // fill
 # Line: 77, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+20
+	add	x0,x15,:lo12:.L32766+28
 	mov	x1,xzr
 	mov	x2,2
 	bl	.P3  // p
 # Line: 78, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+20
+	add	x0,x15,:lo12:.L32766+28
 	mov	x1,xzr
 	mov	x2,2
 	bl	.P4  // p1
 # Line: 80, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+24
+	add	x0,x15,:lo12:.L32766+32
 	mov	x1,xzr
 	mov	x2,3
 	bl	.P2  // fill
 # Line: 81, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+24
+	add	x0,x15,:lo12:.L32766+32
 	mov	x1,xzr
 	mov	x2,3
 	bl	.P3  // p
 # Line: 82, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+24
+	add	x0,x15,:lo12:.L32766+32
 	mov	x1,xzr
 	mov	x2,3
 	bl	.P4  // p1
 # Line: 84, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+28
+	add	x0,x15,:lo12:.L32766+36
 	mov	x1,xzr
 	mov	x2,4
 	bl	.P2  // fill
 # Line: 85, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+28
+	add	x0,x15,:lo12:.L32766+36
 	mov	x1,xzr
 	mov	x2,4
 	bl	.P3  // p
 # Line: 86, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+28
+	add	x0,x15,:lo12:.L32766+36
 	mov	x1,xzr
 	mov	x2,4
 	bl	.P4  // p1
 # Line: 88, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+34
+	add	x0,x15,:lo12:.L32766+42
 	mov	x1,xzr
 	mov	x2,5
 	bl	.P2  // fill
 # Line: 89, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+34
+	add	x0,x15,:lo12:.L32766+42
 	mov	x1,xzr
 	mov	x2,5
 	bl	.P3  // p
 # Line: 90, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+34
+	add	x0,x15,:lo12:.L32766+42
 	mov	x1,xzr
 	mov	x2,5
 	bl	.P4  // p1
 # Line: 92, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+40
+	add	x0,x15,:lo12:.L32766+48
 	mov	x1,xzr
 	mov	x2,6
 	bl	.P2  // fill
 # Line: 93, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+40
+	add	x0,x15,:lo12:.L32766+48
 	mov	x1,xzr
 	mov	x2,6
 	bl	.P3  // p
 # Line: 94, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+40
+	add	x0,x15,:lo12:.L32766+48
 	mov	x1,xzr
 	mov	x2,6
 	bl	.P4  // p1
 # Line: 96, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+48
+	add	x0,x15,:lo12:.L32766+56
 	mov	x1,xzr
 	mov	x2,7
 	bl	.P2  // fill
 # Line: 97, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+48
+	add	x0,x15,:lo12:.L32766+56
 	mov	x1,xzr
 	mov	x2,7
 	bl	.P3  // p
 # Line: 98, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+48
+	add	x0,x15,:lo12:.L32766+56
 	mov	x1,xzr
 	mov	x2,7
 	bl	.P4  // p1
 # Line: 100, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+56
+	add	x0,x15,:lo12:.L32766+64
 	mov	x1,xzr
 	mov	x2,8
 	bl	.P2  // fill
 # Line: 101, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+56
+	add	x0,x15,:lo12:.L32766+64
 	mov	x1,xzr
 	mov	x2,8
 	bl	.P3  // p
 # Line: 102, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+56
+	add	x0,x15,:lo12:.L32766+64
 	mov	x1,xzr
 	mov	x2,8
 	bl	.P4  // p1
 # Line: 104, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+66
+	add	x0,x15,:lo12:.L32766+74
 	mov	x1,xzr
 	mov	x2,9
 	bl	.P2  // fill
 # Line: 105, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+66
+	add	x0,x15,:lo12:.L32766+74
 	mov	x1,xzr
 	mov	x2,9
 	bl	.P3  // p
 # Line: 106, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+66
+	add	x0,x15,:lo12:.L32766+74
 	mov	x1,xzr
 	mov	x2,9
 	bl	.P4  // p1
 .L14:
 	ldp	x30,x29,[sp],16
 	ret
-	.comm	.L32766,80,12
+	.comm	.L32766,88,12

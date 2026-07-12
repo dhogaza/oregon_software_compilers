@@ -2,6 +2,7 @@
 # Assumes pascal test is known to work so creates .s.good and
 # .out.good
 . ./env.sh
+libdir="$HOME/oregon_software_compilers/lib/$os"
 echo "--- building $1 good files ---"
 . ./fileattrs.sh $1
 pushd $os >/dev/null
@@ -9,9 +10,9 @@ if [[ "$type" == "pas" || "$type" == "nolib" ]]; then
   $pasdir/pas2arm64 $src/$1 --include=$lib --noch --mac=$1
   if [ $? == 0 ]; then
     if [[ "$type" == "pas" ]]; then
-      gcc $HOME/oregon_software_compilers/lib/$os/paslib.a $base.s
+      gcc $libdir/stdfiles.o $libdir/paslib.o $base.s
     else
-      gcc $HOME/oregon_software_compilers/lib/$os/stdfiles.o $base.s
+      gcc $libdir/stdfiles.o $base.s
     fi
     mv $1.s $1.s.good
     ./a.out > $1.out.good

@@ -108,6 +108,7 @@ main:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
 	add	x29,sp,32
+	bl	_p_initio 
 # Line: 66, Stmt: 1
 # Line: 67, Stmt: 0
 	adrp	x14,.L32765
@@ -175,13 +176,13 @@ main:
 	bl	.P2  // cstring
 	str	x0,[x29,-32]
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+16
+	add	x0,x15,:lo12:.L32766+24
 	ldr	x1,[x29,-32]
 	bl	.P1  // toshortstring
 # Line: 72, Stmt: 0
 	adrp	x15,.L32766
-	ldrb	w1,[x15,:lo12:.L32766+16]
-	add	x0,x15,:lo12:.L32766+16
+	ldrb	w1,[x15,:lo12:.L32766+24]
+	add	x0,x15,:lo12:.L32766+24
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -190,4 +191,4 @@ main:
 	ldp	x30,x29,[sp,32]
 	add	sp,sp,48
 	ret
-	.comm	.L32766,280,12
+	.comm	.L32766,288,12

@@ -2,7 +2,7 @@
 # Check darwin output files against linux output files or
 # vice-versa.
 . ./env.sh
-
+libdir="$HOME/oregon_software_compilers/lib/$os"
 if [[ "$os" == "darwin" ]]; then
   other="linux"
 else
@@ -25,9 +25,9 @@ for f in $src/*.pas; do
       echo "$base.s is different than $base.s.good"
     fi
     if [[ "$type" == "pas" ]]; then
-      gcc $HOME/oregon_software_compilers/lib/$os/paslib.a $base.s
+      gcc $libdir/stdfiles.o $libdir/paslib.o $base.s
     else
-      gcc $HOME/oregon_software_compilers/lib/$os/stdfiles.o $base.s
+      gcc $libdir/stdfiles.o $base.s
     fi
     ./a.out > ../other/$base.out
     diff ../other/$base.out ../$other/$base.out.good >../other/$base.out.diff

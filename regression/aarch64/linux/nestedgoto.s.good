@@ -78,7 +78,7 @@
 # Line: 26, Stmt: 0
 	adrp	x15,.L32762
 	mov	w16,1234
-	str	w16,[x15,:lo12:.L32762+16]
+	str	w16,[x15,:lo12:.L32762+24]
 # Line: 27, Stmt: 0
 	adrp	x15,.L32761
 	add	x0,x15,:lo12:.L32761+1
@@ -111,13 +111,13 @@
 	bl	_p_wtln_o 
 # Line: 34, Stmt: 0
 	adrp	x28,.L32762
-	ldrsw	x0,[x28,:lo12:.L32762+16]
+	ldrsw	x0,[x28,:lo12:.L32762+24]
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 # Line: 36, Stmt: 0
 	mov	w16,4321
-	str	w16,[x28,:lo12:.L32762+16]
+	str	w16,[x28,:lo12:.L32762+24]
 # Line: 37, Stmt: 0
 	adrp	x28,.L32761
 	add	x0,x28,:lo12:.L32761+53
@@ -150,7 +150,7 @@
 	bl	_p_wtln_o 
 # Line: 44, Stmt: 0
 	adrp	x28,.L32762
-	ldrsw	x0,[x28,:lo12:.L32762+16]
+	ldrsw	x0,[x28,:lo12:.L32762+24]
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -172,10 +172,11 @@
 main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
+	bl	_p_initio 
 # Line: 47, Stmt: 1
 # Line: 48, Stmt: 0
 	bl	.P1  // outer
 .L8:
 	ldp	x30,x29,[sp],16
 	ret
-	.comm	.L32762,24,12
+	.comm	.L32762,32,12

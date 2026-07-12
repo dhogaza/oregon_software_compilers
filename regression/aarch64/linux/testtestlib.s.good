@@ -144,15 +144,15 @@ puthex:
 .L17:
 # Line: 48, Stmt: 0
 	add	x14,x29,w28, sxtw 0
-	sub	w13,w15,10
-	add	w13,w13,65
-	strb	w13,[x14,16]
+	sub	w15,w15,10
+	add	w15,w15,65
+	strb	w15,[x14,16]
 	b	.L18
 .L16:
 # Line: 50, Stmt: 0
 	add	x14,x29,w28, sxtw 0
-	add	w13,w15,48
-	strb	w13,[x14,16]
+	add	w15,w15,48
+	strb	w15,[x14,16]
 .L18:
 # Line: 51, Stmt: 0
 	add	w28,w28,1
@@ -763,6 +763,7 @@ putcharln:
 main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
+	bl	_p_initio 
 # Line: 83, Stmt: 1
 # Line: 85, Stmt: 0
 	adrp	x15,.L32765
@@ -943,4 +944,4 @@ main:
 .L97:
 	ldp	x30,x29,[sp],16
 	ret
-	.comm	.L32766,16,12
+	.comm	.L32766,24,12

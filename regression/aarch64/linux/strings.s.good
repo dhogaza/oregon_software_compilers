@@ -339,6 +339,7 @@ main:
 	add	x16,sp,40
 	stp	x30,x29,[x16,504]
 	add	x29,sp,544
+	bl	_p_initio 
 # Line: 59, Stmt: 1
 # Line: 60, Stmt: 0
 	adrp	x15,.L32765
@@ -363,7 +364,7 @@ main:
 	adrp	x15,.L32766
 	adrp	x13,.L32765
 	add	x14,x13,:lo12:.L32765+86
-	add	x13,x15,:lo12:.L32766+538
+	add	x13,x15,:lo12:.L32766+546
 	mov	x16,5
 .L32759:
 	ldrb	w17,[x14],1
@@ -378,7 +379,7 @@ main:
 	bl	_p_wts_o 
 # Line: 66, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+538
+	add	x0,x15,:lo12:.L32766+546
 	bl	.P2  // testp5
 # Line: 68, Stmt: 0
 	adrp	x15,.L32765
@@ -388,7 +389,7 @@ main:
 	bl	_p_wts_o 
 # Line: 69, Stmt: 0
 	adrp	x15,.L32766
-	add	x15,x15,:lo12:.L32766+538
+	add	x15,x15,:lo12:.L32766+546
 	sub	x14,x29,8
 	mov	x16,5
 .L32758:
@@ -406,7 +407,7 @@ main:
 	bl	_p_wts_o 
 # Line: 71, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+538
+	add	x0,x15,:lo12:.L32766+546
 	mov	x1,5
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -420,7 +421,7 @@ main:
 # Line: 74, Stmt: 0
 	adrp	x15,.L32766
 	sub	x16,x29,16
-	add	x17,x15,:lo12:.L32766+538
+	add	x17,x15,:lo12:.L32766+546
 	mov	x15,5
 	strb	w15,[x16],1
 .L32757:
@@ -445,7 +446,7 @@ main:
 # Line: 79, Stmt: 0
 	adrp	x15,.L32766
 	mov	w16,98
-	strb	w16,[x15,:lo12:.L32766+543]
+	strb	w16,[x15,:lo12:.L32766+551]
 # Line: 80, Stmt: 0
 	adrp	x14,.L32765
 	add	x0,x14,:lo12:.L32765+213
@@ -467,7 +468,7 @@ main:
 	sub	x16,x29,16
 	mov	x17,1
 	strb	w17,[x16],1
-	ldrb	w15,[x15,:lo12:.L32766+543]
+	ldrb	w15,[x15,:lo12:.L32766+551]
 	strb	w15,[x16],1
 	strb	wzr,[x16],1
 	sub	x0,x29,16
@@ -487,7 +488,7 @@ main:
 	adrp	x15,.L32766
 	adrp	x13,.L32765
 	add	x14,x13,:lo12:.L32765+278
-	add	x13,x15,:lo12:.L32766+532
+	add	x13,x15,:lo12:.L32766+540
 	ldrb	w16,[x14],1
 	mov	x17,3
 	cmp	w16,w17
@@ -509,13 +510,13 @@ main:
 	bl	_p_wts_o 
 # Line: 89, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+532
+	add	x0,x15,:lo12:.L32766+540
 	bl	.P3  // tests255
 # Line: 90, Stmt: 0
 	adrp	x15,.L32766
 	adrp	x13,.L32765
 	add	x14,x13,:lo12:.L32765+313
-	add	x13,x15,:lo12:.L32766+16
+	add	x13,x15,:lo12:.L32766+24
 	ldrb	w16,[x14],1
 	strb	w16,[x13],1
 	cbz	x16,.L32754
@@ -533,8 +534,8 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	ldrb	w1,[x15,:lo12:.L32766+16]
-	add	x0,x15,:lo12:.L32766+16
+	ldrb	w1,[x15,:lo12:.L32766+24]
+	add	x0,x15,:lo12:.L32766+24
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -547,15 +548,15 @@ main:
 	bl	_p_wts_o 
 # Line: 93, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+16
+	add	x0,x15,:lo12:.L32766+24
 	bl	.P3  // tests255
 # Line: 94, Stmt: 0
 	adrp	x15,.L32766
 	adrp	x14,.L32766
 	adrp	x13,.L32766
-	add	x10,x15,:lo12:.L32766+274
-	add	x12,x13,:lo12:.L32766+16
-	add	x11,x14,:lo12:.L32766+532
+	add	x10,x15,:lo12:.L32766+282
+	add	x12,x13,:lo12:.L32766+24
+	add	x11,x14,:lo12:.L32766+540
 	ldrb	w14,[x12],1
 	ldrb	w13,[x11],1
 	add	w16,w13,w14
@@ -591,7 +592,7 @@ main:
 	bl	_p_wts_o 
 # Line: 96, Stmt: 0
 	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+274
+	add	x0,x15,:lo12:.L32766+282
 	bl	.P3  // tests255
 # Line: 98, Stmt: 0
 	adrp	x15,.L32765
@@ -601,7 +602,7 @@ main:
 	bl	_p_wts_o 
 # Line: 99, Stmt: 0
 	adrp	x15,.L32766
-	add	x15,x15,:lo12:.L32766+274
+	add	x15,x15,:lo12:.L32766+282
 	sub	x14,x29,280
 	ldrb	w16,[x15],1
 	strb	w16,[x14],1
@@ -623,8 +624,8 @@ main:
 	bl	_p_wts_o 
 # Line: 101, Stmt: 0
 	adrp	x15,.L32766
-	ldrb	w1,[x15,:lo12:.L32766+274]
-	add	x0,x15,:lo12:.L32766+274
+	ldrb	w1,[x15,:lo12:.L32766+282]
+	add	x0,x15,:lo12:.L32766+282
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -644,7 +645,7 @@ main:
 	adrp	x15,.L32766
 	adrp	x13,.L32765
 	add	x14,x13,:lo12:.L32765+620
-	add	x13,x15,:lo12:.L32766+538
+	add	x13,x15,:lo12:.L32766+546
 	mov	x16,5
 .L32746:
 	ldrb	w17,[x14],1
@@ -665,7 +666,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x12,.L32765
 	add	x13,x12,:lo12:.L32765+659
 	mov	x16,5
@@ -688,7 +689,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+681
 	mov	x16,5
@@ -711,7 +712,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+704
 	mov	x16,5
@@ -734,7 +735,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+727
 	mov	x16,5
@@ -757,7 +758,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+749
 	mov	x16,5
@@ -780,7 +781,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+771
 	mov	x16,5
@@ -812,7 +813,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+809
 	mov	x16,5
@@ -835,7 +836,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+832
 	mov	x16,5
@@ -858,7 +859,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+854
 	mov	x16,5
@@ -881,7 +882,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+877
 	mov	x16,5
@@ -904,7 +905,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+899
 	mov	x16,5
@@ -927,7 +928,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+922
 	mov	x16,5
@@ -959,7 +960,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+961
 	mov	x16,5
@@ -982,7 +983,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+983
 	mov	x16,5
@@ -1005,7 +1006,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+1005
 	mov	x16,5
@@ -1028,7 +1029,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+1027
 	mov	x16,5
@@ -1051,7 +1052,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+1050
 	mov	x16,5
@@ -1074,7 +1075,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+538
+	add	x14,x15,:lo12:.L32766+546
 	adrp	x13,.L32765
 	add	x15,x13,:lo12:.L32765+1073
 	mov	x16,5
@@ -1105,7 +1106,7 @@ main:
 	adrp	x15,.L32766
 	adrp	x13,.L32765
 	add	x14,x13,:lo12:.L32765+1123
-	add	x13,x15,:lo12:.L32766+274
+	add	x13,x15,:lo12:.L32766+282
 	ldrb	w16,[x14],1
 	strb	w16,[x13],1
 	cbz	x16,.L32709
@@ -1130,7 +1131,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x11,.L32765
 	add	x13,x11,:lo12:.L32765+1162
 	ldrb	w11,[x14],1
@@ -1161,7 +1162,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1184
 	ldrb	w15,[x14],1
@@ -1192,7 +1193,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1207
 	ldrb	w15,[x14],1
@@ -1223,7 +1224,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1230
 	ldrb	w15,[x14],1
@@ -1254,7 +1255,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1252
 	ldrb	w15,[x14],1
@@ -1285,7 +1286,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1274
 	ldrb	w15,[x14],1
@@ -1325,7 +1326,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1312
 	ldrb	w15,[x14],1
@@ -1356,7 +1357,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1335
 	ldrb	w15,[x14],1
@@ -1387,7 +1388,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1357
 	ldrb	w15,[x14],1
@@ -1418,7 +1419,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1380
 	ldrb	w15,[x14],1
@@ -1449,7 +1450,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1402
 	ldrb	w15,[x14],1
@@ -1480,7 +1481,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1425
 	ldrb	w15,[x14],1
@@ -1520,7 +1521,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1464
 	ldrb	w15,[x14],1
@@ -1551,7 +1552,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1486
 	ldrb	w15,[x14],1
@@ -1582,7 +1583,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1508
 	ldrb	w15,[x14],1
@@ -1613,7 +1614,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1530
 	ldrb	w15,[x14],1
@@ -1644,7 +1645,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1553
 	ldrb	w15,[x14],1
@@ -1675,7 +1676,7 @@ main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32766
-	add	x14,x15,:lo12:.L32766+274
+	add	x14,x15,:lo12:.L32766+282
 	adrp	x15,.L32765
 	add	x13,x15,:lo12:.L32765+1576
 	ldrb	w15,[x14],1
@@ -1720,4 +1721,4 @@ main:
 	ldp	x30,x29,[x16,504]
 	add	sp,sp,560
 	ret
-	.comm	.L32766,544,12
+	.comm	.L32766,552,12

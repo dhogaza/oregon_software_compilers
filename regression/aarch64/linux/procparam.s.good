@@ -209,6 +209,7 @@ main:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
+	bl	_p_initio 
 # Line: 48, Stmt: 1
 # Line: 49, Stmt: 0
 	bl	.P5  // p0
@@ -233,4 +234,4 @@ main:
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
-	.comm	.L32766,16,12
+	.comm	.L32766,24,12

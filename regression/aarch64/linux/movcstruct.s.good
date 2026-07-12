@@ -115,29 +115,30 @@ main:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
+	bl	_p_initio 
 # Line: 22, Stmt: 1
 # Line: 23, Stmt: 0
 	adrp	x15,.L32766
 	mov	w16,1
-	str	w16,[x15,:lo12:.L32766+16]
+	str	w16,[x15,:lo12:.L32766+24]
 # Line: 23, Stmt: 0
 	mov	w16,2
-	str	w16,[x15,:lo12:.L32766+20]
+	str	w16,[x15,:lo12:.L32766+28]
 # Line: 23, Stmt: 0
 	mov	w16,3
-	str	w16,[x15,:lo12:.L32766+24]
+	str	w16,[x15,:lo12:.L32766+32]
 # Line: 24, Stmt: 0
 	movz	x16,65535
 	movk	x16,65535,lsl 16
-	str	w16,[x15,:lo12:.L32766+28]
+	str	w16,[x15,:lo12:.L32766+36]
 # Line: 24, Stmt: 0
 	mov	w16,4294967294
-	str	w16,[x15,:lo12:.L32766+32]
+	str	w16,[x15,:lo12:.L32766+40]
 # Line: 24, Stmt: 0
 	mov	w16,4294967293
-	str	w16,[x15,:lo12:.L32766+36]
+	str	w16,[x15,:lo12:.L32766+44]
 # Line: 25, Stmt: 0
-	add	x15,x15,:lo12:.L32766+16
+	add	x15,x15,:lo12:.L32766+24
 	sub	x14,x29,16
 	mov	x16,12
 .L32762:
@@ -147,7 +148,7 @@ main:
 	cbnz	x16,.L32762
 	sub	x0,x29,16
 	adrp	x15,.L32766
-	add	x1,x15,:lo12:.L32766+28
+	add	x1,x15,:lo12:.L32766+36
 	mov	x2,1
 	mov	x3,3
 	bl	.P1  // p
@@ -155,4 +156,4 @@ main:
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
-	.comm	.L32766,40,12
+	.comm	.L32766,48,12

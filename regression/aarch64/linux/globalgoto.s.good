@@ -69,19 +69,20 @@ main:
 	sub	sp,sp,96
 	stp	x30,x29,[sp,80]
 	add	x29,sp,80
-	mov	x17,sp
-	adrp	x16,.L32760
-	str	x17,[x16,:lo12:.L32760]
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
 	stp	x23,x24,[x29,-48]
 	stp	x21,x22,[x29,-64]
 	stp	x19,x20,[x29,-80]
+	bl	_p_initio 
+	mov	x17,sp
+	adrp	x16,.L32760
+	str	x17,[x16,:lo12:.L32760]
 # Line: 22, Stmt: 1
 # Line: 23, Stmt: 0
 	adrp	x15,.L32762
 	mov	w16,1234
-	str	w16,[x15,:lo12:.L32762+16]
+	str	w16,[x15,:lo12:.L32762+24]
 # Line: 24, Stmt: 0
 	adrp	x15,.L32761
 	add	x0,x15,:lo12:.L32761+1
@@ -115,13 +116,13 @@ main:
 	bl	_p_wtln_o 
 # Line: 31, Stmt: 0
 	adrp	x28,.L32762
-	ldrsw	x0,[x28,:lo12:.L32762+16]
+	ldrsw	x0,[x28,:lo12:.L32762+24]
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 # Line: 33, Stmt: 0
 	mov	w16,4321
-	str	w16,[x28,:lo12:.L32762+16]
+	str	w16,[x28,:lo12:.L32762+24]
 # Line: 34, Stmt: 0
 	adrp	x28,.L32761
 	add	x0,x28,:lo12:.L32761+53
@@ -155,7 +156,7 @@ main:
 	bl	_p_wtln_o 
 # Line: 41, Stmt: 0
 	adrp	x28,.L32762
-	ldrsw	x0,[x28,:lo12:.L32762+16]
+	ldrsw	x0,[x28,:lo12:.L32762+24]
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -168,5 +169,5 @@ main:
 	ldp	x30,x29,[sp,80]
 	add	sp,sp,96
 	ret
-	.comm	.L32762,24,12
+	.comm	.L32762,32,12
 	.comm	.L32760,16
