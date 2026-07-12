@@ -3,7 +3,7 @@
 #
 	.section	__TEXT,__const
 	.align 12
-.L32765:
+.L32766:
 	.byte	0x05,0x66,0x6F,0x6F,0x3A,0x20,0x00,0x05,0x62,0x61,0x72,0x3A
 	.byte	0x20,0x00
 	.text
@@ -17,8 +17,8 @@
 	add	x29,sp,16
 # Line: 4, Stmt: 1
 # Line: 5, Stmt: 2
-	adrp	x15,.L32765@PAGE
-	add	x0,x15,.L32765+1@PAGEOFF
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+1@PAGEOFF
 	str	x1,[x29,-8]
 	mov	x1,5
 	mov	x2,x1
@@ -50,8 +50,8 @@
 # Line: 10, Stmt: 1
 # Line: 11, Stmt: 2
 	str	x0,[x29,-8]
-	adrp	x15,.L32765@PAGE
-	add	x0,x15,.L32765+8@PAGEOFF
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+8@PAGEOFF
 	mov	x1,5
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -82,9 +82,9 @@ _main:
 	bl	_p_initio 
 # Line: 14, Stmt: 1
 # Line: 16, Stmt: 0
-	adrp	x15,.L32766@PAGE
+	adrp	x15,.L32767@PAGE
 	mov	w16,3
-	str	w16,[x15,.L32766+24@PAGEOFF]
+	str	w16,[x15,.L32767+24@PAGEOFF]
 # Line: 18, Stmt: 0
 	mov	x0,1
 	mov	x1,2
@@ -187,4 +187,4 @@ _main:
 	ldp	x30,x29,[sp,32]
 	add	sp,sp,48
 	ret
-	.comm	.L32766,32,12
+	.comm	.L32767,32,12

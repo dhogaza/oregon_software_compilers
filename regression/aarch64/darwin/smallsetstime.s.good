@@ -23,59 +23,59 @@
 	add	x29,sp,xzr
 # Line: 22, Stmt: 1
 # Line: 23, Stmt: 0
-	adrp	x15,.L32766@PAGE
+	adrp	x15,.L32767@PAGE
 	mov	x14,18
-	ldrb	w12,[x15,.L32766+28@PAGEOFF]
+	ldrb	w12,[x15,.L32767+28@PAGEOFF]
 	mov	x13,1
 	lsl	w13,w13,w12
 	orr	w14,w14,w13
-	strh	w14,[x15,.L32766+30@PAGEOFF]
+	strh	w14,[x15,.L32767+30@PAGEOFF]
 # Line: 24, Stmt: 0
 	mov	x14,xzr
-	ldrb	w12,[x15,.L32766+29@PAGEOFF]
-.L32763:
+	ldrb	w12,[x15,.L32767+29@PAGEOFF]
+.L32764:
 	cmp	w12,9
-	b.hi	.L32762
+	b.hi	.L32763
 	mov	x13,1
 	lsl	w13,w13,w12
 	orr	w14,w14,w13
 	add	w12,w12,1
-	b	.L32763
-.L32762:
-	strh	w14,[x15,.L32766+32@PAGEOFF]
+	b	.L32764
+.L32763:
+	strh	w14,[x15,.L32767+32@PAGEOFF]
 # Line: 25, Stmt: 0
-	adrp	x15,.L32766@PAGE
+	adrp	x15,.L32767@PAGE
 	mov	x0,3
 	bl	.P1  // func
 	mov	x15,1
-	adrp	x14,.L32766@PAGE
-	ldrb	w12,[x14,.L32766+26@PAGEOFF]
+	adrp	x14,.L32767@PAGE
+	ldrb	w12,[x14,.L32767+26@PAGEOFF]
 	mov	x13,1
 	lsl	w13,w13,w12
 	orr	w15,w15,w13
-	ldrb	w12,[x14,.L32766+27@PAGEOFF]
+	ldrb	w12,[x14,.L32767+27@PAGEOFF]
 	mov	x13,1
 	lsl	w13,w13,w12
 	orr	w15,w15,w13
 	mov	x13,1
 	lsl	w13,w13,w0
 	orr	w15,w15,w13
-	adrp	x13,.L32766@PAGE
-	strb	w15,[x13,.L32766+24@PAGEOFF]
+	adrp	x13,.L32767@PAGE
+	strb	w15,[x13,.L32767+24@PAGEOFF]
 # Line: 26, Stmt: 0
 	mov	x15,128
-	ldrb	w11,[x14,.L32766+26@PAGEOFF]
-	ldrb	w10,[x14,.L32766+27@PAGEOFF]
-.L32761:
+	ldrb	w11,[x14,.L32767+26@PAGEOFF]
+	ldrb	w10,[x14,.L32767+27@PAGEOFF]
+.L32762:
 	cmp	w11,w10
-	b.hi	.L32760
+	b.hi	.L32761
 	mov	x12,1
 	lsl	w12,w12,w11
 	orr	w15,w15,w12
 	add	w11,w11,1
-	b	.L32761
-.L32760:
-	strb	w15,[x13,.L32766+25@PAGEOFF]
+	b	.L32762
+.L32761:
+	strb	w15,[x13,.L32767+25@PAGEOFF]
 .L3:
 	ldp	x30,x29,[sp],16
 	ret
@@ -144,7 +144,7 @@ _main:
 	stp	x23,x24,[x29,-48]
 	bl	_p_initio 
 # Line: 45, Stmt: 1
-	adrp	x15,.L32766@PAGE
+	adrp	x15,.L32767@PAGE
 # Line: 46, Stmt: 0
 	mov	x14,1
 .L16:
@@ -160,47 +160,47 @@ _main:
 	str	x15,[x29,-80]
 # Line: 50, Stmt: 0
 	mov	w16,10
-	strb	w16,[x15,.L32766+28@PAGEOFF]
+	strb	w16,[x15,.L32767+28@PAGEOFF]
 # Line: 51, Stmt: 0
 	mov	w16,2
-	strb	w16,[x15,.L32766+29@PAGEOFF]
+	strb	w16,[x15,.L32767+29@PAGEOFF]
 # Line: 52, Stmt: 0
 	mov	w16,1
-	strb	w16,[x15,.L32766+26@PAGEOFF]
+	strb	w16,[x15,.L32767+26@PAGEOFF]
 # Line: 53, Stmt: 0
 	mov	w16,4
-	strb	w16,[x15,.L32766+27@PAGEOFF]
+	strb	w16,[x15,.L32767+27@PAGEOFF]
 # Line: 54, Stmt: 0
 	bl	.P2  // initsets
 # Line: 55, Stmt: 0
-	adrp	x15,.L32766@PAGE
-	ldrb	w0,[x15,.L32766+24@PAGEOFF]
+	adrp	x15,.L32767@PAGE
+	ldrb	w0,[x15,.L32767+24@PAGEOFF]
 	bl	.P3  // putnumset
 # Line: 56, Stmt: 0
-	adrp	x15,.L32766@PAGE
-	ldrh	w0,[x15,.L32766+30@PAGEOFF]
+	adrp	x15,.L32767@PAGE
+	ldrh	w0,[x15,.L32767+30@PAGEOFF]
 	bl	.P4  // putalphaset
 # Line: 57, Stmt: 0
-	adrp	x15,.L32766@PAGE
-	adrp	x14,.L32766@PAGE
-	ldrb	w14,[x14,.L32766+24@PAGEOFF]
-	ldrb	w13,[x15,.L32766+25@PAGEOFF]
+	adrp	x15,.L32767@PAGE
+	adrp	x14,.L32767@PAGE
+	ldrb	w14,[x14,.L32767+24@PAGEOFF]
+	ldrb	w13,[x15,.L32767+25@PAGEOFF]
 	cmp	w14,w13
 	cset	w26,eq
 # Line: 58, Stmt: 0
-	adrp	x15,.L32766@PAGE
-	ldrb	w15,[x15,.L32766+24@PAGEOFF]
+	adrp	x15,.L32767@PAGE
+	ldrb	w15,[x15,.L32767+24@PAGEOFF]
 	cmp	w15,w13
 	cset	w25,eq
 # Line: 59, Stmt: 0
-	adrp	x15,.L32766@PAGE
+	adrp	x15,.L32767@PAGE
 	movz	x16,18
-	ldrh	w15,[x15,.L32766+30@PAGEOFF]
+	ldrh	w15,[x15,.L32767+30@PAGEOFF]
 	bics	xzr,x15,x16
 	cset	w24,eq
 # Line: 60, Stmt: 0
-	adrp	x15,.L32766@PAGE
-	ldrh	w15,[x15,.L32766+30@PAGEOFF]
+	adrp	x15,.L32767@PAGE
+	ldrh	w15,[x15,.L32767+30@PAGEOFF]
 	mov	x14,18
 	bics	xzr,x14,x15
 	cset	w23,eq
@@ -208,14 +208,14 @@ _main:
 	mov	x15,18
 	ands	w16,w15,2
 	cset	w15,ne
-	adrp	x14,.L32766@PAGE
-	strb	w15,[x14,.L32766+52@PAGEOFF]
+	adrp	x14,.L32767@PAGE
+	strb	w15,[x14,.L32767+52@PAGEOFF]
 # Line: 62, Stmt: 0
 	mov	x15,18
 	ands	w16,w15,4
 	cset	w15,ne
-	adrp	x14,.L32766@PAGE
-	strb	w15,[x14,.L32766+53@PAGEOFF]
+	adrp	x14,.L32767@PAGE
+	strb	w15,[x14,.L32767+53@PAGEOFF]
 	ldr	x14,[x29,-56]
 	ldr	x15,[x29,-80]
 	add	w28,w28,1
@@ -241,4 +241,4 @@ _main:
 	ldp	x30,x29,[sp,80]
 	add	sp,sp,96
 	ret
-	.comm	.L32766,56,12
+	.comm	.L32767,56,12

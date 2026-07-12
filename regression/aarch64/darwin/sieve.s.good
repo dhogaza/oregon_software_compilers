@@ -20,8 +20,8 @@
 	mov	x27,xzr
 .L7:
 # Line: 21, Stmt: 0
-	adrp	x14,.L32766@PAGE
-	add	x15,x14,.L32766@PAGEOFF
+	adrp	x14,.L32767@PAGE
+	add	x15,x14,.L32767@PAGEOFF
 	add	x15,x15,w27, sxtw 0
 	mov	w16,1
 	strb	w16,[x15,24]
@@ -35,8 +35,8 @@
 	mov	x27,xzr
 .L9:
 # Line: 23, Stmt: 0
-	adrp	x14,.L32766@PAGE
-	add	x15,x14,.L32766@PAGEOFF
+	adrp	x14,.L32767@PAGE
+	add	x15,x14,.L32767@PAGEOFF
 	add	x15,x15,w27, sxtw 0
 	ldrb	w15,[x15,24]
 	cbz	w15,.L10
@@ -54,8 +54,8 @@
 	b.gt	.L12
 .L13:
 # Line: 27, Stmt: 0
-	adrp	x14,.L32766@PAGE
-	add	x15,x14,.L32766@PAGEOFF
+	adrp	x14,.L32767@PAGE
+	add	x15,x14,.L32767@PAGEOFF
 	add	x15,x15,w28, sxtw 0
 	strb	wzr,[x15,24]
 # Line: 28, Stmt: 0
@@ -103,4 +103,4 @@ _main:
 .L16:
 	ldp	x30,x29,[sp],16
 	ret
-	.comm	.L32766,1000032,12
+	.comm	.L32767,1000032,12

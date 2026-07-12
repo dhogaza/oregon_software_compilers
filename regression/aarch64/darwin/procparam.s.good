@@ -3,7 +3,7 @@
 #
 	.section	__TEXT,__const
 	.align 12
-.L32765:
+.L32766:
 	.byte	0x05,0x65,0x78,0x74,0x21,0x20,0x00,0x0D,0x69,0x6E,0x20,0x66
 	.byte	0x75,0x6E,0x63,0x70,0x61,0x72,0x61,0x6D,0x20,0x00,0x07,0x6C
 	.byte	0x6F,0x63,0x61,0x6C,0x21,0x20,0x00,0x0F,0x20,0x75,0x70,0x20
@@ -38,8 +38,8 @@ ext:
 # Line: 10, Stmt: 1
 # Line: 11, Stmt: 2
 	str	x0,[x29,-8]
-	adrp	x15,.L32765@PAGE
-	add	x0,x15,.L32765+1@PAGEOFF
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+1@PAGEOFF
 	mov	x1,5
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -63,8 +63,8 @@ ext:
 	str	x28,[x29,-8]
 # Line: 16, Stmt: 1
 # Line: 17, Stmt: 0
-	adrp	x15,.L32765@PAGE
-	add	x0,x15,.L32765+8@PAGEOFF
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+8@PAGEOFF
 	mov	x1,13
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -127,16 +127,16 @@ ext:
 # Line: 34, Stmt: 1
 # Line: 35, Stmt: 2
 	str	x0,[x29,-8]
-	adrp	x15,.L32765@PAGE
-	add	x0,x15,.L32765+23@PAGEOFF
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+23@PAGEOFF
 	mov	x1,7
 	mov	x2,x1
 	bl	_p_wts_o 
 	ldr	x0,[x29,-8]
 	mov	x1,12
 	bl	_p_wti_o 
-	adrp	x15,.L32765@PAGE
-	add	x0,x15,.L32765+32@PAGEOFF
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+32@PAGEOFF
 	mov	x1,15
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -162,8 +162,8 @@ ext:
 	mov	w16,5
 	str	w16,[x29,16]
 # Line: 40, Stmt: 0
-	adrp	x14,.L32766@PAGE
-	add	x15,x14,.L32766@PAGEOFF
+	adrp	x14,.L32767@PAGE
+	add	x15,x14,.L32767@PAGEOFF
 	str	x15,[sp]
 	adr	x16,.P2  // f
 	str	x16,[sp,8]
@@ -215,8 +215,8 @@ _main:
 	bl	.P5  // p0
 # Line: 50, Stmt: 0
 	mov	x0,3
-	adrp	x14,.L32766@PAGE
-	add	x15,x14,.L32766@PAGEOFF
+	adrp	x14,.L32767@PAGE
+	add	x15,x14,.L32767@PAGEOFF
 	str	x15,[sp]
 	adrp	x16,ext@PAGE
 	add	x16,x16,ext@PAGEOFF
@@ -224,8 +224,8 @@ _main:
 	mov	x1,4
 	bl	.P4  // procparam
 # Line: 51, Stmt: 0
-	adrp	x14,.L32766@PAGE
-	add	x15,x14,.L32766@PAGEOFF
+	adrp	x14,.L32767@PAGE
+	add	x15,x14,.L32767@PAGEOFF
 	str	x15,[sp]
 	adr	x16,.P2  // f
 	str	x16,[sp,8]
@@ -234,4 +234,4 @@ _main:
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
-	.comm	.L32766,24,12
+	.comm	.L32767,24,12

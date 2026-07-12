@@ -3,7 +3,7 @@
 #
 	.section	__TEXT,__const
 	.align 12
-.L32765:
+.L32766:
 	.byte	0x08,0x73,0x6F,0x72,0x74,0x69,0x6E,0x67,0x20,0x00,0x13,0x72
 	.byte	0x65,0x73,0x75,0x6C,0x74,0x20,0x69,0x73,0x20,0x73,0x6F,0x72
 	.byte	0x74,0x65,0x64,0x20,0x3D,0x20,0x00
@@ -226,8 +226,8 @@ _main:
 	bl	_p_initio 
 # Line: 94, Stmt: 1
 # Line: 95, Stmt: 0
-	adrp	x15,.L32765@PAGE
-	add	x0,x15,.L32765+1@PAGEOFF
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+1@PAGEOFF
 	mov	x1,8
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -237,12 +237,12 @@ _main:
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 # Line: 96, Stmt: 0
-	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+32@PAGEOFF
+	adrp	x15,.L32767@PAGE
+	add	x0,x15,.L32767+32@PAGEOFF
 	bl	.P1  // initarray
 # Line: 97, Stmt: 0
-	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+32@PAGEOFF
+	adrp	x15,.L32767@PAGE
+	add	x0,x15,.L32767+32@PAGEOFF
 	bl	.P2  // quicksort
 # Line: 98, Stmt: 0
 	mov	x27,1
@@ -257,8 +257,8 @@ _main:
 	b.gt	.L27
 .L28:
 # Line: 102, Stmt: 0
-	adrp	x14,.L32766@PAGE
-	add	x15,x14,.L32766@PAGEOFF
+	adrp	x14,.L32767@PAGE
+	add	x15,x14,.L32767@PAGEOFF
 	add	x14,x15,w28, sxtw 2
 	add	x15,x15,w28, sxtw 2
 	ldrsw	x14,[x14,28]
@@ -271,8 +271,8 @@ _main:
 	b	.L26
 .L27:
 # Line: 105, Stmt: 0
-	adrp	x15,.L32765@PAGE
-	add	x0,x15,.L32765+11@PAGEOFF
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+11@PAGEOFF
 	mov	x1,19
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -285,4 +285,4 @@ _main:
 	ldp	x30,x29,[sp,32]
 	add	sp,sp,48
 	ret
-	.comm	.L32766,400032,12
+	.comm	.L32767,400032,12
