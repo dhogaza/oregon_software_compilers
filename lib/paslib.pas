@@ -738,7 +738,6 @@ begin
   filep^.filename := '(standard input)';
   filep^.streamp := _p_inputstream;
   filep^.bufferp := ref(filep^.ch);
-  filep^.filevar := loophole(_p_addressptr, ref(input));
   filep^.status := [_p_perm, _p_read, _p_text];
 
   { define standard output file }
@@ -746,7 +745,6 @@ begin
   filep^.filename := '(standard output)';
   filep^.streamp := _p_outputstream;
   filep^.bufferp := ref(filep^.ch);
-  filep^.filevar := loophole(_p_addressptr, ref(output));
   filep^.status := [_p_perm, _p_write, _p_def, _p_text];
 
   { define standard error file }
@@ -754,7 +752,6 @@ begin
   filep^.filename := '(standard error)';
   filep^.streamp := _p_errorstream;
   filep^.bufferp := ref(filep^.ch);
-  filep^.filevar := loophole(_p_addressptr, ref(stderror));
   filep^.status := [_p_perm, _p_write, _p_def, _p_text];
 end;
 
