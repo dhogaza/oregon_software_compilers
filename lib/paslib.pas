@@ -96,8 +96,12 @@ procedure exitst(code: integer); external;
 procedure _p_caseerr; external;
 
 { I/O }
+
+{ written in C until we get external vars implemented }
 function _p_inputstream: _p_addressptr; nonpascal;
 function _p_outputstream: _p_addressptr; nonpascal;
+function _p_errorstream: _p_addressptr; nonpascal;
+
 procedure _p_initio; external;
 procedure _p_close(filevar: _p_addressptr); external;
 procedure _p_clsall; external;
@@ -713,17 +717,24 @@ procedure _p_initio;
 var
   filep: _p_fileinfoptr;
 begin
-  { define standard input }
+  { define standard input file }
   filep := _p_addfile(loophole(_p_addressptr, ref(input)));
   filep^.filename := '(standard input)';
   filep^.streamp := _p_inputstream;
   filep^.bufferp := ref(filep^.ch);
   filep^.status := [_p_perm, _p_read, _p_text];
 
-  { define standard output }
+  { define standard output file }
   filep := _p_addfile(loophole(_p_addressptr, ref(output)));
   filep^.filename := '(standard output)';
   filep^.streamp := _p_outputstream;
+  filep^.bufferp := ref(filep^.ch);
+  filep^.status := [_p_perm, _p_write, _p_def, _p_text];
+
+  { define standard error file }
+  filep := _p_addfile(loophole(_p_addressptr, ref(stderror)));
+  filep^.filename := '(standard error)';
+  filep^.streamp := _p_errorstream;
   filep^.bufferp := ref(filep^.ch);
   filep^.status := [_p_perm, _p_write, _p_def, _p_text];
 end;

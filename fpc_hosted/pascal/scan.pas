@@ -3550,6 +3550,9 @@ procedure initscanner;
       enterstandardid('trimright ', 9, trimrightid);
       enterstandardid('cstring   ', 7, cstringid);
 
+      if targetopsys = unix then
+        enterstandardid('stderror  ', 8, stderrorid);
+
       if targetmachine = aarch64 then
         enterstandardid('int64     ', 5, int64id);
 

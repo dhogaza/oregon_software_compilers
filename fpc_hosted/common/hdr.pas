@@ -205,8 +205,8 @@ type
   standardids = ( { Pascal junk }
                                  integerid, int64id, uint64id, shortintid, realid,
                                  doubleid, charid, booleanid, trueid, falseid,
-                                 textid, inputid, outputid, writeid, writelnid,
-                                 readid, readlnid, putid, getid, seekid,
+                                 textid, stderrorid, inputid, outputid, writeid,
+                                 writelnid, readid, readlnid, putid, getid, seekid,
                                  resetid, rewriteid, closeid, breakid, newid,
                                  disposeid, packid, unpackid, pageid, timeid,
                                  absid, sqrid, sinid, cosid, expid, lnid,

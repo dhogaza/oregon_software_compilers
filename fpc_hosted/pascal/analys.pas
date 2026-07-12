@@ -3980,6 +3980,14 @@ procedure initanalys;
       inputindex := tabletop;
       enterdebuggerid('input    ', 5);
 
+      if targetopsys = unix then
+        begin
+        {define 'stderror'}
+        inputoffset := display[level].blocksize;
+        enterstandardid(stderrorid, varname, ptrsize, textindex);
+        enterdebuggerid('stderror ', 8);
+        end;
+
       end; {not environment switch}
 
     { Save the number of bytes allocated for input and output.
