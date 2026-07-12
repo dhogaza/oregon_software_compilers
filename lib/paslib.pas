@@ -761,7 +761,7 @@ end;
   error codes is not.
 
   Pascal was originally implemented on a CDC 6000 family 64 bit computer with
-  a batch operating system the assigned files to programs at invocation.  So
+  a batch operating system that assigned files to programs at invocation.  So
   "reset(foo)" would attach the file specified at invocation to "foo".  In
   some vague way not all that different than "helloworld >helloworld.txt" or
   "helloworld >/dev/null" being associated with stdout in unix shells.
@@ -804,6 +804,8 @@ var
 
 begin {_p_seek}
   filep := _p_filep(filevar);
+  if _p_text in filep^.status then
+    _p_libfileerror(filep, 'seek on text file not allowed');
   if fseek(filep^.streamp, offset * filep^.size, _p_seek_set) <> 0 then
     _p_libfileerror(filep, 'seek failed');
   filep^.status := filep^.status - [_p_def, _p_eoln, _p_eof];
