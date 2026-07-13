@@ -665,11 +665,11 @@ begin
 
   if _p_filep(filevar) = nil then
     begin
-    filename := str1ptr^;
+    filename := trimright(str1ptr^);
     flags := defflags;
     if str2ptr <> nil then
       begin
-      str2 := str2ptr^;
+      str2 := trimright(str2ptr^);
       flagspos := pos(str2, ':');
       if flagspos = 0 then
         ext := str2
