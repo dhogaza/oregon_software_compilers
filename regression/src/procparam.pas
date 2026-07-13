@@ -25,10 +25,14 @@ begin
   writeln(j);
 end;
 
+procedure deadsimple;
+begin
+  writeln('dead simple');
+end;
+
 procedure p0;
 
-  procedure p1;
-    var j: integer;
+  procedure p1(j: integer; procedure p);
 
      procedure upref(i: integer);
      begin
@@ -37,12 +41,13 @@ procedure p0;
 
    begin
      j := 5;
+     p;
      funcparam(f);
      procparam(1, upref, 2);
    end;
 
 begin
-  p1;
+  p1(42, deadsimple);
 end;
 
 begin
