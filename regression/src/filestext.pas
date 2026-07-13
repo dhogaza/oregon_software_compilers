@@ -137,4 +137,21 @@ begin
     writeln(i:1);
     end;
 
+  reset(f, 'filestext.s');
+  rename(f, 'filestext.s.foo');
+  close(f);
+  reset(f, 'filestext.s.foo');
+  writeln('copying filestext.s.foo');
+  while not eof(f) do
+    begin
+    readln(f,s);
+    writeln(s);
+    end;
+  rename(f, 'filestext.s');
+
+  reset(f, 'absolute garbage',,i);
+  writeln('reset fails: ', i:1);
+  reset(f, 'filestext.s',,i);
+  writeln('reset succeeds:', i:1);
+
 end.

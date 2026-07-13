@@ -139,7 +139,7 @@ procedure exitst(i: Integer);
 procedure csi;
 
   begin {csi}
-    reset(Input, 'testxref.pas');
+    reset(Input, '../../src/testxref.pas');
   end; {csi}
 
 
