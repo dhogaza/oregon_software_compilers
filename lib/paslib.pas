@@ -88,6 +88,7 @@ procedure exit(const code: integer); nonpascal;
 function malloc(const size: integer): _p_charptr; nonpascal;
 procedure free(const p: _p_charptr); nonpascal;
 function remove(const filename: _p_charptr): integer; nonpascal;
+function rename(const oldname, newname: _p_charptr): integer; nonpascal;
 function fopen(const filename, flags: _p_charptr): _p_streamptr; nonpascal;
 function fclose(const streamp: _p_addressptr): integer; nonpascal;
 function ftell(streamp: _p_addressptr): integer; nonpascal;
@@ -131,6 +132,7 @@ procedure _p_get(filevar: _p_addressptr); external;
 procedure _p_put(filevar: _p_addressptr); external;
 procedure _p_break(filevar: _p_addressptr); external;
 procedure _p_delete(filevar: _p_addressptr); external;
+procedure _p_rename(filevar: _p_addressptr; const newname: _p_stringptr); external;
 function _p_rdc(filevar: _p_addressptr): char; external;
 function _p_rdi(filevar: _p_addressptr): integer; external;
 function _p_rdd(filevar: _p_addressptr): double; external;
@@ -377,14 +379,23 @@ begin
   exit(1);
 end;
 
-procedure _p_libfileerror(filep: _p_fileinfoptr; const err: _p_string);
+procedure _p_libfileerror(filep: _p_fileinfoptr; errptr: _p_intptr; err: integer;
+                          const message: _p_string);
 
 begin
-  write(err, ' on file ', filep^.filename);
-  if length(filep^.flags) <> 0 then
-    write(':', filep^.flags);
-  writeln;
-  exit(1);
+  if errptr <> nil then
+    begin
+    filep^.err := err;
+    errptr^ := -1;
+    end
+  else
+    begin
+    write(message, ' on file ', filep^.filename);
+    if length(filep^.flags) <> 0 then
+      write(':', filep^.flags);
+    writeln;
+    exit(1);
+    end;
 end;
 
 { File I/O routines.
@@ -535,7 +546,7 @@ begin
   if not (_p_perm in filep^.status) then
     begin
     if fclose(filep^.streamp) <> 0 then
-      _p_libfileerror(filep, 'fclose failed');
+      _p_libfileerror(filep, nil, 0, 'fclose failed');
     filep^.filevar^ := loophole(_p_address, nil);
     if (not (_p_text in filep^.status)) and (filep^.bufferp <> nil) then
       dispose(filep^.bufferp);
@@ -639,7 +650,17 @@ procedure _p_filecommon(filevar: _p_addressptr;
   automatically adds "b" to the flags if the file is a binary file.
 
   Not sure what to do about append mode or seek regarding _p_def.
+
+  Currently will return -1 (the old Pascal-2 error flag) for a limited number of
+  errors, like a file not existing and the like.  Not for things like garbage
+  filenames or flags. 0 is returned otherwise.
 }
+
+{ to exit on error if we don't terminate (i.e. err variable was
+  was passed to reset or rewrite
+}
+
+label 1;
 
 var
   filep: _p_fileinfoptr;
@@ -648,6 +669,9 @@ var
   extpos, flagspos: integer;
 
 begin
+  { Always assume the best of people }
+  if errptr <> nil then
+    errptr^ := 0;
   if (str1ptr = nil) and (str2ptr <> nil) then
     _p_liberror('Missing file name.');
   filep := _p_filep(filevar);
@@ -685,13 +709,17 @@ begin
       end;
     if size > 0 then
       flags := flags + 'b';
-    streamp := fopen(cstring(filename), cstring(flags));
-    if streamp = nil then
-      _p_liberror('Can''t open ' + filename);
     filep := _p_addfile(filevar);
-    filep^.streamp := streamp;
     filep^.filename := filename;
     filep^.flags := flags;
+    streamp := fopen(cstring(filename), cstring(flags));
+    if streamp = nil then
+      begin
+      _p_libfileerror(filep, errptr, 0, 'Open failed');
+      _p_removefile(filep);
+      goto 1;
+      end;
+    filep^.streamp := streamp;
     if size > 0 then
       begin
       filep^.bufferp := malloc(size);
@@ -717,15 +745,21 @@ begin
       if defflags[1] = 'w' then
         begin
         if ftruncate(fileno(filep^.streamp), 0) <> 0 then
-          _p_libfileerror(filep,'failed to truncate file during rewrite');
+          begin
+          _p_libfileerror(filep, errptr, 0, 'failed to truncate file during rewrite');
+          goto 1;
+          end;
         filep^.status := filep^.status + [_p_def]
         end
       else if defflags[1] = 'r' then
         filep^.status := filep^.status - [_p_def, _p_eof, _p_eoln];
       if fseek(filep^.streamp, 0, _p_seek_set) <> 0 then
-        _p_libfileerror(filep, 'reset/rewrite of open file failed');
+        begin
+        _p_libfileerror(filep, errptr, 0, 'reset/rewrite of open file failed');
+        goto 1;
+        end;
     end;
-       
+  1:     
 end;
 
 procedure _p_initio;
@@ -794,7 +828,7 @@ begin
   if filep = nil then
     _p_liberror('file variable not found');
   if not (state in filep^.status) then
-    _p_libfileerror(filep, 'Illegal operation');
+    _p_libfileerror(filep, nil, 0, 'Illegal operation');
   _p_checkio := filep;
 end;
 
@@ -806,9 +840,9 @@ var
 begin {_p_seek}
   filep := _p_filep(filevar);
   if _p_text in filep^.status then
-    _p_libfileerror(filep, 'seek on text file not allowed');
+    _p_libfileerror(filep, nil, 0, 'seek on text file not allowed');
   if fseek(filep^.streamp, offset * filep^.size, _p_seek_set) <> 0 then
-    _p_libfileerror(filep, 'seek failed');
+    _p_libfileerror(filep, nil, 0, 'seek failed');
   filep^.status := filep^.status - [_p_def, _p_eoln, _p_eof];
 end {_p_seek};
 
@@ -875,7 +909,7 @@ begin
   with filep^ do
     if _p_def in status then
       if _p_eof in filep^.status then
-        _p_libfileerror(filep, 'Attempt to read past end of file')
+        _p_libfileerror(filep, nil, 0, 'Attempt to read past end of file')
       else filep^.status := filep^.status - [_p_def]
     else
       _p_define(filevar)
@@ -894,7 +928,7 @@ begin
   filep := _p_checkio(filevar, _p_write);
   byteswritten := fwrite(filep^.bufferp, filep^.size, 1, filep^.streamp);
   if ferror(filep^.streamp) <> 0 then
-    _p_libfileerror(filep, 'write error');
+    _p_libfileerror(filep, nil, 0, 'write error');
 end;
 
 procedure _p_break;
@@ -914,7 +948,7 @@ var
 begin {_p_break}
   filep := _p_checkio(filevar, _p_write);
   if not (_p_text in filep^.status) then
-    _p_libfileerror(filep, 'break on non-text file');
+    _p_libfileerror(filep, nil, 0, 'break on non-text file');
 end {_p_break};
   
 procedure _p_delete;
@@ -937,11 +971,36 @@ begin
     _p_liberror('Delete failed for ' + filename);
 end;
 
+procedure _p_rename;
+
+{ rename a file that is already open.  First we close it to ensure that
+  it is removed from _p_filelist.
+}
+
+var
+  filep: _p_fileinfoptr;
+  filename: _p_string;
+
+begin {_p_rename}
+  filep := _p_filep(filevar);
+  if filep = nil then
+    _p_liberror('Can''t rename a file that is not open');
+  if fclose(filep^.streamp) <> 0 then
+    _p_libfileerror(filep, nil, 0, 'fclose failed during rename');
+  if rename(cstring(filep^.filename), cstring(newname^)) <> 0 then
+    _p_libfileerror(filep, nil, 0, 'Rename failed');
+  filep^.filename := newname^;
+  filep^.streamp := fopen(cstring(filep^.filename), cstring(filep^.flags));
+  if filep^.streamp = nil then
+      _p_libfileerror(filep, nil, 0, 'Open failed');
+end {_p_rename};
+
+
 procedure wrchar(filep: _p_fileinfoptr; ch: char);
 
 begin {wrchar}
   if fputc(ch, filep^.streamp) < 0 then
-    _p_libfileerror(filep, 'write error');
+    _p_libfileerror(filep, nil, 0, 'write error');
 end {wrchar};
 
 procedure _p_wtc;
@@ -1136,7 +1195,7 @@ begin {_p_rdi}
   else
     minus := false;
   if ('0' > filep^.ch) or (filep^.ch > '9') then
-    _p_libfileerror(filep, 'Illegal integer');
+    _p_libfileerror(filep, nil, 0, 'Illegal integer');
   value := 0;
   while ('0' <= filep^.ch) and (filep^.ch <= '9') do
     begin
