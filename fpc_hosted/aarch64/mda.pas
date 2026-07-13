@@ -324,13 +324,15 @@ procedure forcememoryparam(varlev: levelindex; paramptr: entryptr);
 }
 
 var overflowed: boolean;
+  dummy: addressrange;
 
 begin
   with paramptr^ do
     if registercandidate then
       begin 
       registercandidate := false;
-      offset := allocparamoffset(display[varlev].blocksize, length, overflowed);
+      dummy := allocparamoffset(display[varlev].paramcopysize, length, overflowed);
+      offset := -display[varlev].paramcopysize;
       end;
 end;
 
@@ -387,12 +389,6 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
           if p^.varalloc = normalalloc then
             begin
             p^.offset := p^.offset + blocksize;
-{
-             p^.offset := runningparamsize + blocksize -
-                          forcealign(p^.length, stackalign, false);
-             runningparamsize := runningparamsize - 
-                                 forcealign(p^.length, stackalign, false);
-}
             if p^.namekind in [procparam, funcparam] then
               i := p^.nextparamlink;
             end;

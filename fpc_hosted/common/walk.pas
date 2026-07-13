@@ -3292,7 +3292,7 @@ procedure walk;
       begin
       if final_block_size = 0 then blocksize := bs
       else blocksize := final_block_size - ps;
-      genpseudo(blockentry, 0, 0, 0, 0, procref, ps, blocksize);
+      genpseudo(blockentry, pcs, 0, 0, 0, procref, ps, blocksize);
       end;
     { now walk the block in dfo }
     currentblock := root;

@@ -78,6 +78,7 @@ procedure enterblock(level: levelindex; {lex level of block}
       blockkind := codeblock;
       blocksize := initialblocksize(level);
       paramsize := 0;
+      paramcopysize := 0;
       oldundeftabletop := undeftabletop;
       labellist := labelflag;
       threshold := tabletop;
@@ -3103,6 +3104,7 @@ procedure block;
       genint(blockref);
       if level = 1 then globalsize := blocksize;
       genint(paramsize);
+      genint(paramcopysize);
       genint(blocksize);
       genint(thistoken.baseline);
       end;

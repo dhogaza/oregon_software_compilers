@@ -585,7 +585,7 @@ var
 
   blockusesframe: boolean; {set to true in blockentryx if frame is used}
 
-  paramsize, blksize: addressrange;
+  paramsize, blksize, paramcopysize: addressrange;
 
   stackcounter: keyindex; {key describing top of runtime stack}
   stackbase: keyindex; {key describing the base of the runtime stack}

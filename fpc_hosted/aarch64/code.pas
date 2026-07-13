@@ -5907,7 +5907,10 @@ procedure blockexitx;
          we do this indexing negatively off the fp to make sure the index is in range.
         The static link must be the first register saved if used.
        }
+{
       regcost := 0;
+}
+      regcost := paramcopysize;
       regcount := -1;
       for i := sp downto pr + 1 do
         if regused[i] then
@@ -6176,11 +6179,11 @@ procedure blockentryx;
       begin
       blockref := oprnds[1];
       paramsize := oprnds[2];
+      paramcopysize := len;
       if blockref = 0 then
        blksize := quad
       else blksize := oprnds[3];
       end;
-
     level := proctable[blockref].level;
 {DRB need to look into needsframeptr}
     blockusesframe := switcheverplus[framepointer]
@@ -7243,7 +7246,7 @@ procedure callroutinex(s: boolean {signed function value} );
     linkreg: boolean; {true if we build a static link}
     levelhack: integer; {if linkreg then we are going up levelhack levels}
     savetempkey: keyindex; {to restore tempkey when we are done}
-    paramkey: keyindex; {tempkey holding procedure param address}
+    slkey, prockey: keyindex; {tempkeys holding procedure param addresses}
     param: integer; {parameter count for creating unix standard list}
     notcopied: 0..1; {1 if last parameter was already the right size}
     returnform: types; {reals, ints, etc, for return register determination}
@@ -7311,10 +7314,11 @@ procedure callroutinex(s: boolean {signed function value} );
       { proc/func parameter }
       regused[sl] := true;
       address(left, 0);
-      paramkey := settemp(long, keytable[left].oprnd);
-      genldr(lastnode, long, false, regkeys[sl], paramkey);
-      keytable[paramkey].oprnd.index := keytable[paramkey].oprnd.index + long;
-      genldr(lastnode, long, false, regkeys[ip0], paramkey);
+      slkey := settemp(long, keytable[left].oprnd);
+      prockey := settemp(long, keytable[left].oprnd);
+      keytable[prockey].oprnd.index := keytable[prockey].oprnd.index + long;
+      genldr(lastnode, long, false, regkeys[ip0], prockey);
+      genldr(lastnode, long, false, regkeys[sl], slkey);
       gen1(lastnode, buildinst(blr, true, false), regkeys[ip0]);
       end;
 

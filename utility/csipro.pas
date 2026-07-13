@@ -71,7 +71,8 @@
         j := j + 1; arg.txt[j] := FoldAlpha(arg.txt[i]) end;
       end;
     arg.len := j;
-    for i := arg.len + 1 to mArgValue do arg.txt[i] := ' ';
+    for i := arg.len + 1 to mArgValue do
+      arg.txt[i] := ' ';
   end;
 
   procedure InitDef(var def: ArgDef; 

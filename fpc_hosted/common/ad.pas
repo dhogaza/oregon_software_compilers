@@ -738,6 +738,8 @@ procedure statement;
         read(tempfiletwo, tempfilebuf);
         write(' ps:', getintfileint: 1);
         read(tempfiletwo, tempfilebuf);
+        write(' pcs:', getintfileint: 1);
+        read(tempfiletwo, tempfilebuf);
         write(' bs:', getintfileint: 1);
         read(tempfiletwo, tempfilebuf);
         write(' baseline:', getintfileint: 1);

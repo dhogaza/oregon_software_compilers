@@ -274,6 +274,7 @@ type
         codeblock:
           (blocksize: addressrange; {size of local variables for block}
            paramsize: addressrange; {size of parameters for block}
+           paramcopysize: addressrange; {size of params saved for nested procs}
            regparams: regparamstype; {machine dependent reg params info}
            firststmt, {for debugger support}
            laststmt : integer; {values returned by stf_stmt}

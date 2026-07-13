@@ -129,7 +129,7 @@ type
 
              blkhdr:
                (procref: proctableindex; { Reference into global proc table }
-                bs, ps: addressrange; { Local storage and parameter storage }
+                bs, ps, pcs: addressrange; { Local, param, and paramcopy  storage }
                 blkbody: nodeindex; { Point to first statement in block }
                 blkexit: basicblockptr; {exit block for return}
                 fileline: integer {line in actual file where block starts} );

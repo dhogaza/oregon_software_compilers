@@ -1681,6 +1681,8 @@ procedure build;
               read(tempfiletwo, tempfilebuf);
               ps := getintfileint;
               read(tempfiletwo, tempfilebuf);
+              pcs := getintfileint;
+              read(tempfiletwo, tempfilebuf);
               bs := getintfileint;
               read(tempfiletwo, tempfilebuf);
               fileline := getintfileint;
