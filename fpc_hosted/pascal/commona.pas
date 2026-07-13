@@ -1181,7 +1181,16 @@ procedure conststructure(form: index; {form found for this constant}
           end
         else if emitflag then
           begin
-          for i := 1 to cbytes do putbyte(cbuf.b[i]);
+          i := 1;
+          { FREE PASCAL bug forcing this }
+          while i <= cbytes do
+            begin
+            putbyte(cbuf.b[i]);
+            i := i + 1;
+            end;
+{
+          for i := 1 to cbytes do begin writeln('?'); putbyte(cbuf.b[i]); end;
+}
           cbytes := 0;
           end;
         end;
@@ -1294,6 +1303,8 @@ procedure conststructure(form: index; {form found for this constant}
             otherwise
               begin
               if packing then bytes := eltsize div bitsperunit
+              else if eltstring then
+                bytes := eltsize - 1
               else bytes := eltsize;
               if scanalys and (pos < 0) then {has not been dumped to
                                                         file at all, yet}

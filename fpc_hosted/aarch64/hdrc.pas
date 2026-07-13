@@ -642,6 +642,8 @@ var
                                 of the index. Bottom of loop must restore if
                                 intervening code has eaten the original
                                 contents of this register}
+        limitreg: regindex; {the register which contains the limit value.  Must
+                             treat like originalreg}
         savedlen: datarange; { original length of index variable }
         litinitial: boolean; {set true if initial value is constant}
         initval: integer; {initial value, if constant}

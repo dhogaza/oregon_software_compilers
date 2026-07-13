@@ -3975,6 +3975,11 @@ procedure defforindexx(sgn, { true if signed induction var }
     fortarget: keyindex; {from pseudobuff}
 
   begin {defforindexx}
+    if not (pseudobuff.op in [foruptop, fordntop]) then
+      begin
+      writeln('expecting fortop');
+      compilerabort(inconsistent);
+    end;
     fortarget := pseudobuff.oprnds[3];
     saveactivekeys;
 {
@@ -3998,7 +4003,7 @@ procedure defforindexx(sgn, { true if signed induction var }
     keytable[key].signed := sgn;
 
     { Allocate a register unless this is a permanently assigned register
-      variable.  If fortarget <> 0, we must preserve the running index in
+      variable.  If target <> 0, we must preserve the running index in
       the actual variable, if not, we'll issue a "savekey" in "fortopx"
       to save the running index on the stack.  Often, this can later be
       deleted as with any other stack temp, making register-only loops
@@ -4008,23 +4013,19 @@ procedure defforindexx(sgn, { true if signed induction var }
     forsp := forsp + 1;
     with forstack[forsp], keytable[key] do
       begin
-      nonvolatile := fortarget <> 0;
+      limitreg := noreg;
+      nonvolatile := target <> 0;
       globalreg := (keytable[right].oprnd.mode = register) and
                    not volatilereg(keytable[right].oprnd.reg);
     if globalreg then
       begin
        setkeyvalue(right);
-
-       if not (pseudobuff.op in [foruptop, fordntop]) then
-         begin
-         writeln('expecting fortop');
-         compilerabort(inconsistent);
-         end;
-
       if equivaddr(right, fortarget) then
         begin
+        allowmodify(fortarget, false);
         adjustregcount(fortarget, -keytable[fortarget].refcount);
-        keytable[fortarget].oprnd.reg := getreg;
+        limitreg := getreg;
+        keytable[fortarget].oprnd.reg := limitreg;
         adjustregcount(fortarget, keytable[fortarget].refcount);
         gensimplemove(lastnode, right, fortarget);
         savekey(fortarget, false);
@@ -4092,6 +4093,8 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
         shrink(target, keytable[forkey].len);
 }
         loadreg(target, regkey);
+        limitreg := keytable[target].oprnd.reg;
+        adjustregcount(target, 1);
         pseudolabelx;
         gen2(lastnode, buildinst(cmp, savedlen = long, false), regkey, target);
         genbcond(lastnode, c, pseudoinst.oprnds[2]);
@@ -4143,6 +4146,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
 
     with forstack[forsp] do
       begin
+      adjustregcount(settemp(long, reg_oprnd(limitreg)), -1);
       sgn := keytable[forkey].signed;
       dereference(forkey);
       l := keytable[forkey].len;

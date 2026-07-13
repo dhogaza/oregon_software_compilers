@@ -121,8 +121,8 @@ var
   procedure scantoken;
 
   procedure dumpstr(len: columnindex; {number of chars to dump}
-                  buf: boolean; {which buffer}
-                  dumpextra: boolean {true says to dump length and optional null  bytes} );
+                    buf: boolean; {which buffer}
+                    dumpextra: boolean {true says to dump length and optional null  bytes} );
 
   procedure putstringfile;
 
@@ -907,15 +907,13 @@ procedure dumpstr(len: columnindex; buf, dumpextra: boolean);
 
 
   begin {dumpstr}
-
     seekstringfile(stringfilecount);
-    stringfilecount := stringfilecount + len + ord(nullterminatedstrings);
-
+    stringfilecount := stringfilecount + len;
     if dumpextra then
       begin
       stringblkptr^[nextstringfile] := ord(stringbuf[buf, 0]);
+      stringfilecount := stringfilecount + 1;   
       putstringfile;
-      len := len - ord(not nullterminatedstrings);
       end;
 
     for i := 1 to len do
