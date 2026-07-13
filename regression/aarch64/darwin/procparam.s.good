@@ -71,8 +71,8 @@ ext:
 	bl	_p_wtln_o 
 # Line: 18, Stmt: 0
 	mov	x0,1
-	ldr	x28,[x29,24]
 	ldr	x16,[x29,32]
+	ldr	x28,[x29,24]
 	blr	x16
 	ldr	x28,[x29,-8]
 	mov	x1,5
@@ -101,8 +101,8 @@ ext:
 	bl	_p_wtln_o 
 # Line: 24, Stmt: 0
 	mov	x0,1
-	ldr	x28,[x29,16]
 	ldr	x16,[x29,24]
+	ldr	x28,[x29,16]
 	blr	x16
 	ldr	x28,[x29,-8]
 # Line: 25, Stmt: 0
