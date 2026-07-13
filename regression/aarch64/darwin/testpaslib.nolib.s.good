@@ -1246,10 +1246,10 @@ _p_clsall:
 #	_p_filecommon
 #
 .P76:
-	sub	sp,sp,1648
-	add	x16,sp,72
+	sub	sp,sp,1904
+	add	x16,sp,328
 	stp	x30,x29,[x16,504]
-	add	x29,sp,576
+	add	x29,sp,832
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
 	stp	x23,x24,[x29,-48]
@@ -1295,7 +1295,10 @@ _p_clsall:
 	cbnz	x0,.L142
 .L143:
 # Line: 668, Stmt: 0
-	add	x15,x26,xzr
+	add	x0,x26,xzr
+	sub	x8,x29,304
+	bl	_p_trimright
+	add	x15,x8,xzr
 	add	x14,x29,32
 	ldrb	w16,[x15],1
 	strb	w16,[x14],1
@@ -1324,7 +1327,10 @@ _p_clsall:
 	cbz	x23,.L144
 .L145:
 # Line: 672, Stmt: 0
-	add	x15,x23,xzr
+	add	x0,x23,xzr
+	sub	x8,x29,560
+	bl	_p_trimright
+	add	x15,x8,xzr
 	add	x14,x29,290
 	ldrb	w16,[x15],1
 	strb	w16,[x14],1
@@ -1364,7 +1370,7 @@ _p_clsall:
 	add	x0,x29,290
 	mov	x1,1
 	sub	w2,w26,1
-	sub	x8,x29,304
+	sub	x8,x29,816
 	bl	_p_copy 
 	add	x15,x8,xzr
 	add	x14,x29,548
@@ -1418,7 +1424,7 @@ _p_clsall:
 	b.ne	.L151
 .L152:
 # Line: 681, Stmt: 0
-	sub	x13,x29,312
+	sub	x13,x29,824
 	adrp	x12,.L32766@PAGE
 	add	x15,x12,.L32766+412@PAGEOFF
 	add	x14,x29,32
@@ -1449,14 +1455,14 @@ _p_clsall:
 	cbnz	w16,.L32739
 .L32742:
 	strb	wzr,[x13],1
-	sub	x0,x29,312
+	sub	x0,x29,824
 	bl	.P70  // _p_liberror
 .L151:
 # Line: 682, Stmt: 0
 	add	x0,x29,290
 	add	w1,w26,1
 	ldrb	w2,[x29,290]
-	sub	x8,x29,304
+	sub	x8,x29,560
 	bl	_p_copy 
 	add	x15,x8,xzr
 	add	x14,x29,806
@@ -1477,7 +1483,7 @@ _p_clsall:
 	b.eq	.L144
 .L153:
 # Line: 684, Stmt: 0
-	sub	x13,x29,568
+	sub	x13,x29,824
 	adrp	x12,.L32766@PAGE
 	add	x15,x12,.L32766+440@PAGEOFF
 	add	x14,x29,32
@@ -1508,7 +1514,7 @@ _p_clsall:
 	cbnz	w16,.L32733
 .L32736:
 	strb	wzr,[x13],1
-	sub	x0,x29,568
+	sub	x0,x29,824
 	bl	.P70  // _p_liberror
 .L144:
 # Line: 686, Stmt: 0
@@ -1555,7 +1561,7 @@ _p_clsall:
 	cbnz	x26,.L156
 .L157:
 # Line: 690, Stmt: 0
-	sub	x13,x29,328
+	sub	x13,x29,584
 	adrp	x12,.L32766@PAGE
 	add	x15,x12,.L32766+495@PAGEOFF
 	add	x14,x29,32
@@ -1586,7 +1592,7 @@ _p_clsall:
 	cbnz	w16,.L32727
 .L32730:
 	strb	wzr,[x13],1
-	sub	x0,x29,328
+	sub	x0,x29,584
 	bl	.P70  // _p_liberror
 .L156:
 # Line: 691, Stmt: 0
@@ -1736,9 +1742,9 @@ _p_clsall:
 	ldp	x27,x28,[x29,-16]
 	ldp	x25,x26,[x29,-32]
 	ldp	x23,x24,[x29,-48]
-	add	x16,sp,72
+	add	x16,sp,328
 	ldp	x30,x29,[x16,504]
-	add	sp,sp,1648
+	add	sp,sp,1904
 	ret
 	.text
 	.align 2
