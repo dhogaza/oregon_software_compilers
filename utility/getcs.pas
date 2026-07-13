@@ -267,14 +267,10 @@ procedure GetCS(ArgDefs: ArgDefTable;
             end;
           end;
         end;
-writeln('in returnstringarg');
       for i := arg.len + 1 to mArgValue do
         arg.txt[i] := ' ';
-writeln('after for loop');
       ProcessArg(arg, typ);
-writeln('about to kill constant?');
       ArgDefs[typ].status := OptionalArg;
-writeln('oh my');
     end;
 
 
@@ -298,7 +294,6 @@ writeln('oh my');
         typ := pred(typ);
       until ((ArgDefs[typ].position = pos) and
             (ArgDefs[typ].class = class)) or (typ = UnknownArg);
-writeln('found ', ord(typ));
 
       { Return argument to caller. }
 
@@ -408,9 +403,7 @@ writeln('found ', ord(typ));
       CmdIdx := NextCmdIdx + 1;
       NextCmdIdx := SkipToDelim(Cmd, CmdIdx, [' ', ',', '=']);
 
-writeln('past skip 2 ', pos);
       PositionArg(pos);
-writeln('past positionarg');
 
       { Update command string position, check for extra equal-sign. }
 

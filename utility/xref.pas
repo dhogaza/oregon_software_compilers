@@ -203,7 +203,6 @@ procedure csi;
 
 
     begin
-writeln('inside process arg');
       case typ of
         UnknownArg: SetupError(UnknownArgMsg, arg);
         OutputFileArg:
@@ -239,7 +238,6 @@ writeln('inside process arg');
 
     error := false;
     GetCS(ArgDefs, ProcessArg);
-writeln('GetCS done');
     if error then exitst(4);
     for j := 1 to ExtLen do iExtVar[j] := InputExt[j];
     for j := 1 to ExtLen do oExtVar[j] := OutputExt[j];
@@ -247,7 +245,6 @@ writeln('GetCS done');
       FixFileArg(OutputArg, ActualFile, oExtVar, OutputArg)
     else FixFileArg(InputArg, DefaultFile, oExtVar, OutputArg);
     FixFileArg(InputArg, ActualFile, iExtvar, InputArg);
-writeln('oh oh');
     reset(Input, InputArg.txt);
     rewrite(Output, OutputArg.txt);
   end; {csi}
