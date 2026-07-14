@@ -1064,6 +1064,17 @@ begin {checkinst}
       write('operand ', i, ' is nomode');
       compilerabort(inconsistent);
       end;
+
+  if (p^.inst.inst in [ldr, str]) and p^.inst.sf and
+     ((p^.oprnds[2].mode in
+       [unsigned_offset, signed_offset, abstract_offset, pre_index, post_index]) and
+     (p^.oprnds[2].index mod 8 <> 0) or
+     (p^.oprnds[2].mode in [label_offset, dataref]) and
+     (p^.oprnds[2].labeloffset mod 8 <> 0)) then 
+    begin
+    write('ldr/str not properly aligned');
+    compilerabort(inconsistent);
+    end;
 end {checkinst};
 
 procedure geninst(p: nodeptr;
@@ -5169,8 +5180,8 @@ procedure setinsertx;
         loadreg(left, right);
         lock(left);
         rightregkey := settemp(long, reg_oprnd(getreg));
-        unlock(left);
         genmoveaddress(lastnode, right, rightregkey);
+        unlock(left);
         gen3(lastnode,
             buildinst(asrinst, true, false), regkeys[ip0], left,
                       settemp(long, imm12_oprnd(3, false)));
@@ -7930,7 +7941,7 @@ procedure codeone;
         dumppseudo(macfile);
         if switcheverplus[test] or switcheverplus[outputmacro] then
           closec;
-        write('Not yet implemented');
+        write(pseudoinst.op, ' not yet implemented');
         compilerabort(inconsistent);
         halt(); { compilerabort doesn't abort if test is enabled }
         end;

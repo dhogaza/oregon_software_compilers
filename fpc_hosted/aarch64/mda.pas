@@ -664,6 +664,10 @@ procedure getallocdata(form: entryptr; {type being allocated}
   to be allocated, and "maxalign" must be updated to the alignment for
   the entire data space.  "Packedresult" and "spacelen" are included for
   information.
+
+  We're aggressively aligning to a quad boundary for anything long so the
+  code generator can use the length field of a struct-type operation to
+  work in chunks larger than a byte.  Speed not space.
 }
 
 
@@ -680,8 +684,13 @@ procedure getallocdata(form: entryptr; {type being allocated}
     if packedresult and (fieldlen <= packingunit * bitsperunit) and
        (spacelen mod bitsperunit + fieldlen > bitsperunit) then
       maxalign := max(maxalign, packingunit * bitsperunit)
-    else if not packedresult and (fieldlen >= 2) then
-      fieldalign := max(fieldalign, 2);
+    else if not packedresult then
+      case fieldlen of
+        1: fieldalign := 1;
+        2: fieldalign := 2;
+        3,4: fieldalign := 4;
+        otherwise fieldalign := 8;
+      end;
     maxalign := max(maxalign, fieldalign);
   end; {getallocdata}
 
