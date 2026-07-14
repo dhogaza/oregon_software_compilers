@@ -130,13 +130,13 @@ _main:
 # Line: 24, Stmt: 0
 	movz	x16,65535
 	movk	x16,65535,lsl 16
-	str	w16,[x15,.L32767+36@PAGEOFF]
-# Line: 24, Stmt: 0
-	mov	w16,4294967294
 	str	w16,[x15,.L32767+40@PAGEOFF]
 # Line: 24, Stmt: 0
-	mov	w16,4294967293
+	mov	w16,4294967294
 	str	w16,[x15,.L32767+44@PAGEOFF]
+# Line: 24, Stmt: 0
+	mov	w16,4294967293
+	str	w16,[x15,.L32767+48@PAGEOFF]
 # Line: 25, Stmt: 0
 	add	x15,x15,.L32767+24@PAGEOFF
 	sub	x14,x29,16
@@ -148,7 +148,7 @@ _main:
 	cbnz	x16,.L32763
 	sub	x0,x29,16
 	adrp	x15,.L32767@PAGE
-	add	x1,x15,.L32767+36@PAGEOFF
+	add	x1,x15,.L32767+40@PAGEOFF
 	mov	x2,1
 	mov	x3,3
 	bl	.P1  // p
@@ -156,4 +156,4 @@ _main:
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
-	.comm	.L32767,48,12
+	.comm	.L32767,56,12

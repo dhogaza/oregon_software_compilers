@@ -96,7 +96,7 @@
 	lsr	w16,w0,w15
 	ands	w16,w16,1
 	cset	w13,ne
-	strb	w13,[x14,18]
+	strb	w13,[x14,24]
 	add	w15,w15,1
 	cmp	w15,7
 	b.ls	.L6
@@ -116,12 +116,12 @@
 	mov	x15,xzr
 .L10:
 # Line: 42, Stmt: 0
-	add	x14,sp,0
+	add	x14,sp,-8
 	add	x14,x14,w15, uxtb 0
 	lsr	w16,w0,w15
 	ands	w16,w16,1
 	cset	w13,ne
-	strb	w13,[x14,18]
+	strb	w13,[x14,24]
 	add	w15,w15,1
 	cmp	w15,10
 	b.ls	.L10
