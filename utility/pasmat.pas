@@ -3478,7 +3478,7 @@ program Pasmat(Input, Output, Source, Result);
       FlushBuffer;
       Close(Source);
       Close(Result);
-      if MSDOSopsys then
+      if opsys = MSDOSopsys then
         if not OutputFlg then FixBakOutput(OutputArg, true);
       FixTempOutput(TempArg, OutputArg, true, status);
       if not status then
