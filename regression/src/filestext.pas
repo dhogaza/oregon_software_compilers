@@ -137,7 +137,7 @@ begin
     writeln(i:1);
     end;
 
-  reset(f, 'filestext.s');
+  reset(f, 'filestext.s.good');
   rename(f, 'filestext.s.foo');
   close(f);
   reset(f, 'filestext.s.foo');
@@ -147,7 +147,7 @@ begin
     readln(f,s);
     writeln(s);
     end;
-  rename(f, 'filestext.s');
+  rename(f, 'filestext.s.good');
 
   reset(f, 'absolute garbage',,i);
   writeln('reset fails: ', i:1);

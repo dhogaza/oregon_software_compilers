@@ -478,6 +478,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
     paramptr^.registercandidate := false;
     if (paramptr^.namekind in [varparam, varconfparam, constconfparam, confparam]) or
        (paramptr^.namekind in [param, constparam]) and ((length > maxparambytes) or
+       (typeptr^.typ = sets) and (typeptr^.size > ptrsize) or
        (typeptr^.typ in [fields, arrays, strings])) and
        not (typeptr^.typ in [reals, doubles]) then
       begin
