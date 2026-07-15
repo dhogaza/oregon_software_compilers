@@ -71,18 +71,18 @@
 	sub	sp,sp,64
 	stp	x30,x29,[sp,32]
 	add	x29,sp,32
-	str	x28,[x29,-8]
+	str	x27,[x29,-8]
 # Line: 54, Stmt: 1
 # Line: 55, Stmt: 2
 	str	x0,[x29,16]
 # Line: 56, Stmt: 0
-	mov	x28,xzr
+	mov	x27,xzr
 	ldr	x15,[x29,16]
 	str	x15,[x29,-16]
 .L9:
 	ldr	x15,[x29,-16]
 # Line: 57, Stmt: 0
-	ldrb	w14,[x15, w28, sxtw]
+	ldrb	w14,[x15, w27, sxtw]
 	cbz	w14,.L10
 .L11:
 # Line: 59, Stmt: 0
@@ -90,11 +90,11 @@
 	mov	x1,1
 	bl	_p_wtc_o 
 # Line: 60, Stmt: 0
-	add	w28,w28,1
+	add	w27,w27,1
 	b	.L9
 .L8:
 .L10:
-	ldr	x28,[x29,-8]
+	ldr	x27,[x29,-8]
 	ldp	x30,x29,[sp,32]
 	add	sp,sp,64
 	ret

@@ -215,40 +215,40 @@
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
-	stp	x27,x28,[x29,-16]
+	stp	x26,x27,[x29,-16]
 # Line: 27, Stmt: 1
-	mov	x27,x0
+	mov	x26,x0
 # Line: 28, Stmt: 2
-	ldrb	w1,[x27]
-	add	x0,x27,xzr
+	ldrb	w1,[x26]
+	add	x0,x26,xzr
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldrb	w0,[x27]
+	ldrb	w0,[x26]
 	mov	x1,3
 	bl	_p_wti_o 
 	mov	x0,32
 	mov	x1,1
 	bl	_p_wtc_o 
 # Line: 29, Stmt: 0
-	mov	x28,1
-	ldrb	w15,[x27]
+	mov	x27,1
+	ldrb	w15,[x26]
 	str	x15,[x29,-24]
 .L7:
-	cmp	w28,w15
+	cmp	w27,w15
 	b.gt	.L6
 # Line: 30, Stmt: 0
-	ldrb	w0,[x27, w28, sxtw]
+	ldrb	w0,[x26, w27, sxtw]
 	mov	x1,1
 	bl	_p_wtc_o 
 	ldr	x15,[x29,-24]
-	adds	w28,w28,1
+	adds	w27,w27,1
 	b.vc	.L7
 .L6:
 # Line: 31, Stmt: 0
 	bl	_p_wtln_o 
 .L4:
-	ldp	x27,x28,[x29,-16]
+	ldp	x26,x27,[x29,-16]
 	ldp	x30,x29,[sp,24]
 	add	sp,sp,48
 	ret
@@ -288,43 +288,43 @@
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
-	stp	x27,x28,[x29,-16]
+	stp	x26,x27,[x29,-16]
 # Line: 51, Stmt: 1
-	mov	x27,x0
+	mov	x26,x0
 # Line: 52, Stmt: 2
-	ldrb	w1,[x27]
-	add	x0,x27,xzr
+	ldrb	w1,[x26]
+	add	x0,x26,xzr
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldrb	w0,[x27]
+	ldrb	w0,[x26]
 	mov	x1,3
 	bl	_p_wti_o 
 	mov	x0,32
 	mov	x1,1
 	bl	_p_wtc_o 
 # Line: 53, Stmt: 0
-	mov	x28,1
-	ldrb	w15,[x27]
+	mov	x27,1
+	ldrb	w15,[x26]
 	str	x15,[x29,-24]
 .L12:
-	cmp	w28,w15
+	cmp	w27,w15
 	b.gt	.L11
 # Line: 54, Stmt: 0
-	ldrb	w0,[x27, w28, sxtw]
+	ldrb	w0,[x26, w27, sxtw]
 	mov	x1,1
 	bl	_p_wtc_o 
 	ldr	x15,[x29,-24]
-	adds	w28,w28,1
+	adds	w27,w27,1
 	b.vc	.L12
 .L11:
 # Line: 55, Stmt: 0
 	bl	_p_wtln_o 
 # Line: 56, Stmt: 0
 	mov	w16,50
-	strb	w16,[x27,2]
+	strb	w16,[x26,2]
 .L9:
-	ldp	x27,x28,[x29,-16]
+	ldp	x26,x27,[x29,-16]
 	ldp	x30,x29,[sp,24]
 	add	sp,sp,48
 	ret

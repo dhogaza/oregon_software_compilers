@@ -99,12 +99,12 @@ _main:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,48]
 	add	x29,sp,48
-	stp	x27,x28,[x29,-16]
-	str	x26,[x29,-24]
+	stp	x26,x27,[x29,-16]
+	str	x25,[x29,-24]
 	bl	_p_initio 
 # Line: 90, Stmt: 1
 # Line: 91, Stmt: 2
-	mov	x28,74
+	mov	x27,74
 # Line: 92, Stmt: 0
 	adrp	x15,.L32767@PAGE
 	adrp	x13,.L32766@PAGE
@@ -120,8 +120,8 @@ _main:
 	bl	_p_wts_o 
 	adrp	x15,.L32767@PAGE
 	add	x14,x15,.L32767+24@PAGEOFF
-	asr	x16,x28,3
-	and	x17,x28,7
+	asr	x16,x27,3
+	and	x17,x27,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
@@ -143,11 +143,11 @@ _main:
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
 # Line: 95, Stmt: 0
-	mov	x28,94
+	mov	x27,94
 # Line: 96, Stmt: 0
-	mov	x27,5
+	mov	x26,5
 # Line: 97, Stmt: 0
-	mov	x26,189
+	mov	x25,189
 # Line: 98, Stmt: 0
 	adrp	x15,.L32767@PAGE
 	adrp	x13,.L32766@PAGE
@@ -157,9 +157,9 @@ _main:
 	stp	x16,x17,[x13],16
 	ldr	x16,[x14],16
 	str	x16,[x13],16
-	mov	x13,x27
+	mov	x13,x26
 .L32764:
-	cmp	w13,w28
+	cmp	w13,w27
 	b.hi	.L32763
 	mov	x14,1
 	add	x12,x15,.L32767+40@PAGEOFF
@@ -242,8 +242,8 @@ _main:
 	bl	_p_wts_o 
 	adrp	x15,.L32767@PAGE
 	add	x14,x15,.L32767+40@PAGEOFF
-	asr	x16,x26,3
-	and	x17,x26,7
+	asr	x16,x25,3
+	and	x17,x25,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
@@ -334,8 +334,8 @@ _main:
 	bl	_p_wts_o 
 	adrp	x15,.L32767@PAGE
 	add	x14,x15,.L32767+40@PAGEOFF
-	asr	x16,x28,3
-	and	x17,x28,7
+	asr	x16,x27,3
+	and	x17,x27,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
@@ -351,8 +351,8 @@ _main:
 	bl	_p_wts_o 
 	adrp	x15,.L32767@PAGE
 	add	x14,x15,.L32767+40@PAGEOFF
-	asr	x16,x27,3
-	and	x17,x27,7
+	asr	x16,x26,3
+	and	x17,x26,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
 	ands	x16,x16,1
@@ -528,8 +528,8 @@ _main:
 	str	x16,[x14],16
 	mov	x15,1
 	sub	x14,x29,48
-	asr	x16,x26,3
-	and	x17,x26,7
+	asr	x16,x25,3
+	and	x17,x25,7
 	lsl	x15,x15,x17
 	ldrb	w17,[x14, x16]
 	orr	x17,x17,x15
@@ -906,8 +906,8 @@ _main:
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
 .L2:
-	ldp	x27,x28,[x29,-16]
-	ldr	x26,[x29,-24]
+	ldp	x26,x27,[x29,-16]
+	ldr	x25,[x29,-24]
 	ldp	x30,x29,[sp,48]
 	add	sp,sp,64
 	ret
