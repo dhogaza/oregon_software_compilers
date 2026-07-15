@@ -426,36 +426,29 @@ program Pasmat(Input, Output, Source, Result);
 
 
     begin
-writeln('inside csi');
       InputFlg := false;
       OutputFlg := false;
       InitialDirectives := false;
 
       error := false;
       GetCS(ArgDefs, ProcessArg);
-writeln('after getcs ', error);
       if error then goto 99;
 
       for j := 1 to ExtLen do DefExtVar[j] := DefaultExt[j];
       FixFileArg(InputArg, ActualFile, DefExtVar, InputArg);
-writeln('after FixFileArg');
       reset(Source, InputArg.txt, , flg);
-writeln('after reset ', flg);
       if flg = - 1 then
         begin
         SetupError(NoInputMsg, InputArg);
         goto 99;
         end;
 
-writeln('outputflg ', outputflg);
       if OutputFlg then
         FixFileArg(OutputArg, ActualFile, DefExtVar, OutputArg)
       else FixFileArg(InputArg, ActualFile, DefExtVar, OutputArg);
       FixOutputArg(OutputArg, TempArg);
       flg := 0;
-writeln('before rewrite');
       rewrite(Result, TempArg.txt, , flg);
-writeln('after rewrite ', flg);
       if flg = - 1 then
         begin
         SetupError(NoOutputMsg, OutputArg);
@@ -3275,22 +3268,16 @@ writeln('after rewrite ', flg);
 
 
     begin {constant declaration}
-writeln('inside doconst');
       ResetCharCount;
       NextOnNewline(1, TabSpaces);
       FirstConst := true;
       while Sym = Identifier do
         begin
-writeln('identifier');
         LogSymbolStart(ConstStart);
-writeln('logsymbolstart');
         FormatLine(Indent);
-writeln('format line');
         NextSym;
         CheckSym(Equal);
-writeln('before exprlist');
         ExprList(0); {hack to allow structured constants}
-writeln('after exprlist ', sym = semicolon);
         if Sym = Semicolon then PutSym
         else Abort(Syntax);
         if (StatsPerLine > 1) and not FirstConst then
@@ -3300,7 +3287,6 @@ writeln('after exprlist ', sym = semicolon);
         end; {while}
       Undent;
       StatIndent := Indent;
-writeln('after doconst');
     end; {do_const}
 
 
@@ -3364,36 +3350,26 @@ writeln('after doconst');
 
 
     begin {program or processor}
-writeln('before nextonnewline');
       NextOnNewline(0, ContinueSpaces);
-writeln('before checksym');
       CheckSym(Identifier);
-writeln('after checksym ', sym = openparen);
       if Sym = OpenParen then
         begin
-writeln('before nextsym');
         NextSym;
-writeln('after nextsym ', sym=identifier);
         while Sym = Identifier do
           begin
           NextSym;
-writeln('after nextsym 2');
           if Sym = Comma then
             begin
             NextSym;
             SetSymbolBreak(0);
             end;
           end;
-writeln('after program params');
         CheckSym(CloseParen);
-writeln('after closeparam check');
         end;
       CheckSym(Semicolon);
       Undent;
       IndentPlus(TabSpaces);
-writeln('before doblock');
       DoBlock;
-writeln('after doblock');
       if Sym = Period then NextSym;
       Undent;
     end; {do_program}
@@ -3459,7 +3435,6 @@ writeln('after doblock');
       StatIndent := Indent;
       while Sym in HeadingBegSys do
         begin {declarations}
-writeln('inside doblock loop');
         case Sym of
           LabelSy: DoLabel;
           ConstSy: DoConst;
@@ -3469,7 +3444,6 @@ writeln('inside doblock loop');
           end;
         StatIndent := Indent;
         end; {while}
-writeln('after doblock loop');
       if Sym = BeginSy then
         begin
         FormatLine(Indent);
@@ -3502,15 +3476,11 @@ writeln('after doblock loop');
       else if Sym in StatSet then StatList;
       Check([TextEnd]);
       FlushBuffer;
-writeln('after flushbuffer');
       Close(Source);
-writeln('after close source');
       Close(Result);
-writeln('after close result');
       if opsys = MSDOSopsys then
         if not OutputFlg then FixBakOutput(OutputArg, true);
       FixTempOutput(TempArg, OutputArg, true, status);
-writeln('after fixtempoutput result ', status);
       if not status then
         begin
         writeln(Output, 'Can''t clean up temporary output');
@@ -3526,7 +3496,6 @@ writeln('after fixtempoutput result ', status);
   begin {pretty-print}
     Initialize;
     csi;
-writeln('initialdirectives ', initialdirectives);
     if InitialDirectives then
       begin
       DoFormatterDirectives(throwaway);
@@ -3534,14 +3503,9 @@ writeln('initialdirectives ', initialdirectives);
       NoNewLine := NewNoNewline;
       end
     else GetChar; {lead one char}
-writeln('before getsym');
     GetSym; {lead one symbol}
-writeln('after getsym');
     ProcessText;
-writeln('after processtext');
     FinalData;
-writeln('after finaldata');
   99:
-writeln('after label ', error);
     if error then exitst(4);
   end {pasmat} .
