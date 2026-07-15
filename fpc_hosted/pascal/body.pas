@@ -6939,7 +6939,7 @@ procedure statement(follow: tokenset {legal following symbols} );
               if writeform = arrays then stringflag := resultptr^.stringtype
               else stringflag := writeform = strings;
 
-              if writefile and ((token <> rpar) or not writeflag) then
+              if writefile{ and ((token <> rpar) or not writeflag)} then
                 gencopystack(ptrsize, writeregparams, true);
 
               case writeform of

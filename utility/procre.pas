@@ -156,7 +156,7 @@ Update release version for PU-VV0-GS0 at 2.3.0.1
     sigcharrange = 1..sigcharlimit;
 
     pseudostring = packed array [sigcharrange] of char;
-    stringcases = packed array [sigcharrange] of boolean;
+    stringcases = {packed }array [sigcharrange] of boolean;
 
     linesize = 1..linelimit;
     lineindex = 0..linelimit;

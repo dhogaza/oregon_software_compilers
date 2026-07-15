@@ -3292,7 +3292,7 @@ procedure genmoveaddress(var after: nodeptr; src, dst: keyindex);
 {
         if index <> 0 then
 }
-          if reg <> sp then
+          if spabsolute or (reg <> sp) then
             makeoffsetptr(lastnode, index, reg, keytable[dst].oprnd.reg)
           else
             gen3(lastnode, buildinst(add, true, false), dst,
@@ -6632,7 +6632,7 @@ procedure arraystrx;
 begin {arraystrx}
   {unpackshrink(left, len);}
   address(left, 0);
-  settargetortemp(long);
+  settargetortemp(len);
   ip0indexkey := settemp(long, index_oprnd(post_index, ip0, byte, false));
   ip1indexkey := settemp(long, index_oprnd(post_index, ip1, byte, false));
   lock(key);

@@ -985,11 +985,13 @@ begin {_p_rename}
   filep := _p_filep(filevar);
   if filep = nil then
     _p_liberror('Can''t rename a file that is not open');
+writeln('before fclose');
   if fclose(filep^.streamp) <> 0 then
     _p_libfileerror(filep, nil, 0, 'fclose failed during rename');
-  if rename(cstring(filep^.filename), cstring(newname^)) <> 0 then
+writeln('after fclose');
+  filep^.filename := trimright(newname^);
+  if rename(cstring(filep^.filename), cstring(filename)) <> 0 then
     _p_libfileerror(filep, nil, 0, 'Rename failed');
-  filep^.filename := newname^;
   filep^.streamp := fopen(cstring(filep^.filename), cstring(filep^.flags));
   if filep^.streamp = nil then
       _p_libfileerror(filep, nil, 0, 'Open failed');

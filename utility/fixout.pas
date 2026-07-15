@@ -88,16 +88,24 @@ procedure FixTempOutput(temp, perm: ArgValue;
 
 
   begin
+writeln(temp.txt);
+writeln(trimright(temp.txt));
     status := false;
     reset(inp, temp.txt, , flg); {get a file variable}
     if flg <> - 1 then
       begin
       if succ then
         begin
+writeln('before rename');
         rename(inp, perm.txt);
+writeln('after rename');
         end
       else {no success}
+begin
+writeln('delete');
         delete(inp);
+writeln('after delete');
+end;
       status := true;
       end;
   999:
