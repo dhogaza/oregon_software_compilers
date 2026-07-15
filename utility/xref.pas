@@ -120,7 +120,7 @@ var
   current_letter: char; {current xref letter}
   line_length: integer;
 
-
+
 
 {*---------------------------------*
  | Read and Process Command String |
@@ -248,7 +248,7 @@ procedure csi;
     reset(Input, InputArg.txt);
     rewrite(Output, OutputArg.txt);
   end; {csi}
-
+
 
 
 procedure initialize;
@@ -317,7 +317,7 @@ procedure initialize;
     csi;
 
   end {initialize} ;
-
+
 
 {*---------------------*
  |  I/O procedures     |
@@ -363,7 +363,7 @@ procedure copy_char;
     if listing_wanted then write(input^);
     sget;
   end;
-
+
 
  {*-----------------------------*
   | Lexical and Syntax Analysis |
@@ -588,7 +588,7 @@ procedure scan_input;
       else special_char;
       end;
   end {print_listing} ;
-
+
 
 {*----------------------*
  | hash table printing  |
