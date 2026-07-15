@@ -15,7 +15,7 @@ if [[ "$type" == "pas" || "$type" == "nolib" ]]; then
     else
       gcc $libdir/stdfiles.o $base.s
   fi
-  ./a.out > $1.out
+  ./a.out &> $1.out
   diff $1.out $1.out.good >$1.out.diff
   if [ -s "$1.out.diff" ]; then
       echo "$1.out is different than $1.out.good"

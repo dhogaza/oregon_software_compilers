@@ -15,7 +15,7 @@ if [[ "$type" == "pas" || "$type" == "nolib" ]]; then
       gcc $libdir/stdfiles.o $base.s
     fi
     mv $1.s $1.s.good
-    ./a.out > $1.out.good
+    ./a.out &> $1.out.good
   else
     echo "*** compilation error detected ***"
   fi

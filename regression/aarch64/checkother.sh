@@ -29,7 +29,7 @@ for f in $src/*.pas; do
     else
       gcc $libdir/stdfiles.o $base.s
     fi
-    ./a.out > ../other/$base.out
+    ./a.out &> ../other/$base.out
     diff ../other/$base.out ../$other/$base.out.good >../other/$base.out.diff
     if [ -s "../other/$base.out.diff" ]; then
       echo "$base.out is different than ../$other/$base.out.good"

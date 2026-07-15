@@ -802,7 +802,7 @@
 	mov	x2,6
 	mov	x0,x28
 	bl	_p_wti 
-	mov	x0,32
+	mov	x1,32
 	mov	x2,1
 	mov	x0,x28
 	bl	_p_wtc 

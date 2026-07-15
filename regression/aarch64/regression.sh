@@ -16,7 +16,7 @@ for f in $src/*.pas; do
     else
       gcc $libdir/stdfiles.o $base.s
     fi
-    ./a.out > $base.out
+    ./a.out &> $base.out
     diff $base.out $base.out.good >$base.out.diff
     if [ -s "$base.out.diff" ]; then
       echo "$base.out is different than $base.out.good"
