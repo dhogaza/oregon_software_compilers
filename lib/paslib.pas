@@ -375,7 +375,7 @@ procedure _p_caseerr;
 procedure _p_liberror(const err: _p_string);
 
 begin
-  writeln(err);
+  writeln(stderror, err);
   exit(1);
 end;
 
@@ -390,10 +390,10 @@ begin
     end
   else
     begin
-    write(message, ' on file ', filep^.filename);
+    write(stderror, message, ' on file ', filep^.filename);
     if length(filep^.flags) <> 0 then
-      write(':', filep^.flags);
-    writeln;
+      write(stderror, ':', filep^.flags);
+    writeln(stderror);
     exit(1);
     end;
 end;
@@ -985,13 +985,12 @@ begin {_p_rename}
   filep := _p_filep(filevar);
   if filep = nil then
     _p_liberror('Can''t rename a file that is not open');
-writeln('before fclose');
   if fclose(filep^.streamp) <> 0 then
     _p_libfileerror(filep, nil, 0, 'fclose failed during rename');
-writeln('after fclose');
-  filep^.filename := trimright(newname^);
+  filename := trimright(newname^);
   if rename(cstring(filep^.filename), cstring(filename)) <> 0 then
     _p_libfileerror(filep, nil, 0, 'Rename failed');
+  filep^.filename := filename;
   filep^.streamp := fopen(cstring(filep^.filename), cstring(filep^.flags));
   if filep^.streamp = nil then
       _p_libfileerror(filep, nil, 0, 'Open failed');
