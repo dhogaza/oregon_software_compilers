@@ -368,7 +368,7 @@ end {exitst};
     
 procedure _p_caseerr;
   begin
-    writeln('Case error');
+    writeln(stderror, 'Case error');
     exit(1);
   end;
 
@@ -431,35 +431,37 @@ var
   s: _p_filestatusenum;
 
 begin {_p_dumpfilelist}
-  writeln('dump file list');
+  writeln(output, 'dump file list');
   p := _p_filelist;
   while p <> nil do
     begin
     with p^ do
       begin
-      write('address: ', loophole(_p_address, p):1,
+      write(output,
+            'address: ', loophole(_p_address, p):1,
             ' bufferp: ', loophole(_p_address, bufferp):1,
             ' status: [');
       for s := _p_def to _p_cont do
         if s in status then
           case s of
-            _p_def: write('_p_def,');
-            _p_eof: write('_p_eof,');
-            _p_eoln: write('_p_eoln,');
-            _p_text: write('_p_text,');
-            _p_read: write('_p_read,');
-            _p_write: write('_p_write,');
-            _p_newl: write('_p_newl,');
-            _p_int: write('_p_int,');
-            _p_perm: write('_p_perm,');
-            _p_ran: write('_p_ran,');
-            _p_noerror: write('_p_noerror,');
-            _p_necho: write('_p_necho,');
-            _p_sngl: write('_p_sngl,');
-            _p_cont: write('_p_cont,');
+            _p_def: write(output, '_p_def,');
+            _p_eof: write(output, '_p_eof,');
+            _p_eoln: write(output, '_p_eoln,');
+            _p_text: write(output, '_p_text,');
+            _p_read: write(output, '_p_read,');
+            _p_write: write(output, '_p_write,');
+            _p_newl: write(output, '_p_newl,');
+            _p_int: write(output, '_p_int,');
+            _p_perm: write(output, '_p_perm,');
+            _p_ran: write(output, '_p_ran,');
+            _p_noerror: write(output, '_p_noerror,');
+            _p_necho: write(output, '_p_necho,');
+            _p_sngl: write(output, '_p_sngl,');
+            _p_cont: write(output, '_p_cont,');
           end;
  
-      writeln('] nextfile: ', loophole(_p_address, nextfile):1,
+      writeln(output,
+              '] nextfile: ', loophole(_p_address, nextfile):1,
               ' filevar: ', loophole(_p_address, filevar):1,
               ' streamp: ', loophole(_p_address, streamp):1,
               ' err: ',err:1,
@@ -467,7 +469,7 @@ begin {_p_dumpfilelist}
       p := p^.nextfile;
       end;
   end;
-  writeln('end dump file list');
+  writeln(output, 'end dump file list');
 end {_p_dumpfilelist};
 
 function _p_filep(filevar: _p_addressptr): _p_fileinfoptr;
@@ -1086,6 +1088,8 @@ var
 
 begin
   filep := _p_checkio(filevar, _p_write);
+  if width < length then
+    length := width;
   for i := 0 to width - length - 1 do
     wrchar(filep, ' ');
   for i := 0 to length - 1 do
