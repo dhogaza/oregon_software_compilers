@@ -1335,6 +1335,8 @@ end;
 procedure _p_new;
 begin
   p := malloc(size);
+  if p = nil then
+    _p_liberror('New failed.');
 end;
 
 procedure _p_dispos;
