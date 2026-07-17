@@ -5420,6 +5420,7 @@ procedure removefileparam;
 begin {removefileparam}
   if filenamed then
     begin
+    markreg(0);
     fileregkey := settemp(long, reg_oprnd(filereg));
     unlock(fileregkey);
     end;
@@ -5446,6 +5447,7 @@ procedure wrcommon(libroutine: libroutines; {formatting routine to call}
     formatinfo.regcount := ord(filenamed);
     if filenamed then
       begin
+      markreg(0);
       fileregkey := settemp(long, reg_oprnd(filereg));
       gensimplemove(lastnode, fileregkey, regkeys[0]);
       end;
@@ -5476,6 +5478,7 @@ procedure wrstx;
     formatinfo.regcount := ord(filenamed);
     if filenamed then
       begin
+      markreg(0);
       fileregkey := settemp(long, reg_oprnd(filereg));
       gensimplemove(lastnode, fileregkey, regkeys[0]);
       end;
@@ -5490,6 +5493,7 @@ procedure readwritelnx(libroutine: libroutines);
   begin {readwritelnx}
     if filenamed then
       begin
+      markreg(0);
       fileregkey := settemp(long, reg_oprnd(filereg));
       gensimplemove(lastnode, fileregkey, regkeys[0]);
       end;
@@ -5559,6 +5563,7 @@ procedure  rdintcharx(libroutine: libroutines; len: addressrange);
 begin {rdintcharx}
   if filenamed then
     begin
+    markreg(0);
     fileregkey := settemp(long, reg_oprnd(filereg));
     gensimplemove(lastnode, fileregkey, regkeys[0]);
     end;
@@ -5575,6 +5580,7 @@ procedure rdstrx(libroutine: libroutines);
 begin {rdxstrx}
   if filenamed then
     begin
+    markreg(0);
     fileregkey := settemp(long, reg_oprnd(filereg));
     gensimplemove(lastnode, fileregkey, regkeys[0]);
     end;
@@ -5591,6 +5597,7 @@ begin {rdwrfile}
 {
   unlock(fileregkey);
 }
+  markreg(0);
   gensimplemove(lastnode, fileregkey, regkeys[0]);
   callsupport(libroutine, true);
 end {rdwrfile};
@@ -5822,13 +5829,12 @@ procedure blockcodex;
       are still available if needed.}
     if proctable[blockref].leaf then
       begin
-      { yep leaf procs can reference surrounding scopes, it's a Pascal thing }
-      lastreg := sl - ord(proctable[blockref].intlevelrefs) - 1;
+      lastreg := sl - 1;
       lastscratchreg := ip0 - left - 1;
       end
     else
       begin
-      lastreg := sl - left;
+      lastreg := sl - left - 1;
       lastscratchreg := ip0 - 1;
       end;
     firstreg := 0;
@@ -6238,19 +6244,17 @@ procedure regtempx;
 
 }
 
+  var
+    reg: regindex;
 
   begin
     address(left, 0);
     if proctable[blockref].leaf then
-      begin
-      setvalue(reg_oprnd(ip0 - pseudoinst.oprnds[3]));
-      regused[ip0 - pseudoinst.oprnds[3]] := true;
-      end
+      reg := ip0 - pseudoinst.oprnds[3]
     else
-      begin
-      setvalue(reg_oprnd(sl - pseudoinst.oprnds[3] + 1));
-      regused[sl - pseudoinst.oprnds[3] + 1] := true;
-      end;
+      reg := sl - pseudoinst.oprnds[3];
+    setvalue(reg_oprnd(reg));
+    regused[reg] := true;
   end {regtempx} ;
 
 procedure dovarx(s: boolean {signed variable reference} );
@@ -6978,8 +6982,8 @@ begin {regparamx}
   if (left = -1) then
     begin
     tempkey := settemp(long, reg_oprnd(pseudoinst.oprnds[3]));
-    setvalue(reg_oprnd(sl - pseudoinst.oprnds[2] + 1));
-    regused[sl - pseudoinst.oprnds[2] + 1] := true;
+    setvalue(reg_oprnd(sl - pseudoinst.oprnds[2]));
+    regused[sl - pseudoinst.oprnds[2]] := true;
     gensimplemove(lastnode, tempkey, key);
     end
   else

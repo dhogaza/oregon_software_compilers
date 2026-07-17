@@ -72,6 +72,12 @@ if seeking value, wzr is replaced with a register.
 
 --- current work
 
+  -- intlevelrefs is not sufficient to determine if the static link register
+     is required by a procedure or not.  Calling down to a local procedure
+     that makes intlevelrefs requires we pass the proper static link value
+     to that procedure, but does not mean we necessarily make intlevelrefs
+     ourselves.
+
   -- the precedes lastbranch code is safe but silly.  It is really where
      labels are defined that is the issue, and if the key being considered
      lies between a branch and its label.
