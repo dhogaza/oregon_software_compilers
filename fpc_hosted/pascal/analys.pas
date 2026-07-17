@@ -3985,7 +3985,6 @@ procedure initanalys;
       if targetopsys = unix then
         begin
         {define 'stderror'}
-        inputoffset := display[level].blocksize;
         enterstandardid(stderrorid, varname, ptrsize, textindex);
         enterdebuggerid('stderror ', 8);
         end;
