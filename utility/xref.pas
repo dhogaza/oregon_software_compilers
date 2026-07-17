@@ -553,7 +553,7 @@ procedure special_char;
     else if input^ = ']' then asg_ok := true
     else if input^ = '=' then def := true
     else if input^ = ';' then def := false
-    else if input^ = '%' then while not eoln do copy_char
+    else if input^ = '%' then while not eoln(input) do copy_char
     else if input^ = ':' then
       begin
       copy_char;
