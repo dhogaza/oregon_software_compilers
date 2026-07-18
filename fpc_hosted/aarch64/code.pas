@@ -2260,7 +2260,7 @@ function regvalue(r: regindex; prefersafe: boolean): unsigned;
 
   begin {regvalue}
     regvalue := registers[r] +
-                ord(context[contextsp].bump[r] and (registers[r] > 0)) * 4 +
+                ord(context[contextsp].bump[r]) * 4 +
                 ord((r > pr) and not (regused[r] or prefersafe and not leaf)) *
                 assigninitialpenalty +
                 maxint * ord((r > lastscratchreg) and (r <= pr));
