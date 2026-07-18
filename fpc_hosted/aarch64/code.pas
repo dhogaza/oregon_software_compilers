@@ -1270,10 +1270,10 @@ procedure genadrp(var after: nodeptr; scavenge: boolean; var regkey: keyindex;
     labelownflag := keytable[labelkey].oprnd.labelownflag;
     externref := keytable[labelkey].oprnd.externref;
     maskedoffset := labeloffset and $FFFFF000;
-    reg := keytable[regkey].oprnd.reg;
     p := after;
     found := false;
     for reg := 0 to maxreg do clobberedregs[reg] := false;
+    reg := keytable[regkey].oprnd.reg;
 
     while not (found or
       (p^.kind in [labelnode, labeldeltanode, labelrefnode, proclabelnode]) or
@@ -7038,6 +7038,7 @@ procedure indxx;
            Need to study clang output.
           }
           begin
+          prefersafereg := keytable[key].refcount > assigninitialpenalty;
           newkey := settemp(long, reg_oprnd(getreg(prefersafereg)));
           labelkey := settemp(long,keytable[left].oprnd);
           with keytable[labelkey].oprnd do
@@ -7054,6 +7055,7 @@ procedure indxx;
           end;
         reg_offset:
           begin
+          prefersafereg := keytable[key].refcount > assigninitialpenalty;
           newkey := settemp(long, reg_oprnd(getreg(prefersafereg)));
           genmoveaddress(lastnode, left, newkey);
           settemp(long, index_oprnd(abstract_offset,
