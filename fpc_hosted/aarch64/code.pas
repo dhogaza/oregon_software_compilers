@@ -2249,9 +2249,9 @@ procedure markscratchregs;
   end {markscratchregs};
 
 
-function regvalue(r: regindex): unsigned;
+function regvalue(r: regindex; prefersafe: boolean): unsigned;
 
-{ the idea here is that callee-saved registers are more expensive than
+{ the idea here is that callee-saved ("safe") registers are more expensive than
   caller-saved registers unless it has already been used, because the
   first use invokes a save/restore.  After being used once, they're cheaper
   than scratch registers due to the fact that proc calls kill all
@@ -2263,11 +2263,12 @@ function regvalue(r: regindex): unsigned;
   begin {regvalue}
     regvalue := registers[r] +
                 ord(context[contextsp].bump[r] and (registers[r] > 0)) * 4 +
-                ord((r > pr) and not regused[r]) * 2 + ord(r <= lastscratchreg) +
+                ord((r > pr) and not (regused[r] or prefersafe)) * assigninitialpenalty +
+                ord(r <= lastscratchreg) +
                 maxint * ord((r > lastscratchreg) and (r <= pr));
   end {regvalue} ;
 
-function countreg: regindex;
+function countreg(prefersafe: boolean): regindex;
 
 { Returns lowest register usage count of any general register.
   Register count is increased if register is seen to be useful
@@ -2286,28 +2287,12 @@ function countreg: regindex;
   begin {countreg}
     cnt := maxint;
     for r := firstreg to lastreg do
-      if regvalue(r) < cnt then
-        cnt := regvalue(r);
+      if regvalue(r, prefersafe) < cnt then
+        cnt := regvalue(r, prefersafe);
     countreg := cnt;
   end {countreg} ;
 
-
-function bestreg(reg: regindex {register to check} ): boolean;
-
-{ Returns true if reg is the "best" register to step on.
-}
-
-  var
-    cnt: integer;
-
-  begin {bestreg}
-    cnt := countreg;
-    bestreg := not volatilereg(reg) and
-               (regvalue(reg) <= cnt);
-  end {bestreg} ;
-
-
-function getreg: regindex;
+function getreg(prefersafe: boolean): regindex;
 
 { Return the least worthwhile data register.  If necessary, the current
   contents of the selected register is flushed via markreg.
@@ -2319,13 +2304,32 @@ function getreg: regindex;
 
 
   begin {getreg}
-    cnt := countreg;
+    cnt := countreg(prefersafe);
     r := lastreg;
-    while (r >= firstreg) and (regvalue(r) <> cnt) do
+    while (r >= firstreg) and (regvalue(r, prefersafe) <> cnt) do
       r := r - 1;
     markreg(r);
     getreg := r;
   end {getreg} ;
+
+
+function getsafereg: regindex;
+
+var
+  oldfirstreg, r: regindex;
+
+{ Return the least worthwhile safe datareg.
+}
+
+  begin {getsafereg}
+    oldfirstreg := firstreg;
+    firstreg := pr + 1; 
+    r := getreg(false);
+    firstreg := oldfirstreg;
+    markreg(r);
+    getsafereg := r;
+  end {getsafereg} ;
+
 
 {various keytable manipulation routines}
 
@@ -2564,7 +2568,7 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
               restorereg := false;
           end
         else
-          reg := getreg;
+          reg := getreg(false);
 
         if restorereg then
           begin
@@ -2606,7 +2610,7 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
         begin
         keytable[properreg2].tempflag := true;
         registers[reg] := registers[reg] + maxrefcount;
-        oprnd.reg2 := getreg;
+        oprnd.reg2 := getreg(false);
         registers[reg] := registers[reg] - maxrefcount;
         recall_reg(oprnd.reg2, properreg2);
         gen2(lastnode, buildinst(ldr, true, false),
@@ -2698,7 +2702,7 @@ begin {settargetorreg}
   if (keytable[target].oprnd.mode = register) and keytable[target].regvalid then
     setallfields(target)
   else
-    setvalue(reg_oprnd(getreg));
+    setvalue(reg_oprnd(getreg(false)));
 end {settargetorreg};
 
 procedure settargetortemp(len: addressrange);
@@ -3180,7 +3184,7 @@ procedure loadreg(var k: keyindex; other: keyindex);
     if keytable[k].oprnd.mode <> register then
       begin
       lock(other);
-      newkey := settemp(keytable[k].len, reg_oprnd(getreg));
+      newkey := settemp(keytable[k].len, reg_oprnd(getreg(false)));
 {DRB should probably have settemp set signed}
       keytable[newkey].signed := keytable[k].signed;
       gensimplemove(lastnode, k, newkey);
@@ -3281,7 +3285,7 @@ procedure genmoveaddress(var after: nodeptr; src, dst: keyindex);
           machine.
         }
         lock(dst);
-        tempkey := settemp(long, reg_oprnd(getreg));
+        tempkey := settemp(long, reg_oprnd(getreg(false)));
         unlock(dst);
         genadrp(lastnode, false, tempkey, src);
         keytable[src].oprnd.lowbits := true;
@@ -4035,7 +4039,7 @@ procedure defforindexx(sgn, { true if signed induction var }
         begin
         allowmodify(fortarget, false);
         adjustregcount(fortarget, -keytable[fortarget].refcount);
-        limitreg := getreg;
+        limitreg := getreg(false);
         keytable[fortarget].oprnd.reg := limitreg;
         adjustregcount(fortarget, keytable[fortarget].refcount);
         gensimplemove(lastnode, right, fortarget);
@@ -4044,7 +4048,7 @@ procedure defforindexx(sgn, { true if signed induction var }
       end
     else
       begin
-      setkeyvalue(settemp(long, reg_oprnd(getreg)));
+      setkeyvalue(settemp(long, reg_oprnd(getreg(false))));
       keytable[key].regsaved := true;
       if nonvolatile then
           begin
@@ -4518,14 +4522,14 @@ begin {cmpstructx}
 
   lock(left);
   lock(right);
-  leftregkey := settemp(long, reg_oprnd(getreg));
+  leftregkey := settemp(long, reg_oprnd(getreg(false)));
   genmoveaddress(lastnode, left, leftregkey);
   keytable[leftregkey].oprnd.mode := post_index;
   keytable[leftregkey].oprnd.index := byte;
   unlock(left);
   lock(leftregkey);
 
-  rightregkey := settemp(long, reg_oprnd(getreg));
+  rightregkey := settemp(long, reg_oprnd(getreg(false)));
   genmoveaddress(lastnode, right, rightregkey);
   keytable[rightregkey].oprnd.mode := post_index;
   keytable[rightregkey].oprnd.index := byte;
@@ -4535,7 +4539,7 @@ begin {cmpstructx}
   onekey := settemp(long, imm12_oprnd(1, false));
   countkey := regkeys[ip0];
   tempregkey := regkeys[ip1];
-  tempreg2key := settemp(word, reg_oprnd(getreg));
+  tempreg2key := settemp(word, reg_oprnd(getreg(false)));
 
   { We are done allocating registers.
   }
@@ -4591,7 +4595,7 @@ procedure divintx;
       end;
     settargetorreg;
     if pseudobuff.op = getrem then
-      divtarget := settemp(len, reg_oprnd(getreg))
+      divtarget := settemp(len, reg_oprnd(getreg(false)))
     else
       divtarget := key;
     if signedoprnds then
@@ -4606,7 +4610,7 @@ procedure divintx;
         lock(key);
         lock(divtarget);
         gen4(lastnode, buildinst(msub, len = long, false),
-             settemp(len, reg_oprnd(getreg)),
+             settemp(len, reg_oprnd(getreg(false))),
              divtarget, right, left); 
         unlock(divtarget);
         unlock(key);
@@ -4826,7 +4830,7 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
       else
         begin
         address(target, 0);
-        reg := getreg;
+        reg := getreg(false);
         gensimplemove(lastnode, settemp(long, index_oprnd(abstract_offset,
                       keytable[target].oprnd.reg, -long, false)),
                       settemp(long, reg_oprnd(reg)));
@@ -4857,11 +4861,11 @@ var
 
   begin {moveset}
     lock(dst);
-    srcregkey := settemp(long, reg_oprnd(getreg));
+    srcregkey := settemp(long, reg_oprnd(getreg(false)));
     genmoveaddress(lastnode, src, srcregkey);
     unlock(dst);
     lock(srcregkey);
-    dstregkey := settemp(long, reg_oprnd(getreg));
+    dstregkey := settemp(long, reg_oprnd(getreg(false)));
     genmoveaddress(lastnode, dst, dstregkey);
     unlock(srcregkey);
     keytable[srcregkey].oprnd.mode := post_index;
@@ -4973,22 +4977,22 @@ begin {setarithmetic}
     temp1key := regkeys[ip1];
     if len >= quad then
       begin
-      temp2key := settemp(long, reg_oprnd(getreg));
+      temp2key := settemp(long, reg_oprnd(getreg(false)));
       lock(temp2key);
-      temp3key := settemp(long, reg_oprnd(getreg));
+      temp3key := settemp(long, reg_oprnd(getreg(false)));
       lock(temp3key);
       end;
     lock(right);
     lock(key);
-    leftregkey := settemp(long, reg_oprnd(getreg));
+    leftregkey := settemp(long, reg_oprnd(getreg(false)));
     genmoveaddress(lastnode, left, leftregkey);
     lock(leftregkey);
     unlock(right);
-    rightregkey := settemp(long, reg_oprnd(getreg));
+    rightregkey := settemp(long, reg_oprnd(getreg(false)));
     genmoveaddress(lastnode, right, rightregkey);
     lock(rightregkey);
 {    unlock(right);}
-    keyregkey := settemp(long, reg_oprnd(getreg));
+    keyregkey := settemp(long, reg_oprnd(getreg(false)));
     genmoveaddress(lastnode, key, keyregkey);
     unlock(key);
     unlock(leftregkey);
@@ -5047,13 +5051,13 @@ procedure setinsertx;
     lock(left);
     makeaddressable(target, 0);
     lock(target);
-    bitkey := settemp(long, reg_oprnd(getreg));
+    bitkey := settemp(long, reg_oprnd(getreg(false)));
     lock(bitkey);
     if (right = 0) and (keytable[left].oprnd.mode = register) then
       insertkey := left
     else
       begin
-      insertkey := settemp(long, reg_oprnd(getreg));
+      insertkey := settemp(long, reg_oprnd(getreg(false)));
       gensimplemove(lastnode, left, insertkey);
       end;
     lock(insertkey);
@@ -5070,7 +5074,7 @@ procedure setinsertx;
         limitkey := right
       else
         begin
-        limitkey := settemp(long, reg_oprnd(getreg));
+        limitkey := settemp(long, reg_oprnd(getreg(false)));
         gensimplemove(lastnode, right, limitkey);
         end;
       lock(limitkey);
@@ -5087,7 +5091,7 @@ procedure setinsertx;
       end
     else
       begin
-      targetregkey := settemp(long, reg_oprnd(getreg));
+      targetregkey := settemp(long, reg_oprnd(getreg(false)));
       genmoveaddress(lastnode, target, targetregkey);
       gen3(lastnode,
            buildinst(asrinst, true, false), regkeys[ip0], insertkey,
@@ -5179,7 +5183,7 @@ procedure setinsertx;
         begin
         loadreg(left, right);
         lock(left);
-        rightregkey := settemp(long, reg_oprnd(getreg));
+        rightregkey := settemp(long, reg_oprnd(getreg(false)));
         genmoveaddress(lastnode, right, rightregkey);
         unlock(left);
         gen3(lastnode,
@@ -5219,12 +5223,12 @@ begin {cmpsetx}
     addressboth;
     lock(right);
     lock(left);
-    leftregkey := settemp(long, reg_oprnd(getreg));
+    leftregkey := settemp(long, reg_oprnd(getreg(false)));
     genmoveaddress(lastnode, left, leftregkey);
     keytable[leftregkey].oprnd.mode := post_index;
     keytable[leftregkey].oprnd.index := quad;
     lock(leftregkey);
-    rightregkey := settemp(long, reg_oprnd(getreg));
+    rightregkey := settemp(long, reg_oprnd(getreg(false)));
     genmoveaddress(lastnode, right, rightregkey);
     keytable[rightregkey].oprnd.mode := post_index;
     keytable[rightregkey].oprnd.index := quad;
@@ -5233,9 +5237,9 @@ begin {cmpsetx}
     lock(rightregkey);
     tempregkey := regkeys[ip0];
     tempreg2key := regkeys[ip1];
-    tempreg3key := settemp(long, reg_oprnd(getreg));
+    tempreg3key := settemp(long, reg_oprnd(getreg(false)));
     lock(tempreg3key);
-    tempreg4key := settemp(long, reg_oprnd(getreg));
+    tempreg4key := settemp(long, reg_oprnd(getreg(false)));
     unlock(tempreg3key);
     unlock(rightregkey);
     unlock(leftregkey);
@@ -5298,12 +5302,12 @@ begin {cmpsetinclusion}
   else
     begin
     lock(operand2);
-    operand1regkey := settemp(long, reg_oprnd(getreg));
+    operand1regkey := settemp(long, reg_oprnd(getreg(false)));
     genmoveaddress(lastnode, operand1, operand1regkey);
     keytable[operand1regkey].oprnd.mode := post_index;
     keytable[operand1regkey].oprnd.index := quad;
     lock(operand1regkey);
-    operand2regkey := settemp(long, reg_oprnd(getreg));
+    operand2regkey := settemp(long, reg_oprnd(getreg(false)));
     genmoveaddress(lastnode, operand2, operand2regkey);
     keytable[operand2regkey].oprnd.mode := post_index;
     keytable[operand2regkey].oprnd.index := quad;
@@ -5311,9 +5315,9 @@ begin {cmpsetinclusion}
     lock(operand2regkey);
     tempregkey := regkeys[ip0];
     tempreg2key := regkeys[ip1];
-    tempreg3key := settemp(long, reg_oprnd(getreg));
+    tempreg3key := settemp(long, reg_oprnd(getreg(false)));
     lock(tempreg3key);
-    tempreg4key := settemp(long, reg_oprnd(getreg));
+    tempreg4key := settemp(long, reg_oprnd(getreg(false)));
     unlock(tempreg3key);
     unlock(operand2regkey);
     unlock(operand1regkey);
@@ -5368,14 +5372,14 @@ begin {definelazyx}
 }
   address(left, 0);
   lock(left);
-  setvalue(reg_oprnd(getreg));
+  setvalue(reg_oprnd(getreg(false)));
   gensimplemove(lastnode, left, key);
   savekey(key, true);
   statuskey := settemp(long, index_oprnd(unsigned_offset, keytable[key].oprnd.reg,
                        ptrsize, false));
   bitkey := settemp(long, imm12_oprnd(lazybit, false));
   lock(key);
-  regkey := settemp(long, reg_oprnd(getreg));
+  regkey := settemp(long, reg_oprnd(getreg(false)));
   unlock(key);
   gensimplemove(lastnode, statuskey, regkey);
   gen3(lastnode, buildinst(tbnz, len = long, true), regkey, bitkey,
@@ -5514,8 +5518,7 @@ begin {setbinfilex}
   else
     begin
     address(left, 0);
-    firstreg := pr + 1; 
-    filereg := getreg;
+    filereg := getsafereg;
     setvalue(reg_oprnd(filereg));
     gensimplemove(lastnode, left, key);
     filenamed := true;
@@ -5541,8 +5544,7 @@ begin {setfilex}
   if keytable[left].refcount <> 0 then
     begin
     address(left, 0);
-    firstreg := pr + 1; 
-    filereg := getreg;
+    filereg := getsafereg;
     fileregkey := settemp(long, reg_oprnd(filereg));
     gensimplemove(lastnode, left, fileregkey);
     dontchangevalue := dontchangevalue + 1;
@@ -5678,7 +5680,7 @@ procedure sysfnintx;
 
   begin {cstringx}
     address(left,0);
-    setvalue(reg_oprnd(getreg));
+    setvalue(reg_oprnd(getreg(false)));
     genmoveaddress(lastnode, left, key);
     gen3(lastnode, buildinst(add, true, false), key, key,
          settemp(long, imm12_oprnd(1, false)));
@@ -6349,7 +6351,7 @@ procedure pshaddrx;
   begin {pshaddrx}
     address(left, 0);
     lock(left);
-    addrkey := settemp(long, reg_oprnd(getreg));
+    addrkey := settemp(long, reg_oprnd(getreg(false)));
     unlock(left);
     genmoveaddress(lastnode, left, addrkey);
     gensimplemove(lastnode, addrkey, key);
@@ -6365,7 +6367,7 @@ procedure pshprocx;
   begin {pshprocx}
     address(left, 0);
     lock(left);
-    addrkey := settemp(long, reg_oprnd(getreg));
+    addrkey := settemp(long, reg_oprnd(getreg(false)));
     unlock(left);
     genmoveaddress(lastnode, left, addrkey);
     stackkey := settemp(long, keytable[key].oprnd);
@@ -6402,11 +6404,11 @@ var
 
   begin {movemultiple}
     lock(dst);
-    srcregkey := settemp(long, reg_oprnd(getreg));
+    srcregkey := settemp(long, reg_oprnd(getreg(false)));
     genmoveaddress(lastnode, src, srcregkey);
     unlock(dst);
     lock(srcregkey);
-    dstregkey := settemp(long, reg_oprnd(getreg));
+    dstregkey := settemp(long, reg_oprnd(getreg(false)));
     genmoveaddress(lastnode, dst, dstregkey);
     unlock(srcregkey);
     keytable[srcregkey].oprnd.mode := post_index;
@@ -6464,7 +6466,7 @@ procedure movcstructx;
     if (keytable[left].oprnd.mode <> register) or (keytable[left].refcount > 0) then
       begin
       lock(right);
-      leftregkey := settemp(long, reg_oprnd(getreg));
+      leftregkey := settemp(long, reg_oprnd(getreg(false)));
       genmoveaddress(lastnode, left, leftregkey);
       left := leftregkey;
       unlock(right);
@@ -6472,7 +6474,7 @@ procedure movcstructx;
     if (keytable[right].oprnd.mode <> register) or (keytable[right].refcount > 0) then
       begin
       lock(left);
-      rightregkey := settemp(long, reg_oprnd(getreg));
+      rightregkey := settemp(long, reg_oprnd(getreg(false)));
       genmoveaddress(lastnode, right, rightregkey);
       right := rightregkey;
       unlock(left);
@@ -6511,11 +6513,11 @@ var
 begin {movestring}
   onekey := settemp(word, imm12_oprnd(1, false));
   lock(dst);
-  srcregkey := settemp(long, reg_oprnd(getreg));
+  srcregkey := settemp(long, reg_oprnd(getreg(false)));
   genmoveaddress(lastnode, src, srcregkey);
   unlock(dst);
   lock(srcregkey);
-  dstregkey := settemp(long, reg_oprnd(getreg));
+  dstregkey := settemp(long, reg_oprnd(getreg(false)));
   genmoveaddress(lastnode, dst, dstregkey);
   unlock(srcregkey);
 
@@ -6640,11 +6642,11 @@ begin {arraystrx}
   ip0indexkey := settemp(long, index_oprnd(post_index, ip0, byte, false));
   ip1indexkey := settemp(long, index_oprnd(post_index, ip1, byte, false));
   lock(key);
-  countkey := settemp(long, reg_oprnd(getreg));
+  countkey := settemp(long, reg_oprnd(getreg(false)));
   lock(countkey);
   genmoveaddress(lastnode, key, regkeys[ip0]);
   genmoveaddress(lastnode, left, regkeys[ip1]);
-  tempregkey := settemp(long, reg_oprnd(getreg));
+  tempregkey := settemp(long, reg_oprnd(getreg(false)));
 
   { Set up count, which is also the stored length for the new string.
   }
@@ -6725,13 +6727,13 @@ begin {addstrx}
   addressboth;
   lock(left);
   lock(right);
-  leftregkey := settemp(long, reg_oprnd(getreg));
+  leftregkey := settemp(long, reg_oprnd(getreg(false)));
   lock(leftregkey);
 
   onekey := settemp(long, imm12_oprnd(1, false));
-  rightregkey := settemp(long, reg_oprnd(getreg));
+  rightregkey := settemp(long, reg_oprnd(getreg(false)));
   lock(rightregkey);
-  dstregkey := settemp(long, reg_oprnd(getreg));
+  dstregkey := settemp(long, reg_oprnd(getreg(false)));
   lock(dstregkey);
 
   genmoveaddress(lastnode, key, dstregkey);
@@ -6755,9 +6757,9 @@ begin {addstrx}
 
   countkey := regkeys[ip0];
   maxsizekey := regkeys[ip1];
-  tempregkey := settemp(word, reg_oprnd(getreg));
+  tempregkey := settemp(word, reg_oprnd(getreg(false)));
   lock(tempregkey);
-  tempreg2key := settemp(word, reg_oprnd(getreg));
+  tempreg2key := settemp(word, reg_oprnd(getreg(false)));
 
   { We are done allocating registers.
   }
@@ -6875,12 +6877,12 @@ begin {cmpstrx}
   addressboth;
   lock(left);
   lock(right);
-  leftregkey := settemp(long, reg_oprnd(getreg));
+  leftregkey := settemp(long, reg_oprnd(getreg(false)));
   lock(leftregkey);
-  rightregkey := settemp(long, reg_oprnd(getreg));
+  rightregkey := settemp(long, reg_oprnd(getreg(false)));
   onekey := settemp(long, imm12_oprnd(1, false));
   lock(rightregkey);
-  dstregkey := settemp(long, reg_oprnd(getreg));
+  dstregkey := settemp(long, reg_oprnd(getreg(false)));
   lock(dstregkey);
 
   genmoveaddress(lastnode, left, leftregkey);
@@ -6895,13 +6897,13 @@ begin {cmpstrx}
 
   countkey := regkeys[ip0];
   maxsizekey := regkeys[ip1];
-  tempregkey := settemp(word, reg_oprnd(getreg));
+  tempregkey := settemp(word, reg_oprnd(getreg(false)));
   lock(tempregkey);
-  tempreg2key := settemp(word, reg_oprnd(getreg));
+  tempreg2key := settemp(word, reg_oprnd(getreg(false)));
   lock(tempreg2key);
-  tempreg3key := settemp(word, reg_oprnd(getreg));
+  tempreg3key := settemp(word, reg_oprnd(getreg(false)));
   lock(tempreg3key);
-  tempreg4key := settemp(word, reg_oprnd(getreg));
+  tempreg4key := settemp(word, reg_oprnd(getreg(false)));
 
 
   { We are done allocating registers.
@@ -7031,7 +7033,7 @@ procedure indxx;
            Need to study clang output.
           }
           begin
-          newkey := settemp(long, reg_oprnd(getreg));
+          newkey := settemp(long, reg_oprnd(getreg(false)));
           labelkey := settemp(long,keytable[left].oprnd);
           with keytable[labelkey].oprnd do
             labeloffset := labeloffset + pseudoinst.oprnds[2];
@@ -7047,7 +7049,7 @@ procedure indxx;
           end;
         reg_offset:
           begin
-          newkey := settemp(long, reg_oprnd(getreg));
+          newkey := settemp(long, reg_oprnd(getreg(false)));
           genmoveaddress(lastnode, left, newkey);
           settemp(long, index_oprnd(abstract_offset,
                   keytable[newkey].oprnd.reg, pseudoinst.oprnds[2], false));
@@ -7107,7 +7109,7 @@ procedure aindxx;
 }
     if keytable[right].oprnd.mode <> register then
       begin
-      regkey := settemp(keytable[right].len, reg_oprnd(getreg));
+      regkey := settemp(keytable[right].len, reg_oprnd(getreg(false)));
       gensimplemove(lastnode, right, regkey);
       changevalue(right, regkey);
       end;
@@ -7122,7 +7124,7 @@ procedure aindxx;
     else
       begin
       lock(right);
-      regkey := settemp(long, reg_oprnd(getreg));
+      regkey := settemp(long, reg_oprnd(getreg(false)));
       genmoveaddress(lastnode, left, regkey);
       lefttemp := settemp(long, index_oprnd(abstract_offset, keytable[regkey].oprnd.reg,
                                             0, false));
@@ -7170,7 +7172,7 @@ procedure loopholefnx;
     if (len > keytable[left].len) and
        (keytable[left].oprnd.mode <> register) then
       begin
-      setvalue(reg_oprnd(getreg));
+      setvalue(reg_oprnd(getreg(false)));
       gensimplemove(lastnode, left, key);
       end
     else
@@ -7423,7 +7425,7 @@ begin {casebranchx}
   default := len;
 
   address(target, 0);
-  scratchreg := getreg;
+  scratchreg := getreg(false);
   scratch := settemp(word, reg_oprnd(scratchreg));
   lock(scratch);
   gensimplemove(lastnode, target, scratch);
@@ -7441,7 +7443,7 @@ begin {casebranchx}
   else genbcond(lastnode, hi, default);;
 
   tablelabel := newlabel;
-  addressreg := getreg;
+  addressreg := getreg(false);
   addresskey := settemp(long, reg_oprnd(addressreg));
   t1 := settemp(long, dataref_oprnd(tablelabel, false, 0, false, 0));
   genadrp(lastnode, true, addresskey, t1);
