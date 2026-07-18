@@ -116,9 +116,9 @@
 	b.hs	.L6
 .L7:
 # Line: 201, Stmt: 0
-	add	x14,x0,w15, uxtw 0
+	add	x13,x0,w15, uxtw 0
 	ldrb	w16,[x1, w15, uxtw]
-	strb	w16,[x14,1]
+	strb	w16,[x13,1]
 # Line: 202, Stmt: 0
 	add	w15,w15,1
 	b	.L3
@@ -717,8 +717,8 @@ _p_dumpfilelist:
 # Line: 438, Stmt: 0
 # Line: 440, Stmt: 0
 	mov	x25,x14
-	adrp	x14,.L32766@PAGE
-	add	x1,x14,.L32766+40@PAGEOFF
+	adrp	x13,.L32766@PAGE
+	add	x1,x13,.L32766+40@PAGEOFF
 	mov	x2,9
 	mov	x3,x2
 	mov	x0,x25
@@ -1287,20 +1287,19 @@ _p_clsrng:
 	cbnz	x26,.L127
 .L128:
 # Line: 598, Stmt: 0
-	adrp	x23,_p_paslib@PAGE
-	str	x27,[x23,_p_paslib@PAGEOFF]
+	adrp	x15,_p_paslib@PAGE
+	str	x27,[x15,_p_paslib@PAGEOFF]
 	b	.L129
 .L127:
 # Line: 600, Stmt: 0
 	str	x27,[x26,16]
 .L129:
 # Line: 601, Stmt: 0
-	ldr	x0,[x29,16] // ABSTRACT OFFSET
+	mov	x0,x23
 	bl	.P77  // _p_closeonly
 # Line: 602, Stmt: 0
-	ldr	x23,[x29,16] // ABSTRACT OFFSET
-	ldr	x23,[x23,24]
-	str	xzr,[x23]
+	ldr	x15,[x23,24]
+	str	xzr,[x15]
 # Line: 603, Stmt: 0
 	add	x0,x29,16
 	mov	x1,569
@@ -1815,8 +1814,8 @@ _p_clsall:
 	b.ne	.L174
 .L175:
 # Line: 749, Stmt: 0
-	ldr	x15,[x29,16]
-	ldr	x0,[x15,40]
+	ldr	x14,[x29,16]
+	ldr	x0,[x14,40]
 	bl	_fileno
 	mov	x1,xzr
 	bl	_ftruncate
@@ -1845,11 +1844,11 @@ _p_clsall:
 	b.ne	.L178
 .L179:
 # Line: 757, Stmt: 0
-	ldr	x15,[x29,16]
-	mov	x14,7
-	ldrh	w13,[x15,8]
-	bic	w14,w13,w14
-	strh	w14,[x15,8]
+	ldr	x14,[x29,16]
+	mov	x13,7
+	ldrh	w12,[x14,8]
+	bic	w13,w12,w13
+	strh	w13,[x14,8]
 .L178:
 # Line: 758, Stmt: 0
 	ldr	x15,[x29,16]
@@ -2274,15 +2273,15 @@ _p_get:
 	mov	x0,x27
 	mov	x1,xzr
 	mov	x2,xzr
-	adrp	x15,.L32766@PAGE
-	add	x3,x15,.L32766+735@PAGEOFF
+	adrp	x14,.L32766@PAGE
+	add	x3,x14,.L32766+735@PAGEOFF
 	bl	.P73  // _p_libfileerror
 	b	.L210
 .L208:
 # Line: 915, Stmt: 0
 	mov	x14,1
-	bic	w15,w15,w14
-	strh	w15,[x27,8]
+	bic	w14,w15,w14
+	strh	w14,[x27,8]
 	b	.L210
 .L206:
 # Line: 917, Stmt: 0
@@ -3127,8 +3126,8 @@ _p_rdc:
 .L282:
 # Line: 1173, Stmt: 0
 	mov	x14,1
-	bic	w15,w15,w14
-	strh	w15,[x27,8]
+	bic	w14,w15,w14
+	strh	w14,[x27,8]
 .L281:
 # Line: 1174, Stmt: 0
 	ldrb	w0,[x29,16]
@@ -3219,8 +3218,8 @@ _p_rdi:
 # Line: 1208, Stmt: 0
 	mov	x15,10
 	mul	w26,w26,w15
-	sub	w23,w23,48
-	add	w26,w26,w23
+	sub	w15,w23,48
+	add	w26,w26,w15
 # Line: 1209, Stmt: 0
 	mov	x0,x25
 	bl	_p_define

@@ -21,18 +21,14 @@
 	mov	x11,100
 	mul	w12,w14,w11
 # Line: 16, Stmt: 0
-	str	x13,[sp,16]
-	str	x12,[sp,8]
 	mov	x15,1
 .L6:
 # Line: 17, Stmt: 0
-	add	x13,x0,w13, sxtw 0
-	add	x13,x13,w15, sxtw 2
-	add	w12,w12,w15
-	sub	x17,x13,144
-	str	w12,[x17,-256]
-	ldr	x12,[sp,8]
-	ldr	x13,[sp,16]
+	add	x11,x0,w13, sxtw 0
+	add	x11,x11,w15, sxtw 2
+	add	w10,w12,w15
+	sub	x17,x11,144
+	str	w10,[x17,-256]
 	add	w15,w15,1
 	cmp	w15,99
 	b.le	.L6
@@ -72,13 +68,13 @@
 	mov	x27,1
 .L13:
 # Line: 28, Stmt: 0
-	add	x15,x25,w15, sxtw 0
-	add	x15,x15,w27, sxtw 2
-	add	w14,w14,w27
-	sub	x17,x15,144
-	ldrsw	x13,[x17,-256]
-	str	x13,[x29,-56]
-	cmp	w13,w14
+	add	x13,x25,w15, sxtw 0
+	add	x13,x13,w27, sxtw 2
+	add	w12,w14,w27
+	sub	x17,x13,144
+	ldrsw	x11,[x17,-256]
+	str	x11,[x29,-56]
+	cmp	w11,w12
 	b.eq	.L14
 .L15:
 # Line: 30, Stmt: 0

@@ -71,14 +71,16 @@ type
 
   item_ptr = ^item;
   item =
-    {packed} record
+  {packed}
+    record
       line: 0..16383; {line no of ref, limits set to allow 2 word item}
       kind: kinds; {reference kind}
       next: item_ptr; {next reference for this entry}
     end;
 
   entries =
-    {packed} record
+  {packed}
+    record
       entri: alpha; {item name}
       last: item_ptr; {last reference to this item}
       next_indx: index; {next link in hash chain}
@@ -120,8 +122,6 @@ var
   flag_char: char; {char to print along left column}
   current_letter: char; {current xref letter}
   line_length: integer;
-
-
 
 {*---------------------------------*
  | Read and Process Command String |
@@ -182,17 +182,17 @@ procedure csi;
 
 
     begin
-      case msg of
-        UnknownArgMsg: write('Unexpected argument');
-        MalformedArgMsg: write('Bad argument syntax');
-        MissingArgMsg: write('Required argument missing');
-        ExtraOutputMsg: write('Extra output file');
-        ExtraInputMsg: write('Extra input file');
-        BadWidthMsg: write('Width value out of range');
-        end;
-      if arg.Len > 0 then write(' (', arg.txt: arg.Len, ')');
-      writeln;
-      error := true;
+    case msg of
+      UnknownArgMsg: write('Unexpected argument');
+      MalformedArgMsg: write('Bad argument syntax');
+      MissingArgMsg: write('Required argument missing');
+      ExtraOutputMsg: write('Extra output file');
+      ExtraInputMsg: write('Extra input file');
+      BadWidthMsg: write('Width value out of range');
+      end;
+    if arg.Len > 0 then write(' (', arg.txt: arg.Len, ')');
+    writeln;
+    error := true;
     end;
 
 
@@ -204,52 +204,51 @@ procedure csi;
 
 
     begin
-      case typ of
-        UnknownArg: SetupError(UnknownArgMsg, arg);
-        OutputFileArg:
-          begin
-          if OutputFlg <> Unknown then SetupError(ExtraOutputMsg, arg);
-          OutputArg := arg;
-          OutputFlg := Yes;
-          end;
-        InputFileArg:
-          begin
-          if InputFlg <> Unknown then SetupError(ExtraInputMsg, arg);
-          InputArg := arg;
-          InputFlg := Yes;
-          end;
-        ListArg: listing_wanted := true;
-        NoListArg: listing_wanted := false;
-        WidthArg:
-          begin
-          CnvNumericArg(arg, line_length, numerror);
-          if numerror or (line_length < min_line_length) then
-            SetupError(BadWidthMsg, arg);
-          end;
-        MalformedArg: SetupError(MalformedArgMsg, arg);
-        MissingArg: SetupError(MissingArgMsg, arg);
+    case typ of
+      UnknownArg: SetupError(UnknownArgMsg, arg);
+      OutputFileArg:
+        begin
+        if OutputFlg <> Unknown then SetupError(ExtraOutputMsg, arg);
+        OutputArg := arg;
+        OutputFlg := Yes;
         end;
+      InputFileArg:
+        begin
+        if InputFlg <> Unknown then SetupError(ExtraInputMsg, arg);
+        InputArg := arg;
+        InputFlg := Yes;
+        end;
+      ListArg: listing_wanted := true;
+      NoListArg: listing_wanted := false;
+      WidthArg:
+        begin
+        CnvNumericArg(arg, line_length, numerror);
+        if numerror or (line_length < min_line_length) then
+          SetupError(BadWidthMsg, arg);
+        end;
+      MalformedArg: SetupError(MalformedArgMsg, arg);
+      MissingArg: SetupError(MissingArgMsg, arg);
+      end;
     end;
 
 
   begin {csi}
 
-    InputFlg := Unknown;
-    OutputFlg := Unknown;
+  InputFlg := Unknown;
+  OutputFlg := Unknown;
 
-    error := false;
-    GetCS(ArgDefs, ProcessArg);
-    if error then exitst(4);
-    for j := 1 to ExtLen do iExtVar[j] := InputExt[j];
-    for j := 1 to ExtLen do oExtVar[j] := OutputExt[j];
-    if OutputFlg = Yes then
-      FixFileArg(OutputArg, ActualFile, oExtVar, OutputArg)
-    else FixFileArg(InputArg, DefaultFile, oExtVar, OutputArg);
-    FixFileArg(InputArg, ActualFile, iExtvar, InputArg);
-    reset(Input, InputArg.txt);
-    rewrite(Output, OutputArg.txt);
+  error := false;
+  GetCS(ArgDefs, ProcessArg);
+  if error then exitst(4);
+  for j := 1 to ExtLen do iExtVar[j] := InputExt[j];
+  for j := 1 to ExtLen do oExtVar[j] := OutputExt[j];
+  if OutputFlg = Yes then
+    FixFileArg(OutputArg, ActualFile, oExtVar, OutputArg)
+  else FixFileArg(InputArg, DefaultFile, oExtVar, OutputArg);
+  FixFileArg(InputArg, ActualFile, iExtvar, InputArg);
+  reset(Input, InputArg.txt);
+  rewrite(Output, OutputArg.txt);
   end; {csi}
-
 
 
 procedure initialize;
@@ -259,66 +258,65 @@ procedure initialize;
 
 
   begin
-    {hash table variables}
-    for indx := 0 to hash_max - 1 do hash_table[indx].entri := blank12;
-    total := 0;
-    id_nmbr := 0;
-    line_nmbr := 0;
-    last_indx := hash_max;
+  {hash table variables}
+  for indx := 0 to hash_max - 1 do hash_table[indx].entri := blank12;
+  total := 0;
+  id_nmbr := 0;
+  line_nmbr := 0;
+  last_indx := hash_max;
 
-    {I/O related variables}
-    done := false;
-    error := false;
-    current_letter := ' ';
-    blank_cnt := id_length;
+  {I/O related variables}
+  done := false;
+  error := false;
+  current_letter := ' ';
+  blank_cnt := id_length;
 
-    {character sets}
-    numbers := ['0'..'9'];
-    upper_cases := ['A'..'Z', '$'];
-    lower_cases := ['a'..'z'];
-    alpha_numerics := lower_cases + ['_'] + upper_cases + numbers;
-    numerics := ['b', 'B', 'E', 'e', 'D', 'd'] + numbers;
+  {character sets}
+  numbers := ['0'..'9'];
+  upper_cases := ['A'..'Z', '$'];
+  lower_cases := ['a'..'z'];
+  alpha_numerics := lower_cases + ['_'] + upper_cases + numbers;
+  numerics := ['b', 'B', 'E', 'e', 'D', 'd'] + numbers;
 
-    {syntax variables}
-    decl := true;
-    def := false;
-    asg_ok := true;
-    flag_char := ' ';
-    decls := [con_key, typ_key, var_key, shr_key, prc_key, prg_key, fun_key];
+  {syntax variables}
+  decl := true;
+  def := false;
+  asg_ok := true;
+  flag_char := ' ';
+  decls := [con_key, typ_key, var_key, shr_key, prc_key, prg_key, fun_key];
 
-    {[s=2] key word table -- these entries MUST be in alphabetical order}
+  {[s=2] key word table -- these entries MUST be in alphabetical order}
 
-    r[and_key] := 'AND         ';        r[arr_key] := 'ARRAY       ';
-    r[beg_key] := 'BEGIN       ';        r[cas_key] := 'CASE        ';
-    r[con_key] := 'CONST       ';        r[def_key] := 'DEFINE      ';
-    r[div_key] := 'DIV         ';        r[do_key] := 'DO          ';
-    r[dwn_key] := 'DOWNTO      ';        r[els_key] := 'ELSE        ';
-    r[end_key] := 'END         ';        r[ext_key] := 'EXTERNAL    ';
-    r[fil_key] := 'FILE        ';        r[for_key] := 'FOR         ';
-    r[fun_key] := 'FUNCTION    ';        r[got_key] := 'GOTO        ';
-    r[if_key] := 'IF          ';         r[in_key] := 'IN          ';
-    r[lab_key] := 'LABEL       ';        r[mod_key] := 'MOD         ';
-    r[nil_key] := 'NIL         ';        r[non_key] := 'NONPASCAL   ';
-    r[not_key] := 'NOT         ';        r[of_key] := 'OF          ';
-    r[or_key] := 'OR          ';         r[org_key] := 'ORIGIN      ';
-    r[oth_key] := 'OTHERWISE   ';        r[pac_key] := 'PACKED      ';
-    r[prc_key] := 'PROCEDURE   ';        r[prg_key] := 'PROGRAM     ';
-    r[rec_key] := 'RECORD      ';        r[rep_key] := 'REPEAT      ';
-    r[set_key] := 'SET         ';        r[shr_key] := 'SHARED      ';
-    r[str_key] := 'STRING      ';        r[thn_key] := 'THEN        ';
-    r[to_key] := 'TO          ';         r[typ_key] := 'TYPE        ';
-    r[uni_key] := 'UNIV        ';        r[unt_key] := 'UNTIL       ';
-    r[use_key] := 'USE         ';        r[var_key] := 'VAR         ';
-    r[whl_key] := 'WHILE       ';        r[wth_key] := 'WITH        ';
+  r[and_key] := 'AND         ';         r[arr_key] := 'ARRAY       ';
+  r[beg_key] := 'BEGIN       ';         r[cas_key] := 'CASE        ';
+  r[con_key] := 'CONST       ';         r[def_key] := 'DEFINE      ';
+  r[div_key] := 'DIV         ';         r[do_key] := 'DO          ';
+  r[dwn_key] := 'DOWNTO      ';         r[els_key] := 'ELSE        ';
+  r[end_key] := 'END         ';         r[ext_key] := 'EXTERNAL    ';
+  r[fil_key] := 'FILE        ';         r[for_key] := 'FOR         ';
+  r[fun_key] := 'FUNCTION    ';         r[got_key] := 'GOTO        ';
+  r[if_key] := 'IF          ';          r[in_key] := 'IN          ';
+  r[lab_key] := 'LABEL       ';         r[mod_key] := 'MOD         ';
+  r[nil_key] := 'NIL         ';         r[non_key] := 'NONPASCAL   ';
+  r[not_key] := 'NOT         ';         r[of_key] := 'OF          ';
+  r[or_key] := 'OR          ';          r[org_key] := 'ORIGIN      ';
+  r[oth_key] := 'OTHERWISE   ';         r[pac_key] := 'PACKED      ';
+  r[prc_key] := 'PROCEDURE   ';         r[prg_key] := 'PROGRAM     ';
+  r[rec_key] := 'RECORD      ';         r[rep_key] := 'REPEAT      ';
+  r[set_key] := 'SET         ';         r[shr_key] := 'SHARED      ';
+  r[str_key] := 'STRING      ';         r[thn_key] := 'THEN        ';
+  r[to_key] := 'TO          ';          r[typ_key] := 'TYPE        ';
+  r[uni_key] := 'UNIV        ';         r[unt_key] := 'UNTIL       ';
+  r[use_key] := 'USE         ';         r[var_key] := 'VAR         ';
+  r[whl_key] := 'WHILE       ';         r[wth_key] := 'WITH        ';
 
-    {[s=1]}
+  {[s=1]}
 
-    listing_wanted := false;
-    line_length := 80;
-    csi;
+  listing_wanted := false;
+  line_length := 80;
+  csi;
 
   end {initialize} ;
-
 
 {*---------------------*
  |  I/O procedures     |
@@ -331,8 +329,8 @@ procedure new_line(ch: char);
   begin { Process a new input line, generating a line number if a listing is
          being generated. NOTE: The linenumber, etc is calculated to take
          exactly 8 characters, so tabs look right }
-    line_nmbr := line_nmbr + 1;
-    if listing_wanted then write(output, ch, line_nmbr: 6, ' ');
+  line_nmbr := line_nmbr + 1;
+  if listing_wanted then write(output, ch, line_nmbr: 6, ' ');
   end;
 
 
@@ -340,20 +338,20 @@ procedure sget;
 
 
   begin
-    if eof(input) then goto 99
-    else if eoln(input) then
-      begin
-      if listing_wanted then writeln;
-      get(input);
-      if not eof(input) then new_line(flag_char);
-      line_end := true;
-      end
-    else
-      begin
-      line_end := false;
-      get(input)
-      end;
-    if eof(input) then goto 99;
+  if eof(input) then goto 99
+  else if eoln(input) then
+    begin
+    if listing_wanted then writeln;
+    get(input);
+    if not eof(input) then new_line(flag_char);
+    line_end := true;
+    end
+  else
+    begin
+    line_end := false;
+    get(input)
+    end;
+  if eof(input) then goto 99;
   end;
 
 
@@ -361,10 +359,9 @@ procedure copy_char;
 
 
   begin
-    if listing_wanted then write(input^);
-    sget;
+  if listing_wanted then write(input^);
+  sget;
   end;
-
 
  {*-----------------------------*
   | Lexical and Syntax Analysis |
@@ -379,21 +376,21 @@ function reserved_wrd(word: alpha): boolean;
 
 
   begin
-    low := and_key;
-    high := wth_key;
-    repeat { binary search }
-      key := (low + high) div 2;
-      if r[key] <= word then low := key + 1;
-      if r[key] >= word then high := key - 1;
-    until low > high;
-    key_ok := (r[key] = word);
-    if key_ok then
-      begin
-      if key in decls then decl := true
-      else if key = beg_key then decl := false
-      else if (key = rec_key) or (key = cas_key) then def := false;
-      end;
-    reserved_wrd := key_ok;
+  low := and_key;
+  high := wth_key;
+  repeat { binary search }
+    key := (low + high) div 2;
+    if r[key] <= word then low := key + 1;
+    if r[key] >= word then high := key - 1;
+  until low > high;
+  key_ok := (r[key] = word);
+  if key_ok then
+    begin
+    if key in decls then decl := true
+    else if key = beg_key then decl := false
+    else if (key = rec_key) or (key = cas_key) then def := false;
+    end;
+  reserved_wrd := key_ok;
   end { function } ;
 
 
@@ -406,53 +403,53 @@ procedure cross_ref;
 
 
   begin
-    indx := 1;
-    found := false;
-    dst := 1;
-    for i := 1 to 8 do indx := abs((indx * ord(id[i])) mod hash_max);
-    total := total + 1;
-    new(ref);
-    if asg_ok then asg_ref := ref;
-    with ref^ do
+  indx := 1;
+  found := false;
+  dst := 1;
+  for i := 1 to 8 do indx := abs((indx * ord(id[i])) mod hash_max);
+  total := total + 1;
+  new(ref);
+  if asg_ok then asg_ref := ref;
+  with ref^ do
+    begin
+    line := line_nmbr;
+    next := nil;
+    if decl and not def then kind := decl_kind
+    else kind := no_kind;
+    end;
+  repeat
+    with hash_table[indx] do
       begin
-      line := line_nmbr;
-      next := nil;
-      if decl and not def then kind := decl_kind
-      else kind := no_kind;
-      end;
-    repeat
-      with hash_table[indx] do
-        begin
-        if entri = id then
-          begin {found}
-          found := true;
-          ref^.next := last;
-          last := ref;
+      if entri = id then
+        begin {found}
+        found := true;
+        ref^.next := last;
+        last := ref;
+        end
+      else if entri = blank12 then
+        begin {new entri}
+        found := true;
+        id_nmbr := id_nmbr + 1;
+        entri := id;
+        last := ref;
+        next_indx := last_indx;
+        last_indx := indx;
+        end
+      else
+        begin {collision}
+        indx := (indx + dst) mod hash_max;
+        dst := dst + 2;
+        if dst >= hash_max then
+          begin
+          writeln;
+          writeln('**** Too many unique identifiers.');
+          error := true;
+          error_line := line_nmbr;
+          found := true
           end
-        else if entri = blank12 then
-          begin {new entri}
-          found := true;
-          id_nmbr := id_nmbr + 1;
-          entri := id;
-          last := ref;
-          next_indx := last_indx;
-          last_indx := indx;
-          end
-        else
-          begin {collision}
-          indx := (indx + dst) mod hash_max;
-          dst := dst + 2;
-          if dst >= hash_max then
-            begin
-            writeln;
-            writeln('**** Too many unique identifiers.');
-            error := true;
-            error_line := line_nmbr;
-            found := true
-            end
-          end
-        end {with}
-    until found;
+        end
+      end {with}
+  until found;
   end {cross_ref} ;
 
 
@@ -460,31 +457,31 @@ procedure identifier;
 
 
   begin
-    if not error then
-      begin
-      char_cnt := 0;
-      repeat
-        if (char_cnt < id_length) then
-          begin
-          char_cnt := char_cnt + 1;
-          if input^ in lower_cases then
-            id[char_cnt] := chr(ord(input^) + case_shift)
-          else id[char_cnt] := input^;
-          end;
-        copy_char
-      until not (input^ in alpha_numerics);
-      if char_cnt >= blank_cnt then blank_cnt := char_cnt
-      else
-        repeat
-          id[blank_cnt] := ' ';
-          blank_cnt := blank_cnt - 1
-        until blank_cnt = char_cnt;
-      if not reserved_wrd(id) then cross_ref;
-      end
+  if not error then
+    begin
+    char_cnt := 0;
+    repeat
+      if (char_cnt < id_length) then
+        begin
+        char_cnt := char_cnt + 1;
+        if input^ in lower_cases then
+          id[char_cnt] := chr(ord(input^) + case_shift)
+        else id[char_cnt] := input^;
+        end;
+      copy_char
+    until not (input^ in alpha_numerics);
+    if char_cnt >= blank_cnt then blank_cnt := char_cnt
     else
       repeat
-        copy_char
-      until not (input^ in alpha_numerics);
+        id[blank_cnt] := ' ';
+        blank_cnt := blank_cnt - 1
+      until blank_cnt = char_cnt;
+    if not reserved_wrd(id) then cross_ref;
+    end
+  else
+    repeat
+      copy_char
+    until not (input^ in alpha_numerics);
   end {identifier} ;
 
 
@@ -492,9 +489,9 @@ procedure number;
 
 
   begin
-    repeat
-      copy_char;
-    until not (input^ in numerics)
+  repeat
+    copy_char;
+  until not (input^ in numerics)
   end {number} ;
 
 
@@ -502,12 +499,12 @@ procedure stringconst;
 
 
   begin
-    flag_char := 's';
-    repeat
-      copy_char;
-    until (input^ = '''') or (line_end);
-    flag_char := ' ';
+  flag_char := 's';
+  repeat
     copy_char;
+  until (input^ = '''') or (line_end);
+  flag_char := ' ';
+  copy_char;
   end {stringconst} ;
 
 
@@ -515,11 +512,11 @@ procedure comment;
 
 
   begin
-    flag_char := 'c';
-    copy_char;
-    while input^ <> '}' do copy_char;
-    flag_char := ' ';
-    copy_char;
+  flag_char := 'c';
+  copy_char;
+  while input^ <> '}' do copy_char;
+  flag_char := ' ';
+  copy_char;
   end {comment} ;
 
 
@@ -527,18 +524,18 @@ procedure comment1(termchar: char);
 
 
   begin
+  copy_char;
+  if input^ = '*' then
+    begin
+    flag_char := 'c';
     copy_char;
-    if input^ = '*' then
-      begin
-      flag_char := 'c';
+    repeat
+      while input^ <> '*' do copy_char;
       copy_char;
-      repeat
-        while input^ <> '*' do copy_char;
-        copy_char;
-      until input^ = termchar;
-      flag_char := ' ';
-      copy_char;
-      end
+    until input^ = termchar;
+    flag_char := ' ';
+    copy_char;
+    end
   end {comment1} ;
 
 
@@ -549,27 +546,27 @@ procedure special_char;
 
 
   begin
-    got := false;
-    if input^ = '[' then asg_ok := false
-    else if input^ = ']' then asg_ok := true
-    else if input^ = '=' then def := true
-    else if input^ = ';' then def := false
-    else if input^ = '%' then while not eoln(input) do copy_char
-    else if input^ = ':' then
+  got := false;
+  if input^ = '[' then asg_ok := false
+  else if input^ = ']' then asg_ok := true
+  else if input^ = '=' then def := true
+  else if input^ = ';' then def := false
+  else if input^ = '%' then while not eoln(input) do copy_char
+  else if input^ = ':' then
+    begin
+    copy_char;
+    got := true;
+    if input^ = '=' then
       begin
+      if not error then asg_ref^.kind := asg_kind;
       copy_char;
-      got := true;
-      if input^ = '=' then
-        begin
-        if not error then asg_ref^.kind := asg_kind;
-        copy_char;
-        end
-      else def := true;
-      end;
-    if not got then
-      begin
-      copy_char
-      end;
+      end
+    else def := true;
+    end;
+  if not got then
+    begin
+    copy_char
+    end;
   end;
 
 
@@ -577,19 +574,18 @@ procedure scan_input;
 
 
   begin
-    new_line(' ');
-    while not (done or eof(input)) do
-      begin
-      if input^ in upper_cases + lower_cases then identifier
-      else if input^ in numbers then number
-      else if input^ = '''' then stringconst
-      else if input^ = '{' then comment
-      else if input^ = '(' then comment1(')')
-      else if input^ = '/' then comment1('/')
-      else special_char;
-      end;
+  new_line(' ');
+  while not (done or eof(input)) do
+    begin
+    if input^ in upper_cases + lower_cases then identifier
+    else if input^ in numbers then number
+    else if input^ = '''' then stringconst
+    else if input^ = '{' then comment
+    else if input^ = '(' then comment1(')')
+    else if input^ = '/' then comment1('/')
+    else special_char;
+    end;
   end {print_listing} ;
-
 
 {*----------------------*
  | hash table printing  |
@@ -606,47 +602,47 @@ procedure print_entri(hash: entries);
 
 
   begin
-    with hash do
+  with hash do
+    begin
+    if entri[1] <> current_letter then
       begin
-      if entri[1] <> current_letter then
-        begin
-        current_letter := entri[1];
-        writeln;
-        writeln('-', current_letter, '-');
-        end;
-      write(entri, ' ');
+      current_letter := entri[1];
+      writeln;
+      writeln('-', current_letter, '-');
+      end;
+    write(entri, ' ');
+    out_count := id_length + 1;
+    end;
+  last_ref := nil;
+  ref := nil;
+  next_ref := hash.last;
+
+  while next_ref <> nil do
+    begin
+    ref := next_ref;
+    next_ref := ref^.next;
+    ref^.next := last_ref;
+    last_ref := ref;
+    end;
+
+  repeat
+    if out_count > line_length - ref_length - 1 then
+      begin {continue on next line}
+      writeln;
+      write(' ': id_length + 1);
       out_count := id_length + 1;
       end;
-    last_ref := nil;
-    ref := nil;
-    next_ref := hash.last;
-
-    while next_ref <> nil do
+    out_count := out_count + ref_length + 1;
+    with ref^ do
       begin
-      ref := next_ref;
-      next_ref := ref^.next;
-      ref^.next := last_ref;
-      last_ref := ref;
+      if kind = decl_kind then ch := '*'
+      else if kind = asg_kind then ch := '='
+      else ch := ' ';
+      write(line: ref_length, ch);
+      ref := next
       end;
-
-    repeat
-      if out_count > line_length - ref_length - 1 then
-        begin {continue on next line}
-        writeln;
-        write(' ': id_length + 1);
-        out_count := id_length + 1;
-        end;
-      out_count := out_count + ref_length + 1;
-      with ref^ do
-        begin
-        if kind = decl_kind then ch := '*'
-        else if kind = asg_kind then ch := '='
-        else ch := ' ';
-        write(line: ref_length, ch);
-        ref := next
-        end;
-    until ref = nil;
-    writeln;
+  until ref = nil;
+  writeln;
   end {print_entri} ;
 
 
@@ -657,36 +653,35 @@ procedure print_cross_ref;
 
 
   begin
-    if listing_wanted then page(output);
-    writeln('Cross reference:  * indicates definition, = indicates assignment'
-            );
-    i := last_indx;
-    while i <> hash_max do
+  if listing_wanted then page(output);
+  writeln('Cross reference:  * indicates definition, = indicates assignment');
+  i := last_indx;
+  while i <> hash_max do
+    begin
+    min := i;
+    j := hash_table[i].next_indx;
+    while j <> hash_max do
       begin
-      min := i;
-      j := hash_table[i].next_indx;
-      while j <> hash_max do
-        begin
-        if hash_table[j].entri < hash_table[min].entri then min := j;
-        j := hash_table[j].next_indx;
-        end;
-      print_entri(hash_table[min]);
-      if min <> i then
-        begin
-        hash_table[min].entri := hash_table[i].entri;
-        hash_table[min].last := hash_table[i].last;
-        end;
-      i := hash_table[i].next_indx;
-      end; {while loop}
-    writeln;
-    writeln;
-    if error then
-      begin
-      writeln('Memory capacity exceeded at line:', error_line: 5);
-      writeln('Program too large for xref.');
+      if hash_table[j].entri < hash_table[min].entri then min := j;
+      j := hash_table[j].next_indx;
       end;
-    writeln('end xref', id_nmbr: 4, ' identifiers', total: 6,
-            ' total references')
+    print_entri(hash_table[min]);
+    if min <> i then
+      begin
+      hash_table[min].entri := hash_table[i].entri;
+      hash_table[min].last := hash_table[i].last;
+      end;
+    i := hash_table[i].next_indx;
+    end; {while loop}
+  writeln;
+  writeln;
+  if error then
+    begin
+    writeln('Memory capacity exceeded at line:', error_line: 5);
+    writeln('Program too large for xref.');
+    end;
+  writeln('end xref', id_nmbr: 4, ' identifiers', total: 6,
+          ' total references')
   end {print_cross_ref} ;
 
 { *-------------------*
@@ -695,8 +690,8 @@ procedure print_cross_ref;
 
 
 begin
-  initialize;
-  scan_input;
+initialize;
+scan_input;
 99:
-  print_cross_ref;
+print_cross_ref;
 end.

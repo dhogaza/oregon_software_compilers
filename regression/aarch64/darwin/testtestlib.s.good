@@ -144,15 +144,15 @@ puthex:
 .L17:
 # Line: 48, Stmt: 0
 	add	x14,x29,w27, sxtw 0
-	sub	w15,w15,10
-	add	w15,w15,65
-	strb	w15,[x14,16]
+	sub	w13,w15,10
+	add	w13,w13,65
+	strb	w13,[x14,16]
 	b	.L18
 .L16:
 # Line: 50, Stmt: 0
 	add	x14,x29,w27, sxtw 0
-	add	w15,w15,48
-	strb	w15,[x14,16]
+	add	w13,w15,48
+	strb	w13,[x14,16]
 .L18:
 # Line: 51, Stmt: 0
 	add	w27,w27,1
