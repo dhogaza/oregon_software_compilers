@@ -260,7 +260,7 @@ program Pasmat(Input, Output, Source, Result);
     NewFormatting: Boolean; {start formatting at end of comment}
     Bunching: Boolean; {bunch statements on one line}
     ConvertToTabs: Boolean; {convert leading spaces to tabs}
-    OtherwiseKluge: Boolean; {converts else to otherwise in case}
+    OtherwiseKludge: Boolean; {converts else to otherwise in case}
     FirstSpelling: Boolean; {convert equivalent ids to first spelling}
     NoNewLine: Boolean; {do not insert extra new-lines}
     NewNoNewline: Boolean; {start NoNewLine at end of comment}
@@ -628,7 +628,7 @@ program Pasmat(Input, Output, Source, Result);
       PortabilityMode := false;
       Bunching := false;
       ConvertToTabs := false;
-      OtherwiseKluge := false;
+      OtherwiseKludge := false;
       FirstSpelling := false;
       NoNewLine := false;
       NewNoNewline := false;
@@ -849,7 +849,7 @@ program Pasmat(Input, Output, Source, Result);
 
 
     begin {read next character from input file}
-      {The following is a kluge to read initial directives}
+      {The following is a kludge to read initial directives}
       if InitialDirectives then
         if InitDirIndex <= InitDir^.Len then
           begin
@@ -862,7 +862,7 @@ program Pasmat(Input, Output, Source, Result);
           dispose(InitDir);
           Ch := ']';
           end
-          {End kluge}
+          {End kludge}
       else if Column < TabColumn then
         begin
         Column := Column + 1;
@@ -874,7 +874,7 @@ program Pasmat(Input, Output, Source, Result);
           begin {normal}
           Read(Source, Ch);
           if Ch = Chr(Ht) then
-            begin {kluge in input tabs}
+            begin {kludge in input tabs}
             TabColumn := ((Column + TabInterval) div TabInterval) *
                          TabInterval;
             Ch := ' ';
@@ -1165,7 +1165,7 @@ program Pasmat(Input, Output, Source, Result);
             'b', 'B': SwitchDir(Bunching);
             'c', 'C': SwitchDir(ConvertToTabs);
             'f', 'F': SwitchDir(NewFormatting);
-            'k', 'K': SwitchDir(OtherwiseKluge);
+            'k', 'K': SwitchDir(OtherwiseKludge);
             'l', 'L': SwitchDir(LitCopy);
             'm', 'M': SwitchDir(StandardRep);
             'n', 'N': SwitchDir(NewNoNewline);
@@ -2836,7 +2836,7 @@ program Pasmat(Input, Output, Source, Result);
         end; {while}
       if (Sym = OtherwiseSy) or (Sym = ElseSy) then
         begin
-        if OtherwiseKluge then FudgeSymbol(9, 'otherwise');
+        if OtherwiseKludge then FudgeSymbol(9, 'otherwise');
         NextOnNewline(0, TabSpaces);
         LogSymbolStart(CaseStart);
         StatList;
@@ -3076,7 +3076,7 @@ program Pasmat(Input, Output, Source, Result);
   procedure RecordType(PackedStart: ColLog);
 
 
-    begin {handle a record type, includes a kluge to move "packed" down to the
+    begin {handle a record type, includes a kludge to move "packed" down to the
            next line}
 
       IndentPlus(TabSpaces);
@@ -3084,7 +3084,7 @@ program Pasmat(Input, Output, Source, Result);
         if Formatting and (LogChar <> 0) and
            (CharCount - LogChar < Bufsize) then
           with Unwritten[LogChar mod Bufsize] do
-            begin {note that this kluge assumes the logged point has become a
+            begin {note that this kludge assumes the logged point has become a
                    space so it can be changed to a newline}
             ActionIs := BeginLine;
             Spacing := Indent;
