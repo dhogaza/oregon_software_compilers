@@ -584,6 +584,7 @@ var
   blocklabelnode, linkentryinst, setupinst: nodeptr;
 
   blockusesframe: boolean; {set to true in blockentryx if frame is used}
+  leaf: boolean; {set to true in blockentryx if this is a leaf proc}
 
   paramsize, blksize, paramcopysize: addressrange;
 

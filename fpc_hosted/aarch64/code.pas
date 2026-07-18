@@ -526,8 +526,7 @@ end;
 function hasframeptr: boolean;
 
   begin {hasframeptr}
-    hasframeptr := not proctable[blockref].leaf or
-                             switcheverplus[leafframepointer];
+    hasframeptr := not leaf or switcheverplus[leafframepointer];
   end {hadframepointer};
 
 function regmoveok(n: integer): boolean;
@@ -2262,7 +2261,8 @@ function regvalue(r: regindex; prefersafe: boolean): unsigned;
   begin {regvalue}
     regvalue := registers[r] +
                 ord(context[contextsp].bump[r] and (registers[r] > 0)) * 4 +
-                ord((r > pr) and not (regused[r] or prefersafe)) * assigninitialpenalty +
+                ord((r > pr) and not (regused[r] or prefersafe and not leaf)) *
+                assigninitialpenalty +
                 maxint * ord((r > lastscratchreg) and (r <= pr));
   end {regvalue} ;
 
@@ -5831,7 +5831,7 @@ procedure blockcodex;
     { leaf procedures won't eat scratch registers through calls
       so we can assign regtemps to them.  Callee-saved registers
       are still available if needed.}
-    if proctable[blockref].leaf then
+    if leaf then
       begin
       lastreg := sl - 1;
       lastscratchreg := ip0 - left - 1;
@@ -6206,6 +6206,7 @@ procedure blockentryx;
       else blksize := oprnds[3];
       end;
     level := proctable[blockref].level;
+    leaf := proctable[blockref].leaf;
 {DRB need to look into needsframeptr}
     blockusesframe := switcheverplus[framepointer]
 	or ((language = modula2) and proctable[blockref].needsframeptr);
@@ -7016,6 +7017,7 @@ procedure indxx;
     newkey: keyindex;
     labelkey: keyindex;
     r: regindex;
+    prefersafereg: boolean;
 
   begin {indxx}
     if (pseudoinst.oprnds[2] = 0) and
@@ -7026,6 +7028,7 @@ procedure indxx;
       end
     else
       begin
+      prefersafereg := keytable[key].refcount > assigninitialpenalty;
       address(left, 0);
 
       case keytable[left].oprnd.mode of
@@ -7035,7 +7038,7 @@ procedure indxx;
            Need to study clang output.
           }
           begin
-          newkey := settemp(long, reg_oprnd(getreg(false)));
+          newkey := settemp(long, reg_oprnd(getreg(prefersafereg)));
           labelkey := settemp(long,keytable[left].oprnd);
           with keytable[labelkey].oprnd do
             labeloffset := labeloffset + pseudoinst.oprnds[2];
@@ -7051,7 +7054,7 @@ procedure indxx;
           end;
         reg_offset:
           begin
-          newkey := settemp(long, reg_oprnd(getreg(false)));
+          newkey := settemp(long, reg_oprnd(getreg(prefersafereg)));
           genmoveaddress(lastnode, left, newkey);
           settemp(long, index_oprnd(abstract_offset,
                   keytable[newkey].oprnd.reg, pseudoinst.oprnds[2], false));
