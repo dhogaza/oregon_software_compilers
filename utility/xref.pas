@@ -16,9 +16,10 @@
 }
 
 {  Cross reference generator for Pascal
-                                       N. Wirth   7 May 74
-                                       J. Zaun    9 Nov 78
-                                       M. Ball    9 Feb 81
+
+   N. Wirth   7 May 74
+   J. Zaun    9 Nov 78
+   M. Ball    9 Feb 81
 
 
    Originally written by N. Wirth for the CDC 6000 Implementation.
