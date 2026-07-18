@@ -1732,11 +1732,11 @@
 .L96:
 	ldr	x15,[x29,-24]
 # Line: 449, Stmt: 0
-	ldr	x14,[x15,.L32767+16@PAGEOFF]
+	ldr	x14,[x15,.L32767+8@PAGEOFF]
 	str	x14,[x29,-32]
 	ldr	x13,[x14,8]
 	tbnz	x13,0,.L32692
-	add	x0,x15,.L32767+16@PAGEOFF
+	add	x0,x15,.L32767+8@PAGEOFF
 	bl	_p_define 
 .L32692:
 	ldr	x15,[x29,-32]
