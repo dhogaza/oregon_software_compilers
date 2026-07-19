@@ -40,7 +40,6 @@ _main:
 	mov	x1,8
 	adrp	x15,.L32766@PAGE
 	add	x2,x15,.L32766+68@PAGEOFF
-	adrp	x15,.L32766@PAGE
 	add	x3,x15,.L32766+77@PAGEOFF
 	mov	x4,xzr
 	bl	_p_rewrite 
@@ -102,7 +101,6 @@ _main:
 	mov	x3,xzr
 	mov	x4,xzr
 	bl	_p_reset 
-	adrp	x26,.L32767@PAGE
 	str	x26,[x29,-40]
 .L3:
 # Line: 26, Stmt: 0

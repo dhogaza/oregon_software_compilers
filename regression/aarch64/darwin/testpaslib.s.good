@@ -187,7 +187,6 @@ _main:
 # Line: 37, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	add	x0,x15,.L32766+41@PAGEOFF
-	adrp	x15,.L32766@PAGE
 	add	x1,x15,.L32766+46@PAGEOFF
 	bl	_p_pos 
 	str	x0,[x29,-8]
@@ -203,7 +202,6 @@ _main:
 # Line: 38, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	add	x0,x15,.L32766+64@PAGEOFF
-	adrp	x15,.L32766@PAGE
 	add	x1,x15,.L32766+69@PAGEOFF
 	bl	_p_pos 
 	str	x0,[x29,-8]
@@ -219,7 +217,6 @@ _main:
 # Line: 39, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	add	x0,x15,.L32766+87@PAGEOFF
-	adrp	x15,.L32766@PAGE
 	add	x1,x15,.L32766+92@PAGEOFF
 	bl	_p_pos 
 	str	x0,[x29,-8]
@@ -235,7 +232,6 @@ _main:
 # Line: 40, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	add	x0,x15,.L32766+112@PAGEOFF
-	adrp	x15,.L32766@PAGE
 	add	x1,x15,.L32766+117@PAGEOFF
 	bl	_p_pos 
 	str	x0,[x29,-8]

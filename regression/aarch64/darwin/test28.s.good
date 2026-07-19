@@ -135,7 +135,6 @@ _main:
 	mov	x2,xzr
 	bl	.P4  // p1
 # Line: 72, Stmt: 0
-	adrp	x27,.L32767@PAGE
 	add	x0,x27,.L32767+26@PAGEOFF
 	mov	x1,xzr
 	mov	x2,1
@@ -151,7 +150,6 @@ _main:
 	mov	x2,1
 	bl	.P4  // p1
 # Line: 76, Stmt: 0
-	adrp	x27,.L32767@PAGE
 	add	x0,x27,.L32767+28@PAGEOFF
 	mov	x1,xzr
 	mov	x2,2
@@ -167,7 +165,6 @@ _main:
 	mov	x2,2
 	bl	.P4  // p1
 # Line: 80, Stmt: 0
-	adrp	x27,.L32767@PAGE
 	add	x0,x27,.L32767+32@PAGEOFF
 	mov	x1,xzr
 	mov	x2,3
@@ -183,7 +180,6 @@ _main:
 	mov	x2,3
 	bl	.P4  // p1
 # Line: 84, Stmt: 0
-	adrp	x27,.L32767@PAGE
 	add	x0,x27,.L32767+40@PAGEOFF
 	mov	x1,xzr
 	mov	x2,4
@@ -199,7 +195,6 @@ _main:
 	mov	x2,4
 	bl	.P4  // p1
 # Line: 88, Stmt: 0
-	adrp	x27,.L32767@PAGE
 	add	x0,x27,.L32767+48@PAGEOFF
 	mov	x1,xzr
 	mov	x2,5
@@ -215,7 +210,6 @@ _main:
 	mov	x2,5
 	bl	.P4  // p1
 # Line: 92, Stmt: 0
-	adrp	x27,.L32767@PAGE
 	add	x0,x27,.L32767+56@PAGEOFF
 	mov	x1,xzr
 	mov	x2,6
@@ -231,7 +225,6 @@ _main:
 	mov	x2,6
 	bl	.P4  // p1
 # Line: 96, Stmt: 0
-	adrp	x27,.L32767@PAGE
 	add	x0,x27,.L32767+64@PAGEOFF
 	mov	x1,xzr
 	mov	x2,7
@@ -247,7 +240,6 @@ _main:
 	mov	x2,7
 	bl	.P4  // p1
 # Line: 100, Stmt: 0
-	adrp	x27,.L32767@PAGE
 	add	x0,x27,.L32767+72@PAGEOFF
 	mov	x1,xzr
 	mov	x2,8
@@ -263,7 +255,6 @@ _main:
 	mov	x2,8
 	bl	.P4  // p1
 # Line: 104, Stmt: 0
-	adrp	x27,.L32767@PAGE
 	add	x0,x27,.L32767+88@PAGEOFF
 	mov	x1,xzr
 	mov	x2,9

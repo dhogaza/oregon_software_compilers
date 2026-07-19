@@ -58,7 +58,6 @@ _main:
 	mov	x1,1
 	adrp	x15,.L32766@PAGE
 	add	x2,x15,.L32766+58@PAGEOFF
-	adrp	x15,.L32766@PAGE
 	add	x3,x15,.L32766+67@PAGEOFF
 	mov	x4,xzr
 	bl	_p_rewrite 
@@ -151,7 +150,6 @@ _main:
 	mov	x3,xzr
 	mov	x4,xzr
 	bl	_p_reset 
-	adrp	x26,.L32767@PAGE
 	str	x26,[x29,-32]
 .L7:
 # Line: 31, Stmt: 0
@@ -328,7 +326,6 @@ _main:
 	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_delete 
 # Line: 71, Stmt: 0
-	adrp	x25,.L32766@PAGE
 	add	x0,x25,.L32766+237@PAGEOFF
 	mov	x1,23
 	mov	x2,x1

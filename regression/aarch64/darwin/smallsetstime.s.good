@@ -188,7 +188,6 @@ _main:
 	cmp	w14,w13
 	cset	w25,eq
 # Line: 58, Stmt: 0
-	adrp	x15,.L32767@PAGE
 	ldrb	w15,[x15,.L32767+24@PAGEOFF]
 	cmp	w15,w13
 	cset	w24,eq
@@ -214,7 +213,6 @@ _main:
 	mov	x15,18
 	ands	w16,w15,4
 	cset	w15,ne
-	adrp	x14,.L32767@PAGE
 	strb	w15,[x14,.L32767+53@PAGEOFF]
 	ldr	x14,[x29,-56]
 	ldr	x15,[x29,-80]

@@ -99,7 +99,6 @@ _main:
 	movk	x1,65535,lsl 16
 	adrp	x14,.L32766@PAGE
 	add	x2,x14,.L32766+60@PAGEOFF
-	adrp	x14,.L32766@PAGE
 	add	x3,x14,.L32766+69@PAGEOFF
 	mov	x4,xzr
 	bl	_p_rewrite 
@@ -144,7 +143,6 @@ _main:
 	mov	x3,xzr
 	mov	x4,xzr
 	bl	_p_reset 
-	adrp	x25,.L32767@PAGE
 .L16:
 # Line: 17, Stmt: 0
 	ldr	x15,[x25,.L32767+24@PAGEOFF]
@@ -840,7 +838,6 @@ _main:
 	bl	_p_reset 
 # Line: 141, Stmt: 0
 	add	x0,x25,.L32767+24@PAGEOFF
-	adrp	x24,.L32766@PAGE
 	add	x1,x24,.L32766+534@PAGEOFF
 	bl	_p_rename 
 # Line: 142, Stmt: 0
@@ -856,7 +853,6 @@ _main:
 	mov	x4,xzr
 	bl	_p_reset 
 # Line: 144, Stmt: 0
-	adrp	x25,.L32766@PAGE
 	add	x0,x25,.L32766+595@PAGEOFF
 	mov	x1,36
 	mov	x2,x1

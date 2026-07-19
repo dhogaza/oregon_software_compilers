@@ -273,7 +273,6 @@
 	stp	x16,x17,[x15],16
 # Line: 183, Stmt: 0
 	adrp	x15,.L32767@PAGE
-	adrp	x13,.L32766@PAGE
 	add	x14,x13,.L32766+249@PAGEOFF
 	add	x15,x15,.L32767+64@PAGEOFF
 	mov	x16,12
