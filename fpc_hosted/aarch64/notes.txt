@@ -72,6 +72,11 @@ if seeking value, wzr is replaced with a register.
 
 --- current work
 
+  -- scavenge flag in genadrp???  should replace register references in label
+     offset and the like to actually use the register in the found adrp
+
+  -- do getreg in genadrp when asked.
+
   -- intlevelrefs is not sufficient to determine if the static link register
      is required by a procedure or not.  Calling down to a local procedure
      that makes intlevelrefs requires we pass the proper static link value

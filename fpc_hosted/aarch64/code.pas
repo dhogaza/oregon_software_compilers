@@ -2577,21 +2577,22 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
             case regenoprnd.mode of
               dataref:
                 begin
-                genadrp(lastnode, false, t, settemp(long, regenoprnd));
-                if mode <> label_offset then
-                  if mode = register then
-                    gen2(lastnode,
-                         {AWFUL Free Pascal with statement bug requires this}
-                         ldrinst(len, keytable[k].signed), t,
-                         settemp(long,
-                         labeloffset_oprnd(reg, regenoprnd.labelno,
-                                           regenoprnd.labelownflag,
-                                           regenoprnd.externref, regenoprnd.labeloffset)))
-                  else
-                    gen2(lastnode, ldrinst(long, false), t,
-                         settemp(long,
-                         labeloffset_oprnd(reg, regenoprnd.labelno, regenoprnd.labelownflag,
-                                           regenoprnd.externref, regenoprnd.labeloffset)))
+                genadrp(lastnode, true, t, settemp(long, regenoprnd));
+                if mode = label_offset then
+                  reg := keytable[t].oprnd.reg
+                else if mode = register then
+                  gen2(lastnode,
+                       {AWFUL Free Pascal with statement bug requires this}
+                       ldrinst(len, keytable[k].signed), t,
+                       settemp(long,
+                       labeloffset_oprnd(reg, regenoprnd.labelno,
+                                         regenoprnd.labelownflag,
+                                         regenoprnd.externref, regenoprnd.labeloffset)))
+                else
+                  gen2(lastnode, ldrinst(long, false), t,
+                       settemp(long,
+                       labeloffset_oprnd(reg, regenoprnd.labelno, regenoprnd.labelownflag,
+                                         regenoprnd.externref, regenoprnd.labeloffset)))
                 end;
               abstract_offset:
                 gen2(lastnode, ldrinst(len, keytable[key].signed),
@@ -3288,7 +3289,7 @@ procedure genmoveaddress(var after: nodeptr; src, dst: keyindex);
         lock(dst);
         tempkey := settemp(long, reg_oprnd(getreg(false)));
         unlock(dst);
-        genadrp(lastnode, false, tempkey, src);
+        genadrp(lastnode, true, tempkey, src);
         keytable[src].oprnd.lowbits := true;
         gen3(lastnode, buildinst(add, true, false), dst, tempkey, src);
         keytable[src].oprnd.lowbits := false;
@@ -6079,7 +6080,7 @@ procedure blockexitx;
           begin
           gen2(p1, buildinst(mov, true, false), regkeys[ip1], regkeys[sp]);
           labelkey := settemp(long, dataref_oprnd(savesplabel, false, 0, false, libinitsp));
-          genadrp(p1, false, regkeys[ip0], labelkey);
+          genadrp(p1, true, regkeys[ip0], labelkey);
           keytable[labelkey].oprnd.lowbits := true;
           genstr(p1, long, regkeys[ip1],
                  settemp(long, labeloffset_oprnd(ip0, savesplabel, false, 0, libinitsp)));
