@@ -1261,7 +1261,7 @@ procedure genadrp(var after: nodeptr; scavenge: boolean; var regkey: keyindex;
     found: boolean;
     maskedoffset, labelno, labeloffset, externref:integer;
     labelownflag: boolean;
-    reg: regindex;
+    reg,r: regindex;
     clobberedregs: array [regindex] of boolean;
 
   begin {genadrp}
@@ -1272,18 +1272,17 @@ procedure genadrp(var after: nodeptr; scavenge: boolean; var regkey: keyindex;
     maskedoffset := labeloffset and $FFFFF000;
     p := after;
     found := false;
-    for reg := 0 to maxreg do clobberedregs[reg] := false;
+    for r := 0 to maxreg do clobberedregs[r] := false;
     reg := keytable[regkey].oprnd.reg;
 
     while not (found or
       (p^.kind in [labelnode, labeldeltanode, labelrefnode, proclabelnode]) or
-      (p^.kind = instnode) and
-      (p^.inst.inst in [b, bl, blr, br]) or
-      (p^.inst.inst <> adrp) and
-      (p^.oprnds[1].mode = register) and (p^.oprnds[1].reg = reg)) do
-      begin
+      (p^.kind = instnode) and (p^.inst.inst = b)) do
+        begin
         if (p^.kind = instnode) then
-          if (p^.inst.inst = adrp) and
+          if p^.inst.inst in [bl, blr, br] then
+            for r := 0 to pr do clobberedregs[r] := true
+          else if (p^.inst.inst = adrp) and
            (not clobberedregs[p^.oprnds[1].reg]) and
            (p^.oprnds[2].mode = dataref) and
            (p^.oprnds[2].labelno = labelno) and
@@ -1298,7 +1297,7 @@ procedure genadrp(var after: nodeptr; scavenge: boolean; var regkey: keyindex;
           else if (p^.oprnds[1].mode = register) then
             clobberedregs[p^.oprnds[1].reg] := true;
         p := p^.prevnode;
-      end;
+        end;
 
     if not found then
       gen2(after, buildinst(adrp, true, false), regkey, labelkey);
