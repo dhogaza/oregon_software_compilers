@@ -847,13 +847,12 @@ _main:
 	add	x0,x25,.L32767+24@PAGEOFF
 	movz	x1,65535
 	movk	x1,65535,lsl 16
-	adrp	x25,.L32766@PAGE
-	add	x2,x25,.L32766+564@PAGEOFF
+	add	x2,x24,.L32766+564@PAGEOFF
 	mov	x3,xzr
 	mov	x4,xzr
 	bl	_p_reset 
 # Line: 144, Stmt: 0
-	add	x0,x25,.L32766+595@PAGEOFF
+	add	x0,x24,.L32766+595@PAGEOFF
 	mov	x1,36
 	mov	x2,x1
 	bl	_p_wts_o 

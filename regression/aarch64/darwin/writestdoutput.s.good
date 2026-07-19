@@ -40,29 +40,28 @@ _main:
 	mov	w16,3
 	str	w16,[x15,.L32767+24@PAGEOFF]
 # Line: 12, Stmt: 0
-	adrp	x14,.L32767@PAGE
 	sub	x16,x29,8
-	add	x17,x14,.L32767+32@PAGEOFF
-	mov	x13,3
-	strb	w13,[x16],1
+	add	x17,x15,.L32767+32@PAGEOFF
+	mov	x14,3
+	strb	w14,[x16],1
 .L32764:
-	ldrb	w12,[x17],1
-	strb	w12,[x16],1
-	subs	x13,x13,1
-	cbnz	x13,.L32764
+	ldrb	w13,[x17],1
+	strb	w13,[x16],1
+	subs	x14,x14,1
+	cbnz	x14,.L32764
 	strb	wzr,[x16],1
-	sub	x13,x29,8
-	add	x12,x15,.L32767+40@PAGEOFF
-	ldrb	w16,[x13],1
-	strb	w16,[x12],1
+	sub	x14,x29,8
+	add	x13,x15,.L32767+40@PAGEOFF
+	ldrb	w16,[x14],1
+	strb	w16,[x13],1
 	cbz	x16,.L32763
 .L32762:
-	ldrb	w17,[x13],1
-	strb	w17,[x12],1
+	ldrb	w17,[x14],1
+	strb	w17,[x13],1
 	subs	x16,x16,1
 	cbnz	x16,.L32762
 .L32763:
-	strb	wzr,[x12],1
+	strb	wzr,[x13],1
 # Line: 13, Stmt: 0
 	mov	x0,97
 	mov	x1,3

@@ -334,8 +334,7 @@ _main:
 # Line: 73, Stmt: 0
 	add	x0,x26,.L32767+24@PAGEOFF
 	mov	x1,1
-	adrp	x26,.L32766@PAGE
-	add	x2,x26,.L32766+261@PAGEOFF
+	add	x2,x25,.L32766+261@PAGEOFF
 	mov	x3,xzr
 	mov	x4,xzr
 	bl	_p_reset 

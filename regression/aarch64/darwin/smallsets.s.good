@@ -93,22 +93,21 @@
 	mov	x13,1
 	lsl	w13,w13,w0
 	orr	w15,w15,w13
-	adrp	x13,.L32767@PAGE
-	strb	w15,[x13,.L32767+24@PAGEOFF]
+	strb	w15,[x14,.L32767+24@PAGEOFF]
 # Line: 20, Stmt: 0
 	mov	x15,128
-	ldrb	w11,[x14,.L32767+26@PAGEOFF]
-	ldrb	w10,[x14,.L32767+27@PAGEOFF]
+	ldrb	w12,[x14,.L32767+26@PAGEOFF]
+	ldrb	w11,[x14,.L32767+27@PAGEOFF]
 .L32762:
-	cmp	w11,w10
+	cmp	w12,w11
 	b.hi	.L32761
-	mov	x12,1
-	lsl	w12,w12,w11
-	orr	w15,w15,w12
-	add	w11,w11,1
+	mov	x13,1
+	lsl	w13,w13,w12
+	orr	w15,w15,w13
+	add	w12,w12,1
 	b	.L32762
 .L32761:
-	strb	w15,[x13,.L32767+25@PAGEOFF]
+	strb	w15,[x14,.L32767+25@PAGEOFF]
 .L3:
 	ldp	x30,x29,[sp],16
 	ret
@@ -235,10 +234,9 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32767@PAGE
-	adrp	x14,.L32767@PAGE
-	ldrb	w15,[x15,.L32767+25@PAGEOFF]
-	ldrb	w13,[x14,.L32767+27@PAGEOFF]
-	lsr	w16,w15,w13
+	ldrb	w14,[x15,.L32767+25@PAGEOFF]
+	ldrb	w13,[x15,.L32767+27@PAGEOFF]
+	lsr	w16,w14,w13
 	ands	w16,w16,1
 	cset	w0,ne
 	mov	x1,5
@@ -295,8 +293,7 @@ _main:
 	bl	_p_wts_o 
 # Line: 51, Stmt: 0
 	adrp	x15,.L32767@PAGE
-	adrp	x14,.L32767@PAGE
-	ldrb	w14,[x14,.L32767+24@PAGEOFF]
+	ldrb	w14,[x15,.L32767+24@PAGEOFF]
 	ldrb	w15,[x15,.L32767+25@PAGEOFF]
 	orr	w0,w14,w15
 	bl	.P3  // putnumset
@@ -308,8 +305,7 @@ _main:
 	bl	_p_wts_o 
 # Line: 52, Stmt: 0
 	adrp	x15,.L32767@PAGE
-	adrp	x14,.L32767@PAGE
-	ldrb	w14,[x14,.L32767+24@PAGEOFF]
+	ldrb	w14,[x15,.L32767+24@PAGEOFF]
 	ldrb	w15,[x15,.L32767+25@PAGEOFF]
 	and	w0,w14,w15
 	bl	.P3  // putnumset
@@ -321,8 +317,7 @@ _main:
 	bl	_p_wts_o 
 # Line: 53, Stmt: 0
 	adrp	x15,.L32767@PAGE
-	adrp	x14,.L32767@PAGE
-	ldrb	w14,[x14,.L32767+24@PAGEOFF]
+	ldrb	w14,[x15,.L32767+24@PAGEOFF]
 	ldrb	w15,[x15,.L32767+25@PAGEOFF]
 	bic	w0,w14,w15
 	bl	.P3  // putnumset
@@ -353,8 +348,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32767@PAGE
-	adrp	x14,.L32767@PAGE
-	ldrh	w14,[x14,.L32767+30@PAGEOFF]
+	ldrh	w14,[x15,.L32767+30@PAGEOFF]
 	ldrh	w15,[x15,.L32767+32@PAGEOFF]
 	cmp	w14,w15
 	cset	w0,eq
@@ -368,8 +362,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32767@PAGE
-	adrp	x14,.L32767@PAGE
-	ldrh	w14,[x14,.L32767+30@PAGEOFF]
+	ldrh	w14,[x15,.L32767+30@PAGEOFF]
 	ldrh	w15,[x15,.L32767+32@PAGEOFF]
 	cmp	w14,w15
 	cset	w0,eq
@@ -411,10 +404,9 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x15,.L32767@PAGE
-	adrp	x14,.L32767@PAGE
-	ldrh	w15,[x15,.L32767+32@PAGEOFF]
-	ldrb	w14,[x14,.L32767+29@PAGEOFF]
-	lsr	w16,w15,w14
+	ldrh	w14,[x15,.L32767+32@PAGEOFF]
+	ldrb	w15,[x15,.L32767+29@PAGEOFF]
+	lsr	w16,w14,w15
 	ands	w16,w16,1
 	cset	w0,ne
 	mov	x1,5

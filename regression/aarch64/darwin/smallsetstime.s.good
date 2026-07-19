@@ -60,22 +60,21 @@
 	mov	x13,1
 	lsl	w13,w13,w0
 	orr	w15,w15,w13
-	adrp	x13,.L32767@PAGE
-	strb	w15,[x13,.L32767+24@PAGEOFF]
+	strb	w15,[x14,.L32767+24@PAGEOFF]
 # Line: 26, Stmt: 0
 	mov	x15,128
-	ldrb	w11,[x14,.L32767+26@PAGEOFF]
-	ldrb	w10,[x14,.L32767+27@PAGEOFF]
+	ldrb	w12,[x14,.L32767+26@PAGEOFF]
+	ldrb	w11,[x14,.L32767+27@PAGEOFF]
 .L32762:
-	cmp	w11,w10
+	cmp	w12,w11
 	b.hi	.L32761
-	mov	x12,1
-	lsl	w12,w12,w11
-	orr	w15,w15,w12
-	add	w11,w11,1
+	mov	x13,1
+	lsl	w13,w13,w12
+	orr	w15,w15,w13
+	add	w12,w12,1
 	b	.L32762
 .L32761:
-	strb	w15,[x13,.L32767+25@PAGEOFF]
+	strb	w15,[x14,.L32767+25@PAGEOFF]
 .L3:
 	ldp	x30,x29,[sp],16
 	ret
@@ -182,8 +181,7 @@ _main:
 	bl	.P4  // putalphaset
 # Line: 57, Stmt: 0
 	adrp	x15,.L32767@PAGE
-	adrp	x14,.L32767@PAGE
-	ldrb	w14,[x14,.L32767+24@PAGEOFF]
+	ldrb	w14,[x15,.L32767+24@PAGEOFF]
 	ldrb	w13,[x15,.L32767+25@PAGEOFF]
 	cmp	w14,w13
 	cset	w25,eq

@@ -1837,8 +1837,7 @@
 .L119:
 # Line: 475, Stmt: 0
 	adrp	x15,.L32767@PAGE
-	adrp	x14,.L32767@PAGE
-	add	x13,x14,.L32767+688@PAGEOFF
+	add	x13,x15,.L32767+688@PAGEOFF
 	add	x12,x15,.L32767+720@PAGEOFF
 	sub	x11,x29,56
 	ldp	x16,x17,[x13],16
