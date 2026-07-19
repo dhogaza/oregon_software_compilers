@@ -1276,7 +1276,7 @@ procedure genadrp(var after: nodeptr; scavenge: boolean; var regkey: keyindex;
     reg := keytable[regkey].oprnd.reg;
 
     while not (found or
-      (p^.kind in [labelnode, labeldeltanode, labelrefnode, proclabelnode]) do
+      (p^.kind in [labelnode, labeldeltanode, labelrefnode, proclabelnode])) do
       begin
       if (p^.kind = instnode) then
         if p^.inst.inst in [bl, blr, br] then
