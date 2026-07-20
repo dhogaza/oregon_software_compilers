@@ -1244,65 +1244,6 @@ procedure gen4(var after: nodeptr; i: insttype;
     gen4p(after, i, o1, o2, o3, o4);
   end {gen4} ;
 
-procedure genadrp(var after: nodeptr; scavenge: boolean; var regkey: keyindex;
-                  labelkey: keyindex);
-
-{ Generate an adrp intruction or if possible, reuse the result of a previous adrp
-  instruction.
-
-  If scavenge is true, we will reuse a previous adrp to any register, while if
-  false, we will only reuse a previous adrp to the regkey register, because the
-  result has to be in that register for loop register restoration and the
-  like, so we'd have to generate a "mov regkey reg, found reg" anyway, which is
-  no faster than an adp instruction.
-}
-
-  var p: nodeptr;
-    found: boolean;
-    maskedoffset, labelno, labeloffset, externref:integer;
-    labelownflag: boolean;
-    reg,r: regindex;
-    clobberedregs: array [regindex] of boolean;
-
-  begin {genadrp}
-    labelno := keytable[labelkey].oprnd.labelno;
-    labeloffset := keytable[labelkey].oprnd.labeloffset;
-    labelownflag := keytable[labelkey].oprnd.labelownflag;
-    externref := keytable[labelkey].oprnd.externref;
-    maskedoffset := labeloffset and $FFFFF000;
-    p := after;
-    found := false;
-    for r := 0 to maxreg do clobberedregs[r] := false;
-    reg := keytable[regkey].oprnd.reg;
-
-    while not (found or
-      (p^.kind in [labelnode, labeldeltanode, labelrefnode, proclabelnode])) do
-      begin
-      if (p^.kind = instnode) then
-        if p^.inst.inst in [bl, blr, br] then
-          for r := 0 to pr do clobberedregs[r] := true
-        else if (p^.inst.inst = adrp) and
-         (not clobberedregs[p^.oprnds[1].reg]) and
-         (p^.oprnds[2].mode = dataref) and
-         (p^.oprnds[2].labelno = labelno) and
-         (p^.oprnds[2].labelownflag = labelownflag) and
-         (p^.oprnds[2].externref = externref) and
-         (p^.oprnds[2].labeloffset and $FFFFF000 = maskedoffset) and
-         (scavenge or (p^.oprnds[1].reg = reg)) then
-          begin
-          found := true;
-          keytable[regkey].oprnd.reg := p^.oprnds[1].reg;
-          end
-        else if (p^.oprnds[1].mode = register) then
-          clobberedregs[p^.oprnds[1].reg] := true;
-      p := p^.prevnode;
-      end;
-
-    if not found then
-      gen2(after, buildinst(adrp, true, false), regkey, labelkey);
-
-  end {genadrp};
-
 procedure genbr(var after: nodeptr; inst: insts; labelno: integer);
 
   begin {genbr}
@@ -2326,6 +2267,72 @@ var
     getsafereg := r;
   end {getsafereg} ;
 
+procedure genadrp(var after: nodeptr; prefersafereg: boolean;
+                  var regkey: keyindex; labelkey: keyindex);
+
+{ Generate an adrp intruction or if possible, reuse the result of a previous adrp
+  instruction.
+
+  If regkey register is norege, we will reuse a previous adrp to any register, while
+  if false, we will only reuse a previous adrp to the regkey register, because the
+  result has to be in that register for loop register restoration and the
+  like, so we'd have to generate a "mov regkey reg, found reg" anyway, which is
+  no faster than an adp instruction.
+
+  If no suitable previous adrp instruction is found, we'll allocate a new register
+  and issue an adrp instruction to it.  Prefersafereg allows the caller to ask for
+  a callee-saved register, if possible.
+}
+
+  var p: nodeptr;
+    found, labelownflag, scavenge: boolean;
+    maskedoffset, labelno, labeloffset, externref:integer;
+    reg,r: regindex;
+    clobberedregs: array [regindex] of boolean;
+
+  begin {genadrp}
+    scavenge := keytable[regkey].oprnd.reg = noreg;
+    labelno := keytable[labelkey].oprnd.labelno;
+    labeloffset := keytable[labelkey].oprnd.labeloffset;
+    labelownflag := keytable[labelkey].oprnd.labelownflag;
+    externref := keytable[labelkey].oprnd.externref;
+    maskedoffset := labeloffset and $FFFFF000;
+    p := after;
+    found := false;
+    for r := 0 to maxreg do clobberedregs[r] := false;
+    reg := keytable[regkey].oprnd.reg;
+
+    while not (found or
+      (p^.kind in [labelnode, labeldeltanode, labelrefnode, proclabelnode])) do
+      begin
+      if (p^.kind = instnode) then
+        if p^.inst.inst in [bl, blr, br] then
+          for r := 0 to pr do clobberedregs[r] := true
+        else if (p^.inst.inst = adrp) and
+         (not clobberedregs[p^.oprnds[1].reg]) and
+         (p^.oprnds[2].mode = dataref) and
+         (p^.oprnds[2].labelno = labelno) and
+         (p^.oprnds[2].labelownflag = labelownflag) and
+         (p^.oprnds[2].externref = externref) and
+         (p^.oprnds[2].labeloffset and $FFFFF000 = maskedoffset) and
+         (scavenge or (p^.oprnds[1].reg = reg)) then
+          begin
+          found := true;
+          keytable[regkey].oprnd.reg := p^.oprnds[1].reg;
+          end
+        else if (p^.oprnds[1].mode = register) then
+          clobberedregs[p^.oprnds[1].reg] := true;
+      p := p^.prevnode;
+      end;
+
+    if not found then
+      begin
+      if keytable[regkey].oprnd.reg = noreg then
+        keytable[regkey].oprnd.reg := getreg(prefersafereg);
+      gen2(after, buildinst(adrp, true, false), regkey, labelkey);
+      end;
+
+  end {genadrp};
 
 {various keytable manipulation routines}
 
@@ -2519,7 +2526,7 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
 
   var
     restorereg, restorereg2: boolean;
-    i,t, t1: keyindex;
+    i, t, t1: keyindex;
     found: boolean;
     recallkey: keyindex;
 
@@ -2565,44 +2572,49 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
           with lastnode^ do
             if (kind = instnode) and (inst.inst = str) and (oprnds[1].reg = reg) then
               restorereg := false;
-          end
-        else
-          reg := getreg(false);
+          end;
 
         if restorereg then
           begin
-          t := settemp(long, reg_oprnd(reg));
-          if {(mode = register) and }(regenoprnd.mode <> nomode) then
+          if regenoprnd.mode <> nomode then
             case regenoprnd.mode of
               dataref:
                 begin
-                genadrp(lastnode, true, t, settemp(long, regenoprnd));
+                t := settemp(long, reg_oprnd(noreg));
+                t1 := settemp(long, reg_oprnd(reg));
+                genadrp(lastnode, false, t, settemp(long, regenoprnd));
                 if mode = label_offset then
                   reg := keytable[t].oprnd.reg
                 else if mode = register then
                   gen2(lastnode,
                        {AWFUL Free Pascal with statement bug requires this}
-                       ldrinst(len, keytable[k].signed), t,
+                       ldrinst(len, keytable[k].signed), t1,
                        settemp(long,
-                       labeloffset_oprnd(reg, regenoprnd.labelno,
+                       labeloffset_oprnd(keytable[t].oprnd.reg, regenoprnd.labelno,
                                          regenoprnd.labelownflag,
                                          regenoprnd.externref, regenoprnd.labeloffset)))
                 else
-                  gen2(lastnode, ldrinst(long, false), t,
+                  gen2(lastnode, ldrinst(long, false), t1,
                        settemp(long,
-                       labeloffset_oprnd(reg, regenoprnd.labelno, regenoprnd.labelownflag,
+                       labeloffset_oprnd(keytable[t].oprnd.reg, regenoprnd.labelno, regenoprnd.labelownflag,
                                          regenoprnd.externref, regenoprnd.labeloffset)))
                 end;
               abstract_offset:
+                begin
+                t := settemp(long, reg_oprnd(getreg(false)));
                 gen2(lastnode, ldrinst(len, keytable[key].signed),
                        t, settemp(len, regenoprnd));
+                end;
               otherwise writeln('bad regenoprnd ', regenoprnd.mode);
             end
           else
             begin
+            reg := getreg(false);
             recall_reg(reg, properreg);
             keytable[properreg].tempflag := true;
-            gen2(lastnode, buildinst(ldr, true, false), t, properreg);
+            gen2(lastnode, buildinst(ldr, true, false),
+                 settemp(long, reg_oprnd(reg)),
+                 properreg);
             end;
           end;
         end;
@@ -2621,10 +2633,6 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
       reg2valid := true;
       joinreg := false;
       joinreg2 := false;
-{
-      regsaved := regsaved and keytable[properreg].validtemp;
-      reg2saved := reg2saved and keytable[properreg2].validtemp;
-}
       adjustregcount(k, refcount);
       end;
   end {makeaddressable} ;
@@ -3286,9 +3294,9 @@ procedure genmoveaddress(var after: nodeptr; src, dst: keyindex);
           machine.
         }
         lock(dst);
-        tempkey := settemp(long, reg_oprnd(getreg(false)));
+        tempkey := settemp(long, reg_oprnd(noreg));
+        genadrp(lastnode, false, tempkey, src);
         unlock(dst);
-        genadrp(lastnode, true, tempkey, src);
         keytable[src].oprnd.lowbits := true;
         gen3(lastnode, buildinst(add, true, false), dst, tempkey, src);
         keytable[src].oprnd.lowbits := false;
@@ -6079,7 +6087,7 @@ procedure blockexitx;
           begin
           gen2(p1, buildinst(mov, true, false), regkeys[ip1], regkeys[sp]);
           labelkey := settemp(long, dataref_oprnd(savesplabel, false, 0, false, libinitsp));
-          genadrp(p1, true, regkeys[ip0], labelkey);
+          genadrp(p1, false, regkeys[ip0], labelkey);
           keytable[labelkey].oprnd.lowbits := true;
           genstr(p1, long, regkeys[ip1],
                  settemp(long, labeloffset_oprnd(ip0, savesplabel, false, 0, libinitsp)));
@@ -6221,8 +6229,11 @@ procedure regtargetx;
     if len < 0 then
       begin
       setvalue(tworeg_oprnd(pseudoinst.oprnds[1], pseudoinst.oprnds[1] + 1));
-      markreg(pseudoinst.oprnds[1]);
-      markreg(pseudoinst.oprnds[1] + 1);
+      if pseudoinst.oprnds[3] = 0 then
+        begin
+        markreg(pseudoinst.oprnds[1]);
+        markreg(pseudoinst.oprnds[1] + 1);
+        end;
       regused[pseudoinst.oprnds[1]] := true;
       regused[pseudoinst.oprnds[1] + 1] := true;
       if pseudoinst.oprnds[1] >= firstreg then
@@ -6230,7 +6241,8 @@ procedure regtargetx;
       end
     else
       begin
-      markreg(pseudoinst.oprnds[1]);
+      if pseudoinst.oprnds[3] = 0 then
+        markreg(pseudoinst.oprnds[1]);
       setvalue(reg_oprnd(pseudoinst.oprnds[1]));
       regused[pseudoinst.oprnds[1]] := true;
       if pseudoinst.oprnds[1] >= firstreg then
@@ -6378,7 +6390,7 @@ procedure pshprocx;
     if proctable[pseudoinst.oprnds[2]].externallinkage then
       begin
       procrefkey := settemp(long, procref_oprnd(extprocref, pseudoinst.oprnds[2], false));
-      genadrp(lastnode, true, regkeys[ip0], procrefkey);
+      genadrp(lastnode, false, regkeys[ip0], procrefkey);
       keytable[procrefkey].oprnd.proclowbits := true;
       gen3(lastnode, buildinst(add, true, false), regkeys[ip0], regkeys[ip0], procrefkey);
       end
@@ -7027,7 +7039,6 @@ procedure indxx;
       end
     else
       begin
-      prefersafereg := keytable[key].refcount > assigninitialpenalty;
       address(left, 0);
 
       case keytable[left].oprnd.mode of
@@ -7037,13 +7048,14 @@ procedure indxx;
            Need to study clang output.
           }
           begin
-          prefersafereg := keytable[key].refcount > assigninitialpenalty;
-          newkey := settemp(long, reg_oprnd(getreg(prefersafereg)));
+          prefersafereg := keytable[key].refcount + keytable[left].refcount - 1 >
+                           assigninitialpenalty;
+          newkey := settemp(long, reg_oprnd(noreg));
           labelkey := settemp(long,keytable[left].oprnd);
           with keytable[labelkey].oprnd do
             labeloffset := labeloffset + pseudoinst.oprnds[2];
           keytable[key].regenoprnd := keytable[labelkey].oprnd;
-          genadrp(lastnode, true, newkey, labelkey);
+          genadrp(lastnode, prefersafereg, newkey, labelkey);
           keytable[labelkey].oprnd.lowbits := true;
           setvalue(labeloffset_oprnd(keytable[newkey].oprnd.reg,
                      keytable[labelkey].oprnd.labelno,
@@ -7452,7 +7464,7 @@ begin {casebranchx}
   addressreg := getreg(false);
   addresskey := settemp(long, reg_oprnd(addressreg));
   t1 := settemp(long, dataref_oprnd(tablelabel, false, 0, false, 0));
-  genadrp(lastnode, true, addresskey, t1);
+  genadrp(lastnode, false, addresskey, t1);
   keytable[t1].oprnd.lowbits := true;
   gen3(lastnode, buildinst(add, true, false), addresskey, addresskey, t1);
 
@@ -7628,10 +7640,11 @@ procedure pascallabelx;
         begin
         { restore from the initial value saved at program start}
         labelkey := settemp(long, dataref_oprnd(savesplabel, false, 0, false, libinitsp));
-        genadrp(lastnode, true, regkeys[ip0], labelkey);
+        genadrp(lastnode, false, regkeys[ip0], labelkey);
         keytable[labelkey].oprnd.lowbits := true;
         genldr(lastnode, long, false, regkeys[ip1],
-               settemp(long, labeloffset_oprnd(ip0, savesplabel, false, 0, libinitsp)));
+               settemp(long,
+                 labeloffset_oprnd(ip0, savesplabel, false, 0, libinitsp)));
         gen2(lastnode, buildinst(mov, true, false), regkeys[sp], regkeys[ip1]);
         gen3(lastnode, buildinst(add, true, false), regkeys[fp], regkeys[sp], stackoffsetkey);
         end

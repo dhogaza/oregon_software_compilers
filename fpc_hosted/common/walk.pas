@@ -1575,7 +1575,8 @@ with target = 0.
     procedure regreturnnode(psop: pseudoop; form: types {operand form});
 
 { Walk and generate code for a node which returns a function node in
-  a register.
+  a register.  The third operand is emitted as one to let the code
+  generator know it's a function return value.
 
   DRB
 
@@ -1590,7 +1591,7 @@ with target = 0.
       begin {regreturnnode}
         walkvalue(l, lkey, key);
         mapkey;
-        genpseudo(psop, len, key, 1, 0, r, 0, 0);
+        genpseudo(psop, len, key, 1, 0, r, 0, 1);
         tk := newkey;
         context[contextsp].high := tk;
         keytable[tk] := 0;
