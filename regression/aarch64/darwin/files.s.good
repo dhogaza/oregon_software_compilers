@@ -53,41 +53,37 @@ _main:
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
 # Line: 8, Stmt: 0
-	adrp	x15,.L32767@PAGE
-	add	x0,x15,.L32767+24@PAGEOFF
+	adrp	x26,.L32767@PAGE
+	add	x0,x26,.L32767+24@PAGEOFF
 	mov	x1,1
-	adrp	x15,.L32766@PAGE
-	add	x2,x15,.L32766+58@PAGEOFF
-	add	x3,x15,.L32766+67@PAGEOFF
+	adrp	x26,.L32766@PAGE
+	add	x2,x26,.L32766+58@PAGEOFF
+	add	x3,x26,.L32766+67@PAGEOFF
 	mov	x4,xzr
 	bl	_p_rewrite 
-	adrp	x15,.L32767@PAGE
+	adrp	x26,.L32767@PAGE
 # Line: 10, Stmt: 0
 	mov	x27,97
 .L11:
-	str	x15,[x29,-32]
 # Line: 12, Stmt: 0
-	ldr	x14,[x15,.L32767+24@PAGEOFF]
-	ldr	x14,[x14]
-	strb	w27,[x14]
+	ldr	x15,[x26,.L32767+24@PAGEOFF]
+	ldr	x15,[x15]
+	strb	w27,[x15]
 # Line: 13, Stmt: 0
-	add	x0,x15,.L32767+24@PAGEOFF
+	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_put 
-	ldr	x15,[x29,-32]
 	add	w27,w27,1
 	cmp	w27,122
 	b.ls	.L11
 .L12:
 # Line: 15, Stmt: 0
-	adrp	x15,.L32767@PAGE
-	add	x0,x15,.L32767+24@PAGEOFF
+	adrp	x26,.L32767@PAGE
+	add	x0,x26,.L32767+24@PAGEOFF
 	mov	x1,1
 	mov	x2,xzr
 	mov	x3,xzr
 	mov	x4,xzr
 	bl	_p_reset 
-	adrp	x26,.L32767@PAGE
-	str	x26,[x29,-32]
 .L9:
 # Line: 16, Stmt: 0
 	ldr	x15,[x26,.L32767+24@PAGEOFF]
@@ -130,7 +126,6 @@ _main:
 # Line: 25, Stmt: 0
 	mov	x27,122
 .L15:
-	str	x26,[x29,-32]
 # Line: 27, Stmt: 0
 	ldr	x15,[x26,.L32767+24@PAGEOFF]
 	ldr	x15,[x15]
@@ -150,7 +145,6 @@ _main:
 	mov	x3,xzr
 	mov	x4,xzr
 	bl	_p_reset 
-	str	x26,[x29,-32]
 .L7:
 # Line: 31, Stmt: 0
 	ldr	x15,[x26,.L32767+24@PAGEOFF]
@@ -202,7 +196,6 @@ _main:
 	mov	x4,xzr
 	bl	_p_reset 
 	adrp	x26,.L32767@PAGE
-	str	x26,[x29,-32]
 .L6:
 # Line: 43, Stmt: 0
 	ldr	x15,[x26,.L32767+24@PAGEOFF]
@@ -239,7 +232,6 @@ _main:
 	mov	x1,4
 	bl	_p_seek 
 	adrp	x26,.L32767@PAGE
-	str	x26,[x29,-32]
 .L5:
 # Line: 52, Stmt: 0
 	ldr	x15,[x26,.L32767+24@PAGEOFF]
@@ -279,7 +271,6 @@ _main:
 	mov	x4,xzr
 	bl	_p_reset 
 	adrp	x26,.L32767@PAGE
-	str	x26,[x29,-32]
 .L4:
 # Line: 61, Stmt: 0
 	ldr	x15,[x26,.L32767+24@PAGEOFF]
@@ -339,7 +330,6 @@ _main:
 	mov	x4,xzr
 	bl	_p_reset 
 	adrp	x26,.L32767@PAGE
-	str	x26,[x29,-32]
 .L3:
 # Line: 74, Stmt: 0
 	ldr	x25,[x26,.L32767+24@PAGEOFF]

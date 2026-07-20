@@ -35,49 +35,47 @@ _main:
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
 # Line: 15, Stmt: 0
-	adrp	x15,.L32767@PAGE
-	add	x0,x15,.L32767+24@PAGEOFF
+	adrp	x26,.L32767@PAGE
+	add	x0,x26,.L32767+24@PAGEOFF
 	mov	x1,8
-	adrp	x15,.L32766@PAGE
-	add	x2,x15,.L32766+68@PAGEOFF
-	add	x3,x15,.L32766+77@PAGEOFF
+	adrp	x26,.L32766@PAGE
+	add	x2,x26,.L32766+68@PAGEOFF
+	add	x3,x26,.L32766+77@PAGEOFF
 	mov	x4,xzr
 	bl	_p_rewrite 
-	adrp	x15,.L32767@PAGE
-	add	x14,x15,.L32767+24@PAGEOFF
+	adrp	x26,.L32767@PAGE
+	add	x15,x26,.L32767+24@PAGEOFF
 # Line: 17, Stmt: 0
-	str	x14,[x29,-40]
+	str	x15,[x29,-40]
 	mov	x27,48
 .L5:
-	str	x15,[x29,-48]
 # Line: 19, Stmt: 0
-	strb	w27,[x15,.L32767+32@PAGEOFF]
+	strb	w27,[x26,.L32767+32@PAGEOFF]
 # Line: 20, Stmt: 0
-	str	w27,[x15,.L32767+36@PAGEOFF]
+	str	w27,[x26,.L32767+36@PAGEOFF]
 # Line: 21, Stmt: 0
 	mov	w16,97
-	strb	w16,[x15,.L32767+40@PAGEOFF]
+	strb	w16,[x26,.L32767+40@PAGEOFF]
 # Line: 22, Stmt: 0
 	mov	w16,5
-	str	w16,[x15,.L32767+44@PAGEOFF]
+	str	w16,[x26,.L32767+44@PAGEOFF]
 # Line: 23, Stmt: 0
-	mov	x26,x14
-	ldr	x13,[x26]
-	ldr	x13,[x13]
-	add	x12,x15,.L32767+32@PAGEOFF
-	add	x13,x13,xzr
+	mov	x25,x15
+	ldr	x14,[x25]
+	ldr	x14,[x14]
+	add	x13,x26,.L32767+32@PAGEOFF
+	add	x14,x14,xzr
 	mov	x16,8
 .L32764:
-	ldrb	w17,[x12],1
-	strb	w17,[x13],1
+	ldrb	w17,[x13],1
+	strb	w17,[x14],1
 	subs	x16,x16,1
 	cbnz	x16,.L32764
-	mov	x0,x26
+	mov	x0,x25
 	bl	_p_put 
-	ldr	x15,[x26]
+	ldr	x15,[x25]
 	ldr	x15,[x15]
-	adrp	x14,.L32767@PAGE
-	add	x14,x14,.L32767+40@PAGEOFF
+	add	x14,x26,.L32767+40@PAGEOFF
 	add	x15,x15,xzr
 	mov	x16,8
 .L32763:
@@ -85,10 +83,9 @@ _main:
 	strb	w17,[x15],1
 	subs	x16,x16,1
 	cbnz	x16,.L32763
-	mov	x0,x26
+	mov	x0,x25
 	bl	_p_put 
-	ldr	x14,[x29,-40]
-	ldr	x15,[x29,-48]
+	ldr	x15,[x29,-40]
 	add	w27,w27,1
 	cmp	w27,57
 	b.ls	.L5
@@ -112,17 +109,17 @@ _main:
 	bl	_p_define 
 .L32762:
 	ldr	x15,[x29,-48]
-	ldr	x14,[x15,8]
-	ands	wzr,w14,2
+	ldr	x15,[x15,8]
+	ands	wzr,w15,2
 	b.ne	.L7
 .L8:
 # Line: 28, Stmt: 0
-	add	x14,x26,.L32767+24@PAGEOFF
-	mov	x24,x14
-	ldr	x14,[x24]
-	str	x14,[x29,-56]
-	ldr	x13,[x14,8]
-	tbnz	x13,0,.L32761
+	add	x15,x26,.L32767+24@PAGEOFF
+	mov	x24,x15
+	ldr	x15,[x24]
+	str	x15,[x29,-56]
+	ldr	x14,[x15,8]
+	tbnz	x14,0,.L32761
 	add	x0,x24,xzr
 	bl	_p_define 
 .L32761:

@@ -745,7 +745,8 @@ putcharln:
 	mov	x0,63
 	bl	_putchar
 # Line: 77, Stmt: 0
-	ldr	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	bl	_putchar
 	b	.L96
 .L96:

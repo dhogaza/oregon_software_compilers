@@ -220,6 +220,7 @@ _main:
 	stp	x30,x29,[sp,32]
 	add	x29,sp,32
 	stp	x26,x27,[x29,-16]
+	str	x25,[x29,-24]
 	bl	_p_initio 
 # Line: 94, Stmt: 1
 # Line: 95, Stmt: 0
@@ -234,12 +235,11 @@ _main:
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 # Line: 96, Stmt: 0
-	adrp	x15,.L32767@PAGE
-	add	x0,x15,.L32767+32@PAGEOFF
+	adrp	x25,.L32767@PAGE
+	add	x0,x25,.L32767+32@PAGEOFF
 	bl	.P1  // initarray
 # Line: 97, Stmt: 0
-	adrp	x15,.L32767@PAGE
-	add	x0,x15,.L32767+32@PAGEOFF
+	add	x0,x25,.L32767+32@PAGEOFF
 	bl	.P2  // quicksort
 # Line: 98, Stmt: 0
 	mov	x26,1
@@ -254,22 +254,22 @@ _main:
 	b.gt	.L27
 .L28:
 # Line: 102, Stmt: 0
-	adrp	x14,.L32767@PAGE
-	add	x15,x14,.L32767@PAGEOFF
-	add	x14,x15,w27, sxtw 2
-	add	x15,x15,w27, sxtw 2
-	ldrsw	x14,[x14,28]
-	ldrsw	x15,[x15,24]
-	cmp	w14,w15
-	cset	w15,ge
-	mov	x26,x15
+	adrp	x15,.L32767@PAGE
+	add	x25,x15,.L32767@PAGEOFF
+	add	x15,x25,w27, sxtw 2
+	add	x25,x25,w27, sxtw 2
+	ldrsw	x15,[x15,28]
+	ldrsw	x25,[x25,24]
+	cmp	w15,w25
+	cset	w25,ge
+	mov	x26,x25
 # Line: 103, Stmt: 0
 	add	w27,w27,1
 	b	.L26
 .L27:
 # Line: 105, Stmt: 0
-	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+11@PAGEOFF
+	adrp	x25,.L32766@PAGE
+	add	x0,x25,.L32766+11@PAGEOFF
 	mov	x1,19
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -279,6 +279,7 @@ _main:
 	bl	_p_wtln_o 
 .L25:
 	ldp	x26,x27,[x29,-16]
+	ldr	x25,[x29,-24]
 	ldp	x30,x29,[sp,32]
 	add	sp,sp,48
 	ret

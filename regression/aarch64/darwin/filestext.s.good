@@ -93,21 +93,20 @@ _main:
 # Line: 11, Stmt: 0
 	bl	_p_wtln_o 
 # Line: 12, Stmt: 0
-	adrp	x15,.L32767@PAGE
-	add	x0,x15,.L32767+24@PAGEOFF
+	adrp	x25,.L32767@PAGE
+	add	x0,x25,.L32767+24@PAGEOFF
 	movz	x1,65535
 	movk	x1,65535,lsl 16
-	adrp	x14,.L32766@PAGE
-	add	x2,x14,.L32766+60@PAGEOFF
-	add	x3,x14,.L32766+69@PAGEOFF
+	adrp	x15,.L32766@PAGE
+	add	x2,x15,.L32766+60@PAGEOFF
+	add	x3,x15,.L32766+69@PAGEOFF
 	mov	x4,xzr
 	bl	_p_rewrite 
 # Line: 13, Stmt: 0
-	adrp	x15,.L32767@PAGE
-	add	x14,x15,.L32767+24@PAGEOFF
-	mov	x25,x14
-	adrp	x14,.L32766@PAGE
-	add	x1,x14,.L32766+75@PAGEOFF
+	add	x15,x25,.L32767+24@PAGEOFF
+	mov	x25,x15
+	adrp	x15,.L32766@PAGE
+	add	x1,x15,.L32766+75@PAGEOFF
 	mov	x2,3
 	mov	x3,x2
 	mov	x0,x25

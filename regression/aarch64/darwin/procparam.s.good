@@ -45,7 +45,8 @@ ext:
 	mov	x1,5
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -108,7 +109,8 @@ ext:
 	blr	x16
 	ldr	x28,[x29,-8]
 # Line: 25, Stmt: 0
-	ldr	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -153,7 +155,8 @@ ext:
 	mov	x1,7
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,12
 	bl	_p_wti_o 
 	adrp	x15,.L32766@PAGE
