@@ -2559,63 +2559,59 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
       adjustregcount(k, - refcount);
       if restorereg then
         begin
-        { DRB try to restore a register operand to its eventual resting
-          place.  If it was stored by the previous instruction, which happens
-          when passing a function values to a proc's first parameter, then
-          don't load it.  If we're lucky, this will eventually lead to the
-          store being deleted, too, if nothing else uses it.
-        }
-        if (target <> 0) and (mode = register) and
-           (keytable[target].oprnd.mode = register) then
+        if regenoprnd.mode <> nomode then
+          case regenoprnd.mode of
+            dataref:
+              begin
+              t := settemp(long, reg_oprnd(noreg));
+              t1 := settemp(long, reg_oprnd(reg));
+              genadrp(lastnode, false, t, settemp(long, regenoprnd));
+              if mode = label_offset then
+                reg := keytable[t].oprnd.reg
+              else if mode = register then
+                gen2(lastnode,
+                     {AWFUL Free Pascal with statement bug requires this}
+                     ldrinst(len, keytable[k].signed), t1,
+                     settemp(long,
+                     labeloffset_oprnd(keytable[t].oprnd.reg, regenoprnd.labelno,
+                                       regenoprnd.labelownflag,
+                                       regenoprnd.externref, regenoprnd.labeloffset)))
+              else
+                gen2(lastnode, ldrinst(long, false), t1,
+                     settemp(long,
+                     labeloffset_oprnd(keytable[t].oprnd.reg, regenoprnd.labelno, regenoprnd.labelownflag,
+                                       regenoprnd.externref, regenoprnd.labeloffset)))
+              end;
+            abstract_offset:
+              begin
+              t := settemp(long, reg_oprnd(getreg(false)));
+              gen2(lastnode, ldrinst(len, keytable[key].signed),
+                     t, settemp(len, regenoprnd));
+              end;
+            otherwise writeln('bad regenoprnd ', regenoprnd.mode);
+          end
+        else
           begin
-          reg := keytable[target].oprnd.reg;
+          { DRB try to restore a register operand to its eventual resting
+            place.  If it was stored by the previous instruction, which happens
+            when passing a function values to a proc's first parameter, then
+            don't load it.  If we're lucky, this will eventually lead to the
+            store being deleted, too, if nothing else uses it.
+            }
+            if (target <> 0) and (mode = register) and
+               (keytable[target].oprnd.mode = register) then
+              reg := keytable[target].oprnd.reg
+            else
+              reg := getreg(false);
+          recall_reg(reg, properreg);
           with lastnode^ do
-            if (kind = instnode) and (inst.inst = str) and (oprnds[1].reg = reg) then
-              restorereg := false;
-          end;
-
-        if restorereg then
-          begin
-          if regenoprnd.mode <> nomode then
-            case regenoprnd.mode of
-              dataref:
-                begin
-                t := settemp(long, reg_oprnd(noreg));
-                t1 := settemp(long, reg_oprnd(reg));
-                genadrp(lastnode, false, t, settemp(long, regenoprnd));
-                if mode = label_offset then
-                  reg := keytable[t].oprnd.reg
-                else if mode = register then
-                  gen2(lastnode,
-                       {AWFUL Free Pascal with statement bug requires this}
-                       ldrinst(len, keytable[k].signed), t1,
-                       settemp(long,
-                       labeloffset_oprnd(keytable[t].oprnd.reg, regenoprnd.labelno,
-                                         regenoprnd.labelownflag,
-                                         regenoprnd.externref, regenoprnd.labeloffset)))
-                else
-                  gen2(lastnode, ldrinst(long, false), t1,
-                       settemp(long,
-                       labeloffset_oprnd(keytable[t].oprnd.reg, regenoprnd.labelno, regenoprnd.labelownflag,
-                                         regenoprnd.externref, regenoprnd.labeloffset)))
-                end;
-              abstract_offset:
-                begin
-                t := settemp(long, reg_oprnd(getreg(false)));
-                gen2(lastnode, ldrinst(len, keytable[key].signed),
-                       t, settemp(len, regenoprnd));
-                end;
-              otherwise writeln('bad regenoprnd ', regenoprnd.mode);
-            end
-          else
-            begin
-            reg := getreg(false);
-            recall_reg(reg, properreg);
-            keytable[properreg].tempflag := true;
-            gen2(lastnode, buildinst(ldr, true, false),
-                 settemp(long, reg_oprnd(reg)),
-                 properreg);
-            end;
+            if (kind <> instnode) or (inst.inst <> str) or (oprnds[1].reg <> reg) then
+              begin
+              keytable[properreg].tempflag := true;
+              gen2(lastnode, buildinst(ldr, true, false),
+                   settemp(long, reg_oprnd(reg)),
+                   properreg);
+              end;
           end;
         end;
       if restorereg2 then
