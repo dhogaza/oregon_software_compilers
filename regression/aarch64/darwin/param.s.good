@@ -24,12 +24,10 @@
 	mov	x2,x1
 	str	x7,[x29,-16]
 	bl	_p_wts_o 
-	ldr	x15,[x29,-8]
-	mov	x0,x15
+	ldr	x0,[x29,-8]
 	mov	x1,12
 	bl	_p_wti_o 
-	ldr	x15,[x29,-16]
-	mov	x0,x15
+	ldr	x0,[x29,-16]
 	mov	x1,12
 	bl	_p_wti_o 
 	ldrsw	x0,[x29,32]
@@ -57,8 +55,7 @@
 	mov	x1,5
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x15,[x29,-8]
-	mov	x0,x15
+	ldr	x0,[x29,-8]
 	mov	x1,12
 	bl	_p_wti_o 
 	ldrsw	x0,[x29,16]

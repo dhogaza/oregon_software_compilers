@@ -177,8 +177,7 @@ _main:
 	str	x0,[x29,-32]
 	adrp	x15,.L32767@PAGE
 	add	x0,x15,.L32767+24@PAGEOFF
-	ldr	x15,[x29,-32]
-	mov	x1,x15
+	ldr	x1,[x29,-32]
 	bl	.P1  // toshortstring
 # Line: 72, Stmt: 0
 	adrp	x15,.L32767@PAGE
