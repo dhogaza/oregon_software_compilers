@@ -211,7 +211,7 @@ type
     end;
 
   nodeblock =
-    record {Kluge to use the same file for all virtual memories}
+    record {Kludge to use the same file for all virtual memories}
       case boolean of
         false: (physical: doublediskblock {physical disk block} );
         true:
@@ -261,7 +261,7 @@ type
       searchlevel: contextindex; { Lowest level with valid node }
       joinflag: boolean; {must kill the tree at the next join point}
       dominates: boolean; { true if this context dominates exit }
-      origlow: keyindex; {dead code kluge to reset low, shouldn't be needed
+      origlow: keyindex; {dead code kludge to reset low, shouldn't be needed
                           now!}
       firstblock: basicblockptr; { Point to basic block header for this level}
       opmap: array [maphashindex] of nodeindex; {for searching nodes}

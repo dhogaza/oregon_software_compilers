@@ -501,7 +501,7 @@ procedure enterident(id: integer; {scope id for entry}
       p^.refdefined := false; {!!!}
       p^.lastoccurrence := lastscope;
       p^.vartype := noneindex;
-      p^.sparelink := 0; { pdb kluge, see dumpname }
+      p^.sparelink := 0; { pdb kludge, see dumpname }
       p^.varalloc := normalalloc; { initialization needed for $multidef }
       p^.allocated := false;
       if token = ident then

@@ -4723,7 +4723,7 @@ procedure dorealx;
     word_one = true;
 
   var
-    kluge: record
+    kludge: record
       case boolean of
         false: (i: integer);
         true: (damn: packed array [boolean] of - 32767..32767);
@@ -4748,13 +4748,13 @@ procedure dorealx;
           if mc68881 then
             begin
             m := immediatelong;
-            kluge.i := oprnds[1];
-            offset1 := (kluge.damn[word_zero] * 256) * 256
-              + (kluge.damn[word_one] and 65535);
+            kludge.i := oprnds[1];
+            offset1 := (kludge.damn[word_zero] * 256) * 256
+              + (kludge.damn[word_one] and 65535);
               { The "and" defeats sign extension }
-            kluge.i := oprnds[2];
-            offset := (kluge.damn[word_zero] * 256) * 256
-              + (kluge.damn[word_one] and 65535);
+            kludge.i := oprnds[2];
+            offset := (kludge.damn[word_zero] * 256) * 256
+              + (kludge.damn[word_one] and 65535);
 {            begin
             genlongword(offset);
             genlongword(offset1);
@@ -4765,19 +4765,19 @@ procedure dorealx;
 }            end
           else
             begin
-            kluge.i := oprnds[1];
-            offset1 := (kluge.damn[word_zero] * 256) * 256
-              + (kluge.damn[word_one] and 65535);
+            kludge.i := oprnds[1];
+            offset1 := (kludge.damn[word_zero] * 256) * 256
+              + (kludge.damn[word_one] and 65535);
               { The "and" defeats sign extension }
-            kluge.i := oprnds[2];
-            offset := (kluge.damn[word_zero] * 256) * 256
-              + (kluge.damn[word_one] and 65535);
+            kludge.i := oprnds[2];
+            offset := (kludge.damn[word_zero] * 256) * 256
+              + (kludge.damn[word_one] and 65535);
             end
         else {single precision}
           begin
-          kluge.i := oprnds[1];
-          offset := kluge.damn[true];
-          offset1 := kluge.damn[false];
+          kludge.i := oprnds[1];
+          offset := kludge.damn[true];
+          offset1 := kludge.damn[false];
           end;
         end;        
     keytable[key].modifiable := false;
@@ -5367,11 +5367,11 @@ var
 begin {definelazyx}
 
 {
-  if definelazykluge then
+  if definelazykludge then
     begin
-    settempareg(definelazyklugereg);
+    settempareg(definelazykludgereg);
     setkeyvalue(tempkey);
-    definelazykluge := false;
+    definelazykludge := false;
     end
   else
 }

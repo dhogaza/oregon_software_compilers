@@ -294,7 +294,7 @@ type
 
   debughashtabletype = array [debughashindex] of targetint;
 
- { declarations for kluged type to allow writing to environment file }
+ { declarations for kludged type to allow writing to environment file }
   proctableblock = array [0..proctableentriesperblock] of proctableentry;
   tableblock = array [0..tableentriesperblock] of tableentry;
 

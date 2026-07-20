@@ -423,7 +423,7 @@ procedure statement;
     procedure op;
 
       var
-        realkluge:
+        realkludge:
           record
             case boolean of
               false: (i: packed array [0..1] of integer);

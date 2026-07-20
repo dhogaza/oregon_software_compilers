@@ -94,7 +94,7 @@ type
                       key: hashindex {key assigned to this id}
                     end;
 
- { declarations for kluged type to allow writing to environment file }
+ { declarations for kludged type to allow writing to environment file }
   envirtype = (en_scan_var_block, en_string_block, en_hash_block,
                en_disk_block, en_switch_block);
 
