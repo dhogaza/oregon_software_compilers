@@ -3705,6 +3705,7 @@ procedure copyaccessx;
       keytable[key].tempflag := tempflag;
       keytable[key].validtemp := validtemp;
       keytable[key].packedaccess := packedaccess;
+      keytable[key].signed := signed;
       keytable[key].regenoprnd := regenoprnd;
 
       { Point to the properaddress if clearcontext}
