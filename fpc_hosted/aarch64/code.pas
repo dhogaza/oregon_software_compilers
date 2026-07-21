@@ -7036,7 +7036,6 @@ procedure indxx;
     else
       begin
       address(left, 0);
-
       case keytable[left].oprnd.mode of
         dataref:
           {We would like to index the var with a label offset but one
@@ -7059,6 +7058,12 @@ procedure indxx;
                      keytable[labelkey].oprnd.externref,
                      keytable[labelkey].oprnd.labeloffset));
           keytable[key].regsaved := true;
+          end;
+        label_offset:
+          begin
+          setallfields(left);
+          with keytable[key].oprnd do
+            labeloffset := labeloffset + pseudoinst.oprnds[2];
           end;
         reg_offset:
           begin
