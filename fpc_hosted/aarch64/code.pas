@@ -1588,7 +1588,6 @@ procedure setallfields(k: keyindex);
   begin
     with keytable[k] do
       begin
-      keytable[key].signed := signed;
       keytable[key].regsaved := regsaved;
       keytable[key].reg2saved := reg2saved;
       keytable[key].regvalid := regvalid;
@@ -1597,8 +1596,8 @@ procedure setallfields(k: keyindex);
       keytable[key].properreg2 := properreg2;
       keytable[key].tempflag := tempflag;
       keytable[key].regenoprnd := regenoprnd;
-      setkeyvalue(k);
       end;
+    setkeyvalue(k);
   end {setallfields} ;
 
 procedure rereference(k: keyindex {operand} );
