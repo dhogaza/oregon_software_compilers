@@ -84,6 +84,16 @@ var
 type
   _p_seekwhence = (_p_seek_set, _p_seek_cur, _p_seek_end);
 
+  _p_tm =
+    record
+      second, minute, hour, monthday, month, year,
+      weekday, yearday, isdst, gmtoff: integer;
+      timezone: _p_charptr;
+    end;
+  
+function time(var rawtime: integer): integer; nonpascal;
+function localtime_r(var rawtime: integer; var tmdata: _p_tm): _p_addressptr; nonpascal;
+
 procedure exit(const code: integer); nonpascal;
 function malloc(const size: integer): _p_charptr; nonpascal;
 procedure free(const p: _p_charptr); nonpascal;
@@ -108,8 +118,14 @@ function ferror(streamp: _p_addressptr): integer; nonpascal;
 { pascal-2 lib declarations }
 
 { errors }
-procedure exitst(code: integer); external;
 procedure _p_caseerr; external;
+
+{ library routines that weren't made standard and predefined for whatever
+  reason, decades ago.
+}
+
+procedure exitst(code: integer); external;
+procedure timestamp(var day, month, year, hour, minute, second: integer); external;
 
 { I/O }
 
@@ -353,18 +369,6 @@ begin {_p_trimright}
     trimmed[i] := src[i];
   _p_trimright := trimmed;
 end {_p_trimright};
-
-{ Old target-independent exit status procedure from the Pascal-2
-  library.  Here, of course, we just call the glibc exit procedure.
-
-  A couple of the old utility examples use this so I'm including it.
-}
-
-procedure exitst;
-
-begin {exitst}
-  exit(code);
-end {exitst};
     
 procedure _p_caseerr;
   begin
@@ -1344,3 +1348,41 @@ begin
   free(p);
   p := nil;
 end;
+
+{ library routines that weren't made standard and predefined for whatever
+  reason, decades ago.
+}
+
+procedure timestamp;
+
+{ Let glibc do all the work.
+}
+
+var
+  t: integer;
+  tmdata: _p_tm;
+
+begin {timestamp}
+  if time(t) = -1 then
+    _p_liberror('time failed');
+  if localtime_r(t, tmdata) = nil then
+    _p_liberror('localtime_r failed');
+  day := tmdata.monthday;
+  month := tmdata.month + 1;
+  year := tmdata.year + 1900;
+  hour := tmdata.hour;
+  minute := tmdata.minute;
+  second := tmdata.second;
+end {timestamp};
+
+{ Old target-independent exit status procedure from the Pascal-2
+  library.  Here, of course, we just call the glibc exit procedure.
+
+  A couple of the old utility examples use this so I'm including it.
+}
+
+procedure exitst;
+
+begin {exitst}
+  exit(code);
+end {exitst};
