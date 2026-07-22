@@ -22,19 +22,19 @@
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-	str	x27,[x29,-8]
+	str	x28,[x29,-8]
 # Line: 22, Stmt: 1
 # Line: 23, Stmt: 0
-	adrp	x27,.L32767@PAGE
+	adrp	x28,.L32767@PAGE
 	mov	x15,18
-	ldrb	w13,[x27,.L32767+28@PAGEOFF]
+	ldrb	w13,[x28,.L32767+28@PAGEOFF]
 	mov	x14,1
 	lsl	w14,w14,w13
 	orr	w15,w15,w14
-	strh	w15,[x27,.L32767+30@PAGEOFF]
+	strh	w15,[x28,.L32767+30@PAGEOFF]
 # Line: 24, Stmt: 0
 	mov	x15,xzr
-	ldrb	w13,[x27,.L32767+29@PAGEOFF]
+	ldrb	w13,[x28,.L32767+29@PAGEOFF]
 .L32764:
 	cmp	w13,9
 	b.hi	.L32763
@@ -44,28 +44,28 @@
 	add	w13,w13,1
 	b	.L32764
 .L32763:
-	strh	w15,[x27,.L32767+32@PAGEOFF]
+	strh	w15,[x28,.L32767+32@PAGEOFF]
 # Line: 25, Stmt: 0
-	adrp	x27,.L32767@PAGE
+	adrp	x28,.L32767@PAGE
 	mov	x0,3
 	bl	.P1  // func
 	mov	x15,1
-	ldrb	w13,[x27,.L32767+26@PAGEOFF]
+	ldrb	w13,[x28,.L32767+26@PAGEOFF]
 	mov	x14,1
 	lsl	w14,w14,w13
 	orr	w15,w15,w14
-	ldrb	w13,[x27,.L32767+27@PAGEOFF]
+	ldrb	w13,[x28,.L32767+27@PAGEOFF]
 	mov	x14,1
 	lsl	w14,w14,w13
 	orr	w15,w15,w14
 	mov	x14,1
 	lsl	w14,w14,w0
 	orr	w15,w15,w14
-	strb	w15,[x27,.L32767+24@PAGEOFF]
+	strb	w15,[x28,.L32767+24@PAGEOFF]
 # Line: 26, Stmt: 0
 	mov	x15,128
-	ldrb	w13,[x27,.L32767+26@PAGEOFF]
-	ldrb	w12,[x27,.L32767+27@PAGEOFF]
+	ldrb	w13,[x28,.L32767+26@PAGEOFF]
+	ldrb	w12,[x28,.L32767+27@PAGEOFF]
 .L32762:
 	cmp	w13,w12
 	b.hi	.L32761
@@ -75,9 +75,9 @@
 	add	w13,w13,1
 	b	.L32762
 .L32761:
-	strb	w15,[x27,.L32767+25@PAGEOFF]
+	strb	w15,[x28,.L32767+25@PAGEOFF]
 .L3:
-	ldr	x27,[x29,-8]
+	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
@@ -141,80 +141,80 @@ _main:
 	sub	sp,sp,112
 	stp	x30,x29,[sp,96]
 	add	x29,sp,96
-	stp	x26,x27,[x29,-16]
-	stp	x24,x25,[x29,-32]
-	stp	x22,x23,[x29,-48]
-	str	x21,[x29,-56]
+	stp	x27,x28,[x29,-16]
+	stp	x25,x26,[x29,-32]
+	stp	x23,x24,[x29,-48]
+	str	x22,[x29,-56]
 	bl	_p_initio 
 # Line: 45, Stmt: 1
-	adrp	x21,.L32767@PAGE
+	adrp	x22,.L32767@PAGE
 # Line: 46, Stmt: 0
 	mov	x15,1
 .L16:
 	str	x15,[x29,-64]
 # Line: 47, Stmt: 0
-	mov	x26,1
+	mov	x27,1
 .L17:
 # Line: 48, Stmt: 0
-	mov	x27,1
+	mov	x28,1
 .L18:
 # Line: 50, Stmt: 0
 	mov	w16,10
-	strb	w16,[x21,.L32767+28@PAGEOFF]
+	strb	w16,[x22,.L32767+28@PAGEOFF]
 # Line: 51, Stmt: 0
 	mov	w16,2
-	strb	w16,[x21,.L32767+29@PAGEOFF]
+	strb	w16,[x22,.L32767+29@PAGEOFF]
 # Line: 52, Stmt: 0
 	mov	w16,1
-	strb	w16,[x21,.L32767+26@PAGEOFF]
+	strb	w16,[x22,.L32767+26@PAGEOFF]
 # Line: 53, Stmt: 0
 	mov	w16,4
-	strb	w16,[x21,.L32767+27@PAGEOFF]
+	strb	w16,[x22,.L32767+27@PAGEOFF]
 # Line: 54, Stmt: 0
 	bl	.P2  // initsets
 # Line: 55, Stmt: 0
-	ldrb	w0,[x21,.L32767+24@PAGEOFF]
+	ldrb	w0,[x22,.L32767+24@PAGEOFF]
 	bl	.P3  // putnumset
 # Line: 56, Stmt: 0
-	ldrh	w0,[x21,.L32767+30@PAGEOFF]
+	ldrh	w0,[x22,.L32767+30@PAGEOFF]
 	bl	.P4  // putalphaset
 # Line: 57, Stmt: 0
-	ldrb	w15,[x21,.L32767+24@PAGEOFF]
-	ldrb	w14,[x21,.L32767+25@PAGEOFF]
+	ldrb	w15,[x22,.L32767+24@PAGEOFF]
+	ldrb	w14,[x22,.L32767+25@PAGEOFF]
+	cmp	w15,w14
+	cset	w26,eq
+# Line: 58, Stmt: 0
+	ldrb	w15,[x22,.L32767+24@PAGEOFF]
 	cmp	w15,w14
 	cset	w25,eq
-# Line: 58, Stmt: 0
-	ldrb	w15,[x21,.L32767+24@PAGEOFF]
-	cmp	w15,w14
-	cset	w24,eq
 # Line: 59, Stmt: 0
 	movz	x16,18
-	ldrh	w15,[x21,.L32767+30@PAGEOFF]
+	ldrh	w15,[x22,.L32767+30@PAGEOFF]
 	bics	xzr,x15,x16
-	cset	w23,eq
+	cset	w24,eq
 # Line: 60, Stmt: 0
-	ldrh	w15,[x21,.L32767+30@PAGEOFF]
+	ldrh	w15,[x22,.L32767+30@PAGEOFF]
 	mov	x14,18
 	bics	xzr,x14,x15
-	cset	w22,eq
+	cset	w23,eq
 # Line: 61, Stmt: 0
 	mov	x15,18
 	ands	w16,w15,2
 	cset	w15,ne
-	strb	w15,[x21,.L32767+52@PAGEOFF]
+	strb	w15,[x22,.L32767+52@PAGEOFF]
 # Line: 62, Stmt: 0
 	mov	x15,18
 	ands	w16,w15,4
 	cset	w15,ne
-	strb	w15,[x21,.L32767+53@PAGEOFF]
+	strb	w15,[x22,.L32767+53@PAGEOFF]
 	ldr	x15,[x29,-64]
-	add	w27,w27,1
-	cmp	w27,650
+	add	w28,w28,1
+	cmp	w28,650
 	b.le	.L18
 .L19:
 	ldr	x15,[x29,-64]
-	add	w26,w26,1
-	cmp	w26,650
+	add	w27,w27,1
+	cmp	w27,650
 	b.le	.L17
 .L20:
 	ldr	x15,[x29,-64]
@@ -223,10 +223,10 @@ _main:
 	b.le	.L16
 .L21:
 .L12:
-	ldp	x26,x27,[x29,-16]
-	ldp	x24,x25,[x29,-32]
-	ldp	x22,x23,[x29,-48]
-	ldr	x21,[x29,-56]
+	ldp	x27,x28,[x29,-16]
+	ldp	x25,x26,[x29,-32]
+	ldp	x23,x24,[x29,-48]
+	ldr	x22,[x29,-56]
 	ldp	x30,x29,[sp,96]
 	add	sp,sp,112
 	ret

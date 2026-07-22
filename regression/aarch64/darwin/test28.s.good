@@ -36,33 +36,33 @@
 	sub	sp,sp,64
 	stp	x30,x29,[sp,40]
 	add	x29,sp,40
-	stp	x26,x27,[x29,-16]
-	stp	x24,x25,[x29,-32]
+	stp	x27,x28,[x29,-16]
+	stp	x25,x26,[x29,-32]
 # Line: 42, Stmt: 1
-	mov	x24,x0
-	mov	x26,x1
-	mov	x25,x2
+	mov	x25,x0
+	mov	x27,x1
+	mov	x26,x2
 # Line: 43, Stmt: 2
-	mov	x27,x26
+	mov	x28,x27
 .L7:
 # Line: 44, Stmt: 0
-	cmp	w27,w25
+	cmp	w28,w26
 	b.gt	.L8
 .L9:
 # Line: 46, Stmt: 0
-	sub	w15,w27,w26
-	ldrb	w0,[x24, w15, sxtw]
+	sub	w15,w28,w27
+	ldrb	w0,[x25, w15, sxtw]
 	bl	_putchar
 # Line: 47, Stmt: 0
-	add	w27,w27,1
+	add	w28,w28,1
 	b	.L7
 .L8:
 # Line: 49, Stmt: 0
 	mov	x0,10
 	bl	_putchar
 .L6:
-	ldp	x26,x27,[x29,-16]
-	ldp	x24,x25,[x29,-32]
+	ldp	x27,x28,[x29,-16]
+	ldp	x25,x26,[x29,-32]
 	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret
@@ -75,33 +75,33 @@
 	sub	sp,sp,64
 	stp	x30,x29,[sp,40]
 	add	x29,sp,40
-	stp	x26,x27,[x29,-16]
-	stp	x24,x25,[x29,-32]
+	stp	x27,x28,[x29,-16]
+	stp	x25,x26,[x29,-32]
 # Line: 57, Stmt: 1
-	mov	x24,x0
-	mov	x26,x1
-	mov	x25,x2
+	mov	x25,x0
+	mov	x27,x1
+	mov	x26,x2
 # Line: 58, Stmt: 2
-	mov	x27,x26
+	mov	x28,x27
 .L11:
 # Line: 59, Stmt: 0
-	cmp	w27,w25
+	cmp	w28,w26
 	b.gt	.L12
 .L13:
 # Line: 61, Stmt: 0
-	sub	w15,w27,w26
-	ldrb	w0,[x24, w15, sxtw]
+	sub	w15,w28,w27
+	ldrb	w0,[x25, w15, sxtw]
 	bl	_putchar
 # Line: 62, Stmt: 0
-	add	w27,w27,1
+	add	w28,w28,1
 	b	.L11
 .L12:
 # Line: 64, Stmt: 0
 	mov	x0,10
 	bl	_putchar
 .L10:
-	ldp	x26,x27,[x29,-16]
-	ldp	x24,x25,[x29,-32]
+	ldp	x27,x28,[x29,-16]
+	ldp	x25,x26,[x29,-32]
 	ldp	x30,x29,[sp,40]
 	add	sp,sp,64
 	ret
@@ -115,162 +115,162 @@ _main:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-	str	x27,[x29,-8]
+	str	x28,[x29,-8]
 	bl	_p_initio 
 # Line: 67, Stmt: 1
 # Line: 68, Stmt: 0
-	adrp	x27,.L32767@PAGE
-	add	x0,x27,.L32767+24@PAGEOFF
+	adrp	x28,.L32767@PAGE
+	add	x0,x28,.L32767+24@PAGEOFF
 	mov	x1,xzr
 	mov	x2,xzr
 	bl	.P2  // fill
 # Line: 69, Stmt: 0
-	add	x0,x27,.L32767+24@PAGEOFF
+	add	x0,x28,.L32767+24@PAGEOFF
 	mov	x1,xzr
 	mov	x2,xzr
 	bl	.P3  // p
 # Line: 70, Stmt: 0
-	add	x0,x27,.L32767+24@PAGEOFF
+	add	x0,x28,.L32767+24@PAGEOFF
 	mov	x1,xzr
 	mov	x2,xzr
 	bl	.P4  // p1
 # Line: 72, Stmt: 0
-	add	x0,x27,.L32767+26@PAGEOFF
+	add	x0,x28,.L32767+26@PAGEOFF
 	mov	x1,xzr
 	mov	x2,1
 	bl	.P2  // fill
 # Line: 73, Stmt: 0
-	add	x0,x27,.L32767+26@PAGEOFF
+	add	x0,x28,.L32767+26@PAGEOFF
 	mov	x1,xzr
 	mov	x2,1
 	bl	.P3  // p
 # Line: 74, Stmt: 0
-	add	x0,x27,.L32767+26@PAGEOFF
+	add	x0,x28,.L32767+26@PAGEOFF
 	mov	x1,xzr
 	mov	x2,1
 	bl	.P4  // p1
 # Line: 76, Stmt: 0
-	add	x0,x27,.L32767+28@PAGEOFF
+	add	x0,x28,.L32767+28@PAGEOFF
 	mov	x1,xzr
 	mov	x2,2
 	bl	.P2  // fill
 # Line: 77, Stmt: 0
-	add	x0,x27,.L32767+28@PAGEOFF
+	add	x0,x28,.L32767+28@PAGEOFF
 	mov	x1,xzr
 	mov	x2,2
 	bl	.P3  // p
 # Line: 78, Stmt: 0
-	add	x0,x27,.L32767+28@PAGEOFF
+	add	x0,x28,.L32767+28@PAGEOFF
 	mov	x1,xzr
 	mov	x2,2
 	bl	.P4  // p1
 # Line: 80, Stmt: 0
-	add	x0,x27,.L32767+32@PAGEOFF
+	add	x0,x28,.L32767+32@PAGEOFF
 	mov	x1,xzr
 	mov	x2,3
 	bl	.P2  // fill
 # Line: 81, Stmt: 0
-	add	x0,x27,.L32767+32@PAGEOFF
+	add	x0,x28,.L32767+32@PAGEOFF
 	mov	x1,xzr
 	mov	x2,3
 	bl	.P3  // p
 # Line: 82, Stmt: 0
-	add	x0,x27,.L32767+32@PAGEOFF
+	add	x0,x28,.L32767+32@PAGEOFF
 	mov	x1,xzr
 	mov	x2,3
 	bl	.P4  // p1
 # Line: 84, Stmt: 0
-	add	x0,x27,.L32767+40@PAGEOFF
+	add	x0,x28,.L32767+40@PAGEOFF
 	mov	x1,xzr
 	mov	x2,4
 	bl	.P2  // fill
 # Line: 85, Stmt: 0
-	add	x0,x27,.L32767+40@PAGEOFF
+	add	x0,x28,.L32767+40@PAGEOFF
 	mov	x1,xzr
 	mov	x2,4
 	bl	.P3  // p
 # Line: 86, Stmt: 0
-	add	x0,x27,.L32767+40@PAGEOFF
+	add	x0,x28,.L32767+40@PAGEOFF
 	mov	x1,xzr
 	mov	x2,4
 	bl	.P4  // p1
 # Line: 88, Stmt: 0
-	add	x0,x27,.L32767+48@PAGEOFF
+	add	x0,x28,.L32767+48@PAGEOFF
 	mov	x1,xzr
 	mov	x2,5
 	bl	.P2  // fill
 # Line: 89, Stmt: 0
-	add	x0,x27,.L32767+48@PAGEOFF
+	add	x0,x28,.L32767+48@PAGEOFF
 	mov	x1,xzr
 	mov	x2,5
 	bl	.P3  // p
 # Line: 90, Stmt: 0
-	add	x0,x27,.L32767+48@PAGEOFF
+	add	x0,x28,.L32767+48@PAGEOFF
 	mov	x1,xzr
 	mov	x2,5
 	bl	.P4  // p1
 # Line: 92, Stmt: 0
-	add	x0,x27,.L32767+56@PAGEOFF
+	add	x0,x28,.L32767+56@PAGEOFF
 	mov	x1,xzr
 	mov	x2,6
 	bl	.P2  // fill
 # Line: 93, Stmt: 0
-	add	x0,x27,.L32767+56@PAGEOFF
+	add	x0,x28,.L32767+56@PAGEOFF
 	mov	x1,xzr
 	mov	x2,6
 	bl	.P3  // p
 # Line: 94, Stmt: 0
-	add	x0,x27,.L32767+56@PAGEOFF
+	add	x0,x28,.L32767+56@PAGEOFF
 	mov	x1,xzr
 	mov	x2,6
 	bl	.P4  // p1
 # Line: 96, Stmt: 0
-	add	x0,x27,.L32767+64@PAGEOFF
+	add	x0,x28,.L32767+64@PAGEOFF
 	mov	x1,xzr
 	mov	x2,7
 	bl	.P2  // fill
 # Line: 97, Stmt: 0
-	add	x0,x27,.L32767+64@PAGEOFF
+	add	x0,x28,.L32767+64@PAGEOFF
 	mov	x1,xzr
 	mov	x2,7
 	bl	.P3  // p
 # Line: 98, Stmt: 0
-	add	x0,x27,.L32767+64@PAGEOFF
+	add	x0,x28,.L32767+64@PAGEOFF
 	mov	x1,xzr
 	mov	x2,7
 	bl	.P4  // p1
 # Line: 100, Stmt: 0
-	add	x0,x27,.L32767+72@PAGEOFF
+	add	x0,x28,.L32767+72@PAGEOFF
 	mov	x1,xzr
 	mov	x2,8
 	bl	.P2  // fill
 # Line: 101, Stmt: 0
-	add	x0,x27,.L32767+72@PAGEOFF
+	add	x0,x28,.L32767+72@PAGEOFF
 	mov	x1,xzr
 	mov	x2,8
 	bl	.P3  // p
 # Line: 102, Stmt: 0
-	add	x0,x27,.L32767+72@PAGEOFF
+	add	x0,x28,.L32767+72@PAGEOFF
 	mov	x1,xzr
 	mov	x2,8
 	bl	.P4  // p1
 # Line: 104, Stmt: 0
-	add	x0,x27,.L32767+88@PAGEOFF
+	add	x0,x28,.L32767+88@PAGEOFF
 	mov	x1,xzr
 	mov	x2,9
 	bl	.P2  // fill
 # Line: 105, Stmt: 0
-	add	x0,x27,.L32767+88@PAGEOFF
+	add	x0,x28,.L32767+88@PAGEOFF
 	mov	x1,xzr
 	mov	x2,9
 	bl	.P3  // p
 # Line: 106, Stmt: 0
-	add	x0,x27,.L32767+88@PAGEOFF
+	add	x0,x28,.L32767+88@PAGEOFF
 	mov	x1,xzr
 	mov	x2,9
 	bl	.P4  // p1
 .L14:
-	ldr	x27,[x29,-8]
+	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret

@@ -18,19 +18,19 @@
 	sub	sp,sp,48
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-	str	x27,[x29,-8]
+	str	x28,[x29,-8]
 # Line: 7, Stmt: 1
 # Line: 8, Stmt: 2
-	mov	w27,65536
+	mov	w28,65536
 # Line: 9, Stmt: 0
-	movz	x27,4095
-	movk	x27,1,lsl 16
+	movz	x28,4095
+	movk	x28,1,lsl 16
 # Line: 10, Stmt: 0
 	adrp	x15,.L32767@PAGE
 	ldrsw	x14,[x15,.L32767+24@PAGEOFF]
-	add	w27,w14,4095
+	add	w28,w14,4095
 # Line: 11, Stmt: 0
-	add	w15,w27,1,lsl 12
+	add	w15,w28,1,lsl 12
 	str	w15,[x29,28]
 # Line: 12, Stmt: 0
 	adrp	x15,.L32766@PAGE
@@ -59,7 +59,7 @@
 	mov	x1,3
 	mov	x2,x1
 	bl	_p_wts_o 
-	mov	x0,x27
+	mov	x0,x28
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -86,7 +86,7 @@
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 .L2:
-	ldr	x27,[x29,-8]
+	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,48
 	ret
