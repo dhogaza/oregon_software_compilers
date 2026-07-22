@@ -489,17 +489,7 @@ procedure assignregs;
       end;
     { assign general registers }
     case targetmachine of
-       aarch64:
-        begin
-        { currently we avoid sl altogether for regtemps }
-        regtemps := 0;
-        allocateregs(assignreg, [reg, ptrreg], regtemps);
-        { no specific ptr reg on 32k }
-        ptrtemps := 0;
-        realtemps := 0;
-        allocateregs(assignrealreg, [realreg], realtemps);
-        end;
-      ns32k:
+      ns32k, aarch64:
         begin
         { static link comes out of general regs }
         if newtravrsinterface then

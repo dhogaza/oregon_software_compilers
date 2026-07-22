@@ -5841,7 +5841,7 @@ procedure blockcodex;
       end
     else
       begin
-      lastreg := sl - left - 1;
+      lastreg := fp - left - 1;
       lastscratchreg := ip0 - 1;
       end;
     firstreg := 0;
@@ -6264,7 +6264,7 @@ procedure regtempx;
     if proctable[blockref].leaf then
       reg := ip0 - pseudoinst.oprnds[3]
     else
-      reg := sl - pseudoinst.oprnds[3];
+      reg := fp - pseudoinst.oprnds[3];
     setvalue(reg_oprnd(reg));
     regused[reg] := true;
   end {regtempx} ;
@@ -6994,8 +6994,8 @@ begin {regparamx}
   if (left = -1) then
     begin
     tempkey := settemp(long, reg_oprnd(pseudoinst.oprnds[3]));
-    setvalue(reg_oprnd(sl - pseudoinst.oprnds[2]));
-    regused[sl - pseudoinst.oprnds[2]] := true;
+    setvalue(reg_oprnd(fp - pseudoinst.oprnds[2]));
+    regused[fp - pseudoinst.oprnds[2]] := true;
     gensimplemove(lastnode, tempkey, key);
     end
   else
