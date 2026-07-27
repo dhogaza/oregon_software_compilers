@@ -72,16 +72,23 @@ if seeking value, wzr is replaced with a register.
 
 --- current work
 
-  -- scavenge flag in genadrp???  should replace register references in label
-     offset and the like to actually use the register in the found adrp
+  -- loops ...
 
-  -- do getreg in genadrp when asked.
+     "used" is currently useless.
 
-  -- intlevelrefs is not sufficient to determine if the static link register
-     is required by a procedure or not.  Calling down to a local procedure
-     that makes intlevelrefs requires we pass the proper static link value
-     to that procedure, but does not mean we necessarily make intlevelrefs
-     ourselves.
+     makeaddressable should be able to set it if reg[2]valid.   Do the properreg/
+     stackcounter type check done by recall_reg.  For for loops at least, do not
+     need to propagate to the outer levels as it is restored at the tail and
+     available when exiting to that outer level.  Repeat and while loops are
+     different ... needs study.
+
+     Something like "recall_reg" can be made to work though it currently is a 
+     large nop.  The idea is that if you restore the reg from the stack copy
+     and it then lives to the end of the loop, no need to restore at the
+     end of the loop.
+
+     REMEMBER TO RESTORE GLOBALLY ASSIGNED REGISTERS which mostly fixed the above
+     due to their being preserved across proc calls.
 
   -- the precedes lastbranch code is safe but silly.  It is really where
      labels are defined that is the issue, and if the key being considered

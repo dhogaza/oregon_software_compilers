@@ -1399,42 +1399,38 @@ procedure definelastlabel;
     lastlabel := lastlabel - 1;
   end {definelastlabel} ;
 
+function equivoprnd(l, r: oprndtype): boolean;
+begin {equivoprnd}
+  equivoprnd := false;
+  if (l.mode = r.mode) and (l.reg = r.reg) and (l.reg2 = r.reg2) then
+    case l.mode of
+      shift_reg: equivoprnd := (l.reg_shift = r.reg_shift) and
+                               (l.shift_amount = r.shift_amount);
+      extend_reg: equivoprnd := (l.reg_extend = r.reg_extend) and
+                                (l.extend_shift = r.extend_shift) and
+                                (l.extend_signed = r.extend_signed);
+      pre_index, post_index, abstract_offset, signed_offset, unsigned_offset:
+        equivoprnd := (l.index = r.index);
+      reg_offset: equivoprnd := (l.shift = r.shift) and
+                                (l.extend = r.extend) and
+                                (l.signed = r.signed);
+      labeltarget, label_offset, dataref:
+        equivoprnd := (l.labelno = r.labelno) and (l.lowbits = r.lowbits) and
+                      (l.labeloffset = r.labeloffset) and
+                      (l.labelownflag = r.labelownflag) and
+                      (l.externref = r.externref);
+      otherwise equivoprnd := true;
+      end;
+end {equivoprnd};
+
 function equivaddr(l, r: keyindex): boolean;
 
 { True if the addresses accessed for key l and key r are the same.
 }
 
-  var same: boolean;
-
   begin {equivaddr}
-    same := true;
-    with keytable[l].oprnd, keytable[r] do
-      begin
-      if (packedaccess <> keytable[l].packedaccess) or
-         (oprnd.mode <> mode) or
-         (oprnd.reg <> reg) or (oprnd.reg2 <> reg2) then
-        same := false;
-      if same then
-        case oprnd.mode of
-        shift_reg: same := (reg_shift = oprnd.reg_shift) and
-                          (shift_amount = oprnd.shift_amount);
-        extend_reg: same := (reg_extend = oprnd.reg_extend) and
-                            (extend_shift = oprnd.extend_shift) and
-                            (extend_signed = oprnd.extend_signed);
-         pre_index, post_index, abstract_offset, signed_offset, unsigned_offset:
-           same := (index = oprnd.index);
-         reg_offset: same := (shift = oprnd.shift) and
-                             (extend = oprnd.extend) and
-                             (signed = oprnd.signed);
-         labeltarget, label_offset, dataref:
-           same := (labelno = oprnd.labelno) and (lowbits = oprnd.lowbits) and
-                   (labeloffset = oprnd.labeloffset) and
-                   (labelownflag = oprnd.labelownflag) and
-                   (externref = oprnd.externref);
-         otherwise same := true;
-         end;
-      end;
-    equivaddr := same;
+    equivaddr := (keytable[l].packedaccess = keytable[r].packedaccess) and
+                 equivoprnd(keytable[l].oprnd, keytable[r].oprnd);
   end {equivaddr} ;
 
 
@@ -1517,10 +1513,6 @@ procedure setcommonkey;
       if key > lastkey then
         begin
         regsaved := false;
-{
-        properreg := key;
-        properreg2 := key;
-}
         properreg := lowestkey;
         properreg2 := lowestkey;
         validtemp := false;
@@ -2185,6 +2177,23 @@ procedure markscratchregs;
       markreg(r);
   end {markscratchregs};
 
+  procedure markloopregused(reg: regindex; properreg: keyindex; regenoprnd: oprndtype);
+
+  var
+    savedkey: keyindex;
+
+  begin {markloopregused}
+    if (loopsp > 0) and (loopoverflow = 0) then
+      with loopstack[loopsp] do
+begin
+savedkey := regstate[reg].stackcopy;
+           if (regenoprnd.mode <> nomode) and
+              equivoprnd(keytable[savedkey].regenoprnd, regenoprnd) or
+              equivaddr(savedkey, properreg) then
+          regstate[reg].used := true;
+end;
+  end {markloopregused};
+
 
 function regvalue(r: regindex; prefersafe: boolean): unsigned;
 
@@ -2529,6 +2538,7 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
     found: boolean;
     recallkey: keyindex;
 
+
   procedure recall_reg(regx: regindex; properregx: keyindex);
 
     { Unkill a general reg if possible.
@@ -2557,41 +2567,38 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
       begin
       adjustregcount(k, - refcount);
       if restorereg then
-        begin
-        if regenoprnd.mode <> nomode then
-          case regenoprnd.mode of
-            dataref:
-              begin
-              t := settemp(long, reg_oprnd(noreg));
-              t1 := settemp(long, reg_oprnd(reg));
-              genadrp(lastnode, false, t, settemp(long, regenoprnd));
-              if mode = label_offset then
-                reg := keytable[t].oprnd.reg
-              else if mode = register then
-                gen2(lastnode,
-                     {AWFUL Free Pascal with statement bug requires this}
-                     ldrinst(len, keytable[k].signed), t1,
-                     settemp(long,
-                     labeloffset_oprnd(keytable[t].oprnd.reg, regenoprnd.labelno,
-                                       regenoprnd.labelownflag,
-                                       regenoprnd.externref, regenoprnd.labeloffset)))
-              else
-                gen2(lastnode, ldrinst(long, false), t1,
-                     settemp(long,
-                     labeloffset_oprnd(keytable[t].oprnd.reg, regenoprnd.labelno, regenoprnd.labelownflag,
-                                       regenoprnd.externref, regenoprnd.labeloffset)))
-              end;
-            abstract_offset:
-              begin
-              t := settemp(long, reg_oprnd(getreg(false)));
-              gen2(lastnode, ldrinst(len, keytable[key].signed),
-                     t, settemp(len, regenoprnd));
-              end;
-            otherwise writeln('bad regenoprnd ', regenoprnd.mode);
-          end
-        else
-          begin
-          { DRB try to restore a register operand to its eventual resting
+        case regenoprnd.mode of
+          dataref:
+            begin
+            t := settemp(long, reg_oprnd(noreg));
+            t1 := settemp(long, reg_oprnd(reg));
+            genadrp(lastnode, false, t, settemp(long, regenoprnd));
+            if mode = label_offset then
+              reg := keytable[t].oprnd.reg
+            else if mode = register then
+              gen2(lastnode,
+                   {AWFUL Free Pascal with statement bug requires this}
+                   ldrinst(len, keytable[k].signed), t1,
+                   settemp(long,
+                   labeloffset_oprnd(keytable[t].oprnd.reg, regenoprnd.labelno,
+                                     regenoprnd.labelownflag,
+                                     regenoprnd.externref, regenoprnd.labeloffset)))
+            else
+              gen2(lastnode, ldrinst(long, false), t1,
+                   settemp(long,
+                   labeloffset_oprnd(keytable[t].oprnd.reg, regenoprnd.labelno, regenoprnd.labelownflag,
+                                     regenoprnd.externref, regenoprnd.labeloffset)))
+            end;
+          abstract_offset:
+            begin
+            reg := getreg(false);
+            t := settemp(long, reg_oprnd(reg));
+            gen2(lastnode, ldrinst(len, keytable[key].signed),
+                   t, settemp(len, regenoprnd));
+            end;
+          nomode:
+            begin
+            { DRB try to restore a register operand to its eventual resting
             place.  If it was stored by the previous instruction, which happens
             when passing a function values to a proc's first parameter, then
             don't load it.  If we're lucky, this will eventually lead to the
@@ -2602,17 +2609,21 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
               reg := keytable[target].oprnd.reg
             else
               reg := getreg(false);
-          recall_reg(reg, properreg);
-          with lastnode^ do
-            if (kind <> instnode) or (inst.inst <> str) or (oprnds[1].reg <> reg) then
-              begin
-              keytable[properreg].tempflag := true;
-              gen2(lastnode, buildinst(ldr, true, false),
-                   settemp(long, reg_oprnd(reg)),
-                   properreg);
-              end;
-          end;
-        end;
+  {
+        recall_reg(reg, properreg);
+  }
+            with lastnode^ do
+              if (kind <> instnode) or (inst.inst <> str) or (oprnds[1].reg <> reg) then
+                begin
+                keytable[properreg].tempflag := true;
+                gen2(lastnode, buildinst(ldr, true, false),
+                     settemp(long, reg_oprnd(reg)),
+                     properreg);
+                end;
+            end;
+          otherwise writeln('bad regenoprnd ', regenoprnd.mode);
+          end
+      else markloopregused(reg, properreg, regenoprnd);
       if restorereg2 then
         begin
         keytable[properreg2].tempflag := true;
@@ -2623,7 +2634,8 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
         gen2(lastnode, buildinst(ldr, true, false),
              settemp(long, reg_oprnd(reg2)),
              properreg2);
-        end;
+        end
+      else markloopregused(oprnd.reg2, properreg2, nomode_oprnd);
       regvalid := true;
       reg2valid := true;
       joinreg := false;
@@ -3475,8 +3487,8 @@ procedure enterloop;
 { Enter a loop construct.  Travrs has internally done a 'clearcontext'
   operation and has issued a 'clearlabel' or 'fortop' pseudoop.  All
   registers are empty at this point except those generated by 'with'
-  statements and for loop indices.  We track these registers, and
-  if they are spoiled by code within the loop, restore them at the
+  statements, for loop indices, and hoists.  We track these registers,
+  and if they are spoiled by code within the loop, restore them at the
   bottom.
 
   Since loops may be nested, we use a special stack of limited size
@@ -3512,18 +3524,26 @@ procedure enterloop;
               begin
               reloadfirst := nil; { not reloaded yet }
               killed := false;
+              used := false;
+              active := registers[i] > 0;
+              if active then context[contextsp].bump[i] := true;
+{
               used := registers[i] > 0;
               if used then context[contextsp].bump[i] := true;
               active := context[contextsp].bump[i];
+}
               if active then
                 begin
+{
                 stackcopy := savereg(i, false);
-                { Can be true in forloop code where induction register is being
-                  stored in the variable's address.
-                }
                 if stackcopy >= stackcounter then
                   keytable[stackcopy].refcount := keytable[stackcopy].refcount +
                                                 1;
+}
+stackcopy := savereg(i, true);
+if keytable[stackcopy].validtemp then
+keytable[stackcopy].refcount := keytable[stackcopy].refcount +
+1;
                 end;
               end; {with}
 {
@@ -3577,41 +3597,42 @@ procedure reloadloop;
         begin
         r := settemp(long, reg_oprnd(0)); {dummy}
         for i := 0 to lastreg do
-          with regstate[i] do
+          with regstate[i], keytable[stackcopy] do
             if active then
               begin
               keytable[r].oprnd.reg := i;
-              if (keytable[stackcopy].oprnd.mode = register) and
-                 (keytable[stackcopy].regenoprnd.mode <> nomode) then
-                begin
-                genadrp(lastnode, false, r,
-                        settemp(long, keytable[stackcopy].regenoprnd));
-                reloadfirst := lastnode;
-                gen2(lastnode, ldrinst(keytable[stackcopy].len, keytable[stackcopy].signed),
-                     r,
+              case regenoprnd.mode of
+                dataref:
+                  begin
+                  genadrp(lastnode, false, r,
+                          settemp(long, regenoprnd));
+                  reloadfirst := lastnode;
+                  gen2(lastnode, ldrinst(len, signed), r,
                      settemp(long, labeloffset_oprnd(keytable[r].oprnd.reg,
-                             keytable[stackcopy].regenoprnd.labelno,
-                             keytable[stackcopy].regenoprnd.labelownflag,
-                             keytable[stackcopy].regenoprnd.externref,
-                             keytable[stackcopy].regenoprnd.labeloffset)))
-                end
-              else if keytable[stackcopy].oprnd.mode = label_offset then
-                begin
-                with keytable[stackcopy].oprnd do
-                genadrp(lastnode, false, r,
-                        settemp(long,
-                                dataref_oprnd(labelno, labelownflag, externref,
-                                              false, labeloffset)));
-                reloadfirst := lastnode;
-                end
-              else
-                begin
-                gen2(lastnode, ldrinst(long, true), r, stackcopy);
-                reloadfirst := lastnode;
+                             regenoprnd.labelno,
+                             regenoprnd.labelownflag,
+                             regenoprnd.externref,
+                             regenoprnd.labeloffset)));
+                  end;
+                abstract_offset:
+                  begin
+                  gen2(lastnode, ldrinst(len, signed), r, settemp(len, regenoprnd));
+                  reloadfirst := lastnode;
+                  end;
+                label_offset:
+                  begin
+                  genadrp(lastnode, false, r, settemp(long, regenoprnd));
+                  reloadfirst := lastnode;
+                  end;
+                otherwise
+                  begin
+                  tempflag := true;
+                  gen2(lastnode, ldrinst(long, true), r, stackcopy);
+                  reloadfirst := lastnode;
+                  end;
                 end;
               reloadlast := lastnode;
               end;
-
 
 {
         keytable[r].oprnd.mode := fpregister;
@@ -3877,39 +3898,43 @@ procedure restoreloopx;
             with regstate[i] do
               if active then
                 begin
-                if killed then
+                if used and killed then
                   begin
-                  keytable[stackcopy].tempflag := true;
                   { if not restored at top of loop (i.e. for loop) do it now }
                   if reloadfirst = nil then
                     begin
                     markreg(i); { tell current user }
                     keytable[tempreg].oprnd.reg := i;
-                    if (keytable[stackcopy].oprnd.mode = register) and
-                       (keytable[stackcopy].regenoprnd.mode <> nomode) then
-                      begin
-                      genadrp(lastnode, false, tempreg,
-                           settemp(long, keytable[stackcopy].regenoprnd));
-                      gen2(lastnode, ldrinst(keytable[stackcopy].len, keytable[stackcopy].signed),
-                           tempreg,
+                    with keytable[stackcopy] do
+                      case regenoprnd.mode of
+                        dataref:
+                          begin
+                          genadrp(lastnode, false, tempreg, settemp(long, regenoprnd));
+                          gen2(lastnode, ldrinst(len, signed), tempreg,
                            settemp(long, labeloffset_oprnd(keytable[tempreg].oprnd.reg,
-                                         keytable[stackcopy].regenoprnd.labelno,
-                                         keytable[stackcopy].regenoprnd.labelownflag,
-                                         keytable[stackcopy].regenoprnd.externref,
-                                         keytable[stackcopy].regenoprnd.labeloffset)))
-                      end
-                    else if keytable[stackcopy].oprnd.mode = label_offset then
-                      genadrp(lastnode, false, tempreg,
-                           settemp(long, keytable[stackcopy].regenoprnd))
-                    else
-                      gen2(lastnode, ldrinst(long, true), tempreg, stackcopy);
+                                         regenoprnd.labelno,
+                                         regenoprnd.labelownflag,
+                                         regenoprnd.externref,
+                                         regenoprnd.labeloffset)))
+                          end;
+                        abstract_offset:
+                          gen2(lastnode, ldrinst(len, signed), tempreg,
+                            settemp(len, regenoprnd));
+                        label_offset:
+                          genadrp(lastnode, false, tempreg,
+                            settemp(long, regenoprnd))
+                        otherwise
+                          begin
+                          tempflag := true;
+                          gen2(lastnode, ldrinst(long, true), tempreg, stackcopy);
+                          end;
+                        end;
                     end;
                   end
                 else if reloadfirst <> nil then deletenodes(reloadfirst, reloadlast);
                 { DRB: temporary hack }
                 if stackcopy >= stackcounter then
-                  keytable[stackcopy].refcount := keytable[stackcopy].refcount -
-                                                1;
+                  keytable[stackcopy].refcount := keytable[stackcopy].refcount - 1;
                 end;
 
 {
@@ -4129,6 +4154,11 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
         end;
 
       enterloop;
+
+      markloopregused(keytable[forkey].oprnd.reg, keytable[forkey].properreg, nomode_oprnd);
+      if target <> 0 then
+        markloopregused(limitreg, keytable[target].properreg,
+                        keytable[target].regenoprnd);
 
       { see defforindexx for an explaination of this }
 {
@@ -5365,16 +5395,6 @@ var
 
 
 begin {definelazyx}
-
-{
-  if definelazykludge then
-    begin
-    settempareg(definelazykludgereg);
-    setkeyvalue(tempkey);
-    definelazykludge := false;
-    end
-  else
-}
   address(left, 0);
   lock(left);
   setvalue(reg_oprnd(getreg(false)));
@@ -7978,6 +7998,18 @@ procedure codeone;
     with keytable[key] do
       if refcount + copycount > 1 then savekey(key, true);
 
+    if switcheverplus[test] then
+      begin
+      dumppseudo(macfile);
+      if keytable[key].first <> nil then
+        write_nodes(keytable[key].first, keytable[key].last);
+{
+      dumpstack;
+
+}
+      end;
+
+
     { This prevents stumbling on an old key later.
     }
 
@@ -7991,18 +8023,6 @@ procedure codeone;
 {
     adjusttemps;
 }
-
-    if switcheverplus[test] then
-      begin
-      dumppseudo(macfile);
-      if keytable[key].first <> nil then
-        write_nodes(keytable[key].first, keytable[key].last);
-{
-      dumpstack;
-
-}
-      end;
-
   end {codeone};
 
 

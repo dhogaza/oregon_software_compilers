@@ -505,6 +505,7 @@ type
     packed array [regindex] of
       packed record
         stackcopy: keyindex; {descriptor of saved copy of register}
+        regenoprnd: oprndtype; {operand to regenerate register if possible}
         reloadfirst, reloadlast: nodeptr; { instructions that restored copy }
         active: boolean; {set true if active at loop entry}
         used: boolean; {set true if used within loop}
