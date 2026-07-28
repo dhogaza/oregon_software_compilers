@@ -3602,34 +3602,24 @@ procedure reloadloop;
               begin
               keytable[r].oprnd.reg := i;
               case regenoprnd.mode of
-                dataref:
+                dataref, label_offset:
                   begin
                   genadrp(lastnode, false, r,
                           settemp(long, regenoprnd));
                   reloadfirst := lastnode;
-                  gen2(lastnode, ldrinst(len, signed), r,
-                     settemp(long, labeloffset_oprnd(keytable[r].oprnd.reg,
-                             regenoprnd.labelno,
-                             regenoprnd.labelownflag,
-                             regenoprnd.externref,
-                             regenoprnd.labeloffset)));
                   end;
                 abstract_offset:
                   begin
                   gen2(lastnode, ldrinst(len, signed), r, settemp(len, regenoprnd));
                   reloadfirst := lastnode;
                   end;
-                label_offset:
-                  begin
-                  genadrp(lastnode, false, r, settemp(long, regenoprnd));
-                  reloadfirst := lastnode;
-                  end;
-                otherwise
+                nomode:
                   begin
                   tempflag := true;
                   gen2(lastnode, ldrinst(long, true), r, stackcopy);
                   reloadfirst := lastnode;
                   end;
+                otherwise writeln('bad regenoprnd in reloadloop ', regenoprnd.mode);
                 end;
               reloadlast := lastnode;
               end;
@@ -3907,27 +3897,17 @@ procedure restoreloopx;
                     keytable[tempreg].oprnd.reg := i;
                     with keytable[stackcopy] do
                       case regenoprnd.mode of
-                        dataref:
-                          begin
+                        dataref, label_offset:
                           genadrp(lastnode, false, tempreg, settemp(long, regenoprnd));
-                          gen2(lastnode, ldrinst(len, signed), tempreg,
-                           settemp(long, labeloffset_oprnd(keytable[tempreg].oprnd.reg,
-                                         regenoprnd.labelno,
-                                         regenoprnd.labelownflag,
-                                         regenoprnd.externref,
-                                         regenoprnd.labeloffset)))
-                          end;
                         abstract_offset:
                           gen2(lastnode, ldrinst(len, signed), tempreg,
                             settemp(len, regenoprnd));
-                        label_offset:
-                          genadrp(lastnode, false, tempreg,
-                            settemp(long, regenoprnd))
-                        otherwise
+                        nomode:
                           begin
                           tempflag := true;
                           gen2(lastnode, ldrinst(long, true), tempreg, stackcopy);
                           end;
+                        otherwise writeln('bad regenoprnd in restoreloopx ', regenoprnd.mode);
                         end;
                     end;
                   end
