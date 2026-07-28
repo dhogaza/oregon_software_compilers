@@ -1518,7 +1518,6 @@
 	strb	w16,[x15,.L32767+3819@PAGEOFF]
 # Line: 411, Stmt: 0
 	bl	.P6  // copy_char
-	adrp	x15,.L32767@PAGE
 .L84:
 	adrp	x15,.L32767@PAGE
 # Line: 412, Stmt: 0
