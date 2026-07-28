@@ -3615,7 +3615,6 @@ procedure reloadloop;
                   end;
                 nomode:
                   begin
-                  tempflag := true;
                   gen2(lastnode, ldrinst(long, true), r, stackcopy);
                   reloadfirst := lastnode;
                   end;
@@ -3880,7 +3879,6 @@ procedure restoreloopx;
         context[thecontext].first := savefirst;
         context[thecontext].lastbranch := savelastbranch;
 
-        { seem like we should only restore registers that were used? hmm. }
         tempreg := settemp(long, reg_oprnd(0)); {dummy}
 
         for i := 0 to lastreg do
@@ -3910,8 +3908,11 @@ procedure restoreloopx;
                         otherwise writeln('bad regenoprnd in restoreloopx ', regenoprnd.mode);
                         end;
                     end;
+                  if keytable[stackcopy].validtemp then
+                    keytable[stackcopy].tempflag := true;
                   end
                 else if reloadfirst <> nil then deletenodes(reloadfirst, reloadlast);
+
                 { DRB: temporary hack }
                 if stackcopy >= stackcounter then
                   keytable[stackcopy].refcount := keytable[stackcopy].refcount - 1;
