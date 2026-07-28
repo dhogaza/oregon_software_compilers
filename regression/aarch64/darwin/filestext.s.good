@@ -73,9 +73,9 @@
 #
 	.global _main
 _main:
-	sub	sp,sp,208
-	stp	x30,x29,[sp,192]
-	add	x29,sp,192
+	sub	sp,sp,192
+	stp	x30,x29,[sp,176]
+	add	x29,sp,176
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
 	stp	x23,x24,[x29,-48]
@@ -145,13 +145,13 @@ _main:
 .L16:
 # Line: 17, Stmt: 0
 	ldr	x15,[x26,.L32767+24@PAGEOFF]
-	str	x15,[x29,-96]
+	str	x15,[x29,-88]
 	ldr	x14,[x15,8]
 	tbnz	x14,0,.L32764
 	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_define 
 .L32764:
-	ldr	x15,[x29,-96]
+	ldr	x15,[x29,-88]
 	ldr	x15,[x15,8]
 	ands	wzr,w15,2
 	b.ne	.L17
@@ -163,13 +163,13 @@ _main:
 .L15:
 # Line: 20, Stmt: 0
 	ldr	x15,[x26,.L32767+24@PAGEOFF]
-	str	x15,[x29,-112]
+	str	x15,[x29,-96]
 	ldr	x14,[x15,8]
 	tbnz	x14,0,.L32763
 	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_define 
 .L32763:
-	ldr	x15,[x29,-112]
+	ldr	x15,[x29,-96]
 	ldr	x15,[x15,8]
 	ands	wzr,w15,4
 	b.ne	.L19
@@ -230,13 +230,13 @@ _main:
 .L14:
 # Line: 33, Stmt: 0
 	ldr	x25,[x26,.L32767+24@PAGEOFF]
-	str	x25,[x29,-96]
+	str	x25,[x29,-88]
 	ldr	x15,[x25,8]
 	tbnz	x15,0,.L32762
 	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_define 
 .L32762:
-	ldr	x15,[x29,-96]
+	ldr	x15,[x29,-88]
 	ldr	x15,[x15,8]
 	ands	wzr,w15,2
 	b.ne	.L21
@@ -286,17 +286,17 @@ _main:
 	mov	x4,xzr
 	bl	_p_reset 
 	adrp	x26,.L32767@PAGE
-	str	x26,[x29,-96]
+	str	x25,[x29,-88]
 .L13:
 # Line: 43, Stmt: 0
 	ldr	x24,[x26,.L32767+24@PAGEOFF]
-	str	x24,[x29,-104]
+	str	x24,[x29,-96]
 	ldr	x15,[x24,8]
 	tbnz	x15,0,.L32761
 	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_define 
 .L32761:
-	ldr	x15,[x29,-104]
+	ldr	x15,[x29,-96]
 	ldr	x15,[x15,8]
 	ands	wzr,w15,2
 	b.ne	.L23
@@ -304,13 +304,13 @@ _main:
 .L12:
 # Line: 45, Stmt: 0
 	ldr	x15,[x26,.L32767+24@PAGEOFF]
-	str	x15,[x29,-136]
+	str	x15,[x29,-120]
 	ldr	x14,[x15,8]
 	tbnz	x14,0,.L32760
 	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_define 
 .L32760:
-	ldr	x15,[x29,-136]
+	ldr	x15,[x29,-120]
 	ldr	x14,[x15,8]
 	ands	wzr,w14,4
 	b.ne	.L25
@@ -352,18 +352,18 @@ _main:
 	mov	x4,xzr
 	bl	_p_reset 
 	adrp	x26,.L32767@PAGE
+	str	x24,[x29,-88]
 	str	x25,[x29,-96]
-	str	x26,[x29,-104]
 .L11:
 # Line: 59, Stmt: 0
 	ldr	x15,[x26,.L32767+24@PAGEOFF]
-	str	x15,[x29,-112]
+	str	x15,[x29,-104]
 	ldr	x14,[x15,8]
 	tbnz	x14,0,.L32759
 	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_define 
 .L32759:
-	ldr	x15,[x29,-112]
+	ldr	x15,[x29,-104]
 	ldr	x15,[x15,8]
 	ands	wzr,w15,2
 	b.ne	.L27
@@ -375,13 +375,13 @@ _main:
 .L10:
 # Line: 62, Stmt: 0
 	ldr	x15,[x26,.L32767+24@PAGEOFF]
-	str	x15,[x29,-144]
+	str	x15,[x29,-128]
 	ldr	x14,[x15,8]
 	tbnz	x14,0,.L32758
 	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_define 
 .L32758:
-	ldr	x15,[x29,-144]
+	ldr	x15,[x29,-128]
 	ldr	x15,[x15,8]
 	ands	wzr,w15,4
 	b.ne	.L29
@@ -432,18 +432,18 @@ _main:
 	mov	x4,xzr
 	bl	_p_reset 
 	adrp	x26,.L32767@PAGE
+	str	x24,[x29,-88]
 	str	x25,[x29,-96]
-	str	x26,[x29,-104]
 .L9:
 # Line: 75, Stmt: 0
 	ldr	x23,[x26,.L32767+24@PAGEOFF]
-	str	x23,[x29,-112]
+	str	x23,[x29,-104]
 	ldr	x15,[x23,8]
 	tbnz	x15,0,.L32757
 	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_define 
 .L32757:
-	ldr	x15,[x29,-112]
+	ldr	x15,[x29,-104]
 	ldr	x15,[x15,8]
 	ands	wzr,w15,2
 	b.ne	.L31
@@ -492,19 +492,19 @@ _main:
 	mov	x4,xzr
 	bl	_p_reset 
 	adrp	x26,.L32767@PAGE
+	str	x23,[x29,-88]
 	str	x24,[x29,-96]
 	str	x25,[x29,-104]
-	str	x26,[x29,-112]
 .L8:
 # Line: 85, Stmt: 0
 	ldr	x22,[x26,.L32767+24@PAGEOFF]
-	str	x22,[x29,-120]
+	str	x22,[x29,-112]
 	ldr	x15,[x22,8]
 	tbnz	x15,0,.L32756
 	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_define 
 .L32756:
-	ldr	x15,[x29,-120]
+	ldr	x15,[x29,-112]
 	ldr	x15,[x15,8]
 	ands	wzr,w15,2
 	b.ne	.L33
@@ -553,20 +553,20 @@ _main:
 	mov	x4,xzr
 	bl	_p_reset 
 	adrp	x26,.L32767@PAGE
+	str	x22,[x29,-88]
 	str	x23,[x29,-96]
 	str	x24,[x29,-104]
 	str	x25,[x29,-112]
-	str	x26,[x29,-120]
 .L7:
 # Line: 97, Stmt: 0
 	ldr	x21,[x26,.L32767+24@PAGEOFF]
-	str	x21,[x29,-128]
+	str	x21,[x29,-120]
 	ldr	x15,[x21,8]
 	tbnz	x15,0,.L32755
 	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_define 
 .L32755:
-	ldr	x15,[x29,-128]
+	ldr	x15,[x29,-120]
 	ldr	x15,[x15,8]
 	ands	wzr,w15,2
 	b.ne	.L35
@@ -578,13 +578,13 @@ _main:
 .L6:
 # Line: 100, Stmt: 0
 	ldr	x15,[x26,.L32767+24@PAGEOFF]
-	str	x15,[x29,-184]
+	str	x15,[x29,-168]
 	ldr	x14,[x15,8]
 	tbnz	x14,0,.L32754
 	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_define 
 .L32754:
-	ldr	x15,[x29,-184]
+	ldr	x15,[x29,-168]
 	ldr	x15,[x15,8]
 	ands	wzr,w15,4
 	b.ne	.L37
@@ -670,21 +670,21 @@ _main:
 	mov	x4,xzr
 	bl	_p_reset 
 	adrp	x26,.L32767@PAGE
+	str	x21,[x29,-88]
 	str	x22,[x29,-96]
 	str	x23,[x29,-104]
 	str	x24,[x29,-112]
 	str	x25,[x29,-120]
-	str	x26,[x29,-128]
 .L5:
 # Line: 117, Stmt: 0
 	ldr	x20,[x26,.L32767+24@PAGEOFF]
-	str	x20,[x29,-136]
+	str	x20,[x29,-128]
 	ldr	x15,[x20,8]
 	tbnz	x15,0,.L32753
 	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_define 
 .L32753:
-	ldr	x15,[x29,-136]
+	ldr	x15,[x29,-128]
 	ldr	x15,[x15,8]
 	ands	wzr,w15,2
 	b.ne	.L39
@@ -770,23 +770,22 @@ _main:
 	mov	x4,xzr
 	bl	_p_reset 
 	adrp	x26,.L32767@PAGE
+	str	x20,[x29,-88]
 	str	x21,[x29,-96]
 	str	x22,[x29,-104]
 	str	x23,[x29,-112]
 	str	x24,[x29,-120]
 	str	x25,[x29,-128]
-	str	x26,[x29,-136]
 .L4:
-	ldr	x25,[x29,-128]
 # Line: 130, Stmt: 0
 	ldr	x19,[x26,.L32767+24@PAGEOFF]
-	str	x19,[x29,-144]
+	str	x19,[x29,-136]
 	ldr	x15,[x19,8]
 	tbnz	x15,0,.L32752
 	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_define 
 .L32752:
-	ldr	x15,[x29,-144]
+	ldr	x15,[x29,-136]
 	ldr	x15,[x15,8]
 	ands	wzr,w15,2
 	b.ne	.L41
@@ -855,23 +854,23 @@ _main:
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
 	adrp	x26,.L32767@PAGE
+	str	x19,[x29,-88]
 	str	x20,[x29,-96]
 	str	x21,[x29,-104]
 	str	x22,[x29,-112]
 	str	x23,[x29,-120]
 	str	x24,[x29,-128]
-	str	x26,[x29,-136]
 .L3:
-	ldr	x26,[x29,-136]
+	adrp	x26,.L32767@PAGE
 # Line: 145, Stmt: 0
 	ldr	x25,[x26,.L32767+24@PAGEOFF]
-	str	x25,[x29,-144]
+	str	x25,[x29,-136]
 	ldr	x15,[x25,8]
 	tbnz	x15,0,.L32751
 	add	x0,x26,.L32767+24@PAGEOFF
 	bl	_p_define 
 .L32751:
-	ldr	x15,[x29,-144]
+	ldr	x15,[x29,-136]
 	ldr	x15,[x15,8]
 	ands	wzr,w15,2
 	b.ne	.L43
@@ -949,7 +948,7 @@ _main:
 	ldp	x23,x24,[x29,-48]
 	ldp	x21,x22,[x29,-64]
 	ldp	x19,x20,[x29,-80]
-	ldp	x30,x29,[sp,192]
-	add	sp,sp,208
+	ldp	x30,x29,[sp,176]
+	add	sp,sp,192
 	ret
 	.comm	.L32767,384,12

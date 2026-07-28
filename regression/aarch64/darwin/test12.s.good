@@ -19,7 +19,6 @@
 # Line: 6, Stmt: 0
 	mov	x0,x28
 	bl	_putchar
-	ldr	x0,[x29,-16]
 	ldr	x1,[x29,-24]
 	adds	w28,w28,1
 	b.cc	.L4
@@ -112,7 +111,6 @@
 # Line: 28, Stmt: 0
 	add	w0,w28,48
 	bl	_putchar
-	ldr	x0,[x29,-16]
 	ldr	x1,[x29,-24]
 	adds	w28,w28,1
 	b.vc	.L14

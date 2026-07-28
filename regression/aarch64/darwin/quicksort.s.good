@@ -57,9 +57,9 @@
 #	split
 #
 .P4:
-	sub	sp,sp,112
-	stp	x30,x29,[sp,80]
-	add	x29,sp,80
+	sub	sp,sp,96
+	stp	x30,x29,[sp,64]
+	add	x29,sp,64
 	stp	x26,x27,[x29,-16]
 	stp	x24,x25,[x29,-32]
 	str	x23,[x29,-40]
@@ -80,9 +80,7 @@
 	str	x15,[x29,-48]
 	ldr	x14,[x28,-8]
 	ldr	x14,[x14,-8]
-	str	x14,[x29,-56]
 .L10:
-	ldr	x14,[x29,-56]
 	ldr	x15,[x29,-48]
 # Line: 66, Stmt: 0
 	cmp	w26,w27
@@ -143,8 +141,8 @@
 	ldp	x26,x27,[x29,-16]
 	ldp	x24,x25,[x29,-32]
 	ldr	x23,[x29,-40]
-	ldp	x30,x29,[sp,80]
-	add	sp,sp,112
+	ldp	x30,x29,[sp,64]
+	add	sp,sp,96
 	ret
 	.text
 	.align 2

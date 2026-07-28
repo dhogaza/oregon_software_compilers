@@ -717,7 +717,6 @@ _p_dumpfilelist:
 	str	x14,[x29,-40]
 .L89:
 	ldr	x14,[x29,-40]
-	ldr	x15,[x29,-32]
 # Line: 440, Stmt: 0
 	cbz	x28,.L90
 .L91:
@@ -2740,13 +2739,12 @@ _p_wtb:
 .L246:
 	cmp	w28,w15
 	b.gt	.L245
-	str	x15,[x29,-24]
 # Line: 1044, Stmt: 0
 	mov	x0,x27
 	add	x14,x29,w28, sxtw 0
 	ldrb	w1,[x14,32]
 	bl	.P83  // wrchar
-	ldr	x15,[x29,-24]
+	ldrb	w15,[x29,32] // ABSTRACT OFFSET
 	adds	w28,w28,1
 	b.vc	.L246
 .L245:
