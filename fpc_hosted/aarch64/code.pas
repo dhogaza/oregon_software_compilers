@@ -1319,22 +1319,25 @@ procedure deletenodes(first, last: nodeptr);
 
   begin {deletenodes}
 
-    if first^.prevnode = nil then
-      firstnode := last^.nextnode
-    else
-      first^.prevnode^.nextnode := last^.nextnode;
-
-    if last^.nextnode = nil then 
-      lastnode := first^.prevnode { deleting the tail of the generated nodes}
-    else
-      last^.nextnode^.prevnode := first^.prevnode;
-
-    p := first; p2 := last^.nextnode;
-    while p <> p2 do
+    if first <> nil then
       begin
-      p1 := p^.nextnode;
-      dispose(p);
-      p := p1;
+      if first^.prevnode = nil then
+        firstnode := last^.nextnode
+      else
+        first^.prevnode^.nextnode := last^.nextnode;
+
+      if last^.nextnode = nil then 
+        lastnode := first^.prevnode { deleting the tail of the generated nodes}
+      else
+        last^.nextnode^.prevnode := first^.prevnode;
+
+      p := first; p2 := last^.nextnode;
+      while p <> p2 do
+        begin
+        p1 := p^.nextnode;
+        dispose(p);
+        p := p1;
+        end;
       end;
 
   end {deletenodes};
@@ -3523,27 +3526,16 @@ procedure enterloop;
             with regstate[i] do
               begin
               reloadfirst := nil; { not reloaded yet }
+              makefirst := nil; { don't know what saved reg yet }
               killed := false;
               used := false;
               active := registers[i] > 0;
-              if active then context[contextsp].bump[i] := true;
-{
-              used := registers[i] > 0;
-              if used then context[contextsp].bump[i] := true;
-              active := context[contextsp].bump[i];
-}
               if active then
                 begin
-{
-                stackcopy := savereg(i, false);
-                if stackcopy >= stackcounter then
-                  keytable[stackcopy].refcount := keytable[stackcopy].refcount +
-                                                1;
-}
-stackcopy := savereg(i, true);
-if keytable[stackcopy].validtemp then
-keytable[stackcopy].refcount := keytable[stackcopy].refcount +
-1;
+                context[contextsp].bump[i] := true;
+                stackcopy := savereg(i, true);
+                if keytable[stackcopy].validtemp then
+                  keytable[stackcopy].refcount := keytable[stackcopy].refcount + 1;
                 end;
               end; {with}
 {
@@ -3551,6 +3543,7 @@ keytable[stackcopy].refcount := keytable[stackcopy].refcount +
           with fpregstate[i] do
             begin
             reloadfirst := nil; { not reloaded yet }
+            makefirst := nil; { don't know what saved reg yet }
             killed := false;
             used := (fpregisters[i] > 0);
             if used then context[contextsp].fpbump[i] := true;
@@ -3607,6 +3600,8 @@ procedure reloadloop;
                   genadrp(lastnode, false, r,
                           settemp(long, regenoprnd));
                   reloadfirst := lastnode;
+                  makefirst := first;
+                  makelast := last;
                   end;
                 abstract_offset:
                   begin
@@ -3908,8 +3903,13 @@ procedure restoreloopx;
                         otherwise writeln('bad regenoprnd in restoreloopx ', regenoprnd.mode);
                         end;
                     end;
+                  { If the reg was saved to the stack mark the entry as having been
+                    used.  If the reg was created by an adrp instruction delete it,
+                    but only if it wasn't scrounged from a previous adrp instruction.
+                  }
                   if keytable[stackcopy].validtemp then
-                    keytable[stackcopy].tempflag := true;
+                    keytable[stackcopy].tempflag := true
+                  else if makefirst <> nil then deletenodes(makefirst, makelast);
                   end
                 else if reloadfirst <> nil then deletenodes(reloadfirst, reloadlast);
 
@@ -6287,6 +6287,9 @@ procedure dovarx(s: boolean {signed variable reference} );
       signed := s;
       if packedaccess then signlimit := (len - 1) div bitsperunit + 1
       else signlimit := len;
+      first := keytable[left].first;
+      last := keytable[left].last;
+      keytable[left].first := nil;
       end;
   end {dovarx} ;
 
@@ -7997,7 +8000,9 @@ procedure codeone;
     while (keytable[lastkey].refcount = 0) and
           (lastkey >= context[contextsp].keymark) do
       begin
+{
       keytable[lastkey] := keytable[lowestkey];
+}
       lastkey := lastkey - 1;
       end;
 
