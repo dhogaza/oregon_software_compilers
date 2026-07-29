@@ -141,12 +141,12 @@ _main:
 # Line: 25, Stmt: 0
 	add	x28,x28,.L32767+24@PAGEOFF
 	sub	x15,x29,24
-	mov	x16,12
-.L32763:
-	ldrb	w17,[x28],1
-	strb	w17,[x15],1
-	subs	x16,x16,1
-	cbnz	x16,.L32763
+	ldr	w16,[x28],4
+	str	w16,[x15],4
+	ldr	w16,[x28],4
+	str	w16,[x15],4
+	ldr	w16,[x28],4
+	str	w16,[x15],4
 	sub	x0,x29,24
 	adrp	x28,.L32767@PAGE
 	add	x1,x28,.L32767+40@PAGEOFF

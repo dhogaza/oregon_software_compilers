@@ -2138,9 +2138,9 @@
 	sub	x13,x29,80
 	mov	x16,28
 .L32687:
-	ldrb	w17,[x14],1
-	strb	w17,[x13],1
-	subs	x16,x16,1
+	ldr	w17,[x14],4
+	str	w17,[x13],4
+	subs	x16,x16,4
 	cbnz	x16,.L32687
 	sub	x0,x29,80
 	bl	.P16  // print_entri
@@ -2157,12 +2157,12 @@
 	add	x11,x12,w13, uxtw 0
 	add	x11,x11,792
 	add	x14,x14,792
-	mov	x16,12
-.L32686:
-	ldrb	w17,[x11],1
-	strb	w17,[x14],1
-	subs	x16,x16,1
-	cbnz	x16,.L32686
+	ldr	w16,[x11],4
+	str	w16,[x14],4
+	ldr	w16,[x11],4
+	str	w16,[x14],4
+	ldr	w16,[x11],4
+	str	w16,[x14],4
 # Line: 569, Stmt: 0
 	add	x15,x15,w25, uxtw 0
 	add	x14,x12,w13, uxtw 0
