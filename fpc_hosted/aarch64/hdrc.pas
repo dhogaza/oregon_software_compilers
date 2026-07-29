@@ -77,7 +77,7 @@ type
 
   regtypes = (general, floating);
 
-  alignmentrange = byte .. long;
+  alignmentrange = byte .. quad;
 
   oprnd_range = 0 .. max_oprnds;
 
@@ -465,7 +465,7 @@ type
       joinreg2: boolean; {true if reg2valid should be set false upon next
                          joinlabel pseudoop}
       signed: boolean; {true if operand contains signed data}
-      signlimit: addressrange; {size for which this key is still signed}
+      signlimit: alignmentrange; {size for which this key is still signed}
       alignment: alignmentrange; {if known, if not assumes byte}
       first: nodeptr; {set to first node of stream which
                        created value described in this record}

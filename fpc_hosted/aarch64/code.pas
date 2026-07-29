@@ -877,7 +877,8 @@ procedure setkeyentry(k: keyindex; l:unsigned; o: oprndtype);
       reg2valid := true;
       packedaccess := false;
       signed := true;
-      signlimit := 0;
+      signlimit := len;
+      alignment := byte;
       oprnd := o;
       regenoprnd := nomode_oprnd;
       end;
@@ -1513,6 +1514,15 @@ procedure setcommonkey;
     with keytable[key] do
       begin
       if key >= stackcounter then compilerabort(manykeys);
+      len := pseudoinst.len;
+      refcount := pseudoinst.refcount;
+      copycount := pseudoinst.copycount;
+      copylink := 0;
+      tempflag := false;
+      first := nil;
+      last := nil;
+      instmark := lastnode;
+      saves := nil;
       if key > lastkey then
         begin
         regsaved := false;
@@ -1526,21 +1536,12 @@ procedure setcommonkey;
         joinreg := false;
         joinreg2 := false;
         signed := true;
-        signlimit := 0;
+        signlimit := len;
         alignment := byte;
         oprnd := nomode_oprnd;
         regenoprnd := nomode_oprnd;
         modifiable := true;
         end;
-      len := pseudoinst.len;
-      refcount := pseudoinst.refcount;
-      copycount := pseudoinst.copycount;
-      copylink := 0;
-      tempflag := false;
-      first := nil;
-      last := nil;
-      instmark := lastnode;
-      saves := nil;
       end;
   end {setcommonkey} ;
 
@@ -4292,10 +4293,6 @@ procedure shiftintx(backwards: boolean);
   var
     shiftfactor: integer; {amount to shift}
     shiftinst: insts; {either asl, asr, or lsr}
-    knowneven: boolean; {true if result is known to be even.  Left shifts will
-                         always give an even result; we can't tell for right
-                         shifts. }
-
 
   begin {shiftintx}
     addressboth;
@@ -4312,7 +4309,8 @@ procedure shiftintx(backwards: boolean);
     if keytable[right].oprnd.mode = intconst then
       begin
       shiftfactor := keytable[right].oprnd.int_value;
-      knowneven := shiftfactor > 0;
+      if shiftfactor >= 4 then keytable[key].alignment := quad
+      else if shiftfactor > 0 then keytable[key].alignment := power2(shiftfactor);
       if shiftfactor < 0 then backwards := not backwards;
       shiftfactor := abs(shiftfactor);
       { shift amount is encoded as immr:imms because the shifts
@@ -6464,7 +6462,7 @@ procedure movcstructx;
 }
 
   var
-    count, onekey, leftregkey, rightregkey, labelkey: keyindex;
+    count, incrkey, leftregkey, rightregkey, labelkey: keyindex;
 
   begin
     count := target;
@@ -6474,7 +6472,7 @@ procedure movcstructx;
 }
     address(count, 0);
     loadreg(count, 0);
-    onekey := settemp(long, imm12_oprnd(1, false));
+    incrkey := settemp(long, imm12_oprnd(keytable[count].alignment, false));
     lock(count);
     addressboth;
     if (keytable[left].oprnd.mode <> register) or (keytable[left].refcount > 0) then
@@ -6495,14 +6493,14 @@ procedure movcstructx;
       end;
     unlock(count);
     keytable[left].oprnd.mode := post_index;
-    keytable[left].oprnd.index := byte;
+    keytable[left].oprnd.index := keytable[count].alignment;
     keytable[right].oprnd.mode := post_index;
-    keytable[right].oprnd.index := byte;
+    keytable[right].oprnd.index := keytable[count].alignment;
     labelkey := settemp(long, labeltarget_oprnd(lastlabel));
     definelastlabel;
-    genldr(lastnode, byte, false, regkeys[ip0], right);
-    genstr(lastnode, byte, regkeys[ip0], left);
-    gen3(lastnode, buildinst(sub, true, false), count, count, onekey);
+    genldr(lastnode, keytable[count].alignment, false, regkeys[ip0], right);
+    genstr(lastnode, keytable[count].alignment, regkeys[ip0], left);
+    gen3(lastnode, buildinst(sub, true, false), count, count, incrkey);
     gen2(lastnode, buildinst(cbnz, true, false), count, labelkey);
   end; {movcstructx}
 
