@@ -1569,6 +1569,7 @@ procedure setkeyvalue(k: keyindex);
       setvalue(oprnd);
       keytable[key].signed := signed;
       keytable[key].signlimit := signlimit;
+      keytable[key].alignment := alignment;
       end;
   end {setkeyvalue} ;
 
@@ -1888,6 +1889,7 @@ function newtemp(size: addressrange {size of temp to allocate} ): keyindex;
       with keytable[stackcounter] do
         begin
         len := size;
+        alignment := long;
         tempflag := false;
         regenoprnd := nomode_oprnd;
         validtemp := true;
@@ -1926,6 +1928,7 @@ function newparamtemp(size: addressrange {size of temp to allocate} ): keyindex;
       with keytable[stackcounter] do
         begin
         len := size;
+        alignment := long;
         tempflag := false;
         regenoprnd := nomode_oprnd;
         validtemp := true;
@@ -4522,8 +4525,6 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
 
 procedure cmpstructx(cond: conds);
 
-{ This code should eventually consider alignment }
-
 var
   leftregkey, rightregkey, dstregkey, onekey, countkey,
   tempregkey, tempreg2key, looplabelkey, skiplabelkey: keyindex;
@@ -4850,6 +4851,7 @@ procedure dolevelx(ownflag: boolean {true says own sect def} );
         setvalue(index_oprnd(abstract_offset, reg, 0, false));
         end;
       len := long;
+      alignment := long;
       end;
   end {dolevelx} ;
 
@@ -4857,9 +4859,14 @@ procedure dostructx;
 
   var
     labelkey, regkey: keyindex;
+    lenalign, addralign: alignmentrange;
 
 begin {dostructx}
   setvalue(dataref_oprnd(rodatalabel, false, 0, false, pseudoinst.oprnds[1]));
+  lenalign := alignment(len);
+  addralign := alignment(pseudoinst.oprnds[1]);
+  if lenalign < addralign then keytable[key].alignment := lenalign
+  else keytable[key].alignment := addralign;
 end {dostructx} ;
 
 { set operations }
@@ -6405,15 +6412,32 @@ procedure movemultiple(src, dst: keyindex);
 { There's a lot of improvement to be had here for moving
   if we're unrolling, i.e. adding to index fields directly
   when possible, a generalization of the code that moves sets.
-
   Needs alignment data ...
 }
 
 var
-  srcregkey, dstregkey, labelkey: keyindex;
+  srcregkey, dstregkey, extraregkey, labelkey: keyindex;
+  srcalign, dstalign, lenalign, align: alignmentrange;
+  pieces: addressrange;
   l: addressrange;
 
   begin {movemultiple}
+    srcalign := alignment(keytable[src].alignment);
+    dstalign := alignment(keytable[dst].alignment);
+    lenalign := alignment(len);
+    if srcalign < dstalign then align := srcalign
+    else align := dstalign;
+
+    { aarch64 allows quad sized moves on a long boundary }
+    if lenalign < align then align := lenalign
+    else if (align = long) and (lenalign = quad) then align := quad;
+    pieces := len div align;
+
+    if align = quad then
+      begin
+      extraregkey := settemp(long, reg_oprnd(getreg(false)));
+      lock(extraregkey);
+      end;
     lock(dst);
     srcregkey := settemp(long, reg_oprnd(getreg(false)));
     genmoveaddress(lastnode, src, srcregkey);
@@ -6422,27 +6446,46 @@ var
     dstregkey := settemp(long, reg_oprnd(getreg(false)));
     genmoveaddress(lastnode, dst, dstregkey);
     unlock(srcregkey);
+    if align = quad then
+      begin
+      unlock(extraregkey);
+      end;
     keytable[srcregkey].oprnd.mode := post_index;
-    keytable[srcregkey].oprnd.index := byte;
+    keytable[srcregkey].oprnd.index := align;
     keytable[dstregkey].oprnd.mode := post_index;
-    keytable[dstregkey].oprnd.index := byte;
-    l := len;
-    if l <= 4 then
-      while l > 0 do
+    keytable[dstregkey].oprnd.index := align;
+    if pieces <= 4 then
+      while pieces > 0 do
         begin
-        genldr(lastnode, byte, false, regkeys[ip0], srcregkey);
-        genstr(lastnode, byte, regkeys[ip0], dstregkey);
-        l := l - 1;
+        if align = quad then
+          begin
+          gen3(lastnode, buildinst(ldp, true, false), regkeys[ip0], regkeys[ip1], srcregkey);
+          gen3(lastnode, buildinst(stp, true, false), regkeys[ip0], regkeys[ip1], dstregkey);
+         end
+        else
+          begin
+          genldr(lastnode, align, false, regkeys[ip0], srcregkey);
+          genstr(lastnode, align, regkeys[ip0], dstregkey);
+          end;
+        pieces := pieces - 1;
         end
     else
       begin
       gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), regkeys[ip0]);
       labelkey := settemp(long, labeltarget_oprnd(lastlabel));
       definelastlabel;
-      genldr(lastnode, byte, false, regkeys[ip1], srcregkey);
-      genstr(lastnode, byte, regkeys[ip1], dstregkey);
+      if align = quad then
+        begin
+        gen3(lastnode, buildinst(ldp, true, false), extraregkey, regkeys[ip1], srcregkey);
+        gen3(lastnode, buildinst(stp, true, false), extraregkey, regkeys[ip1], dstregkey);
+       end
+      else
+       begin
+       genldr(lastnode, align, false, regkeys[ip1], srcregkey);
+       genstr(lastnode, align, regkeys[ip1], dstregkey);
+       end;
       gen3(lastnode, buildinst(sub, true, true), regkeys[ip0], regkeys[ip0],
-                     settemp(long, imm12_oprnd(1, false)));
+                     settemp(long, imm12_oprnd(align, false)));
       gen2(lastnode, buildinst(cbnz, true, false), regkeys[ip0], labelkey);
       end
   end {movemultiple};
@@ -7059,12 +7102,20 @@ procedure indxx;
                      keytable[labelkey].oprnd.externref,
                      keytable[labelkey].oprnd.labeloffset));
           keytable[key].regsaved := true;
+          if alignment(len) < alignment(keytable[labelkey].oprnd.labeloffset) then
+            keytable[key].alignment := alignment(len)
+          else keytable[key].alignment := alignment(keytable[labelkey].oprnd.labeloffset)
           end;
         label_offset:
           begin
           setallfields(left);
           with keytable[key].oprnd do
+            begin
             labeloffset := labeloffset + pseudoinst.oprnds[2];
+            if alignment(len) < alignment(labeloffset) then
+              keytable[key].alignment := alignment(len)
+            else  keytable[key].alignment := alignment(labeloffset)
+            end;
           end;
         reg_offset:
           begin
@@ -7073,8 +7124,10 @@ procedure indxx;
           genmoveaddress(lastnode, left, newkey);
           settemp(long, index_oprnd(abstract_offset,
                   keytable[newkey].oprnd.reg, pseudoinst.oprnds[2], false));
-{DRB: handle long offsets }
           setallfields(tempkey);
+          if alignment(len) < alignment(pseudoinst.oprnds[2]) then
+            keytable[key].alignment := alignment(len)
+          else keytable[key].alignment := alignment(pseudoinst.oprnds[2])
           end;
         abstract_offset:
           begin
@@ -7083,15 +7136,11 @@ procedure indxx;
             keytable[key].oprnd.index + pseudoinst.oprnds[2];
           if keytable[key].oprnd.reg in [sp, sl, fp] then
             keytable[key].regenoprnd := keytable[key].oprnd;
+          if alignment(len) < alignment(keytable[key].oprnd.index) then
+            keytable[key].alignment := alignment(len)
+          else keytable[key].alignment := alignment(keytable[key].oprnd.index);
           end;
       end
-{
-    eventually needs to work with the results of aindx and also register
-    params the contain short records.
-
-    else if keytable[left].oprnd.mode = register
-      then setkeyvalue(left);
-}
     end
   end {indxx} ;
 
