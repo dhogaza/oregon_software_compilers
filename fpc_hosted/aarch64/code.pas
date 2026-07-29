@@ -379,7 +379,7 @@ function alignment(i: integer): alignmentrange;
 
   begin
     a := 1;
-    while (a < long) and not odd(i)  do
+    while (a < quad) and not odd(i)  do
       begin
       a := a * 2;
       i := i div 2;
@@ -4309,8 +4309,7 @@ procedure shiftintx(backwards: boolean);
     if keytable[right].oprnd.mode = intconst then
       begin
       shiftfactor := keytable[right].oprnd.int_value;
-      if shiftfactor >= 4 then keytable[key].alignment := quad
-      else if shiftfactor > 0 then keytable[key].alignment := power2(shiftfactor);
+      if shiftfactor > 0 then keytable[key].alignment := alignment(power2(shiftfactor));
       if shiftfactor < 0 then backwards := not backwards;
       shiftfactor := abs(shiftfactor);
       { shift amount is encoded as immr:imms because the shifts
