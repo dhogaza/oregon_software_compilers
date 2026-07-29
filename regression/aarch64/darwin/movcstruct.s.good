@@ -73,9 +73,9 @@
 	add	x14,x26,xzr
 	add	x13,x25,xzr
 .L32764:
-	ldrb	w16,[x13],1
-	strb	w16,[x14],1
-	sub	x15,x15,1
+	ldr	w16,[x13],4
+	str	w16,[x14],4
+	sub	x15,x15,4
 	cbnz	x15,.L32764
 # Line: 17, Stmt: 0
 	adrp	x15,.L32766@PAGE
