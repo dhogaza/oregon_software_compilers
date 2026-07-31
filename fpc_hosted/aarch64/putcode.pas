@@ -546,9 +546,12 @@ begin
     adrp: write(macfile, 'adrp');
     andinst: write(macfile, 'and');
     asrinst: write(macfile, 'asr');
-    bic: write(macfile, 'bic');
     b: write(macfile, 'b');
+    bic: write(macfile, 'bic');
     bcond: write(macfile, 'b.');
+    bfc: write(macfile, 'bfc');
+    bfi: write(macfile, 'bfi');
+    bfxil: write(macfile, 'bfxil');
     bl: write(macfile, 'bl');
     blr: write(macfile, 'blr');
     br: write(macfile, 'br');
@@ -562,6 +565,7 @@ begin
     cset: write(macfile, 'cset');
     eon: write(macfile, 'eors');
     eor: write(macfile, 'eor');
+    extr: write(macfile, 'extr');
     ldr: write(macfile, 'ldr');
     ldrb: write(macfile, 'ldrb');
     ldrh: write(macfile, 'ldrh');
@@ -585,15 +589,24 @@ begin
     orinst: write(macfile, 'orr');
     orn: write(macfile, 'orn');
     ret: write(macfile, 'ret');
+    sbfiz: write(macfile, 'sbfiz');
+    sbfx: write(macfile, 'sbfx');
     sdiv: write(macfile, 'sdiv');
     stp: write(macfile, 'stp');
     str: write(macfile, 'str');
     strb: write(macfile, 'strb');
     strh: write(macfile, 'strh');
+    sxtb: write(macfile, 'sxtb');
+    sxth: write(macfile, 'sxth');
+    sxtw: write(macfile, 'sxtw');
     tbz: write(macfile, 'tbz');
     tbnz: write(macfile, 'tbnz');
     sub: write(macfile, 'sub');
+    ubfx: write(macfile, 'ubfx');
+    ubfiz: write(macfile, 'ubfiz');
     udiv: write(macfile, 'udiv');
+    uxtb: write(macfile, 'uxtb');
+    uxth: write(macfile, 'uxth');
     otherwise write(macfile, 'bad inst: ', ord(i.inst));
   end;
   if (i.inst in [first_a .. last_a]) and i.s then

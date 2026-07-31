@@ -296,9 +296,14 @@ type
 
   b, bcond, bl, blr, br, cbz, cbnz, tbz, tbnz,
 
+  {bit manipulation instructions}
+
+  ubfx, sbfx, ubfiz, sbfiz, bfxil, bfi, bfc, extr, uxtb, sxtb,
+  uxth, sxth, sxtw,
+
   {miscellaneous instructions}
 
-  lslinst, asrinst, lsrinst, sxtw, absinst,
+  lslinst, asrinst, lsrinst, absinst,
 
   ret);
 
