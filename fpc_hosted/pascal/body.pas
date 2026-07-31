@@ -4782,9 +4782,6 @@ procedure statement(follow: tokenset {legal following symbols} );
       with proctable[pref] do
         begin
         if (l - lev > levelspread) and (lev <> 1) then levelspread := l - lev;
-{
-writeln(lev, intlevelrefs:7, l:3);
-}
         if (lev > 1) and (not bodydefined or intlevelrefs) and (l > 1) then
           proctable[bref].intlevelrefs := true;
         if globaldeath or not bodydefined then
