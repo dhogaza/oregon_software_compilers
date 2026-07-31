@@ -12,6 +12,13 @@ write another pass in improve?  doset lengths could be set to the eventual
 length that's needed, for instance, though the code generator can hack that
 easily enough.  
 
+optimizing scratch register operations ...
+
+Use improve to walk the tree looking at procedures that are called in the
+current procedure and track the registers they have used when compiled, to
+guide the codegenerator into prefered scratch registers to use.  And, of course,
+and codegen time just mark scratch registers used by the called procedure.
+
 Also ...
 
 i in [a..b] with no non-emptyset constant component can be transformed into:
@@ -72,23 +79,11 @@ if seeking value, wzr is replaced with a register.
 
 --- current work
 
-  -- loops ...
+  -- packed structures
 
-     "used" is currently useless.
+     bit extract/insert instructions are great for packed fields themselves.
 
-     makeaddressable should be able to set it if reg[2]valid.   Do the properreg/
-     stackcounter type check done by recall_reg.  For for loops at least, do not
-     need to propagate to the outer levels as it is restored at the tail and
-     available when exiting to that outer level.  Repeat and while loops are
-     different ... needs study.
-
-     Something like "recall_reg" can be made to work though it currently is a 
-     large nop.  The idea is that if you restore the reg from the stack copy
-     and it then lives to the end of the loop, no need to restore at the
-     end of the loop.
-
-     REMEMBER TO RESTORE GLOBALLY ASSIGNED REGISTERS which mostly fixed the above
-     due to their being preserved across proc calls.
+     packed arrays are more difficult.
 
   -- the precedes lastbranch code is safe but silly.  It is really where
      labels are defined that is the issue, and if the key being considered
@@ -109,7 +104,7 @@ forward:
 
 Is not safe.>
 
-Needs more thinking.  Nodes probably need address labeling.
+Needs more thinking.  Nodes probably need numbering.
 
   -- instead of deleting instruction nodes, mark them with a "deleted" flag.
      If the compiler's details switch (or some other?) is given then write out
@@ -123,19 +118,6 @@ Needs more thinking.  Nodes probably need address labeling.
   -- cstring
 
      fold if possible, if not emit cstring function
-
-  -- look into why smallsetstime genrates such trash code (Low priority)
-
-  -- things needed to finish implementing the library
-
-     Will need an assembly stub or separate pascal header file(?) to deal
-     with darwin ___stdinp vs linux stdin naming difference stupidty. Probably
-     the assembler thing, sources in darwin/linux subdirs.  Or extern pascal
-     var, like function _p_stdin, _p_stdout, and _p_stderr with either extern
-     stdin/out (linux) or ____stdinp/out/err for darwin, in the appropriate
-     linux/darwin directory chosen by a build script.  Would also need to be
-     handled by the regression test .nolib processing code by setting an
-     additional --include switch.
 
   -- shared/def/use variable
 
