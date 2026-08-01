@@ -3789,13 +3789,14 @@ procedure copyaccessx;
 
     with keytable[key] do
       begin {copy the key}
-      len := keytable[left].len;
       copylink := left;
       delta := refcount - copycount;
       end;
 
     with keytable[left], oprnd do
       begin
+      keytable[key].len := len;
+      keytable[key].alignment := alignment;
       keytable[key].regsaved := regsaved;
       keytable[key].reg2saved := reg2saved;
       keytable[key].regvalid := regvalid;
@@ -7336,14 +7337,18 @@ procedure pindxx;
     setkeyvalue(left);
     with keytable[key],oprnd do
       begin
-      packedaccess := true;
-      bitoffset := (bitoffset + pseudoinst.oprnds[2]) mod (quad * bitsperunit);
+      if not packedaccess then
+        begin
+        packedaccess := true;
+        alignment := packingunit * bitsperunit;
+        end;
+      bitoffset := (bitoffset + pseudoinst.oprnds[2]) mod (alignment * bitsperunit);
       case mode of
         abstract_offset, signed_offset, unsigned_offset:
-          index := index + (bitoffset + pseudoinst.oprnds[2]) div (quad * bitsperunit);
+          index := index + (bitoffset + pseudoinst.oprnds[2]) div (alignment * bitsperunit);
         labeltarget, label_offset, dataref:
           labeloffset := labeloffset + (bitoffset + pseudoinst.oprnds[2]) div
-            (quad * bitsperunit);
+            (alignment * bitsperunit);
         otherwise writeln('bad index mode in pindxx ', mode);
         end;
       end;
