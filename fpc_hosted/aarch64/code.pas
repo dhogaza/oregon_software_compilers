@@ -526,8 +526,9 @@ end;
 function hasframeptr: boolean;
 
   begin {hasframeptr}
-    hasframeptr := not leaf or switcheverplus[leafframepointer];
-  end {hadframepointer};
+    hasframeptr := not leaf or switcheverplus[leafframepointer] or
+                   (blockref = 0);
+  end {haframepointer};
 
 function regmoveok(n: integer): boolean;
 
@@ -556,6 +557,7 @@ function nomode_oprnd: oprndtype;
     o.mode := nomode;
     o.reg := noreg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     nomode_oprnd := o;
   end;
 
@@ -568,6 +570,7 @@ function reg_oprnd(reg: regindex): oprndtype;
     o.mode := register;
     o.reg := reg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     reg_oprnd := o;
   end;
 
@@ -580,6 +583,7 @@ function fpreg_oprnd(reg: regindex): oprndtype;
     o.mode := fpregister;
     o.reg := reg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     fpreg_oprnd := o;
   end;
 
@@ -592,6 +596,7 @@ function imm16_oprnd(imm16_value: bits16; imm16_shift: unsigned): oprndtype;
     o.reg := noreg;
     o.reg2 := noreg;
     o.mode := imm16;
+    o.bitoffset := 0;
     o.imm16_value := imm16_value;
     o.imm16_shift := imm16_shift;
     imm16_oprnd := o;
@@ -605,6 +610,7 @@ function imm12_oprnd(imm12_value: bits12; imm12_shift: boolean): oprndtype;
   begin
     o.reg := noreg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     o.mode := imm12;
     o.imm12_value := imm12_value;
     o.imm12_shift := imm12_shift;
@@ -619,6 +625,7 @@ function immbitmask_oprnd(bitmask_value: unsigned): oprndtype;
   begin
     o.reg := noreg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     o.mode := immbitmask;
     o.bitmask_value := bitmask_value;
     immbitmask_oprnd := o;
@@ -634,6 +641,7 @@ function shift_reg_oprnd(reg: regindex; reg_shift: reg_shifts;
     o.mode := shift_reg;
     o.reg := reg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     o.reg_shift := reg_shift;
     o.shift_amount := shift_amount;
     shift_reg_oprnd := o;
@@ -648,6 +656,7 @@ function extend_reg_oprnd(reg: regindex; reg_extend: reg_extends; extend_shift: 
     o.mode := extend_reg;
     o.reg := reg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     o.reg_extend := reg_extend;
     o.extend_shift := extend_shift;
     o.extend_signed := extend_signed;
@@ -662,6 +671,7 @@ function index_oprnd(mode: oprnd_modes; reg: regindex; index: integer;
   begin
     o.reg := reg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     o.mode := mode;
     o.index := index;
     o.spabsolute := spabsolute;
@@ -677,6 +687,7 @@ function reg_offset_oprnd(reg, reg2: regindex; shift: bits2;
     o.mode := reg_offset;
     o.reg := reg;
     o.reg2 := reg2;
+    o.bitoffset := 0;
     o.shift := shift;
     o.extend := extend;
     o.signed := signed;
@@ -691,6 +702,7 @@ function tworeg_oprnd(reg, reg2: regindex): oprndtype;
   begin
     o.mode := tworeg;
     o.reg := reg;
+    o.bitoffset := 0;
     o.reg2 := reg2;
     tworeg_oprnd := o;
   end;
@@ -703,6 +715,7 @@ function cond_oprnd(c: conds): oprndtype;
     o.mode := cond;
     o.condition := c;
     o.reg := noreg;
+    o.bitoffset := 0;
     o.reg2 := noreg;
     cond_oprnd := o;
   end;
@@ -714,6 +727,7 @@ function literal_oprnd(lit: integer): oprndtype;
   begin
     o.reg := noreg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     o.mode := literal;
     o.literal := lit;
     literal_oprnd := o;
@@ -727,6 +741,7 @@ function procref_oprnd(mode:oprnd_modes; proclabelno: integer;
   begin
     o.reg := noreg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     o.mode := mode;
     o.proclabelno := proclabelno;
     o.proclowbits := proclowbits;
@@ -741,6 +756,7 @@ function externref_oprnd(externref: unsigned; lowbits: boolean; labeloffset: int
   begin
     o.externref := externref;
     o.reg := noreg;
+    o.bitoffset := 0;
     o.reg2 := noreg;
     o.mode := dataref;
     o.labelno := 0;
@@ -759,6 +775,7 @@ function ownref_oprnd(lowbits: boolean; labeloffset: integer): oprndtype;
     o.labelownflag := true;
     o.reg := noreg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     o.mode := dataref;
     o.labelno := 0;
     o.lowbits := lowbits;
@@ -775,6 +792,7 @@ function dataref_oprnd(labelno: integer; labelown: boolean; externref: integer;
   begin
     o.reg := noreg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     o.mode := dataref;
     o.labelno := labelno;
     o.lowbits := lowbits;
@@ -791,6 +809,7 @@ function labeltarget_oprnd(labelno: integer): oprndtype;
   begin
     o.reg := noreg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     o.mode := labeltarget;
     o.labelno := labelno;
     o.lowbits := false;
@@ -808,6 +827,7 @@ function labeloffset_oprnd(reg: regindex; labelno: unsigned; labelownflag: boole
   begin
     o.reg := reg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     o.mode := label_offset;
     o.labelno := labelno;
     o.lowbits := true;
@@ -824,6 +844,7 @@ function proccall_oprnd(proclabelno: unsigned; entry_offset: integer): oprndtype
   begin
     o.reg := noreg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     o.mode := proccall;
     o.proclabelno := proclabelno;
     o.entry_offset := entry_offset;
@@ -837,6 +858,7 @@ function libcall_oprnd(l: libroutines): oprndtype;
   begin
     o.reg := noreg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     o.mode := libcall;
     o.libroutine := l;
     libcall_oprnd := o;
@@ -849,6 +871,7 @@ function intconst_oprnd(i: integer): oprndtype;
   begin
     o.reg := noreg;
     o.reg2 := noreg;
+    o.bitoffset := 0;
     o.mode := intconst;
     o.int_value := i;
     intconst_oprnd := o;
@@ -2674,6 +2697,50 @@ procedure addressboth;
     unlock(right);
   end {addressboth} ;
 
+
+procedure unpack(var k: keyindex; {operand to unpack}
+                 target: keyindex {unpack it to this key, if nonzero });
+
+{ Make a source reference to a possibly packed operand.  If the operand
+  is not packed, it is simply addressed.  If it is packed, unpack it to
+  the target register, if given, or a scratch register, if not.
+}
+
+  var
+    inst:insts;
+    basekey: keyindex;
+
+  begin {unpack}
+    address(k, target);
+    if keytable[k].packedaccess then
+      begin
+      basekey := settemp(long, keytable[k].oprnd);
+      if target = 0 then target := settemp(long, reg_oprnd(getreg(false)));
+      gensimplemove(lastnode, basekey, target);
+      if keytable[k].signed then inst := sbfx
+      else inst := ubfx;
+      gen4(lastnode, buildinst(inst, true, false), target, target,
+           settemp(long, imm12_oprnd(keytable[k].oprnd.bitoffset, false)),
+           settemp(long, imm12_oprnd(keytable[k].len, false)));
+      allowmodify(k, false);
+      k := target; 
+      end;
+  end {unpack} ;
+
+
+procedure unpackboth(target: keyindex {try to unpack one operand here});
+
+{ Unpack both operands (from the globals "l" and "r")
+}
+
+
+  begin
+    unpack(left, 0);
+    lock(left);
+    unpack(right, 0);
+    unlock(left);
+  end {unpackboth} ;
+
 procedure makedstaddressable(var k: keyindex);
 
 { If the destination is a volatile register, use it again but
@@ -3663,6 +3730,30 @@ procedure calliosupport(libroutine: libroutines);
     firstreg := 0;
   end;
 
+procedure pack(src, dst: keyindex);
+
+{ Move the src value to the packed dst. We assume src has been unpacked and
+  address has been called on dst.
+}
+
+  var
+    dstregkey, dstbasekey: keyindex;
+
+begin {pack}
+  loadreg(src, dst);
+  lock(src);
+  lock(dst);
+  dstregkey := settemp(long, reg_oprnd(getreg(false)));
+  unlock(src);
+  unlock(dst);
+  dstbasekey := settemp(long, keytable[dst].oprnd);
+  gensimplemove(lastnode, dstbasekey, dstregkey);
+  gen4(lastnode, buildinst(bfi, true, false), dstregkey, src,
+       settemp(long, imm12_oprnd(keytable[dst].oprnd.bitoffset, false)),
+       settemp(long, imm12_oprnd(keytable[dst].len, false)));
+  gensimplemove(lastnode, dstregkey, dstbasekey);
+end {pack};
+
 {start of individual pseudoop codegen procedures}
 
 { context processing pseudops }
@@ -4373,8 +4464,7 @@ procedure integerarithmetic(inst: insts);
 }
 
   begin {integerarithmetic}
-    {unpkshkboth(len);}
-    addressboth;
+    unpackboth(target);
     settargetorreg;
     lock(key);
     loadreg(left, right);
@@ -5913,6 +6003,7 @@ procedure blockexitx;
 
     if (blockref <> 0) or (switchcounters[mainbody] > 0) then
       begin
+    
       { todo save procedure symbol table index }
 
       processregsaves;
@@ -5933,12 +6024,10 @@ procedure blockexitx;
       { eventually peephole optimizations happen now }
 
       { We only save registers x19 ... and if the proc has a frame we
-         we do this indexing negatively off the fp to make sure the index is in range.
+        we do this indexing negatively off the fp to make sure the index is in range.
+
         The static link must be the first register saved if used.
        }
-{
-      regcost := 0;
-}
       regcost := paramcopysize;
       regcount := -1;
       for i := sp downto pr + 1 do
@@ -5959,7 +6048,7 @@ procedure blockexitx;
 
       savetempkey := tempkey;
 
-  { DRB allocate no space for frame and return pointer}
+      { DRB allocate no space for frame and return pointer}
       if not hasframeptr then
         blksize := blksize - quad;
       blockcost := (blksize + regcost + maxstackoffset + quad - 1) and -quad;
@@ -6302,14 +6391,20 @@ procedure dovarx(s: boolean {signed variable reference} );
 procedure movintptrx;
 
   begin {movintptrx}
-    lock(right);
-    addressdst(left);
-    unlock(right);
-    lock(left);
-    address(right, left);
-    unlock(left);
-    gensimplemove(lastnode, right, left);
-    savedstkey(left);
+    unpack(right, left);
+    if keytable[left].packedaccess then
+      begin
+      address(left, right);
+      pack(right, left);
+      end
+    else
+      begin
+      lock(right);
+      addressdst(left);
+      unlock(right);
+      gensimplemove(lastnode, right, left);
+      savedstkey(left);
+      end;
     setallfields(left);
   end {movintptrx};
 
@@ -6338,11 +6433,21 @@ procedure movlitintx;
 
   var
     p: nodeptr;
+    litkey: keyindex;
 
   begin
-    addressdst(left);
-    gensimplemove(lastnode, settemp(len, intconst_oprnd(pseudoinst.oprnds[2])), left);
-    savedstkey(left);
+    litkey := settemp(len, intconst_oprnd(pseudoinst.oprnds[2]));
+    if keytable[left].packedaccess then
+      begin
+      address(left, 0);
+      pack(litkey, left);
+      end
+    else
+      begin
+      addressdst(left);
+      gensimplemove(lastnode, litkey, left);
+      savedstkey(left);
+      end;
     setallfields(left);
   end;
 
@@ -7215,6 +7320,35 @@ procedure aindxx;
                                 index scaling}
   end {aindxx} ;
 
+procedure pindxx;
+
+{ Index the address value in left by the bit offset in oprnds[2].  Any memory access
+  mode with an offset can be bit indexed. Currently doesn't handle index value overflow.
+
+  Note that the len field in this case is a bit length, not a word
+  length.
+
+  The result is left in "key".
+}
+
+  begin
+    address(left, 0);
+    setkeyvalue(left);
+    with keytable[key],oprnd do
+      begin
+      packedaccess := true;
+      bitoffset := (bitoffset + pseudoinst.oprnds[2]) mod (quad * bitsperunit);
+      case mode of
+        abstract_offset, signed_offset, unsigned_offset:
+          index := index + (bitoffset + pseudoinst.oprnds[2]) div (quad * bitsperunit);
+        labeltarget, label_offset, dataref:
+          labeloffset := labeloffset + (bitoffset + pseudoinst.oprnds[2]) div
+            (quad * bitsperunit);
+        otherwise writeln('bad index mode in pindxx ', mode);
+        end;
+      end;
+  end {pindxx} ;
+
 procedure addrx;
 
   begin {addrx}
@@ -7830,8 +7964,8 @@ procedure codeone;
       indxindr: indxindrx;
       indx: indxx;
       aindx: aindxx;
-{
       pindx: pindxx;
+{
       paindx: paindxx;
 }
       condvaluef: condvalue(true);

@@ -336,6 +336,7 @@ type
   oprndtype = packed record
     reg: regindex;
     reg2: regindex; {extra register if indexed & bitindexed}
+    bitoffset: bits6; {can be applied to any memory address mode}
     case mode: oprnd_modes of
       shift_reg: (reg_shift: reg_shifts; shift_amount: bits6);
       extend_reg: (reg_extend: reg_extends; extend_shift: bits3;
