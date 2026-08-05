@@ -361,7 +361,8 @@ function bits(i: unsigned): integer;
 { return the number of bits in i
 }
 
-var b: integer;
+var
+  b: integer;
 
 begin {bits}
   b := -1;
@@ -375,9 +376,17 @@ end {bits};
 
 function allones(i: unsigned): boolean;
 
+var
+  b: integer;
+
 begin {allones}
-  while odd(i) do i := i div 2;
-  allones := i = 0;
+  b := 0;
+  while odd(i) do
+    begin
+    i := i div 2;
+    b := b + 1;
+    end;
+  allones := (b > 0) and (i = 0);;
 end {allones};
 
 function alignment(i: integer): alignmentrange;
@@ -3763,10 +3772,22 @@ procedure pack(src, dst: keyindex);
 }
 
   var
-    dstregkey, dstbasekey, bitshiftkey, reg2key, maskkey, bitindexkey, byteindexkey: keyindex;
+    dstregkey, dstbasekey, bitshiftkey, reg2key, maskkey, bitindexkey,
+    byteindexkey: keyindex;
+    isconst: boolean;
+    constvalue: integer;
+    optimizeconst: boolean; { field values that are 0 or all ones are special }
 
 begin {pack}
-  loadreg(src, dst);
+  with keytable[src].oprnd do
+    begin
+    isconst := mode = intconst;
+    if isconst then
+      constvalue := int_value and (power2(keytable[dst].len) - 1);
+    end;
+  optimizeconst := (isconst) and ((constvalue = 0) or allones(constvalue));
+  if not optimizeconst then
+    loadreg(src, dst);
   lock(src);
   lock(dst);
   dstregkey := settemp(long, reg_oprnd(getreg(false)));
@@ -3798,11 +3819,17 @@ begin {pack}
   gensimplemove(lastnode, dstbasekey, dstregkey);
   if keytable[dst].oprnd.mode = reg_offset then
     begin
-    gen3(lastnode, buildinst(andinst, false, false), src, src, maskkey);
-    gen3(lastnode, buildinst(lslinst, false, false), src, src, reg2key);
+    if not isconst then
+      gen3(lastnode, buildinst(andinst, false, false), src, src, maskkey);
+    if not optimizeconst then
+      gen3(lastnode, buildinst(lslinst, false, false), src, src, reg2key);
     gen3(lastnode, buildinst(lslinst, false, false), maskkey, maskkey, reg2key);
-    gen3(lastnode, buildinst(bic, false, false), dstregkey, dstregkey, maskkey);
-    gen3(lastnode, buildinst(orinst, false, false), dstregkey, dstregkey, src);
+    if not (optimizeconst and allones(constvalue)) then
+      gen3(lastnode, buildinst(bic, false, false), dstregkey, dstregkey, maskkey);
+    if optimizeconst and allones(constvalue) then
+      gen3(lastnode, buildinst(orinst, false, false), dstregkey, dstregkey, maskkey)
+    else if not isconst or (constvalue <> 0) then
+      gen3(lastnode, buildinst(orinst, false, false), dstregkey, dstregkey, src);
     end
   else
     gen4(lastnode, buildinst(bfi, true, false), dstregkey, src,
