@@ -34,10 +34,9 @@
 # Line: 15, Stmt: 1
 # Line: 16, Stmt: 2
 	adrp	x28,.L32767@PAGE
-	mov	x15,xzr
-	ldr	x14,[x28,.L32767+24@PAGEOFF]
-	bfi	x14,x15,0,1
-	str	x14,[x28,.L32767+24@PAGEOFF]
+	ldr	x15,[x28,.L32767+24@PAGEOFF]
+	bfc	x15,0,1
+	str	x15,[x28,.L32767+24@PAGEOFF]
 # Line: 17, Stmt: 0
 	mov	x15,1
 	ldr	x14,[x28,.L32767+24@PAGEOFF]
@@ -64,10 +63,9 @@
 	bfi	x15,x27,11,1
 	str	x15,[x28,.L32767+24@PAGEOFF]
 # Line: 22, Stmt: 0
-	mov	x15,xzr
-	ldr	x14,[x28,.L32767+24@PAGEOFF]
-	bfi	x14,x15,10,1
-	str	x14,[x28,.L32767+24@PAGEOFF]
+	ldr	x15,[x28,.L32767+24@PAGEOFF]
+	bfc	x15,10,1
+	str	x15,[x28,.L32767+24@PAGEOFF]
 # Line: 23, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	add	x0,x15,.L32766+1@PAGEOFF
