@@ -374,21 +374,6 @@ begin {bits}
   bits := b;
 end {bits};
 
-function allones(i: unsigned): boolean;
-
-var
-  b: integer;
-
-begin {allones}
-  b := 0;
-  while odd(i) do
-    begin
-    i := i div 2;
-    b := b + 1;
-    end;
-  allones := (b > 0) and (i = 0);;
-end {allones};
-
 function alignment(i: integer): alignmentrange;
 
   var a: alignmentrange;
@@ -3774,7 +3759,7 @@ procedure pack(src, dst: keyindex);
   var
     dstregkey, dstbasekey, bitshiftkey, reg2key, maskkey, bitindexkey,
     byteindexkey: keyindex;
-    isconst: boolean;
+    isconst, allones: boolean;
     constvalue: integer;
     optimizeconst: boolean; { field values that are 0 or all ones are special }
 
@@ -3783,9 +3768,13 @@ begin {pack}
     begin
     isconst := mode = intconst;
     if isconst then
+      begin
       constvalue := int_value and (power2(keytable[dst].len) - 1);
+      allones := constvalue = (power2(keytable[dst].len) - 1);
+      end;
     end;
-  optimizeconst := (isconst) and ((constvalue = 0) or allones(constvalue));
+  optimizeconst := isconst and ((constvalue = 0) or
+                   (allones and (keytable[dst].oprnd.mode = reg_offset)));
   if not optimizeconst then
     loadreg(src, dst);
   lock(src);
@@ -3824,17 +3813,22 @@ begin {pack}
     if not optimizeconst then
       gen3(lastnode, buildinst(lslinst, false, false), src, src, reg2key);
     gen3(lastnode, buildinst(lslinst, false, false), maskkey, maskkey, reg2key);
-    if not (optimizeconst and allones(constvalue)) then
+    if not (optimizeconst and allones) then
       gen3(lastnode, buildinst(bic, false, false), dstregkey, dstregkey, maskkey);
-    if optimizeconst and allones(constvalue) then
+    if optimizeconst and allones then
       gen3(lastnode, buildinst(orinst, false, false), dstregkey, dstregkey, maskkey)
     else if not isconst or (constvalue <> 0) then
       gen3(lastnode, buildinst(orinst, false, false), dstregkey, dstregkey, src);
     end
   else
-    gen4(lastnode, buildinst(bfi, true, false), dstregkey, src,
-         settemp(long, imm12_oprnd(keytable[dst].oprnd.bitoffset, false)),
-       settemp(long, imm12_oprnd(keytable[dst].len, false)));
+    if isconst and (constvalue = 0) then
+      gen3(lastnode, buildinst(bfc, true, false), dstregkey,
+           settemp(long, imm12_oprnd(keytable[dst].oprnd.bitoffset, false)),
+           settemp(long, imm12_oprnd(keytable[dst].len, false)))
+    else
+      gen4(lastnode, buildinst(bfi, true, false), dstregkey, src,
+           settemp(long, imm12_oprnd(keytable[dst].oprnd.bitoffset, false)),
+           settemp(long, imm12_oprnd(keytable[dst].len, false)));
   gensimplemove(lastnode, dstregkey, dstbasekey);
 end {pack};
 
