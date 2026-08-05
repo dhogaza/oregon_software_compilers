@@ -373,6 +373,13 @@ begin {bits}
   bits := b;
 end {bits};
 
+function allones(i: unsigned): boolean;
+
+begin {allones}
+  while odd(i) do i := i div 2;
+  allones := i = 0;
+end {allones};
+
 function alignment(i: integer): alignmentrange;
 
   var a: alignmentrange;
@@ -2708,22 +2715,39 @@ procedure unpack(var k: keyindex; {operand to unpack}
 
   var
     inst:insts;
-    basekey: keyindex;
+    basekey, reg2key, bitindexkey, maskkey: keyindex;
 
   begin {unpack}
     address(k, target);
     if keytable[k].packedaccess then
       begin
-      basekey := settemp(long, keytable[k].oprnd);
+      basekey := settemp(keytable[k].alignment div bitsperunit, keytable[k].oprnd);
       if target = 0 then target := settemp(long, reg_oprnd(getreg(false)));
-      gensimplemove(lastnode, basekey, target);
-      if keytable[k].signed then inst := sbfx
-      else inst := ubfx;
-      gen4(lastnode, buildinst(inst, true, false), target, target,
-           settemp(long, imm12_oprnd(keytable[k].oprnd.bitoffset, false)),
-           settemp(long, imm12_oprnd(keytable[k].len, false)));
-      allowmodify(k, false);
-      k := target; 
+      if keytable[basekey].oprnd.mode = reg_offset then
+        begin
+        lock(basekey);
+        reg2key := settemp(long, reg_oprnd(keytable[basekey].oprnd.reg2));
+        bitindexkey := settemp(long, reg_oprnd(getreg(false)));
+        unlock(basekey);
+        maskkey := settemp(long, immbitmask_oprnd(7));
+        gen3(lastnode, buildinst(andinst, false, false), bitindexkey, reg2key, maskkey);
+        gen3(lastnode, buildinst(lsrinst, false, false), reg2key, reg2key,
+             settemp(long, immbitmask_oprnd(3)));
+        gensimplemove(lastnode, basekey, target);
+	gen3(lastnode, buildinst(lsrinst,false, false), target, target, bitindexkey);
+        maskkey := settemp(long, immbitmask_oprnd(power2(keytable[basekey].len) - 1));
+        gen3(lastnode, buildinst(andinst, false, false), target, target, maskkey);
+        end
+      else
+        begin
+        gensimplemove(lastnode, basekey, target);
+        if keytable[k].signed then inst := sbfx
+        else inst := ubfx;
+        gen4(lastnode, buildinst(inst, true, false), target, target,
+             settemp(long, imm12_oprnd(keytable[k].oprnd.bitoffset, false)),
+             settemp(long, imm12_oprnd(keytable[k].len, false)));
+        end;
+      changevalue(k, target);
       end;
   end {unpack} ;
 
@@ -3737,19 +3761,53 @@ procedure pack(src, dst: keyindex);
 }
 
   var
-    dstregkey, dstbasekey: keyindex;
+    dstregkey, dstbasekey, bitshiftkey, reg2key, maskkey, bitindexkey, byteindexkey: keyindex;
 
 begin {pack}
   loadreg(src, dst);
   lock(src);
   lock(dst);
   dstregkey := settemp(long, reg_oprnd(getreg(false)));
+  if keytable[dst].oprnd.mode = reg_offset then
+    begin
+    lock(dstregkey);
+    byteindexkey := settemp(long, reg_oprnd(getreg(false)));
+    lock(byteindexkey);
+{
+    bitindexkey := settemp(long, reg_oprnd(getreg(false)));
+}
+    bitshiftkey := settemp(long, reg_oprnd(getreg(false)));
+    reg2key := settemp(long, reg_oprnd(keytable[dst].oprnd.reg2));
+    dstbasekey := settemp(keytable[dst].alignment div bitsperunit,
+                          reg_offset_oprnd(keytable[dst].oprnd.reg,
+                          keytable[byteindexkey].oprnd.reg, 0, xtx, false));
+    gen3(lastnode, buildinst(lsrinst, true, false), byteindexkey,
+         reg2key, settemp(long, immbitmask_oprnd(3)));
+    maskkey := settemp(long, immbitmask_oprnd(7));
+    gen3(lastnode, buildinst(andinst, true, false), reg2key, reg2key, maskkey);
+    maskkey := settemp(long, reg_oprnd(getreg(false)));
+    gensimplemove(lastnode, settemp(long, intconst_oprnd(power2(keytable[dst].len) - 1)),
+                  maskkey);
+    unlock(dstregkey);
+    unlock(byteindexkey);
+    end
+  else
+    dstbasekey := settemp(keytable[dst].alignment div bitsperunit, keytable[dst].oprnd);
   unlock(src);
   unlock(dst);
-  dstbasekey := settemp(long, keytable[dst].oprnd);
+  keytable[dstbasekey].signed := false;
   gensimplemove(lastnode, dstbasekey, dstregkey);
-  gen4(lastnode, buildinst(bfi, true, false), dstregkey, src,
-       settemp(long, imm12_oprnd(keytable[dst].oprnd.bitoffset, false)),
+  if keytable[dst].oprnd.mode = reg_offset then
+    begin
+    gen3(lastnode, buildinst(andinst, false, false), src, src, maskkey);
+    gen3(lastnode, buildinst(lslinst, false, false), src, src, reg2key);
+    gen3(lastnode, buildinst(lslinst, false, false), maskkey, maskkey, reg2key);
+    gen3(lastnode, buildinst(bic, false, false), dstregkey, dstregkey, maskkey);
+    gen3(lastnode, buildinst(orinst, false, false), dstregkey, dstregkey, src);
+    end
+  else
+    gen4(lastnode, buildinst(bfi, true, false), dstregkey, src,
+         settemp(long, imm12_oprnd(keytable[dst].oprnd.bitoffset, false)),
        settemp(long, imm12_oprnd(keytable[dst].len, false)));
   gensimplemove(lastnode, dstregkey, dstbasekey);
 end {pack};
@@ -7275,13 +7333,9 @@ procedure aindxx;
     regkey, lefttemp: keyindex;
 
   begin {aindxx}
-    addressboth;
+    address(left, 0);;
     lock(left);
-{    with keytable[right] do
-      if not packedaccess and not signed and (len = word) then
-        unpack(right, long)
-      else unpack(right, word);
-}
+    unpack(right, 0);
     if keytable[right].oprnd.mode <> register then
       begin
       regkey := settemp(keytable[right].len, reg_oprnd(getreg(false)));
@@ -7332,27 +7386,108 @@ procedure pindxx;
   The result is left in "key".
 }
 
+  var
+    reg2key, byteaddresskey, bitaddresskey, maskkey: keyindex;
+
   begin
     address(left, 0);
-    setkeyvalue(left);
-    with keytable[key],oprnd do
+    if keytable[left].packedaccess and (keytable[left].oprnd.mode = reg_offset) then
       begin
-      if not packedaccess then
+      reg2key := settemp(long, reg_oprnd(keytable[left].oprnd.reg2));
+      lock(left);
+{
+      byteaddresskey := settemp(long, reg_oprnd(getreg(false)));
+}
+      byteaddresskey := settemp(long, reg_oprnd(keytable[left].oprnd.reg));
+      lock(byteaddresskey);
+      bitaddresskey := settemp(long, reg_oprnd(getreg(false)));
+      unlock(byteaddresskey);
+      gen3(lastnode, buildinst(add, true, false), bitaddresskey, reg2key,
+           settemp(long, imm12_oprnd(pseudoinst.oprnds[2], false)));
+{
+      gen3(lastnode, buildinst(lsrinst, true, false), byteaddresskey, bitaddresskey,
+           settemp(long, immbitmask_oprnd(3)));
+      maskkey := settemp(long, immbitmask_oprnd(7));
+      gen3(lastnode, buildinst(andinst, true, false), bitaddresskey, bitaddresskey, maskkey);
+}
+      setvalue(reg_offset_oprnd(keytable[byteaddresskey].oprnd.reg,
+               keytable[bitaddresskey].oprnd.reg, 0, xtx, false));
+      keytable[key].packedaccess := true;
+      keytable[key].alignment := keytable[left].alignment;
+      unlock(left);
+      end
+    else
+      begin
+      setkeyvalue(left);
+      with keytable[key],oprnd do
         begin
-        packedaccess := true;
-        alignment := packingunit * bitsperunit;
-        end;
-      bitoffset := (bitoffset + pseudoinst.oprnds[2]) mod (alignment * bitsperunit);
-      case mode of
-        abstract_offset, signed_offset, unsigned_offset:
-          index := index + (bitoffset + pseudoinst.oprnds[2]) div (alignment * bitsperunit);
-        labeltarget, label_offset, dataref:
-          labeloffset := labeloffset + (bitoffset + pseudoinst.oprnds[2]) div
-            (alignment * bitsperunit);
-        otherwise writeln('bad index mode in pindxx ', mode);
+        if not packedaccess then
+          begin
+          packedaccess := true;
+          alignment := packingunit * bitsperunit;
+          end;
+        bitoffset := (bitoffset + pseudoinst.oprnds[2]) mod (alignment * bitsperunit);
+        case mode of
+          abstract_offset, signed_offset, unsigned_offset:
+            index := index + (bitoffset + pseudoinst.oprnds[2]) div (alignment * bitsperunit);
+          labeltarget, label_offset, dataref:
+            labeloffset := labeloffset + (bitoffset + pseudoinst.oprnds[2]) div
+              (alignment * bitsperunit);
+          otherwise writeln('bad index mode in pindxx ', mode);
+          end;
         end;
       end;
   end {pindxx} ;
+
+procedure paindxx;
+
+{ Generate code for a packed array access.  Oprnds[1] is the base address
+  of the array and oprnds[2] is the index expression.  The index expression
+  is a bit offset and must be multiplied by the bit length.  The front end
+  guarantees that the packed array entry does not cross a byte boundary.  It
+  is followed by a pindxx and if it is being index by a non-zero amount, that
+  bit index will be added to the array index value when the array member is written
+  into by "pack" or read out by "unpack".
+}
+
+  var
+    regkey, lefttemp, righttemp: keyindex;
+
+  begin {paindxx}
+    address(left, 0);
+    lock(left);
+    unpack(right, 0);
+    if keytable[right].oprnd.mode <> register then
+      begin
+      regkey := settemp(keytable[right].len, reg_oprnd(getreg(false)));
+      gensimplemove(lastnode, right, regkey);
+      changevalue(right, regkey);
+      end;
+    if len <> 1 then
+      gen3(lastnode, buildinst(lslinst, len = long, false), regkey, regkey,
+           settemp(long, immbitmask_oprnd(bits(len))));
+    unlock(left);
+ 
+    if (keytable[left].oprnd.mode = abstract_offset) and
+      (keytable[left].oprnd.index = 0) then
+      lefttemp := settemp(long, reg_oprnd(keytable[left].oprnd.reg))
+    else
+      begin
+      lock(right);
+      regkey := settemp(long, reg_oprnd(getreg(false)));
+      genmoveaddress(lastnode, left, regkey);
+      lefttemp := settemp(long, index_oprnd(abstract_offset, keytable[regkey].oprnd.reg,
+                                            0, false));
+      changevalue(left, lefttemp);
+      unlock(right);
+      end;
+
+    setvalue(reg_offset_oprnd(keytable[tempkey].oprnd.reg, keytable[right].oprnd.reg, 0,
+                          xtx, keytable[right].signed));                         
+    keytable[key].alignment := bitsperunit;
+    keytable[key].packedaccess := true;
+  end {paindxx} ;
+
 
 procedure addrx;
 
@@ -7970,9 +8105,7 @@ procedure codeone;
       indx: indxx;
       aindx: aindxx;
       pindx: pindxx;
-{
       paindx: paindxx;
-}
       condvaluef: condvalue(true);
       condvaluet: condvalue(false);
       addr: addrx;

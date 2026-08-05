@@ -79,12 +79,14 @@ if seeking value, wzr is replaced with a register.
 
 --- current work
 
-  -- packed structures
+  -- packed arrays
 
-     bit extract/insert instructions are great for packed fields themselves.
+     imagine [4 bits] packed array [0..n] 4 bit elements.
 
-     packed arrays are more difficult.
-
+     1. byte address will be (index + 4) >> 3.  (index + 4) mod 8 is bit offset
+        within byte.  [0] >> 4. [1] + 4 = 8 mod 8 means [1] not shifted at all, [2]
+         mod 8 means [2] >> 4.  In all cases must mask by 2^[pindx length] - 1.
+        
   -- the precedes lastbranch code is safe but silly.  It is really where
      labels are defined that is the issue, and if the key being considered
      lies between a branch and its label.
