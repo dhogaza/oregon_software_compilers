@@ -1103,6 +1103,7 @@ begin {checkinst}
      (p^.oprnds[2].labeloffset mod 8 <> 0)) then 
     begin
     write('ldr/str not properly aligned');
+    writeln(macfile, 'ldr/str not properly aligned ', p^.oprnds[2].mode);
     compilerabort(inconsistent);
     end;
 end {checkinst};
@@ -2722,6 +2723,7 @@ procedure unpack(var k: keyindex; {operand to unpack}
     if keytable[k].packedaccess then
       begin
       basekey := settemp(keytable[k].alignment div bitsperunit, keytable[k].oprnd);
+      keytable[basekey].signed := false;
       if target = 0 then target := settemp(long, reg_oprnd(getreg(false)));
       if keytable[basekey].oprnd.mode = reg_offset then
         begin
@@ -2735,7 +2737,7 @@ procedure unpack(var k: keyindex; {operand to unpack}
              settemp(long, immbitmask_oprnd(3)));
         gensimplemove(lastnode, basekey, target);
 	gen3(lastnode, buildinst(lsrinst,false, false), target, target, bitindexkey);
-        maskkey := settemp(long, immbitmask_oprnd(power2(keytable[basekey].len) - 1));
+        maskkey := settemp(long, immbitmask_oprnd(power2(len) - 1));
         gen3(lastnode, buildinst(andinst, false, false), target, target, maskkey);
         end
       else
@@ -3773,9 +3775,6 @@ begin {pack}
     lock(dstregkey);
     byteindexkey := settemp(long, reg_oprnd(getreg(false)));
     lock(byteindexkey);
-{
-    bitindexkey := settemp(long, reg_oprnd(getreg(false)));
-}
     bitshiftkey := settemp(long, reg_oprnd(getreg(false)));
     reg2key := settemp(long, reg_oprnd(keytable[dst].oprnd.reg2));
     dstbasekey := settemp(keytable[dst].alignment div bitsperunit,
@@ -7451,17 +7450,21 @@ procedure paindxx;
 }
 
   var
-    regkey, lefttemp, righttemp: keyindex;
+    regkey, leftaddrkey, lefttemp, righttemp: keyindex;
 
   begin {paindxx}
     address(left, 0);
     lock(left);
     unpack(right, 0);
-    if keytable[right].oprnd.mode <> register then
+    if (keytable[right].oprnd.mode = register) and (len = 1) then
+      regkey := right
+    else
       begin
       regkey := settemp(keytable[right].len, reg_oprnd(getreg(false)));
       gensimplemove(lastnode, right, regkey);
+{
       changevalue(right, regkey);
+}
       end;
     if len <> 1 then
       gen3(lastnode, buildinst(lslinst, len = long, false), regkey, regkey,
@@ -7473,16 +7476,18 @@ procedure paindxx;
       lefttemp := settemp(long, reg_oprnd(keytable[left].oprnd.reg))
     else
       begin
-      lock(right);
-      regkey := settemp(long, reg_oprnd(getreg(false)));
-      genmoveaddress(lastnode, left, regkey);
-      lefttemp := settemp(long, index_oprnd(abstract_offset, keytable[regkey].oprnd.reg,
+      lock(regkey);
+      leftaddrkey := settemp(long, reg_oprnd(getreg(false)));
+      genmoveaddress(lastnode, left, leftaddrkey);
+      lefttemp := settemp(long, index_oprnd(abstract_offset, keytable[leftaddrkey].oprnd.reg,
                                             0, false));
+{
       changevalue(left, lefttemp);
-      unlock(right);
+}
+      unlock(regkey);
       end;
 
-    setvalue(reg_offset_oprnd(keytable[tempkey].oprnd.reg, keytable[right].oprnd.reg, 0,
+    setvalue(reg_offset_oprnd(keytable[lefttemp].oprnd.reg, keytable[regkey].oprnd.reg, 0,
                           xtx, keytable[right].signed));                         
     keytable[key].alignment := bitsperunit;
     keytable[key].packedaccess := true;
