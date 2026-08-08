@@ -2217,13 +2217,13 @@ procedure markscratchregs;
   begin {markloopregused}
     if (loopsp > 0) and (loopoverflow = 0) then
       with loopstack[loopsp] do
-begin
-savedkey := regstate[reg].stackcopy;
-           if (regenoprnd.mode <> nomode) and
-              equivoprnd(keytable[savedkey].regenoprnd, regenoprnd) or
-              equivaddr(savedkey, properreg) then
-          regstate[reg].used := true;
-end;
+        begin
+        savedkey := regstate[reg].stackcopy;
+        if (regenoprnd.mode <> nomode) and
+          equivoprnd(keytable[savedkey].regenoprnd, regenoprnd) or
+          equivaddr(savedkey, properreg) then
+        regstate[reg].used := true;
+    end;
   end {markloopregused};
 
 
@@ -4236,10 +4236,7 @@ procedure defforindexx(sgn, { true if signed induction var }
       setkeyvalue(settemp(long, reg_oprnd(getreg(false))));
       keytable[key].regsaved := true;
       if nonvolatile then
-          begin
-          keytable[right].validtemp := true;
           keytable[key].properreg := right;
-          end;
       end;
 
     unlock(left);
@@ -4357,33 +4354,29 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
       l := keytable[forkey].len;
       if sgn then c := signedcond
       else c := unsignedcond;
-    {  with keytable[forkey], oprnd do
+      maxvalue := 127;
+      for i := 2 to max(word, l) do maxvalue := maxvalue * 256 + 255;
+      if not sgn then maxvalue := maxvalue * 2 + 1;
+      if not keytable[forkey].regvalid or (keytable[forkey].oprnd.mode <> register) or
+         (keytable[forkey].oprnd.reg <> originalreg) then
         begin
-}
-        maxvalue := 127;
-        for i := 2 to max(word, l) do maxvalue := maxvalue * 256 + 255;
-        if not sgn then maxvalue := maxvalue * 2 + 1;
-        if not keytable[forkey].regvalid or (keytable[forkey].oprnd.mode <> register) or
-           (keytable[forkey].oprnd.reg <> originalreg) then
+        if keytable[forkey].regenoprnd.mode <> nomode then
           begin
-          if keytable[forkey].regenoprnd.mode <> nomode then
-            begin
-            makeaddressable(forkey, 0);
-            k := forkey;
-            end
-          else
-            begin
-            k := keytable[forkey].properreg;
-            keytable[k].tempflag := true;  
-            makeaddressable(k, 0);
-            end;
-{ was dereference(forkey) here rather than above }
-          newkey := settemp(long, reg_oprnd(originalreg));
-          gensimplemove(lastnode, k, newkey);
-          forkey := newkey;
-          if loopoverflow = 0 then
-            loopstack[loopsp].regstate[originalreg].killed := false;
+          makeaddressable(forkey, 0);
+          k := forkey;
+          end
+        else
+          begin
+          k := keytable[forkey].properreg;
+          keytable[k].tempflag := true;  
+          makeaddressable(k, 0);
           end;
+        newkey := settemp(long, reg_oprnd(originalreg));
+        gensimplemove(lastnode, k, newkey);
+        forkey := newkey;
+        if loopoverflow = 0 then
+          loopstack[loopsp].regstate[originalreg].killed := false;
+        end;
       keytable[forkey].len := savedlen;
       restoreloopx;
 
