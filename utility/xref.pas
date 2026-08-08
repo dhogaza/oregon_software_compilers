@@ -71,7 +71,7 @@ type
 
   item_ptr = ^item;
   item =
-  {packed}
+   packed
     record
       line: 0..16383; {line no of ref, limits set to allow 2 word item}
       kind: kinds; {reference kind}
@@ -79,7 +79,7 @@ type
     end;
 
   entries =
-  {packed}
+   packed
     record
       entri: alpha; {item name}
       last: item_ptr; {last reference to this item}
