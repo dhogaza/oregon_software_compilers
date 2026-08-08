@@ -70,14 +70,14 @@ type
 
   item_ptr = ^item;
   item =
-    {packed} record
+    packed record
       line: 0..16383; {line no of ref, limits set to allow 2 word item}
       kind: kinds; {reference kind}
       next: item_ptr; {next reference for this entry}
     end;
 
   entries =
-    {packed} record
+    packed record
       entri: alpha; {item name}
       last: item_ptr; {last reference to this item}
       next_indx: index; {next link in hash chain}
