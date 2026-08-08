@@ -41,6 +41,11 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
+   -- for loop issue global index that must be saved ... add a field to the forloop
+      stack rather use the properreg kludge to get around the counting issues which
+      would keep the key entry from being bumped and block lastkey from being
+      recovered.  Maybe.  One hopes.
+
    -- set arithmetic probably doesn't really handle intconsts
       correctly, need to check for handle bitmasks?
 
@@ -82,12 +87,15 @@ if seeking value, wzr is replaced with a register.
   -- packed arrays
         
      if we always aligned a packed array on a byte boundary the paindx code
-     could create the byte offset into the reg field and the bit shift amount
-     into reg2 making code somewhat shorter.  pindxx offset would always be
-     zero.
+     could store do a rotate right of (3 - paindx length) leaving the byte
+     offset in the lower 48 or whatever bits and the bit offset in the top three
+     bits (61-63), then add it to the left operands offset field.
 
-     that would at least get some leverage out of paindx in terms of the two
-     registers being saved.
+     This means that only one register would need to be saved for paindx + pindx.
+
+     pack and unpack would need to do a bit extract of the bit offset, make a copy
+     of the computed byte offset (use x15/x16?) and the rest would be much like now
+     other than doing a bit extract of any packed record inside the packed array.
 
      mda.pas to the rescue.
 

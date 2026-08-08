@@ -4658,7 +4658,10 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
     litkey: keyindex;
 
   begin
+{
     address(left, 0);
+}
+    unpack(left, 0);
     loadreg(left, 0);
 
     { a kludge to allow the use of cbz/cbnz which depends on it following
