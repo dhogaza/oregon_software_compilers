@@ -2607,7 +2607,7 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
             genadrp(lastnode, false, t, settemp(long, regenoprnd));
             if mode = label_offset then
               reg := keytable[t].oprnd.reg
-            else if mode = register then
+            else if (mode = register) and not packedaccess then
               gen2(lastnode,
                    {AWFUL Free Pascal with statement bug requires this}
                    ldrinst(len, keytable[k].signed), t1,
