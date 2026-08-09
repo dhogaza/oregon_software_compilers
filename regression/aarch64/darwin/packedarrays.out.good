@@ -1,3 +1,4 @@
+r.k expect 3            3
 r.b[i].a expect false false
 r.b[i].b expect true  true
 r.b[i].c expect true  true
@@ -5,5 +6,35 @@ r.b[i].d expect false false
 a[i] expect true  true
 a[i + 1] expect false false
 a1[i] expect 0           0
-a1[i + 1] expect 7           7
+a1[i + 1] expect 5           5
 a1[i + 2] expect 15          15
+a[0] expect false  false
+a[1] expect  true   true
+a[2] expect false  false
+a[3] expect  true   true
+a[4] expect false  false
+a[5] expect  true   true
+a[6] expect false  false
+a[7] expect  true   true
+a[8] expect false  false
+a[9] expect  true   true
+r.k expect 3            3
+r.b[i].a expect false false
+r.b[i].b expect true  true
+r.b[i].c expect true  true
+r.b[i].d expect false false
+a[i] expect true  true
+a[i + 1] expect false false
+a1[i] expect 0           0
+a1[i + 1] expect 5           5
+a1[i + 2] expect 15          15
+a[0] expect false  false
+a[1] expect  true   true
+a[2] expect false  false
+a[3] expect  true   true
+a[4] expect false  false
+a[5] expect  true   true
+a[6] expect false  false
+a[7] expect  true   true
+a[8] expect false  false
+a[9] expect  true   true
