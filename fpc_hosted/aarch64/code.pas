@@ -4191,12 +4191,7 @@ procedure defforindexx(sgn, { true if signed induction var }
     if lit then
       left := settemp(len, intconst_oprnd(pseudoinst.oprnds[1]))
     else
-      begin
-{ DRB
-      unpackshrink(left, len);
-}
-      address(left, 0);
-      end;
+      unpack(left, 0);
 
     lock(left);
 
@@ -4461,16 +4456,10 @@ procedure shiftintx(backwards: boolean);
     shiftinst: insts; {either asl, asr, or lsr}
 
   begin {shiftintx}
-    addressboth;
+    unpackboth(target);
     settargetorreg;
     lock(key);
     loadreg(left, right);
-{
-    unpackshrink(left, len);
-    lock(left);
-    unpackshrink(right, word);
-    unlock(left);
-}
     shiftinst := lslinst;
     if keytable[right].oprnd.mode = intconst then
       begin
@@ -4559,10 +4548,9 @@ procedure unaryint(inst: insts);
 
 
   begin {unaryint}
-{    unpackshrink(left, len);}
     settargetorreg; 
     lock(key);
-    address(left, 0);
+    unpack(left, 0);
     loadreg(left, 0);
     unlock(key);
     gen2(lastnode, buildinst(inst, len = long, false), key, left);
@@ -4572,8 +4560,7 @@ procedure unaryint(inst: insts);
 procedure compintx;
 
   begin {compintx}
-{    unpackshrink(left, len);}
-    address(left, 0);
+    unpack(left, 0);
     loadreg(left, 0);
     settargetorreg; 
     gen2(lastnode, buildinst(movn, len = long, false), key, left);
@@ -4583,8 +4570,7 @@ procedure compintx;
 procedure compboolx;
 
   begin {compboolx}
-{    unpackshrink(left, len);}
-    address(left, 0);
+    unpack(left, 0);
     settargetorreg; 
     loadreg(left, 0);
     gen3(lastnode, buildinst(eor, false, false), key, left,
@@ -4598,10 +4584,9 @@ procedure incdec(inst: insts {add, sub} );
 
 
   begin {incdec}
-{    unpackshrink(left, len);}
     settargetorreg; 
     lock(key);
-    address(left, 0);
+    unpack(left, 0);
     loadreg(left, 0);
     unlock(key);
     gen3(lastnode, buildinst(inst, len = long, false), key, left,
@@ -4651,9 +4636,6 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
     litkey: keyindex;
 
   begin
-{
-    address(left, 0);
-}
     unpack(left, 0);
     loadreg(left, 0);
 
@@ -5824,10 +5806,7 @@ procedure sysfnintx;
 
 
     begin
-{
-      unpackshrink(left, len);
-}
-      address(left, 0);
+      unpack(left, 0);
       settargetorreg;
       loadreg(left, key);
       gen2(lastnode, buildinst(cmp, keytable[left].len = long, false), left,
@@ -5843,7 +5822,7 @@ procedure sysfnintx;
 }
 
     begin
-      address(left, 0);
+      unpack(left, 0);
       loadreg(left, 0);
       gen3(lastnode, buildinst(andinst, keytable[left].len = long, true),
                     regkeys[zero], left,
@@ -6689,10 +6668,7 @@ procedure movcstructx;
   begin
     count := target;
     target := 0; {to avoid confusing load routines}
-{
-    unpack(count, word);
-}
-    address(count, 0);
+    unpack(count, 0);
     loadreg(count, 0);
     incrkey := settemp(long, imm12_oprnd(keytable[count].alignment, false));
     lock(count);
@@ -6842,8 +6818,7 @@ procedure chrstrx;
     ip0indexkey: keyindex;
 
 begin {chrstrx}
-  {unpackshrink(left, len);}
-  address(left, 0);
+  unpack(left, 0);
   settargetortemp(long);
   genmoveaddress(lastnode, key, regkeys[ip0]);
   ip0indexkey := settemp(long, index_oprnd(post_index, ip0, byte, false));
@@ -6870,8 +6845,7 @@ procedure arraystrx;
 
 
 begin {arraystrx}
-  {unpackshrink(left, len);}
-  address(left, 0);
+  unpack(left, 0);
   settargetortemp(len);
   ip0indexkey := settemp(long, index_oprnd(post_index, ip0, byte, false));
   ip1indexkey := settemp(long, index_oprnd(post_index, ip1, byte, false));
@@ -7530,10 +7504,7 @@ procedure loopholefnx;
 
 
   begin
-{
-    unpackshrink(left, len);
-}
-    address(left, 0);
+    unpack(left, 0);
     if (len > keytable[left].len) and
        (keytable[left].oprnd.mode <> register) then
       begin
