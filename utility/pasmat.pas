@@ -3447,7 +3447,7 @@ program Pasmat(Input, Output, Source, Result);
       if Sym = BeginSy then
         begin
         FormatLine(Indent);
-        DoBegin(not Bunching);
+        DoBegin(true);
         end;
     end; {do_block}
 
