@@ -4064,7 +4064,18 @@ procedure restoreloopx;
                     keytable[tempreg].oprnd.reg := i;
                     with keytable[stackcopy] do
                       case regenoprnd.mode of
-                        dataref, label_offset:
+                        dataref:
+                          begin
+                          genadrp(lastnode, false, tempreg, settemp(long, regenoprnd));
+                          gen2(lastnode,
+                          {AWFUL Free Pascal with statement bug requires this}
+                          ldrinst(len, keytable[stackcopy].signed), tempreg,
+                          settemp(long,
+                          labeloffset_oprnd(keytable[tempreg].oprnd.reg, regenoprnd.labelno,
+                                            regenoprnd.labelownflag,
+                                            regenoprnd.externref, regenoprnd.labeloffset)));
+                          end;
+                        label_offset:
                           genadrp(lastnode, false, tempreg, settemp(long, regenoprnd));
                         abstract_offset:
                           gen2(lastnode, ldrinst(len, signed), tempreg,
