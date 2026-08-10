@@ -251,6 +251,11 @@ function alignmentof(f: entryptr; {form to check}
   type to give better code generation on certain types of machines.  This
   kludge causes trouble with packed types, so is deleted if the result
   is to be used in a packed structure.
+
+  For aarch64 a kind of loose packing is implemented for packed arrays,
+  as they're always aligned on a byte boundary.  This allows for more
+  efficient code to be generated, especially when a paindx is referenced
+  more than once.
 }
 
 procedure fixupparamoffsets(endofdefs: boolean {last chance} );
@@ -418,10 +423,17 @@ function alignmentof(f: entryptr; {form to check}
   type to give better code generation on certain types of machines.  This
   kludge causes trouble with packed types, so is deleted if the result
   is to be used in a packed structure.
+
+  For aarch64 a kind of loose packing is implemented for packed arrays,
+  as they're always aligned on a byte boundary.  This allows for more
+  efficient code to be generated, especially when a paindx is referenced
+  more than once.
 }
 
   begin {alignmentof}
-    if packedresult = f^.bitaddress then alignmentof := f^.align
+    if packedresult = f^.bitaddress then
+      if packedresult and (f^.typ = arrays) then alignmentof := bitsperunit
+      else  alignmentof := f^.align
     else if packedresult then alignmentof := f^.align * bitsperunit
     else alignmentof := (f^.align + bitsperunit - 1) div bitsperunit;
   end {alignmentof} ;
