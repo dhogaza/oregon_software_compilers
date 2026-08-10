@@ -4292,9 +4292,6 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
       else
         begin
         makeaddressable(target, 0);
-{ DRB
-        shrink(target, keytable[forkey].len);
-}
         loadreg(target, regkey);
         limitreg := keytable[target].oprnd.reg;
         adjustregcount(target, 1);
