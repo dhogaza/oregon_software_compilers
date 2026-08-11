@@ -303,7 +303,7 @@ type
 
   {miscellaneous instructions}
 
-  lslinst, asrinst, lsrinst, absinst,
+  lslinst, asrinst, lsrinst, rorinst, absinst,
 
   ret);
 

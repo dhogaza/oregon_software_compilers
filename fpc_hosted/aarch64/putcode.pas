@@ -589,6 +589,7 @@ begin
     orinst: write(macfile, 'orr');
     orn: write(macfile, 'orn');
     ret: write(macfile, 'ret');
+    rorinst: write(macfile, 'ror');
     sbfiz: write(macfile, 'sbfiz');
     sbfx: write(macfile, 'sbfx');
     sdiv: write(macfile, 'sdiv');
