@@ -7382,9 +7382,6 @@ procedure pindxx;
   length.
 }
 
-  var
-    reg2key, byteaddresskey, bitaddresskey, maskkey: keyindex;
-
   begin
     address(left, 0);
     setkeyvalue(left);
@@ -7397,54 +7394,6 @@ procedure pindxx;
         end;
       bitoffset := bitoffset + pseudoinst.oprnds[2];
       end;
-{
-    if keytable[left].packedaccess and (keytable[left].oprnd.mode = reg_offset) then
-      begin
-      reg2key := settemp(long, reg_oprnd(keytable[left].oprnd.reg2));
-      lock(left);
-{
-      byteaddresskey := settemp(long, reg_oprnd(getreg(false)));
-}
-      byteaddresskey := settemp(long, reg_oprnd(keytable[left].oprnd.reg));
-      lock(byteaddresskey);
-      bitaddresskey := settemp(long, reg_oprnd(getreg(false)));
-      unlock(byteaddresskey);
-      gen3(lastnode, buildinst(add, true, false), bitaddresskey, reg2key,
-           settemp(long, imm12_oprnd(pseudoinst.oprnds[2], false)));
-{
-      gen3(lastnode, buildinst(lsrinst, true, false), byteaddresskey, bitaddresskey,
-           settemp(long, immbitmask_oprnd(3)));
-      maskkey := settemp(long, immbitmask_oprnd(7));
-      gen3(lastnode, buildinst(andinst, true, false), bitaddresskey, bitaddresskey, maskkey);
-}
-      setvalue(reg_offset_oprnd(keytable[byteaddresskey].oprnd.reg,
-               keytable[bitaddresskey].oprnd.reg, 0, xtx, false));
-      keytable[key].packedaccess := true;
-      keytable[key].alignment := keytable[left].alignment;
-      unlock(left);
-      end
-    else
-      begin
-      setkeyvalue(left);
-      with keytable[key],oprnd do
-        begin
-        if not packedaccess then
-          begin
-          packedaccess := true;
-          alignment := packingunit * bitsperunit;
-          end;
-        bitoffset := bitoffset + pseudoinst.oprnds[2]) mod (alignment * bitsperunit);
-        case mode of
-          abstract_offset, signed_offset, unsigned_offset:
-            index := index + (bitoffset + pseudoinst.oprnds[2]) div (alignment * bitsperunit);
-          labeltarget, label_offset, dataref:
-            labeloffset := labeloffset + (bitoffset + pseudoinst.oprnds[2]) div
-              (alignment * bitsperunit);
-          otherwise writeln('bad index mode in pindxx ', mode);
-          end;
-        end;
-      end;
-}
   end {pindxx} ;
 
 procedure paindxx;
@@ -7461,7 +7410,7 @@ procedure paindxx;
 }
 
   var
-    tempregkey, reg2key, leftaddrkey, lefttemp, righttemp: keyindex;
+    tempregkey, reg2key, leftaddrkey: keyindex;
     lenbits: 0..2;
     prefersafereg: boolean;
 
@@ -8235,9 +8184,6 @@ procedure codeone;
 {
       cvtrd: cvtrdx;
       cvtdr: cvtdrx; { SNGL function }
-      dummyarg: dummyargx;
-      dummyarg2: dummyarg2x;
-      openarray: openarrayx;
 }
       saveactkeys: saveactivekeys;
 { C only
@@ -8248,6 +8194,13 @@ procedure codeone;
       jointemp: jointempx;
       startreflex: dontchangevalue := dontchangevalue + 1;
       endreflex: dontchangevalue := dontchangevalue - 1;
+
+  Modula-2 only
+      openarray: openarrayx;
+
+  MC68K only
+      dummyarg: dummyargx;
+      dummyarg2: dummyarg2x;
 
   Runtime error checks
       indxchk: checkx(false, index_error);
@@ -8321,16 +8274,8 @@ procedure codeone;
 
     while (keytable[lastkey].refcount = 0) and
           (lastkey >= context[contextsp].keymark) do
-      begin
-{
-      keytable[lastkey] := keytable[lowestkey];
-}
       lastkey := lastkey - 1;
-      end;
 
-{
-    adjusttemps;
-}
   end {codeone};
 
 
