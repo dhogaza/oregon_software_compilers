@@ -374,7 +374,7 @@ begin {bits}
   bits := b;
 end {bits};
 
-function alignment(i: integer): alignmentrange;
+function alignmentof(i: integer): alignmentrange;
 
   var a: alignmentrange;
 
@@ -385,7 +385,7 @@ function alignment(i: integer): alignmentrange;
       a := a * 2;
       i := i div 2;
       end;
-    alignment := a;
+    alignmentof := a;
   end;
 
 
@@ -4472,7 +4472,7 @@ procedure shiftintx(backwards: boolean);
     if keytable[right].oprnd.mode = intconst then
       begin
       shiftfactor := keytable[right].oprnd.int_value;
-      if shiftfactor > 0 then keytable[key].alignment := alignment(power2(shiftfactor));
+      if shiftfactor > 0 then keytable[key].alignment := alignmentof(power2(shiftfactor));
       if shiftfactor < 0 then backwards := not backwards;
       shiftfactor := abs(shiftfactor);
       { shift amount is encoded as immr:imms because the shifts
@@ -5018,8 +5018,8 @@ procedure dostructx;
 
 begin {dostructx}
   setvalue(dataref_oprnd(rodatalabel, false, 0, false, pseudoinst.oprnds[1]));
-  lenalign := alignment(len);
-  addralign := alignment(pseudoinst.oprnds[1]);
+  lenalign := alignmentof(len);
+  addralign := alignmentof(pseudoinst.oprnds[1]);
   if lenalign < addralign then keytable[key].alignment := lenalign
   else keytable[key].alignment := addralign;
 end {dostructx} ;
@@ -6589,9 +6589,9 @@ var
   l: addressrange;
 
   begin {movemultiple}
-    srcalign := alignment(keytable[src].alignment);
-    dstalign := alignment(keytable[dst].alignment);
-    lenalign := alignment(len);
+    srcalign := alignmentof(keytable[src].alignment);
+    dstalign := alignmentof(keytable[dst].alignment);
+    lenalign := alignmentof(len);
     if srcalign < dstalign then align := srcalign
     else align := dstalign;
 
@@ -7264,9 +7264,9 @@ procedure indxx;
                      keytable[labelkey].oprnd.externref,
                      keytable[labelkey].oprnd.labeloffset));
           keytable[key].regsaved := true;
-          if alignment(len) < alignment(keytable[labelkey].oprnd.labeloffset) then
-            keytable[key].alignment := alignment(len)
-          else keytable[key].alignment := alignment(keytable[labelkey].oprnd.labeloffset)
+          if alignmentof(len) < alignmentof(keytable[labelkey].oprnd.labeloffset) then
+            keytable[key].alignment := alignmentof(len)
+          else keytable[key].alignment := alignmentof(keytable[labelkey].oprnd.labeloffset)
           end;
         label_offset:
           begin
@@ -7274,9 +7274,9 @@ procedure indxx;
           with keytable[key].oprnd do
             begin
             labeloffset := labeloffset + pseudoinst.oprnds[2];
-            if alignment(len) < alignment(labeloffset) then
-              keytable[key].alignment := alignment(len)
-            else  keytable[key].alignment := alignment(labeloffset)
+            if alignmentof(len) < alignmentof(labeloffset) then
+              keytable[key].alignment := alignmentof(len)
+            else  keytable[key].alignment := alignmentof(labeloffset)
             end;
           end;
         reg_offset:
@@ -7287,9 +7287,9 @@ procedure indxx;
           settemp(long, index_oprnd(abstract_offset,
                   keytable[newkey].oprnd.reg, pseudoinst.oprnds[2], false));
           setallfields(tempkey);
-          if alignment(len) < alignment(pseudoinst.oprnds[2]) then
-            keytable[key].alignment := alignment(len)
-          else keytable[key].alignment := alignment(pseudoinst.oprnds[2])
+          if alignmentof(len) < alignmentof(pseudoinst.oprnds[2]) then
+            keytable[key].alignment := alignmentof(len)
+          else keytable[key].alignment := alignmentof(pseudoinst.oprnds[2])
           end;
         abstract_offset:
           begin
@@ -7298,9 +7298,9 @@ procedure indxx;
             keytable[key].oprnd.index + pseudoinst.oprnds[2];
           if keytable[key].oprnd.reg in [sp, sl, fp] then
             keytable[key].regenoprnd := keytable[key].oprnd;
-          if alignment(len) < alignment(keytable[key].oprnd.index) then
-            keytable[key].alignment := alignment(len)
-          else keytable[key].alignment := alignment(keytable[key].oprnd.index);
+          if alignmentof(len) < alignmentof(keytable[key].oprnd.index) then
+            keytable[key].alignment := alignmentof(len)
+          else keytable[key].alignment := alignmentof(keytable[key].oprnd.index);
           end;
       end
     end
