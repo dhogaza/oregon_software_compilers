@@ -84,21 +84,6 @@ if seeking value, wzr is replaced with a register.
 
 --- current work
 
-  -- packed arrays
-        
-     if we always aligned a packed array on a byte boundary the paindx code
-     could store do a rotate right of (3 - paindx length) leaving the byte
-     offset in the lower 48 or whatever bits and the bit offset in the top three
-     bits (61-63), then add it to the left operands offset field.
-
-     This means that only one register would need to be saved for paindx + pindx.
-
-     pack and unpack would need to do a bit extract of the bit offset, make a copy
-     of the computed byte offset (use x15/x16?) and the rest would be much like now
-     other than doing a bit extract of any packed record inside the packed array.
-
-     mda.pas to the rescue.
-
   -- the precedes lastbranch code is safe but silly.  It is really where
      labels are defined that is the issue, and if the key being considered
      lies between a branch and its label.
