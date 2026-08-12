@@ -7390,7 +7390,8 @@ procedure pindxx;
       if not packedaccess then
         begin
         packedaccess := true;
-        alignment := packingunit * bitsperunit;
+        alignment := bitsperunit;
+        while alignment < len + pseudoinst.oprnds[2] do alignment := alignment * 2;
         end;
       bitoffset := bitoffset + pseudoinst.oprnds[2];
       end;

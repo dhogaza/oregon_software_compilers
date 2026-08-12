@@ -110,12 +110,12 @@ program Pasmat(Input, Output, Source);
     Ht = 9; {ascii tab character}
 
     {identifier spelling constants}
-    HashMax = 64; {size of hash table}
-    HashLim = 63; {top entry in hash table}
+    HashMax = 1024; {size of hash table}
+    HashLim = 1023; {top entry in hash table}
 
     StringBlockSize = 512; {size of a block of the string table}
     StringBlockMax = 511; {max entry in a string block}
-    StringIndexMax = 63; {max entry in the string index}
+    StringIndexMax = 1023; {max entry in the string index}
 
     TabInterval = 8; {standard tab interval}
 
@@ -540,6 +540,7 @@ procedure csi;
         writeln(Output, ' on line ', FirstComOverflow: 1, '.');
         end;
       write(Output, ' formatting complete, ',
+            StringTop:1, ' string table chars ',
             OutputLine - 1: 1, ' line');
       if OutputLine > 2 then write('s');
       writeln(Output, ' output.');
