@@ -3506,4 +3506,4 @@ in case statement. This is special feature of MS-DOS}
   99:
     if error then exitst(4);
   end {pasmat} .
- formatting complete, 3508 lines output.
+ formatting complete, 27697 string table chars 3508 lines output.

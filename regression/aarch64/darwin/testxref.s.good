@@ -1124,9 +1124,9 @@
 # Line: 310, Stmt: 0
 	adrp	x23,.L32767@PAGE
 	ldrsw	x23,[x23,.L32767+52@PAGEOFF]
-	ldr	x15,[x24]
+	ldrh	w15,[x24]
 	bfi	x15,x23,0,14
-	str	x15,[x24]
+	strh	w15,[x24]
 # Line: 311, Stmt: 0
 	str	xzr,[x24,8]
 # Line: 312, Stmt: 0
@@ -1139,15 +1139,15 @@
 .L49:
 # Line: 312, Stmt: 0
 	mov	x23,1
-	ldr	x15,[x24]
+	ldrh	w15,[x24]
 	bfi	x15,x23,14,2
-	str	x15,[x24]
+	strh	w15,[x24]
 	b	.L41
 .L48:
 # Line: 313, Stmt: 0
-	ldr	x23,[x24]
+	ldrh	w23,[x24]
 	bfc	x23,14,2
-	str	x23,[x24]
+	strh	w23,[x24]
 .L41:
 	ldr	x24,[x29,32]
 	adrp	x23,.L32767@PAGE
@@ -1217,9 +1217,9 @@
 # Line: 330, Stmt: 0
 	adrp	x22,.L32767+20480@PAGE
 	ldr	w14,[x22,.L32767+3804@PAGEOFF]
-	ldr	x13,[x15,816]
+	ldrh	w13,[x15,816]
 	bfi	x13,x14,0,10
-	str	x13,[x15,816]
+	strh	w13,[x15,816]
 # Line: 331, Stmt: 0
 	str	w28,[x22,.L32767+3804@PAGEOFF]
 	b	.L53
@@ -1769,9 +1769,9 @@
 	adrp	x15,.L32767+20480@PAGE
 	ldr	x15,[x15,.L32767+3808@PAGEOFF]
 	mov	x14,2
-	ldr	x13,[x15]
+	ldrh	w13,[x15]
 	bfi	x13,x14,14,2
-	str	x13,[x15]
+	strh	w13,[x15]
 .L112:
 # Line: 457, Stmt: 0
 	bl	.P6  // copy_char
@@ -2020,7 +2020,7 @@
 	add	w27,w27,1
 # Line: 532, Stmt: 0
 # Line: 534, Stmt: 0
-	ldr	x15,[x28]
+	ldrh	w15,[x28]
 	ubfx	x15,x15,14,2
 	cmp	w15,1
 	b.ne	.L143
@@ -2043,7 +2043,7 @@
 	mov	x26,32
 .L145:
 # Line: 537, Stmt: 0
-	ldr	x0,[x28]
+	ldrh	w0,[x28]
 	ubfx	x0,x0,0,14
 	mov	x0,x0
 	mov	x1,6
@@ -2108,7 +2108,7 @@
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
 	add	x25,x15,w25, uxtw 0
-	ldr	x28,[x25,816]
+	ldrh	w28,[x25,816]
 	ubfx	x28,x28,0,10
 	mov	x28,x28
 .L150:
@@ -2143,7 +2143,7 @@
 .L158:
 # Line: 563, Stmt: 0
 	add	x25,x15,w25, uxtw 0
-	ldr	x28,[x25,816]
+	ldrh	w28,[x25,816]
 	ubfx	x28,x28,0,10
 	mov	x28,x28
 	b	.L150
@@ -2194,7 +2194,7 @@
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
 	add	x25,x15,w25, uxtw 0
-	ldr	x26,[x25,816]
+	ldrh	w26,[x25,816]
 	ubfx	x26,x26,0,10
 	mov	x26,x26
 	b	.L151

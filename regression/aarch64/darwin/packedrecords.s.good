@@ -34,24 +34,24 @@
 # Line: 15, Stmt: 1
 # Line: 16, Stmt: 2
 	adrp	x28,.L32767@PAGE
-	ldr	x15,[x28,.L32767+24@PAGEOFF]
+	ldrb	w15,[x28,.L32767+24@PAGEOFF]
 	bfc	x15,0,1
-	str	x15,[x28,.L32767+24@PAGEOFF]
+	strb	w15,[x28,.L32767+24@PAGEOFF]
 # Line: 17, Stmt: 0
 	mov	x15,1
-	ldr	x14,[x28,.L32767+24@PAGEOFF]
+	ldrb	w14,[x28,.L32767+24@PAGEOFF]
 	bfi	x14,x15,1,1
-	str	x14,[x28,.L32767+24@PAGEOFF]
+	strb	w14,[x28,.L32767+24@PAGEOFF]
 # Line: 18, Stmt: 0
 	mov	x15,97
-	ldr	x14,[x28,.L32767+24@PAGEOFF]
+	ldrh	w14,[x28,.L32767+24@PAGEOFF]
 	bfi	x14,x15,2,8
-	str	x14,[x28,.L32767+24@PAGEOFF]
+	strh	w14,[x28,.L32767+24@PAGEOFF]
 # Line: 19, Stmt: 0
 	mov	w15,4294967293
-	ldr	x14,[x28,.L32767+24@PAGEOFF]
+	ldrh	w14,[x28,.L32767+24@PAGEOFF]
 	bfi	x14,x15,12,3
-	str	x14,[x28,.L32767+24@PAGEOFF]
+	strh	w14,[x28,.L32767+24@PAGEOFF]
 # Line: 20, Stmt: 0
 	mov	x15,4
 	ldr	x14,[x28,.L32767+24@PAGEOFF]
@@ -59,20 +59,20 @@
 	str	x14,[x28,.L32767+24@PAGEOFF]
 # Line: 21, Stmt: 0
 	ldrb	w27,[x28,.L32767+30@PAGEOFF]
-	ldr	x15,[x28,.L32767+24@PAGEOFF]
+	ldrh	w15,[x28,.L32767+24@PAGEOFF]
 	bfi	x15,x27,11,1
-	str	x15,[x28,.L32767+24@PAGEOFF]
+	strh	w15,[x28,.L32767+24@PAGEOFF]
 # Line: 22, Stmt: 0
-	ldr	x15,[x28,.L32767+24@PAGEOFF]
+	ldrh	w15,[x28,.L32767+24@PAGEOFF]
 	bfc	x15,10,1
-	str	x15,[x28,.L32767+24@PAGEOFF]
+	strh	w15,[x28,.L32767+24@PAGEOFF]
 # Line: 23, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	add	x0,x15,.L32766+1@PAGEOFF
 	mov	x1,18
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x0,[x28,.L32767+24@PAGEOFF]
+	ldrb	w0,[x28,.L32767+24@PAGEOFF]
 	ubfx	x0,x0,0,1
 	mov	x0,x0
 	mov	x1,5
@@ -84,7 +84,7 @@
 	mov	x1,17
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x0,[x28,.L32767+24@PAGEOFF]
+	ldrb	w0,[x28,.L32767+24@PAGEOFF]
 	ubfx	x0,x0,1,1
 	mov	x0,x0
 	mov	x1,5
@@ -96,7 +96,7 @@
 	mov	x1,15
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x0,[x28,.L32767+24@PAGEOFF]
+	ldrh	w0,[x28,.L32767+24@PAGEOFF]
 	ubfx	x0,x0,2,8
 	mov	x0,x0
 	mov	x1,1
@@ -108,7 +108,7 @@
 	mov	x1,15
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x0,[x28,.L32767+24@PAGEOFF]
+	ldrh	w0,[x28,.L32767+24@PAGEOFF]
 	sbfx	x0,x0,12,3
 	mov	x0,x0
 	mov	x1,12
@@ -138,7 +138,7 @@
 	mov	x0,32
 	mov	x1,1
 	bl	_p_wtc_o 
-	ldr	x0,[x28,.L32767+24@PAGEOFF]
+	ldrh	w0,[x28,.L32767+24@PAGEOFF]
 	ubfx	x0,x0,11,1
 	mov	x0,x0
 	mov	x1,5
@@ -150,7 +150,7 @@
 	mov	x1,20
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x0,[x28,.L32767+24@PAGEOFF]
+	ldrh	w0,[x28,.L32767+24@PAGEOFF]
 	ubfx	x0,x0,10,1
 	mov	x0,x0
 	mov	x1,5
@@ -170,7 +170,7 @@
 	mov	x1,15
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x0,[x28,.L32767+24@PAGEOFF]
+	ldrh	w0,[x28,.L32767+24@PAGEOFF]
 	ubfx	x0,x0,10,1
 	mov	x0,x0
 	mov	x1,5
@@ -188,7 +188,7 @@
 	mov	x0,32
 	mov	x1,1
 	bl	_p_wtc_o 
-	ldr	x0,[x28,.L32767+24@PAGEOFF]
+	ldrh	w0,[x28,.L32767+24@PAGEOFF]
 	ubfx	x0,x0,11,1
 	mov	x0,x0
 	mov	x1,5
@@ -200,7 +200,7 @@
 	mov	x1,29
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x27,[x28,.L32767+24@PAGEOFF]
+	ldrh	w27,[x28,.L32767+24@PAGEOFF]
 	sbfx	x27,x27,12,3
 	mov	x15,x27
 	sbfx	x15,x15,0,3

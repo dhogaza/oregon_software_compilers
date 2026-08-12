@@ -52,9 +52,9 @@
 # Line: 14, Stmt: 1
 # Line: 15, Stmt: 2
 	mov	x14,3
-	ldr	x13,[x28,16]
+	ldrb	w13,[x28,16]
 	bfi	x13,x14,0,3
-	str	x13,[x28,16]
+	strb	w13,[x28,16]
 # Line: 16, Stmt: 0
 	ldrsw	x14,[x28,24]
 	add	x12,x28,17
@@ -175,7 +175,7 @@
 	mov	x1,13
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x0,[x29,16]
+	ldrb	w0,[x29,16]
 	ubfx	x0,x0,0,3
 	mov	x0,x0
 	mov	x1,12
@@ -413,9 +413,9 @@
 # Line: 54, Stmt: 0
 	adrp	x15,.L32767@PAGE
 	mov	x14,3
-	ldr	x13,[x15,.L32767+24@PAGEOFF]
+	ldrb	w13,[x15,.L32767+24@PAGEOFF]
 	bfi	x13,x14,0,3
-	str	x13,[x15,.L32767+24@PAGEOFF]
+	strb	w13,[x15,.L32767+24@PAGEOFF]
 # Line: 55, Stmt: 0
 	ldrsw	x14,[x15,.L32767+32@PAGEOFF]
 	add	x12,x15,.L32767+25@PAGEOFF
@@ -541,7 +541,7 @@ _main:
 	mov	x1,13
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x0,[x28,.L32767+24@PAGEOFF]
+	ldrb	w0,[x28,.L32767+24@PAGEOFF]
 	ubfx	x0,x0,0,3
 	mov	x0,x0
 	mov	x1,12
