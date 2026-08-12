@@ -4753,8 +4753,7 @@ procedure divintx;
     divtarget: keyindex;
 
   begin {divintx}
-    {unpkshkboth(len);}
-    addressboth;
+    unpackboth(target);
     loadreg(left, right);
     loadreg(right, left);
     if (pseudobuff.op = getrem) or (pseudoinst.refcount = 2) then
@@ -4763,7 +4762,7 @@ procedure divintx;
       lock(left);
       end;
     settargetorreg;
-    if pseudobuff.op = getrem then
+    if (pseudobuff.op = getrem) or (pseudoinst.refcount = 2) then
       divtarget := settemp(len, reg_oprnd(getreg(false)))
     else
       divtarget := key;
