@@ -3491,19 +3491,19 @@ in case statement. This is special feature of MS-DOS}
 
 
   begin {pretty-print}
-    initialize;
+    Initialize;
     csi;
-    if initialdirectives then
+    if InitialDirectives then
       begin
-      doformatterdirectives(throwaway);
-      formatting := newformatting;
-      nonewline := newnonewline;
+      DoFormatterDirectives(throwaway);
+      Formatting := NewFormatting;
+      NoNewLine := NewNoNewline;
       end
-    else getchar; {lead one char}
-    getsym; {lead one symbol}
-    processtext;
-    finaldata;
+    else GetChar; {lead one char}
+    GetSym; {lead one symbol}
+    ProcessText;
+    FinalData;
   99:
     if error then exitst(4);
   end {pasmat} .
- formatting complete, 27697 string table chars 3508 lines output.
+ formatting complete, 3758 string table chars 3508 lines output.

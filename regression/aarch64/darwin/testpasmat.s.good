@@ -4289,10 +4289,11 @@
 	ldrsw	x11,[x0,8]
 	sub	w12,w11,1
 	mov	x11,512
-	sdiv	w12,w12,w11
-	msub	w10,w12,w11,w12
+	sdiv	w10,w12,w11
+	msub	w9,w10,w11,w12
+	mov	x12,x10
 # Line: 1560, Stmt: 0
-	mov	x14,x10
+	mov	x14,x9
 .L407:
 	adrp	x11,.L32767@PAGE
 .L410:
@@ -4474,10 +4475,11 @@
 	adrp	x24,.L32767+16384@PAGE
 	ldrsw	x15,[x24,.L32767+3208@PAGEOFF]
 	mov	x24,512
-	sdiv	w27,w15,w24
-	msub	w14,w27,w24,w15
+	sdiv	w14,w15,w24
+	msub	w13,w14,w24,w15
+	mov	x27,x14
 # Line: 1610, Stmt: 0
-	mov	x28,x14
+	mov	x28,x13
 	adrp	x24,.L32767+16384@PAGE
 # Line: 1611, Stmt: 0
 	adrp	x23,.L32767@PAGE
@@ -4532,10 +4534,11 @@
 # Line: 1627, Stmt: 0
 	ldrsw	x23,[x24,8]
 	mov	x15,512
-	sdiv	w27,w23,w15
-	msub	w14,w27,w15,w23
+	sdiv	w14,w23,w15
+	msub	w13,w14,w15,w23
+	mov	x27,x14
 # Line: 1628, Stmt: 0
-	mov	x28,x14
+	mov	x28,x13
 # Line: 1629, Stmt: 0
 	adrp	x23,.L32767@PAGE
 	ldrb	w16,[x24,12]
