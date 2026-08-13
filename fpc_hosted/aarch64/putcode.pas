@@ -472,13 +472,15 @@ procedure writeproclabel(procn: proctableindex);
 
     if (blockref <> 0) or (switchcounters[mainbody] > 0) then
       begin
-      { banner }
-      writeln(macfile, '#');
-      write(macfile, '#', chr(9));
+      { banner which needs to be a '//' comment because '# error' causes gcc
+        of the generated assembly code to give an error, in darwin, at least!
+      }
+      writeln(macfile, '//');
+      write(macfile, '//', chr(9));
       writeprocname(procn);
       if blockref = 0 then writeln(macfile, ' (main)')
       else writeln(macfile);
-      writeln(macfile, '#');
+      writeln(macfile, '//');
   
       if proctable[blockref].externallinkage
          or ((proctable[blockref].calllinkage = implementationbody)
