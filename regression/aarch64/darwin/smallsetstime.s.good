@@ -1,8 +1,8 @@
 	.text
 	.align 2
-#
-#	func
-#
+//
+//	func
+//
 .P1:
 	sub	sp,sp,16
 # Line: 17, Stmt: 1
@@ -15,9 +15,9 @@
 	ret
 	.text
 	.align 2
-#
-#	initsets
-#
+//
+//	initsets
+//
 .P2:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -83,9 +83,9 @@
 	ret
 	.text
 	.align 2
-#
-#	putnumset
-#
+//
+//	putnumset
+//
 .P3:
 	sub	sp,sp,32
 # Line: 32, Stmt: 1
@@ -108,9 +108,9 @@
 	ret
 	.text
 	.align 2
-#
-#	putalphaset
-#
+//
+//	putalphaset
+//
 .P4:
 	sub	sp,sp,32
 # Line: 40, Stmt: 1
@@ -133,9 +133,9 @@
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	sub	sp,sp,80

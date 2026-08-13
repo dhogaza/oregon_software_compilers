@@ -40,9 +40,9 @@
 	.byte	0x3A,0x20,0x00
 	.text
 	.align 2
-#
-#	sets
-#
+//
+//	sets
+//
 .P1:
 	sub	sp,sp,32
 # Line: 101, Stmt: 1
@@ -299,9 +299,9 @@
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	sub	sp,sp,32

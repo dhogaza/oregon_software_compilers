@@ -8,9 +8,9 @@
 	.byte	0x20,0x00
 	.text
 	.align 2
-#
-#	foo
-#
+//
+//	foo
+//
 .P1:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -24,10 +24,12 @@
 	mov	x2,x1
 	str	x7,[x29,-16]
 	bl	_p_wts_o 
-	ldr	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,12
 	bl	_p_wti_o 
-	ldr	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	mov	x1,12
 	bl	_p_wti_o 
 	ldrsw	x0,[x29,32]
@@ -40,9 +42,9 @@
 	ret
 	.text
 	.align 2
-#
-#	bar
-#
+//
+//	bar
+//
 .P2:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -55,7 +57,8 @@
 	mov	x1,5
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,12
 	bl	_p_wti_o 
 	ldrsw	x0,[x29,16]
@@ -71,9 +74,9 @@
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	sub	sp,sp,48

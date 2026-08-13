@@ -68,9 +68,9 @@
 	.byte	0x3A,0x00
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	sub	sp,sp,192

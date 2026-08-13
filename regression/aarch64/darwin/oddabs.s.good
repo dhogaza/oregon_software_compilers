@@ -15,9 +15,9 @@
 	.byte	0x30,0x30,0x30,0x30,0x29,0x3A,0x20,0x00
 	.text
 	.align 2
-#
-#	oddf
-#
+//
+//	oddf
+//
 .P1:
 	sub	sp,sp,16
 # Line: 3, Stmt: 1
@@ -32,9 +32,9 @@
 	ret
 	.text
 	.align 2
-#
-#	absf
-#
+//
+//	absf
+//
 .P2:
 	sub	sp,sp,16
 # Line: 9, Stmt: 1
@@ -49,9 +49,9 @@
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	sub	sp,sp,32
@@ -67,6 +67,9 @@ _main:
 	bl	_p_wts_o 
 	mov	x0,1
 	bl	.P1  // oddf
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -78,6 +81,9 @@ _main:
 	bl	_p_wts_o 
 	mov	x0,4
 	bl	.P1  // oddf
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -89,6 +95,9 @@ _main:
 	bl	_p_wts_o 
 	mov	w0,65536
 	bl	.P1  // oddf
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -101,6 +110,9 @@ _main:
 	movz	x0,16961
 	movk	x0,15,lsl 16
 	bl	.P1  // oddf
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -112,6 +124,9 @@ _main:
 	bl	_p_wts_o 
 	mov	x0,1
 	bl	.P2  // absf
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -123,6 +138,9 @@ _main:
 	bl	_p_wts_o 
 	mov	x0,65535
 	bl	.P2  // absf
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -135,6 +153,9 @@ _main:
 	movz	x0,65535
 	movk	x0,65535,lsl 16
 	bl	.P2  // absf
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -147,6 +168,9 @@ _main:
 	movz	x0,57600
 	movk	x0,1525,lsl 16
 	bl	.P2  // absf
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 

@@ -95,9 +95,9 @@
 	.byte	0x6F,0x72,0x6C,0x64,0x21,0x00
 	.text
 	.align 2
-#
-#	_p_arraytostrin
-#
+//
+//	_p_arraytostrin
+//
 .P73:
 	sub	sp,sp,32
 # Line: 210, Stmt: 1
@@ -136,9 +136,9 @@
 	ret
 	.text
 	.align 2
-#
-#	_p_cstringtostr
-#
+//
+//	_p_cstringtostr
+//
 .P74:
 	sub	sp,sp,48
 # Line: 238, Stmt: 1
@@ -172,9 +172,9 @@
 	ret
 	.text
 	.align 2
-#
-#	_p_pos
-#
+//
+//	_p_pos
+//
 	.global _p_pos
 _p_pos:
 	sub	sp,sp,64
@@ -245,9 +245,9 @@ _p_pos:
 	ret
 	.text
 	.align 2
-#
-#	_p_copy
-#
+//
+//	_p_copy
+//
 	.global _p_copy
 _p_copy:
 	sub	sp,sp,304
@@ -322,9 +322,9 @@ _p_copy:
 	ret
 	.text
 	.align 2
-#
-#	_p_trim
-#
+//
+//	_p_trim
+//
 	.global _p_trim
 _p_trim:
 	sub	sp,sp,304
@@ -396,9 +396,9 @@ _p_trim:
 	ret
 	.text
 	.align 2
-#
-#	_p_trimleft
-#
+//
+//	_p_trimleft
+//
 	.global _p_trimleft
 _p_trimleft:
 	sub	sp,sp,304
@@ -458,9 +458,9 @@ _p_trimleft:
 	ret
 	.text
 	.align 2
-#
-#	_p_trimright
-#
+//
+//	_p_trimright
+//
 	.global _p_trimright
 _p_trimright:
 	sub	sp,sp,288
@@ -513,9 +513,9 @@ _p_trimright:
 	ret
 	.text
 	.align 2
-#
-#	_p_caseerr
-#
+//
+//	_p_caseerr
+//
 	.global _p_caseerr
 _p_caseerr:
 	sub	sp,sp,32
@@ -545,9 +545,9 @@ _p_caseerr:
 	ret
 	.text
 	.align 2
-#
-#	_p_liberror
-#
+//
+//	_p_liberror
+//
 .P75:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -576,9 +576,9 @@ _p_caseerr:
 	ret
 	.text
 	.align 2
-#
-#	_p_libfileerror
-#
+//
+//	_p_libfileerror
+//
 .P76:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,48]
@@ -655,9 +655,9 @@ _p_caseerr:
 	ret
 	.text
 	.align 2
-#
-#	_p_dumpfilelist
-#
+//
+//	_p_dumpfilelist
+//
 	.global _p_dumpfilelist
 _p_dumpfilelist:
 	sub	sp,sp,80
@@ -1014,9 +1014,9 @@ _p_dumpfilelist:
 	ret
 	.text
 	.align 2
-#
-#	_p_filep
-#
+//
+//	_p_filep
+//
 .P77:
 	sub	sp,sp,32
 # Line: 488, Stmt: 1
@@ -1043,9 +1043,9 @@ _p_dumpfilelist:
 	ret
 	.text
 	.align 2
-#
-#	_p_addfile
-#
+//
+//	_p_addfile
+//
 .P78:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,16]
@@ -1091,9 +1091,9 @@ _p_dumpfilelist:
 	ret
 	.text
 	.align 2
-#
-#	_p_removefile
-#
+//
+//	_p_removefile
+//
 .P79:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,48]
@@ -1147,9 +1147,9 @@ _p_dumpfilelist:
 	ret
 	.text
 	.align 2
-#
-#	_p_closeonly
-#
+//
+//	_p_closeonly
+//
 .P80:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -1197,9 +1197,9 @@ _p_dumpfilelist:
 	ret
 	.text
 	.align 2
-#
-#	_p_close
-#
+//
+//	_p_close
+//
 	.global _p_close
 _p_close:
 	sub	sp,sp,32
@@ -1207,6 +1207,9 @@ _p_close:
 	add	x29,sp,8
 # Line: 573, Stmt: 1
 # Line: 574, Stmt: 2
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	bl	.P77  // _p_filep
 	str	x0,[x29,16]
 # Line: 575, Stmt: 0
@@ -1226,9 +1229,9 @@ _p_close:
 	ret
 	.text
 	.align 2
-#
-#	_p_clsrng
-#
+//
+//	_p_clsrng
+//
 	.global _p_clsrng
 _p_clsrng:
 	sub	sp,sp,80
@@ -1299,9 +1302,9 @@ _p_clsrng:
 	ret
 	.text
 	.align 2
-#
-#	_p_clsall
-#
+//
+//	_p_clsall
+//
 	.global _p_clsall
 _p_clsall:
 	sub	sp,sp,48
@@ -1338,9 +1341,9 @@ _p_clsall:
 	ret
 	.text
 	.align 2
-#
-#	_p_filecommon
-#
+//
+//	_p_filecommon
+//
 .P81:
 	sub	sp,sp,1936
 	add	x16,sp,336
@@ -1794,6 +1797,9 @@ _p_clsall:
 	ldr	x14,[x29,16]
 	ldr	x0,[x14,40]
 	bl	_fileno
+	str	x0,[x29,-72]
+	ldr	x15,[x29,-72]
+	mov	x0,x15
 	mov	x1,xzr
 	bl	_ftruncate
 	cbz	w0,.L175
@@ -1810,6 +1816,7 @@ _p_clsall:
 .L175:
 # Line: 758, Stmt: 0
 	ldr	x15,[x29,16]
+	str	x15,[x29,-72]
 	mov	x14,1
 	ldrh	w13,[x15,8]
 	orr	w14,w13,w14
@@ -1856,9 +1863,9 @@ _p_clsall:
 	ret
 	.text
 	.align 2
-#
-#	_p_initio
-#
+//
+//	_p_initio
+//
 	.global _p_initio
 _p_initio:
 	sub	sp,sp,32
@@ -1957,9 +1964,9 @@ _p_initio:
 	ret
 	.text
 	.align 2
-#
-#	_p_reset
-#
+//
+//	_p_reset
+//
 	.global _p_reset
 _p_reset:
 	sub	sp,sp,64
@@ -1972,11 +1979,16 @@ _p_reset:
 	str	x2,[x29,-24]
 	str	x3,[x29,-32]
 	str	x4,[x29,-40]
-	ldr	x0,[x29,-8]
-	ldr	x1,[x29,-16]
-	ldr	x2,[x29,-24]
-	ldr	x3,[x29,-32]
-	ldr	x4,[x29,-40]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
+	ldr	x15,[x29,-16]
+	mov	x1,x15
+	ldr	x15,[x29,-24]
+	mov	x2,x15
+	ldr	x15,[x29,-32]
+	mov	x3,x15
+	ldr	x15,[x29,-40]
+	mov	x4,x15
 	adrp	x15,.L32766@PAGE
 	add	x5,x15,.L32766+641@PAGEOFF
 	bl	.P81  // _p_filecommon
@@ -1986,9 +1998,9 @@ _p_reset:
 	ret
 	.text
 	.align 2
-#
-#	_p_rewrite
-#
+//
+//	_p_rewrite
+//
 	.global _p_rewrite
 _p_rewrite:
 	sub	sp,sp,64
@@ -2001,11 +2013,16 @@ _p_rewrite:
 	str	x2,[x29,-24]
 	str	x3,[x29,-32]
 	str	x4,[x29,-40]
-	ldr	x0,[x29,-8]
-	ldr	x1,[x29,-16]
-	ldr	x2,[x29,-24]
-	ldr	x3,[x29,-32]
-	ldr	x4,[x29,-40]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
+	ldr	x15,[x29,-16]
+	mov	x1,x15
+	ldr	x15,[x29,-24]
+	mov	x2,x15
+	ldr	x15,[x29,-32]
+	mov	x3,x15
+	ldr	x15,[x29,-40]
+	mov	x4,x15
 	adrp	x15,.L32766@PAGE
 	add	x5,x15,.L32766+644@PAGEOFF
 	bl	.P81  // _p_filecommon
@@ -2015,9 +2032,9 @@ _p_rewrite:
 	ret
 	.text
 	.align 2
-#
-#	_p_checkio
-#
+//
+//	_p_checkio
+//
 .P82:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,32]
@@ -2027,7 +2044,8 @@ _p_rewrite:
 # Line: 833, Stmt: 2
 	str	x0,[x29,-16]
 	str	x1,[x29,-24]
-	ldr	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	bl	.P77  // _p_filep
 	mov	x28,x0
 # Line: 834, Stmt: 0
@@ -2064,9 +2082,9 @@ _p_rewrite:
 	ret
 	.text
 	.align 2
-#
-#	_p_seek
-#
+//
+//	_p_seek
+//
 	.global _p_seek
 _p_seek:
 	sub	sp,sp,48
@@ -2077,7 +2095,8 @@ _p_seek:
 # Line: 847, Stmt: 2
 	str	x0,[x29,-16]
 	str	x1,[x29,-24]
-	ldr	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	bl	.P77  // _p_filep
 	mov	x28,x0
 # Line: 848, Stmt: 0
@@ -2123,9 +2142,9 @@ _p_seek:
 	ret
 	.text
 	.align 2
-#
-#	_p_define
-#
+//
+//	_p_define
+//
 	.global _p_define
 _p_define:
 	sub	sp,sp,48
@@ -2221,9 +2240,9 @@ _p_define:
 	ret
 	.text
 	.align 2
-#
-#	_p_get
-#
+//
+//	_p_get
+//
 	.global _p_get
 _p_get:
 	sub	sp,sp,48
@@ -2232,6 +2251,9 @@ _p_get:
 	str	x28,[x29,-8]
 # Line: 913, Stmt: 1
 # Line: 914, Stmt: 2
+	str	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	mov	x1,4
 	bl	.P82  // _p_checkio
 	mov	x28,x0
@@ -2272,9 +2294,9 @@ _p_get:
 	ret
 	.text
 	.align 2
-#
-#	_p_put
-#
+//
+//	_p_put
+//
 	.global _p_put
 _p_put:
 	sub	sp,sp,48
@@ -2283,6 +2305,9 @@ _p_put:
 	str	x28,[x29,-8]
 # Line: 933, Stmt: 1
 # Line: 934, Stmt: 2
+	str	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	mov	x1,5
 	bl	.P82  // _p_checkio
 	mov	x28,x0
@@ -2313,9 +2338,9 @@ _p_put:
 	ret
 	.text
 	.align 2
-#
-#	_p_break
-#
+//
+//	_p_break
+//
 	.global _p_break
 _p_break:
 	sub	sp,sp,48
@@ -2324,6 +2349,9 @@ _p_break:
 	str	x28,[x29,-8]
 # Line: 954, Stmt: 1
 # Line: 955, Stmt: 2
+	str	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	mov	x1,5
 	bl	.P82  // _p_checkio
 	mov	x28,x0
@@ -2347,9 +2375,9 @@ _p_break:
 	ret
 	.text
 	.align 2
-#
-#	_p_delete
-#
+//
+//	_p_delete
+//
 	.global _p_delete
 _p_delete:
 	sub	sp,sp,576
@@ -2359,6 +2387,8 @@ _p_delete:
 # Line: 970, Stmt: 1
 # Line: 971, Stmt: 2
 	str	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	bl	.P77  // _p_filep
 	mov	x28,x0
 # Line: 972, Stmt: 0
@@ -2383,7 +2413,8 @@ _p_delete:
 .L32718:
 	strb	wzr,[x14],1
 # Line: 975, Stmt: 0
-	ldr	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	bl	_p_close
 # Line: 976, Stmt: 0
 	add	x15,x29,24
@@ -2435,9 +2466,9 @@ _p_delete:
 	ret
 	.text
 	.align 2
-#
-#	_p_rename
-#
+//
+//	_p_rename
+//
 	.global _p_rename
 _p_rename:
 	sub	sp,sp,576
@@ -2448,7 +2479,8 @@ _p_rename:
 # Line: 991, Stmt: 2
 	str	x0,[x29,-16]
 	str	x1,[x29,-24]
-	ldr	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	bl	.P77  // _p_filep
 	mov	x28,x0
 # Line: 992, Stmt: 0
@@ -2552,9 +2584,9 @@ _p_rename:
 	ret
 	.text
 	.align 2
-#
-#	wrchar
-#
+//
+//	wrchar
+//
 .P83:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -2570,7 +2602,8 @@ _p_rename:
 	b.ge	.L231
 .L232:
 # Line: 1010, Stmt: 0
-	ldr	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,xzr
 	mov	x2,xzr
 	adrp	x15,.L32766@PAGE
@@ -2583,9 +2616,9 @@ _p_rename:
 	ret
 	.text
 	.align 2
-#
-#	_p_wtc
-#
+//
+//	_p_wtc
+//
 	.global _p_wtc
 _p_wtc:
 	sub	sp,sp,80
@@ -2597,7 +2630,8 @@ _p_wtc:
 	str	x0,[x29,-24]
 	str	x1,[x29,-32]
 	str	x2,[x29,-40]
-	ldr	x0,[x29,-24]
+	ldr	x15,[x29,-24]
+	mov	x0,x15
 	mov	x1,5
 	bl	.P82  // _p_checkio
 	mov	x27,x0
@@ -2617,7 +2651,8 @@ _p_wtc:
 .L235:
 # Line: 1023, Stmt: 0
 	mov	x0,x27
-	ldr	x1,[x29,-32]
+	ldr	x15,[x29,-32]
+	mov	x1,x15
 	bl	.P83  // wrchar
 .L233:
 	ldp	x27,x28,[x29,-16]
@@ -2626,9 +2661,9 @@ _p_wtc:
 	ret
 	.text
 	.align 2
-#
-#	_p_wtb
-#
+//
+//	_p_wtb
+//
 	.global _p_wtb
 _p_wtb:
 	sub	sp,sp,80
@@ -2640,7 +2675,8 @@ _p_wtb:
 # Line: 1036, Stmt: 2
 	str	x0,[x29,-32]
 	str	x2,[x29,-40]
-	ldr	x0,[x29,-32]
+	ldr	x15,[x29,-32]
+	mov	x0,x15
 	mov	x1,5
 	bl	.P82  // _p_checkio
 	mov	x27,x0
@@ -2726,9 +2762,9 @@ _p_wtb:
 	ret
 	.text
 	.align 2
-#
-#	_p_wti
-#
+//
+//	_p_wti
+//
 	.global _p_wti
 _p_wti:
 	sub	sp,sp,112
@@ -2824,9 +2860,9 @@ _p_wti:
 	ret
 	.text
 	.align 2
-#
-#	_p_wts
-#
+//
+//	_p_wts
+//
 	.global _p_wts
 _p_wts:
 	sub	sp,sp,80
@@ -2892,9 +2928,9 @@ _p_wts:
 	ret
 	.text
 	.align 2
-#
-#	_p_wtln
-#
+//
+//	_p_wtln
+//
 	.global _p_wtln
 _p_wtln:
 	sub	sp,sp,32
@@ -2902,6 +2938,9 @@ _p_wtln:
 	add	x29,sp,8
 # Line: 1108, Stmt: 1
 # Line: 1109, Stmt: 2
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,5
 	bl	.P82  // _p_checkio
 	str	x0,[x29,16]
@@ -2915,9 +2954,9 @@ _p_wtln:
 	ret
 	.text
 	.align 2
-#
-#	_p_page
-#
+//
+//	_p_page
+//
 	.global _p_page
 _p_page:
 	sub	sp,sp,32
@@ -2925,6 +2964,9 @@ _p_page:
 	add	x29,sp,8
 # Line: 1118, Stmt: 1
 # Line: 1119, Stmt: 2
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,5
 	bl	.P82  // _p_checkio
 	str	x0,[x29,16]
@@ -2938,9 +2980,9 @@ _p_page:
 	ret
 	.text
 	.align 2
-#
-#	_p_wtb_o
-#
+//
+//	_p_wtb_o
+//
 	.global _p_wtb_o
 _p_wtb_o:
 	sub	sp,sp,32
@@ -2952,8 +2994,10 @@ _p_wtb_o:
 	str	x1,[x29,-16]
 	adrp	x15,.L32767@PAGE
 	add	x0,x15,.L32767@PAGEOFF
-	ldr	x1,[x29,-8]
-	ldr	x2,[x29,-16]
+	ldr	x15,[x29,-8]
+	mov	x1,x15
+	ldr	x15,[x29,-16]
+	mov	x2,x15
 	bl	_p_wtb
 .L271:
 	ldp	x30,x29,[sp,16]
@@ -2961,9 +3005,9 @@ _p_wtb_o:
 	ret
 	.text
 	.align 2
-#
-#	_p_wtc_o
-#
+//
+//	_p_wtc_o
+//
 	.global _p_wtc_o
 _p_wtc_o:
 	sub	sp,sp,32
@@ -2975,8 +3019,10 @@ _p_wtc_o:
 	str	x1,[x29,-16]
 	adrp	x15,.L32767@PAGE
 	add	x0,x15,.L32767@PAGEOFF
-	ldr	x1,[x29,-8]
-	ldr	x2,[x29,-16]
+	ldr	x15,[x29,-8]
+	mov	x1,x15
+	ldr	x15,[x29,-16]
+	mov	x2,x15
 	bl	_p_wtc
 .L272:
 	ldp	x30,x29,[sp,16]
@@ -2984,9 +3030,9 @@ _p_wtc_o:
 	ret
 	.text
 	.align 2
-#
-#	_p_wti_o
-#
+//
+//	_p_wti_o
+//
 	.global _p_wti_o
 _p_wti_o:
 	sub	sp,sp,32
@@ -2998,8 +3044,10 @@ _p_wti_o:
 	str	x1,[x29,-16]
 	adrp	x15,.L32767@PAGE
 	add	x0,x15,.L32767@PAGEOFF
-	ldr	x1,[x29,-8]
-	ldr	x2,[x29,-16]
+	ldr	x15,[x29,-8]
+	mov	x1,x15
+	ldr	x15,[x29,-16]
+	mov	x2,x15
 	bl	_p_wti
 .L273:
 	ldp	x30,x29,[sp,16]
@@ -3007,9 +3055,9 @@ _p_wti_o:
 	ret
 	.text
 	.align 2
-#
-#	_p_wts_o
-#
+//
+//	_p_wts_o
+//
 	.global _p_wts_o
 _p_wts_o:
 	sub	sp,sp,48
@@ -3024,8 +3072,10 @@ _p_wts_o:
 	add	x0,x15,.L32767@PAGEOFF
 	ldr	x15,[x29,-8]
 	add	x1,x15,xzr
-	ldr	x2,[x29,-16]
-	ldr	x3,[x29,-24]
+	ldr	x15,[x29,-16]
+	mov	x2,x15
+	ldr	x15,[x29,-24]
+	mov	x3,x15
 	bl	_p_wts
 .L274:
 	ldp	x30,x29,[sp,32]
@@ -3033,9 +3083,9 @@ _p_wts_o:
 	ret
 	.text
 	.align 2
-#
-#	_p_wtln_o
-#
+//
+//	_p_wtln_o
+//
 	.global _p_wtln_o
 _p_wtln_o:
 	stp	x30,x29,[sp,-16]!
@@ -3050,9 +3100,9 @@ _p_wtln_o:
 	ret
 	.text
 	.align 2
-#
-#	_p_page_o
-#
+//
+//	_p_page_o
+//
 	.global _p_page_o
 _p_page_o:
 	stp	x30,x29,[sp,-16]!
@@ -3067,9 +3117,9 @@ _p_page_o:
 	ret
 	.text
 	.align 2
-#
-#	_p_rdc
-#
+//
+//	_p_rdc
+//
 	.global _p_rdc
 _p_rdc:
 	sub	sp,sp,48
@@ -3079,6 +3129,8 @@ _p_rdc:
 # Line: 1171, Stmt: 1
 # Line: 1172, Stmt: 2
 	str	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	mov	x1,4
 	bl	.P82  // _p_checkio
 	mov	x28,x0
@@ -3088,7 +3140,8 @@ _p_rdc:
 	b.ne	.L278
 .L279:
 # Line: 1174, Stmt: 0
-	ldr	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	bl	_p_define
 .L278:
 # Line: 1175, Stmt: 0
@@ -3113,9 +3166,9 @@ _p_rdc:
 	ret
 	.text
 	.align 2
-#
-#	_p_rdi
-#
+//
+//	_p_rdi
+//
 	.global _p_rdi
 _p_rdi:
 	sub	sp,sp,80
@@ -3222,9 +3275,9 @@ _p_rdi:
 	ret
 	.text
 	.align 2
-#
-#	_p_rdxs
-#
+//
+//	_p_rdxs
+//
 	.global _p_rdxs
 _p_rdxs:
 	sub	sp,sp,80
@@ -3289,9 +3342,9 @@ _p_rdxs:
 	ret
 	.text
 	.align 2
-#
-#	_p_rds
-#
+//
+//	_p_rds
+//
 	.global _p_rds
 _p_rds:
 	sub	sp,sp,80
@@ -3360,9 +3413,9 @@ _p_rds:
 	ret
 	.text
 	.align 2
-#
-#	_p_rdln
-#
+//
+//	_p_rdln
+//
 	.global _p_rdln
 _p_rdln:
 	sub	sp,sp,48
@@ -3397,9 +3450,9 @@ _p_rdln:
 	ret
 	.text
 	.align 2
-#
-#	_p_rdc_i
-#
+//
+//	_p_rdc_i
+//
 	.global _p_rdc_i
 _p_rdc_i:
 	sub	sp,sp,32
@@ -3419,9 +3472,9 @@ _p_rdc_i:
 	ret
 	.text
 	.align 2
-#
-#	_p_rdi_i
-#
+//
+//	_p_rdi_i
+//
 	.global _p_rdi_i
 _p_rdi_i:
 	sub	sp,sp,32
@@ -3441,9 +3494,9 @@ _p_rdi_i:
 	ret
 	.text
 	.align 2
-#
-#	_p_rdln_i
-#
+//
+//	_p_rdln_i
+//
 	.global _p_rdln_i
 _p_rdln_i:
 	stp	x30,x29,[sp,-16]!
@@ -3458,9 +3511,9 @@ _p_rdln_i:
 	ret
 	.text
 	.align 2
-#
-#	_p_rdxs_i
-#
+//
+//	_p_rdxs_i
+//
 	.global _p_rdxs_i
 _p_rdxs_i:
 	sub	sp,sp,32
@@ -3474,7 +3527,8 @@ _p_rdxs_i:
 	add	x0,x15,.L32767+8@PAGEOFF
 	ldr	x15,[x29,-8]
 	add	x1,x15,xzr
-	ldr	x2,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x2,x15
 	bl	_p_rdxs
 .L325:
 	ldp	x30,x29,[sp,16]
@@ -3482,9 +3536,9 @@ _p_rdxs_i:
 	ret
 	.text
 	.align 2
-#
-#	_p_rds_i
-#
+//
+//	_p_rds_i
+//
 	.global _p_rds_i
 _p_rds_i:
 	sub	sp,sp,32
@@ -3498,7 +3552,8 @@ _p_rds_i:
 	add	x0,x15,.L32767+8@PAGEOFF
 	ldr	x15,[x29,-8]
 	add	x1,x15,xzr
-	ldr	x2,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x2,x15
 	bl	_p_rds
 .L326:
 	ldp	x30,x29,[sp,16]
@@ -3506,9 +3561,9 @@ _p_rds_i:
 	ret
 	.text
 	.align 2
-#
-#	_p_new
-#
+//
+//	_p_new
+//
 	.global _p_new
 _p_new:
 	sub	sp,sp,32
@@ -3537,9 +3592,9 @@ _p_new:
 	ret
 	.text
 	.align 2
-#
-#	_p_dispos
-#
+//
+//	_p_dispos
+//
 	.global _p_dispos
 _p_dispos:
 	sub	sp,sp,32
@@ -3560,9 +3615,9 @@ _p_dispos:
 	ret
 	.text
 	.align 2
-#
-#	timestamp
-#
+//
+//	timestamp
+//
 	.global timestamp
 timestamp:
 	sub	sp,sp,128
@@ -3629,9 +3684,9 @@ timestamp:
 	ret
 	.text
 	.align 2
-#
-#	exitst
-#
+//
+//	exitst
+//
 	.global exitst
 exitst:
 	sub	sp,sp,32
@@ -3639,6 +3694,9 @@ exitst:
 	add	x29,sp,16
 # Line: 1386, Stmt: 1
 # Line: 1387, Stmt: 2
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	bl	_exit
 .L336:
 	ldp	x30,x29,[sp,16]
@@ -3646,9 +3704,9 @@ exitst:
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	stp	x30,x29,[sp,-16]!

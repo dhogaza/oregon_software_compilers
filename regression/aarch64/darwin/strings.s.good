@@ -140,9 +140,9 @@
 	.byte	0x62,0x63,0x27,0x3A,0x20,0x00,0x03,0x78,0x79,0x7A,0x00
 	.text
 	.align 2
-#
-#	tests255func
-#
+//
+//	tests255func
+//
 .P1:
 	sub	sp,sp,16
 # Line: 13, Stmt: 1
@@ -184,9 +184,9 @@
 	ret
 	.text
 	.align 2
-#
-#	testp5
-#
+//
+//	testp5
+//
 .P2:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -206,9 +206,9 @@
 	ret
 	.text
 	.align 2
-#
-#	tests255
-#
+//
+//	tests255
+//
 .P3:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -252,9 +252,9 @@
 	ret
 	.text
 	.align 2
-#
-#	testp5mod
-#
+//
+//	testp5mod
+//
 .P4:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -279,9 +279,9 @@
 	ret
 	.text
 	.align 2
-#
-#	tests255mod
-#
+//
+//	tests255mod
+//
 .P5:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -328,9 +328,9 @@
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	sub	sp,sp,576

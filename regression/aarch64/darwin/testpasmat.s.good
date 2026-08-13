@@ -140,9 +140,9 @@
 	.byte	0x00,0x00,0x00,0x00,0x02,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 	.text
 	.align 2
-#
-#	csi
-#
+//
+//	csi
+//
 .P2:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
@@ -162,9 +162,9 @@
 	ret
 	.text
 	.align 2
-#
-#	initsets
-#
+//
+//	initsets
+//
 .P3:
 	add	sp,sp,xzr
 # Line: 342, Stmt: 1
@@ -261,9 +261,9 @@
 	ret
 	.text
 	.align 2
-#
-#	initresvwrd
-#
+//
+//	initresvwrd
+//
 .P4:
 	add	sp,sp,xzr
 # Line: 378, Stmt: 1
@@ -964,9 +964,9 @@
 	ret
 	.text
 	.align 2
-#
-#	initialize
-#
+//
+//	initialize
+//
 .P5:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,48]
@@ -1179,9 +1179,9 @@
 	ret
 	.text
 	.align 2
-#
-#	finaldata
-#
+//
+//	finaldata
+//
 .P6:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -1370,9 +1370,9 @@
 	ret
 	.text
 	.align 2
-#
-#	clearbreaks
-#
+//
+//	clearbreaks
+//
 .P7:
 	sub	sp,sp,16
 # Line: 561, Stmt: 1
@@ -1393,9 +1393,9 @@
 	ret
 	.text
 	.align 2
-#
-#	resetcharcount
-#
+//
+//	resetcharcount
+//
 .P8:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
@@ -1420,9 +1420,9 @@
 	ret
 	.text
 	.align 2
-#
-#	writea
-#
+//
+//	writea
+//
 .P9:
 	sub	sp,sp,112
 	stp	x30,x29,[sp,88]
@@ -1634,9 +1634,9 @@
 	ret
 	.text
 	.align 2
-#
-#	newline
-#
+//
+//	newline
+//
 .P10:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -1675,9 +1675,9 @@
 	ret
 	.text
 	.align 2
-#
-#	printline
-#
+//
+//	printline
+//
 .P11:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -1719,7 +1719,8 @@
 	b	.L63
 .L66:
 # Line: 663, Stmt: 0
-	ldr	x0,[x29,-16]
+	ldr	x28,[x29,-16]
+	mov	x0,x28
 	bl	.P10  // newline
 .L64:
 # Line: 665, Stmt: 0
@@ -1734,9 +1735,9 @@
 	ret
 	.text
 	.align 2
-#
-#	space
-#
+//
+//	space
+//
 .P12:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -1786,9 +1787,9 @@
 	ret
 	.text
 	.align 2
-#
-#	flushbuffer
-#
+//
+//	flushbuffer
+//
 .P13:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -1818,9 +1819,9 @@
 	ret
 	.text
 	.align 2
-#
-#	flushsymbol
-#
+//
+//	flushsymbol
+//
 .P14:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,8]
@@ -1858,9 +1859,9 @@
 	ret
 	.text
 	.align 2
-#
-#	throwaway
-#
+//
+//	throwaway
+//
 .P15:
 	add	sp,sp,xzr
 # Line: 714, Stmt: 1
@@ -1869,9 +1870,9 @@
 	ret
 	.text
 	.align 2
-#
-#	getchar
-#
+//
+//	getchar
+//
 .P16:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,48]
@@ -2025,9 +2026,9 @@
 	ret
 	.text
 	.align 2
-#
-#	lineoverflow
-#
+//
+//	lineoverflow
+//
 .P17:
 	add	sp,sp,xzr
 # Line: 779, Stmt: 1
@@ -2052,9 +2053,9 @@
 	ret
 	.text
 	.align 2
-#
-#	commentoverflow
-#
+//
+//	commentoverflow
+//
 .P18:
 	add	sp,sp,xzr
 # Line: 788, Stmt: 1
@@ -2078,9 +2079,9 @@
 	ret
 	.text
 	.align 2
-#
-#	abort
-#
+//
+//	abort
+//
 .P19:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,40]
@@ -2175,9 +2176,9 @@
 	ret
 	.text
 	.align 2
-#
-#	indentplus
-#
+//
+//	indentplus
+//
 .P20:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -2235,9 +2236,9 @@
 	ret
 	.text
 	.align 2
-#
-#	undent
-#
+//
+//	undent
+//
 .P21:
 	add	sp,sp,xzr
 # Line: 837, Stmt: 1
@@ -2256,9 +2257,9 @@
 	ret
 	.text
 	.align 2
-#
-#	setsymbolbreak
-#
+//
+//	setsymbolbreak
+//
 .P22:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -2286,9 +2287,9 @@
 	ret
 	.text
 	.align 2
-#
-#	formatline
-#
+//
+//	formatline
+//
 .P23:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -2309,7 +2310,8 @@
 	b	.L130
 .L127:
 # Line: 863, Stmt: 0
-	ldr	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	bl	.P11  // printline
 .L126:
 .L130:
@@ -2318,9 +2320,9 @@
 	ret
 	.text
 	.align 2
-#
-#	spacesbefore
-#
+//
+//	spacesbefore
+//
 .P25:
 	sub	sp,sp,32
 # Line: 885, Stmt: 1
@@ -2373,9 +2375,9 @@
 	ret
 	.text
 	.align 2
-#
-#	putsym
-#
+//
+//	putsym
+//
 .P24:
 	sub	sp,sp,128
 	stp	x30,x29,[sp,88]
@@ -2616,9 +2618,9 @@
 	ret
 	.text
 	.align 2
-#
-#	copyachar
-#
+//
+//	copyachar
+//
 .P27:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -2641,9 +2643,9 @@
 	ret
 	.text
 	.align 2
-#
-#	switchdir
-#
+//
+//	switchdir
+//
 .P28:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -2679,9 +2681,9 @@
 	ret
 	.text
 	.align 2
-#
-#	numdir
-#
+//
+//	numdir
+//
 .P29:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,56]
@@ -2764,9 +2766,9 @@
 	ret
 	.text
 	.align 2
-#
-#	doformatterdire
-#
+//
+//	doformatterdire
+//
 .P26:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,56]
@@ -3021,9 +3023,9 @@
 	ret
 	.text
 	.align 2
-#
-#	blockcomchar
-#
+//
+//	blockcomchar
+//
 .P31:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -3074,7 +3076,8 @@
 	b	.L225
 .L227:
 # Line: 1107, Stmt: 0
-	ldr	x0,[x29,-16]
+	ldr	x27,[x29,-16]
+	mov	x0,x27
 	bl	.P9  // writea
 .L222:
 .L225:
@@ -3084,9 +3087,9 @@
 	ret
 	.text
 	.align 2
-#
-#	breakstatcommen
-#
+//
+//	breakstatcommen
+//
 .P32:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,56]
@@ -3170,9 +3173,9 @@
 	ret
 	.text
 	.align 2
-#
-#	statcomchar
-#
+//
+//	statcomchar
+//
 .P33:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -3240,9 +3243,9 @@
 	ret
 	.text
 	.align 2
-#
-#	docompilerdirec
-#
+//
+//	docompilerdirec
+//
 .P34:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -3277,9 +3280,9 @@
 	ret
 	.text
 	.align 2
-#
-#	adjustblockcomm
-#
+//
+//	adjustblockcomm
+//
 .P35:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,40]
@@ -3351,9 +3354,9 @@
 	ret
 	.text
 	.align 2
-#
-#	adjuststatcomme
-#
+//
+//	adjuststatcomme
+//
 .P36:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -3399,9 +3402,9 @@
 	ret
 	.text
 	.align 2
-#
-#	blockcomment
-#
+//
+//	blockcomment
+//
 .P37:
 	sub	sp,sp,128
 	stp	x30,x29,[sp,104]
@@ -3632,9 +3635,9 @@
 	ret
 	.text
 	.align 2
-#
-#	statcomment
-#
+//
+//	statcomment
+//
 .P38:
 	sub	sp,sp,112
 	stp	x30,x29,[sp,96]
@@ -3866,9 +3869,9 @@
 	ret
 	.text
 	.align 2
-#
-#	docomment
-#
+//
+//	docomment
+//
 .P30:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,56]
@@ -3947,9 +3950,9 @@
 	ret
 	.text
 	.align 2
-#
-#	symbolput
-#
+//
+//	symbolput
+//
 .P39:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
@@ -3972,9 +3975,9 @@
 	ret
 	.text
 	.align 2
-#
-#	printchar
-#
+//
+//	printchar
+//
 .P40:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -4014,9 +4017,9 @@
 	ret
 	.text
 	.align 2
-#
-#	scanblanks
-#
+//
+//	scanblanks
+//
 .P41:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
@@ -4040,9 +4043,9 @@
 	ret
 	.text
 	.align 2
-#
-#	stringconstant
-#
+//
+//	stringconstant
+//
 .P42:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -4098,9 +4101,9 @@
 	ret
 	.text
 	.align 2
-#
-#	testresvwrd
-#
+//
+//	testresvwrd
+//
 .P43:
 	sub	sp,sp,48
 # Line: 1493, Stmt: 1
@@ -4222,9 +4225,9 @@
 	ret
 	.text
 	.align 2
-#
-#	hashident
-#
+//
+//	hashident
+//
 .P45:
 	sub	sp,sp,32
 # Line: 1534, Stmt: 1
@@ -4267,9 +4270,9 @@
 	ret
 	.text
 	.align 2
-#
-#	sameident
-#
+//
+//	sameident
+//
 .P46:
 	sub	sp,sp,80
 # Line: 1552, Stmt: 1
@@ -4401,9 +4404,9 @@
 	ret
 	.text
 	.align 2
-#
-#	adjustspelling
-#
+//
+//	adjustspelling
+//
 .P44:
 	sub	sp,sp,112
 	stp	x30,x29,[sp,72]
@@ -4584,9 +4587,9 @@
 	ret
 	.text
 	.align 2
-#
-#	setsymbolcase
-#
+//
+//	setsymbolcase
+//
 .P47:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,48]
@@ -4810,9 +4813,9 @@
 	ret
 	.text
 	.align 2
-#
-#	alphachar
-#
+//
+//	alphachar
+//
 .P48:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -4855,9 +4858,9 @@
 	ret
 	.text
 	.align 2
-#
-#	numericchar
-#
+//
+//	numericchar
+//
 .P49:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,64]
@@ -5029,9 +5032,9 @@
 	ret
 	.text
 	.align 2
-#
-#	specialchar
-#
+//
+//	specialchar
+//
 .P50:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,48]
@@ -5362,9 +5365,9 @@
 	ret
 	.text
 	.align 2
-#
-#	commentchar
-#
+//
+//	commentchar
+//
 .P51:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,40]
@@ -5473,9 +5476,9 @@
 	ret
 	.text
 	.align 2
-#
-#	lexicaldirectiv
-#
+//
+//	lexicaldirectiv
+//
 .P52:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,40]
@@ -5698,9 +5701,9 @@
 	ret
 	.text
 	.align 2
-#
-#	getsym
-#
+//
+//	getsym
+//
 .P53:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -5921,9 +5924,9 @@
 	ret
 	.text
 	.align 2
-#
-#	fudgesymbol
-#
+//
+//	fudgesymbol
+//
 .P54:
 	sub	sp,sp,32
 # Line: 2036, Stmt: 1
@@ -5973,9 +5976,9 @@
 	ret
 	.text
 	.align 2
-#
-#	nextsym
-#
+//
+//	nextsym
+//
 .P55:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
@@ -6002,9 +6005,9 @@
 	ret
 	.text
 	.align 2
-#
-#	check
-#
+//
+//	check
+//
 .P56:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -6031,9 +6034,9 @@
 	ret
 	.text
 	.align 2
-#
-#	checksym
-#
+//
+//	checksym
+//
 .P57:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -6059,9 +6062,9 @@
 	ret
 	.text
 	.align 2
-#
-#	nextonnewline
-#
+//
+//	nextonnewline
+//
 .P58:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -6103,7 +6106,8 @@
 	b.ge	.L653
 .L658:
 # Line: 2109, Stmt: 0
-	ldr	x0,[x29,-24]
+	ldr	x15,[x29,-24]
+	mov	x0,x15
 	bl	.P20  // indentplus
 # Line: 2110, Stmt: 0
 	adrp	x15,.L32767@PAGE
@@ -6118,9 +6122,9 @@
 	ret
 	.text
 	.align 2
-#
-#	logsymbolstart
-#
+//
+//	logsymbolstart
+//
 .P59:
 	sub	sp,sp,16
 # Line: 2122, Stmt: 1
@@ -6144,9 +6148,9 @@
 	ret
 	.text
 	.align 2
-#
-#	bunch
-#
+//
+//	bunch
+//
 .P60:
 	sub	sp,sp,32
 # Line: 2142, Stmt: 1
@@ -6212,9 +6216,9 @@
 	ret
 	.text
 	.align 2
-#
-#	bunchstatement
-#
+//
+//	bunchstatement
+//
 .P61:
 	sub	sp,sp,48
 # Line: 2172, Stmt: 1
@@ -6301,9 +6305,9 @@
 	ret
 	.text
 	.align 2
-#
-#	terminalsemicol
-#
+//
+//	terminalsemicol
+//
 .P62:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
@@ -6325,9 +6329,9 @@
 	ret
 	.text
 	.align 2
-#
-#	identlist
-#
+//
+//	identlist
+//
 .P68:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -6398,9 +6402,9 @@
 	ret
 	.text
 	.align 2
-#
-#	constant
-#
+//
+//	constant
+//
 .P69:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -6442,9 +6446,9 @@
 	ret
 	.text
 	.align 2
-#
-#	variable
-#
+//
+//	variable
+//
 .P70:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
@@ -6486,9 +6490,9 @@
 	ret
 	.text
 	.align 2
-#
-#	constlist
-#
+//
+//	constlist
+//
 .P71:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
@@ -6527,9 +6531,9 @@
 	ret
 	.text
 	.align 2
-#
-#	factor
-#
+//
+//	factor
+//
 .P72:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -6651,9 +6655,9 @@
 	ret
 	.text
 	.align 2
-#
-#	expression
-#
+//
+//	expression
+//
 .P64:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -6754,9 +6758,9 @@
 	ret
 	.text
 	.align 2
-#
-#	exprlist
-#
+//
+//	exprlist
+//
 .P65:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -6821,9 +6825,9 @@
 	ret
 	.text
 	.align 2
-#
-#	statlist
-#
+//
+//	statlist
+//
 .P73:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,32]
@@ -6901,9 +6905,9 @@
 	ret
 	.text
 	.align 2
-#
-#	dobegin
-#
+//
+//	dobegin
+//
 .P74:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,8]
@@ -6946,9 +6950,9 @@
 	ret
 	.text
 	.align 2
-#
-#	doassigncall
-#
+//
+//	doassigncall
+//
 .P75:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -7047,9 +7051,9 @@
 	ret
 	.text
 	.align 2
-#
-#	dogoto
-#
+//
+//	dogoto
+//
 .P76:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
@@ -7070,9 +7074,9 @@
 	ret
 	.text
 	.align 2
-#
-#	dowhile
-#
+//
+//	dowhile
+//
 .P77:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,40]
@@ -7160,9 +7164,9 @@
 	ret
 	.text
 	.align 2
-#
-#	dowith
-#
+//
+//	dowith
+//
 .P78:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,40]
@@ -7251,9 +7255,9 @@
 	ret
 	.text
 	.align 2
-#
-#	doif
-#
+//
+//	doif
+//
 .P79:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,40]
@@ -7399,9 +7403,9 @@
 	ret
 	.text
 	.align 2
-#
-#	docase
-#
+//
+//	docase
+//
 .P80:
 	sub	sp,sp,112
 	stp	x30,x29,[sp,72]
@@ -7608,9 +7612,9 @@
 	ret
 	.text
 	.align 2
-#
-#	dorepeat
-#
+//
+//	dorepeat
+//
 .P81:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -7668,9 +7672,9 @@
 	ret
 	.text
 	.align 2
-#
-#	dofor
-#
+//
+//	dofor
+//
 .P82:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,24]
@@ -7749,9 +7753,9 @@
 	ret
 	.text
 	.align 2
-#
-#	statement
-#
+//
+//	statement
+//
 .P63:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -7902,9 +7906,9 @@
 	ret
 	.text
 	.align 2
-#
-#	parameters
-#
+//
+//	parameters
+//
 .P83:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,48]
@@ -8056,9 +8060,9 @@
 	ret
 	.text
 	.align 2
-#
-#	fieldlist
-#
+//
+//	fieldlist
+//
 .P84:
 	sub	sp,sp,96
 	stp	x30,x29,[sp,48]
@@ -8277,9 +8281,9 @@
 	ret
 	.text
 	.align 2
-#
-#	recordtype
-#
+//
+//	recordtype
+//
 .P85:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -8370,9 +8374,9 @@
 	ret
 	.text
 	.align 2
-#
-#	arraytype
-#
+//
+//	arraytype
+//
 .P86:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -8467,9 +8471,9 @@
 	ret
 	.text
 	.align 2
-#
-#	enumtype
-#
+//
+//	enumtype
+//
 .P87:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -8513,9 +8517,9 @@
 	ret
 	.text
 	.align 2
-#
-#	scantype
-#
+//
+//	scantype
+//
 .P66:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,32]
@@ -8689,9 +8693,9 @@
 	ret
 	.text
 	.align 2
-#
-#	dolabel
-#
+//
+//	dolabel
+//
 .P88:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
@@ -8737,9 +8741,9 @@
 	ret
 	.text
 	.align 2
-#
-#	doconst
-#
+//
+//	doconst
+//
 .P89:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,32]
@@ -8825,9 +8829,9 @@
 	ret
 	.text
 	.align 2
-#
-#	dotype
-#
+//
+//	dotype
+//
 .P90:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -8875,9 +8879,9 @@
 	ret
 	.text
 	.align 2
-#
-#	dovar
-#
+//
+//	dovar
+//
 .P91:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -8938,9 +8942,9 @@
 	ret
 	.text
 	.align 2
-#
-#	doprogram
-#
+//
+//	doprogram
+//
 .P92:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -9016,9 +9020,9 @@
 	ret
 	.text
 	.align 2
-#
-#	doprocedure
-#
+//
+//	doprocedure
+//
 .P93:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -9141,9 +9145,9 @@
 	ret
 	.text
 	.align 2
-#
-#	doblock
-#
+//
+//	doblock
+//
 .P67:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -9238,9 +9242,9 @@
 	ret
 	.text
 	.align 2
-#
-#	processtext
-#
+//
+//	processtext
+//
 .P94:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -9318,9 +9322,9 @@
 	ret
 	.text
 	.align 2
-#
-#	pasmat (main)
-#
+//
+//	pasmat (main)
+//
 	.global _main
 _main:
 	sub	sp,sp,112

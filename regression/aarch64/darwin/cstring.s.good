@@ -8,9 +8,9 @@
 	.byte	0x62,0x63,0x64,0x65,0x66,0x00
 	.text
 	.align 2
-#
-#	toshortstring
-#
+//
+//	toshortstring
+//
 .P1:
 	sub	sp,sp,48
 # Line: 30, Stmt: 1
@@ -44,9 +44,9 @@
 	ret
 	.text
 	.align 2
-#
-#	cstring
-#
+//
+//	cstring
+//
 .P2:
 	sub	sp,sp,16
 # Line: 44, Stmt: 1
@@ -64,9 +64,9 @@
 	ret
 	.text
 	.align 2
-#
-#	writecstring
-#
+//
+//	writecstring
+//
 .P3:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,32]
@@ -100,9 +100,9 @@
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	sub	sp,sp,48
@@ -129,6 +129,9 @@ _main:
 	strb	wzr,[x14],1
 	sub	x0,x29,8
 	bl	.P2  // cstring
+	str	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	bl	.P3  // writecstring
 # Line: 68, Stmt: 0
 	bl	_p_wtln_o 
@@ -151,6 +154,9 @@ _main:
 	strb	wzr,[x14],1
 	sub	x0,x29,16
 	bl	.P2  // cstring
+	str	x0,[x29,-24]
+	ldr	x15,[x29,-24]
+	mov	x0,x15
 	bl	_printf
 # Line: 70, Stmt: 0
 	bl	_p_wtln_o 
@@ -177,7 +183,8 @@ _main:
 	str	x0,[x29,-32]
 	adrp	x15,.L32767@PAGE
 	add	x0,x15,.L32767+24@PAGEOFF
-	ldr	x1,[x29,-32]
+	ldr	x15,[x29,-32]
+	mov	x1,x15
 	bl	.P1  // toshortstring
 # Line: 72, Stmt: 0
 	adrp	x15,.L32767@PAGE

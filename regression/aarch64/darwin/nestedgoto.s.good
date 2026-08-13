@@ -15,9 +15,9 @@
 	.byte	0x6C,0x61,0x62,0x65,0x6C,0x20,0x32,0x00
 	.text
 	.align 2
-#
-#	p2
-#
+//
+//	p2
+//
 .P3:
 	add	sp,sp,xzr
 # Line: 11, Stmt: 1
@@ -29,9 +29,9 @@
 	ret
 	.text
 	.align 2
-#
-#	p1
-#
+//
+//	p1
+//
 .P2:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -49,9 +49,9 @@
 	ret
 	.text
 	.align 2
-#
-#	p
-#
+//
+//	p
+//
 .P4:
 	add	sp,sp,xzr
 # Line: 21, Stmt: 1
@@ -62,9 +62,9 @@
 	ret
 	.text
 	.align 2
-#
-#	outer
-#
+//
+//	outer
+//
 .P1:
 	sub	sp,sp,96
 	stp	x30,x29,[sp,80]
@@ -165,9 +165,9 @@
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	stp	x30,x29,[sp,-16]!

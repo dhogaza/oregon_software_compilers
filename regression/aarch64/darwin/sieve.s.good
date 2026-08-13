@@ -1,8 +1,8 @@
 	.text
 	.align 2
-#
-#	p
-#
+//
+//	p
+//
 .P1:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,40]
@@ -89,9 +89,9 @@
 	ret
 	.text
 	.align 2
-#
-#	sieve (main)
-#
+//
+//	sieve (main)
+//
 	.global _main
 _main:
 	stp	x30,x29,[sp,-16]!

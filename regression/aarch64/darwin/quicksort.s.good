@@ -9,9 +9,9 @@
 	.byte	0x74,0x65,0x64,0x20,0x3D,0x20,0x00
 	.text
 	.align 2
-#
-#	initarray
-#
+//
+//	initarray
+//
 .P1:
 	sub	sp,sp,16
 # Line: 20, Stmt: 1
@@ -35,9 +35,9 @@
 	ret
 	.text
 	.align 2
-#
-#	swap
-#
+//
+//	swap
+//
 .P5:
 	sub	sp,sp,32
 # Line: 52, Stmt: 1
@@ -53,9 +53,9 @@
 	ret
 	.text
 	.align 2
-#
-#	split
-#
+//
+//	split
+//
 .P4:
 	sub	sp,sp,96
 	stp	x30,x29,[sp,64]
@@ -146,9 +146,9 @@
 	ret
 	.text
 	.align 2
-#
-#	quicksortrecur
-#
+//
+//	quicksortrecur
+//
 .P3:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,40]
@@ -186,9 +186,9 @@
 	ret
 	.text
 	.align 2
-#
-#	quicksort
-#
+//
+//	quicksort
+//
 .P2:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -209,9 +209,9 @@
 	ret
 	.text
 	.align 2
-#
-#	sort (main)
-#
+//
+//	sort (main)
+//
 	.global _main
 _main:
 	sub	sp,sp,48

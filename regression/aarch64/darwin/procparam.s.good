@@ -12,9 +12,9 @@
 	.byte	0x00
 	.text
 	.align 2
-#
-#	f
-#
+//
+//	f
+//
 .P2:
 	sub	sp,sp,16
 # Line: 4, Stmt: 1
@@ -29,9 +29,9 @@
 	ret
 	.text
 	.align 2
-#
-#	ext
-#
+//
+//	ext
+//
 	.global ext
 ext:
 	sub	sp,sp,32
@@ -45,7 +45,8 @@ ext:
 	mov	x1,5
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -55,9 +56,9 @@ ext:
 	ret
 	.text
 	.align 2
-#
-#	funcparam
-#
+//
+//	funcparam
+//
 .P3:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -77,6 +78,9 @@ ext:
 	ldr	x28,[x29,24]
 	blr	x16
 	ldr	x28,[x29,-8]
+	str	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -87,9 +91,9 @@ ext:
 	ret
 	.text
 	.align 2
-#
-#	procparam
-#
+//
+//	procparam
+//
 .P4:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -97,6 +101,9 @@ ext:
 	str	x28,[x29,-8]
 # Line: 22, Stmt: 1
 # Line: 23, Stmt: 2
+	str	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	str	x1,[x29,-16]
 	mov	x1,12
 	bl	_p_wti_o 
@@ -108,7 +115,8 @@ ext:
 	blr	x16
 	ldr	x28,[x29,-8]
 # Line: 25, Stmt: 0
-	ldr	x0,[x29,-16]
+	ldr	x15,[x29,-16]
+	mov	x0,x15
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -119,9 +127,9 @@ ext:
 	ret
 	.text
 	.align 2
-#
-#	deadsimple
-#
+//
+//	deadsimple
+//
 .P5:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
@@ -138,9 +146,9 @@ ext:
 	ret
 	.text
 	.align 2
-#
-#	upref
-#
+//
+//	upref
+//
 .P8:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -153,7 +161,8 @@ ext:
 	mov	x1,7
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,12
 	bl	_p_wti_o 
 	adrp	x15,.L32766@PAGE
@@ -171,9 +180,9 @@ ext:
 	ret
 	.text
 	.align 2
-#
-#	p1
-#
+//
+//	p1
+//
 .P7:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -211,9 +220,9 @@ ext:
 	ret
 	.text
 	.align 2
-#
-#	p0
-#
+//
+//	p0
+//
 .P6:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -236,9 +245,9 @@ ext:
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	sub	sp,sp,32

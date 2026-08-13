@@ -1,8 +1,8 @@
 	.text
 	.align 2
-#
-#	bar
-#
+//
+//	bar
+//
 .P2:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -50,9 +50,9 @@
 	ret
 	.text
 	.align 2
-#
-#	foo
-#
+//
+//	foo
+//
 .P3:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,8]
@@ -92,9 +92,9 @@
 	ret
 	.text
 	.align 2
-#
-#	bar1
-#
+//
+//	bar1
+//
 .P4:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -142,9 +142,9 @@
 	ret
 	.text
 	.align 2
-#
-#	foo1
-#
+//
+//	foo1
+//
 .P5:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,8]
@@ -184,9 +184,9 @@
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	stp	x30,x29,[sp,-16]!

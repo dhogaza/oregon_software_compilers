@@ -96,9 +96,9 @@
 	.byte	0x63,0x65,0x73,0x00
 	.text
 	.align 2
-#
-#	csi
-#
+//
+//	csi
+//
 .P2:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
@@ -118,9 +118,9 @@
 	ret
 	.text
 	.align 2
-#
-#	initialize
-#
+//
+//	initialize
+//
 .P3:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -770,9 +770,9 @@
 	ret
 	.text
 	.align 2
-#
-#	new_line
-#
+//
+//	new_line
+//
 .P4:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -812,9 +812,9 @@
 	ret
 	.text
 	.align 2
-#
-#	sget
-#
+//
+//	sget
+//
 .P5:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -909,9 +909,9 @@
 	ret
 	.text
 	.align 2
-#
-#	copy_char
-#
+//
+//	copy_char
+//
 .P6:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -945,9 +945,9 @@
 	ret
 	.text
 	.align 2
-#
-#	reserved_wrd
-#
+//
+//	reserved_wrd
+//
 .P7:
 	sub	sp,sp,48
 # Line: 273, Stmt: 1
@@ -1064,9 +1064,9 @@
 	ret
 	.text
 	.align 2
-#
-#	cross_ref
-#
+//
+//	cross_ref
+//
 .P8:
 	sub	sp,sp,112
 	stp	x30,x29,[sp,64]
@@ -1267,9 +1267,9 @@
 	ret
 	.text
 	.align 2
-#
-#	identifier
-#
+//
+//	identifier
+//
 .P9:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -1426,9 +1426,9 @@
 	ret
 	.text
 	.align 2
-#
-#	number
-#
+//
+//	number
+//
 .P10:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -1466,9 +1466,9 @@
 	ret
 	.text
 	.align 2
-#
-#	stringconst
-#
+//
+//	stringconst
+//
 .P11:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -1513,9 +1513,9 @@
 	ret
 	.text
 	.align 2
-#
-#	comment
-#
+//
+//	comment
+//
 .P12:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -1559,9 +1559,9 @@
 	ret
 	.text
 	.align 2
-#
-#	comment1
-#
+//
+//	comment1
+//
 .P13:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -1643,9 +1643,9 @@
 	ret
 	.text
 	.align 2
-#
-#	special_char
-#
+//
+//	special_char
+//
 .P14:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,40]
@@ -1796,9 +1796,9 @@
 	ret
 	.text
 	.align 2
-#
-#	scan_input
-#
+//
+//	scan_input
+//
 .P15:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,48]
@@ -1925,9 +1925,9 @@
 	ret
 	.text
 	.align 2
-#
-#	print_entri
-#
+//
+//	print_entri
+//
 .P16:
 	sub	sp,sp,112
 	stp	x30,x29,[sp,56]
@@ -2030,9 +2030,7 @@
 	b	.L145
 .L143:
 # Line: 535, Stmt: 0
-	mov	x13,x15
-	ubfx	x13,x13,0,2
-	cmp	w13,2
+	cmp	w15,2
 	b.ne	.L146
 .L147:
 # Line: 535, Stmt: 0
@@ -2043,9 +2041,9 @@
 	mov	x26,32
 .L145:
 # Line: 537, Stmt: 0
-	ldrh	w0,[x28]
-	ubfx	x0,x0,0,14
-	mov	x0,x0
+	ldrh	w15,[x28]
+	ubfx	x15,x15,0,14
+	mov	x0,x15
 	mov	x1,6
 	bl	_p_wti_o 
 	mov	x0,x26
@@ -2066,9 +2064,9 @@
 	ret
 	.text
 	.align 2
-#
-#	print_cross_ref
-#
+//
+//	print_cross_ref
+//
 .P17:
 	sub	sp,sp,128
 	stp	x30,x29,[sp,96]
@@ -2108,9 +2106,9 @@
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
 	add	x25,x15,w25, uxtw 0
-	ldrh	w28,[x25,816]
-	ubfx	x28,x28,0,10
-	mov	x28,x28
+	ldrh	w25,[x25,816]
+	ubfx	x25,x25,0,10
+	mov	x28,x25
 .L150:
 # Line: 560, Stmt: 0
 	cmp	w28,733
@@ -2143,9 +2141,9 @@
 .L158:
 # Line: 563, Stmt: 0
 	add	x25,x15,w25, uxtw 0
-	ldrh	w28,[x25,816]
-	ubfx	x28,x28,0,10
-	mov	x28,x28
+	ldrh	w25,[x25,816]
+	ubfx	x25,x25,0,10
+	mov	x28,x25
 	b	.L150
 .L156:
 # Line: 565, Stmt: 0
@@ -2194,9 +2192,9 @@
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
 	add	x25,x15,w25, uxtw 0
-	ldrh	w26,[x25,816]
-	ubfx	x26,x26,0,10
-	mov	x26,x26
+	ldrh	w25,[x25,816]
+	ubfx	x25,x25,0,10
+	mov	x26,x25
 	b	.L151
 .L154:
 # Line: 573, Stmt: 0
@@ -2260,9 +2258,9 @@
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	sub	sp,sp,96

@@ -7,9 +7,9 @@
 	.byte	0x03,0x78,0x79,0x7A,0x00,0x03,0x61,0x62,0x63,0x00
 	.text
 	.align 2
-#
-#	p
-#
+//
+//	p
+//
 .P1:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -30,9 +30,9 @@
 	ret
 	.text
 	.align 2
-#
-#	p1
-#
+//
+//	p1
+//
 .P2:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -52,15 +52,18 @@
 	ret
 	.text
 	.align 2
-#
-#	p2
-#
+//
+//	p2
+//
 .P3:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 16, Stmt: 1
 # Line: 17, Stmt: 2
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -70,9 +73,9 @@
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	stp	x30,x29,[sp,-16]!

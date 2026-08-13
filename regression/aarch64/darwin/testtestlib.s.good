@@ -33,9 +33,9 @@
 	.byte	0x73,0x65,0x20,0x65,0x72,0x72,0x6F,0x72,0x00
 	.text
 	.align 2
-#
-#	putln
-#
+//
+//	putln
+//
 	.global putln
 putln:
 	stp	x30,x29,[sp,-16]!
@@ -49,9 +49,9 @@ putln:
 	ret
 	.text
 	.align 2
-#
-#	putstring
-#
+//
+//	putstring
+//
 	.global putstring
 putstring:
 	sub	sp,sp,64
@@ -84,9 +84,9 @@ putstring:
 	ret
 	.text
 	.align 2
-#
-#	putstringln
-#
+//
+//	putstringln
+//
 	.global putstringln
 putstringln:
 	sub	sp,sp,64
@@ -121,9 +121,9 @@ putstringln:
 	ret
 	.text
 	.align 2
-#
-#	puthex
-#
+//
+//	puthex
+//
 	.global puthex
 puthex:
 	sub	sp,sp,64
@@ -177,9 +177,9 @@ puthex:
 	ret
 	.text
 	.align 2
-#
-#	puthexln
-#
+//
+//	puthexln
+//
 	.global puthexln
 puthexln:
 	sub	sp,sp,32
@@ -187,6 +187,9 @@ puthexln:
 	add	x29,sp,16
 # Line: 64, Stmt: 1
 # Line: 65, Stmt: 2
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	bl	puthex
 # Line: 66, Stmt: 0
 	bl	putln
@@ -196,9 +199,9 @@ puthexln:
 	ret
 	.text
 	.align 2
-#
-#	putint
-#
+//
+//	putint
+//
 	.global putint
 putint:
 	sub	sp,sp,64
@@ -252,9 +255,9 @@ putint:
 	ret
 	.text
 	.align 2
-#
-#	putintln
-#
+//
+//	putintln
+//
 	.global putintln
 putintln:
 	sub	sp,sp,32
@@ -262,6 +265,9 @@ putintln:
 	add	x29,sp,16
 # Line: 99, Stmt: 1
 # Line: 100, Stmt: 2
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	bl	putint
 # Line: 101, Stmt: 0
 	bl	putln
@@ -271,9 +277,9 @@ putintln:
 	ret
 	.text
 	.align 2
-#
-#	putbool
-#
+//
+//	putbool
+//
 	.global putbool
 putbool:
 	sub	sp,sp,32
@@ -304,9 +310,9 @@ putbool:
 	ret
 	.text
 	.align 2
-#
-#	putboolln
-#
+//
+//	putboolln
+//
 	.global putboolln
 putboolln:
 	sub	sp,sp,32
@@ -314,6 +320,9 @@ putboolln:
 	add	x29,sp,16
 # Line: 113, Stmt: 1
 # Line: 114, Stmt: 2
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	bl	putbool
 # Line: 115, Stmt: 0
 	mov	x0,10
@@ -324,9 +333,9 @@ putboolln:
 	ret
 	.text
 	.align 2
-#
-#	putcharln
-#
+//
+//	putcharln
+//
 	.global putcharln
 putcharln:
 	sub	sp,sp,32
@@ -334,6 +343,9 @@ putcharln:
 	add	x29,sp,16
 # Line: 120, Stmt: 1
 # Line: 121, Stmt: 2
+	str	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	bl	_putchar
 # Line: 122, Stmt: 0
 	bl	putln
@@ -343,9 +355,9 @@ putcharln:
 	ret
 	.text
 	.align 2
-#
-#	p
-#
+//
+//	p
+//
 .P12:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -545,9 +557,9 @@ putcharln:
 	ret
 	.text
 	.align 2
-#
-#	p1
-#
+//
+//	p1
+//
 .P13:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -745,7 +757,8 @@ putcharln:
 	mov	x0,63
 	bl	_putchar
 # Line: 77, Stmt: 0
-	ldr	x0,[x29,-8]
+	ldr	x15,[x29,-8]
+	mov	x0,x15
 	bl	_putchar
 	b	.L96
 .L96:
@@ -758,9 +771,9 @@ putcharln:
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	stp	x30,x29,[sp,-16]!

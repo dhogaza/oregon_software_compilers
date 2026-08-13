@@ -9,9 +9,9 @@
 	.byte	0x65,0x6E,0x74,0x20,0x61,0x3A,0x20,0x00
 	.text
 	.align 2
-#
-#	p
-#
+//
+//	p
+//
 .P1:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,40]
@@ -107,9 +107,9 @@
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	sub	sp,sp,48

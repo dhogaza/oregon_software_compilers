@@ -91,9 +91,9 @@
 	.byte	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x80
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global _main
 _main:
 	sub	sp,sp,80

@@ -1,8 +1,8 @@
 	.text
 	.align 2
-#
-#	sieve (main)
-#
+//
+//	sieve (main)
+//
 	.global _main
 _main:
 	sub	sp,sp,64
