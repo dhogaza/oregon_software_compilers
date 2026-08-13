@@ -4500,8 +4500,7 @@ procedure logicalarithmetic(inst: insts);
 }
 
   begin {logicalarithmetic}
-    {unpkshkboth(len);}
-    addressboth;
+    unpackboth(target);
     settargetorreg;
     lock(key);
     loadreg(left, right);
@@ -4520,8 +4519,7 @@ procedure integermultiply;
 }
 
   begin {integermultiply}
-    {unpkshkboth(len);}
-    addressboth;
+    unpackboth(target);
     settargetorreg;
     lock(key);
     loadreg(left, right);
@@ -4617,7 +4615,7 @@ procedure cmpintptrx(signedcond, unsignedcond: conds {for branching on result});
     c: conds;
 
   begin {cmpintptrx}
-    addressboth;
+    unpackboth(0);
 
     { Shrinking operands is only safe if the sign is set back to the original
       sign for that length.  The field "signlimit" provides that function.
@@ -4691,7 +4689,7 @@ var
 
 begin {cmpstructx}
 
-  addressboth;
+  unpackboth(0);
 
   lock(left);
   lock(right);
@@ -5117,7 +5115,10 @@ procedure dosetx;
 procedure movsetx;
 
 begin {movsetx}
-  addressboth;
+  unpack(right, 0);
+  lock(right);
+  address(left, 0);
+  unlock(right);
   if not equivaddr(left, right) then
   begin
     if len <= long then
@@ -5311,7 +5312,7 @@ procedure setinsertx;
     adjustoffset: integer;
 
   begin {insetx}
-    addressboth;
+    unpackboth(0);
     if len <= long then
       begin
       loadreg(right, left);
@@ -5398,7 +5399,7 @@ begin {cmpsetx}
     cmpintptrx(cond, cond)
   else
     begin
-    addressboth;
+    unpackboth(0);
     lock(right);
     lock(left);
     leftregkey := settemp(long, reg_oprnd(getreg(false)));
@@ -6456,10 +6457,10 @@ procedure dovarx(s: boolean {signed variable reference} );
 procedure movintptrx;
 
   begin {movintptrx}
-    unpack(right, left);
+    unpack(right, 0);
     if keytable[left].packedaccess then
       begin
-      address(left, right);
+      address(left, 0);
       pack(right, left);
       end
     else
@@ -6481,9 +6482,7 @@ procedure movptrx;
   begin {movptrx}
     if keytable[left].oprnd.mode = tworeg then
       begin
-
       addressboth;
-
       regkey := settemp(long, reg_oprnd(keytable[left].oprnd.reg));
       reg2key := settemp(long, reg_oprnd(keytable[left].oprnd.reg2));
       genldr(lastnode, byte, false, reg2key, right);
@@ -6663,8 +6662,13 @@ var
 procedure movstructx;
 
 begin {movstructx}
-  addressboth;
-  movemultiple(right, left);
+  if keytable[left].packedaccess then
+    movintptrx
+  else
+    begin
+    addressboth;
+    movemultiple(right, left);
+    end;
 end {movstructx};
 
 procedure movcstructx;
@@ -6805,7 +6809,6 @@ begin {movstrx}
     addressboth;
     movestring(right, left);
     end
-
 end {movstrx};
 
 procedure pshstrx;
@@ -6856,7 +6859,7 @@ procedure arraystrx;
 
 
 begin {arraystrx}
-  unpack(left, 0);
+  address(left, 0);
   settargetortemp(len);
   ip0indexkey := settemp(long, index_oprnd(post_index, ip0, byte, false));
   ip1indexkey := settemp(long, index_oprnd(post_index, ip1, byte, false));
