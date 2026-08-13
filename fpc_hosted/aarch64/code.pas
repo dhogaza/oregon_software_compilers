@@ -2723,7 +2723,9 @@ procedure unpack(var k: keyindex; {operand to unpack}
       else inst := ubfx;
       with keytable[k], oprnd do
         begin
-        if target = 0 then target := settemp(long, reg_oprnd(getreg(false)));
+        if (keytable[target].oprnd.mode <> register) or
+           not keytable[target].regvalid then
+          target := settemp(long, reg_oprnd(getreg(false)));
         if mode = reg_offset then
           basekey := settemp(alignment div bitsperunit,
                             index_oprnd(unsigned_offset, reg, 0, false))
