@@ -186,13 +186,10 @@ _main:
 	add	x1,x28,.L32766+46@PAGEOFF
 	bl	_p_pos 
 	str	x0,[x29,-16]
-	ldr	x28,[x29,-16]
-	mov	x0,x28
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 # Line: 38, Stmt: 0
-	adrp	x28,.L32766@PAGE
 	add	x0,x28,.L32766+50@PAGEOFF
 	mov	x1,13
 	mov	x2,x1
@@ -202,13 +199,10 @@ _main:
 	add	x1,x28,.L32766+69@PAGEOFF
 	bl	_p_pos 
 	str	x0,[x29,-16]
-	ldr	x28,[x29,-16]
-	mov	x0,x28
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 # Line: 39, Stmt: 0
-	adrp	x28,.L32766@PAGE
 	add	x0,x28,.L32766+73@PAGEOFF
 	mov	x1,13
 	mov	x2,x1
@@ -218,13 +212,10 @@ _main:
 	add	x1,x28,.L32766+92@PAGEOFF
 	bl	_p_pos 
 	str	x0,[x29,-16]
-	ldr	x28,[x29,-16]
-	mov	x0,x28
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 # Line: 40, Stmt: 0
-	adrp	x28,.L32766@PAGE
 	add	x0,x28,.L32766+98@PAGEOFF
 	mov	x1,13
 	mov	x2,x1
@@ -234,13 +225,10 @@ _main:
 	add	x1,x28,.L32766+117@PAGEOFF
 	bl	_p_pos 
 	str	x0,[x29,-16]
-	ldr	x28,[x29,-16]
-	mov	x0,x28
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 # Line: 42, Stmt: 0
-	adrp	x28,.L32766@PAGE
 	add	x0,x28,.L32766+122@PAGEOFF
 	mov	x1,21
 	mov	x2,x1

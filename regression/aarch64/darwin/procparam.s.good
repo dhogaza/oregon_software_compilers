@@ -45,8 +45,7 @@ ext:
 	mov	x1,5
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x15,[x29,-8]
-	mov	x0,x15
+	ldr	x0,[x29,-8]
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -78,9 +77,6 @@ ext:
 	ldr	x28,[x29,24]
 	blr	x16
 	ldr	x28,[x29,-8]
-	str	x0,[x29,-16]
-	ldr	x15,[x29,-16]
-	mov	x0,x15
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -101,9 +97,6 @@ ext:
 	str	x28,[x29,-8]
 # Line: 22, Stmt: 1
 # Line: 23, Stmt: 2
-	str	x0,[x29,-16]
-	ldr	x15,[x29,-16]
-	mov	x0,x15
 	str	x1,[x29,-16]
 	mov	x1,12
 	bl	_p_wti_o 
@@ -115,8 +108,7 @@ ext:
 	blr	x16
 	ldr	x28,[x29,-8]
 # Line: 25, Stmt: 0
-	ldr	x15,[x29,-16]
-	mov	x0,x15
+	ldr	x0,[x29,-16]
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -161,8 +153,7 @@ ext:
 	mov	x1,7
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldr	x15,[x29,-8]
-	mov	x0,x15
+	ldr	x0,[x29,-8]
 	mov	x1,12
 	bl	_p_wti_o 
 	adrp	x15,.L32766@PAGE

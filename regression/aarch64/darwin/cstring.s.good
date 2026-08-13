@@ -129,9 +129,6 @@ _main:
 	strb	wzr,[x14],1
 	sub	x0,x29,8
 	bl	.P2  // cstring
-	str	x0,[x29,-16]
-	ldr	x15,[x29,-16]
-	mov	x0,x15
 	bl	.P3  // writecstring
 # Line: 68, Stmt: 0
 	bl	_p_wtln_o 
@@ -154,9 +151,6 @@ _main:
 	strb	wzr,[x14],1
 	sub	x0,x29,16
 	bl	.P2  // cstring
-	str	x0,[x29,-24]
-	ldr	x15,[x29,-24]
-	mov	x0,x15
 	bl	_printf
 # Line: 70, Stmt: 0
 	bl	_p_wtln_o 
@@ -183,8 +177,7 @@ _main:
 	str	x0,[x29,-32]
 	adrp	x15,.L32767@PAGE
 	add	x0,x15,.L32767+24@PAGEOFF
-	ldr	x15,[x29,-32]
-	mov	x1,x15
+	ldr	x1,[x29,-32]
 	bl	.P1  // toshortstring
 # Line: 72, Stmt: 0
 	adrp	x15,.L32767@PAGE

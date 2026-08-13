@@ -67,9 +67,6 @@ _main:
 	bl	_p_wts_o 
 	mov	x0,1
 	bl	.P1  // oddf
-	str	x0,[x29,-8]
-	ldr	x15,[x29,-8]
-	mov	x0,x15
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -81,9 +78,6 @@ _main:
 	bl	_p_wts_o 
 	mov	x0,4
 	bl	.P1  // oddf
-	str	x0,[x29,-8]
-	ldr	x15,[x29,-8]
-	mov	x0,x15
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -95,9 +89,6 @@ _main:
 	bl	_p_wts_o 
 	mov	w0,65536
 	bl	.P1  // oddf
-	str	x0,[x29,-8]
-	ldr	x15,[x29,-8]
-	mov	x0,x15
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -110,9 +101,6 @@ _main:
 	movz	x0,16961
 	movk	x0,15,lsl 16
 	bl	.P1  // oddf
-	str	x0,[x29,-8]
-	ldr	x15,[x29,-8]
-	mov	x0,x15
 	mov	x1,1
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -124,9 +112,6 @@ _main:
 	bl	_p_wts_o 
 	mov	x0,1
 	bl	.P2  // absf
-	str	x0,[x29,-8]
-	ldr	x15,[x29,-8]
-	mov	x0,x15
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -138,9 +123,6 @@ _main:
 	bl	_p_wts_o 
 	mov	x0,65535
 	bl	.P2  // absf
-	str	x0,[x29,-8]
-	ldr	x15,[x29,-8]
-	mov	x0,x15
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -153,9 +135,6 @@ _main:
 	movz	x0,65535
 	movk	x0,65535,lsl 16
 	bl	.P2  // absf
-	str	x0,[x29,-8]
-	ldr	x15,[x29,-8]
-	mov	x0,x15
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -168,9 +147,6 @@ _main:
 	movz	x0,57600
 	movk	x0,1525,lsl 16
 	bl	.P2  // absf
-	str	x0,[x29,-8]
-	ldr	x15,[x29,-8]
-	mov	x0,x15
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 

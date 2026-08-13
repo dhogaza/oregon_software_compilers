@@ -100,8 +100,7 @@
 	mov	x0,32
 	mov	x1,1
 	bl	_p_wtc_o 
-	ldr	x15,[x29,-56]
-	mov	x0,x15
+	ldr	x0,[x29,-56]
 	mov	x1,1
 	bl	_p_wti_o 
 	bl	_p_wtln_o 

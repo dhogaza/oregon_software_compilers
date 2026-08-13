@@ -2041,9 +2041,8 @@
 	mov	x26,32
 .L145:
 # Line: 537, Stmt: 0
-	ldrh	w15,[x28]
-	ubfx	x15,x15,0,14
-	mov	x0,x15
+	ldrh	w0,[x28]
+	ubfx	x0,x0,0,14
 	mov	x1,6
 	bl	_p_wti_o 
 	mov	x0,x26
@@ -2106,9 +2105,8 @@
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
 	add	x25,x15,w25, uxtw 0
-	ldrh	w25,[x25,816]
-	ubfx	x25,x25,0,10
-	mov	x28,x25
+	ldrh	w28,[x25,816]
+	ubfx	x28,x28,0,10
 .L150:
 # Line: 560, Stmt: 0
 	cmp	w28,733
@@ -2141,9 +2139,8 @@
 .L158:
 # Line: 563, Stmt: 0
 	add	x25,x15,w25, uxtw 0
-	ldrh	w25,[x25,816]
-	ubfx	x25,x25,0,10
-	mov	x28,x25
+	ldrh	w28,[x25,816]
+	ubfx	x28,x28,0,10
 	b	.L150
 .L156:
 # Line: 565, Stmt: 0
@@ -2192,9 +2189,8 @@
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
 	add	x25,x15,w25, uxtw 0
-	ldrh	w25,[x25,816]
-	ubfx	x25,x25,0,10
-	mov	x26,x25
+	ldrh	w26,[x25,816]
+	ubfx	x26,x26,0,10
 	b	.L151
 .L154:
 # Line: 573, Stmt: 0

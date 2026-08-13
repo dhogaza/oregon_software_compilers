@@ -1719,8 +1719,7 @@
 	b	.L63
 .L66:
 # Line: 663, Stmt: 0
-	ldr	x28,[x29,-16]
-	mov	x0,x28
+	ldr	x0,[x29,-16]
 	bl	.P10  // newline
 .L64:
 # Line: 665, Stmt: 0
@@ -2310,8 +2309,7 @@
 	b	.L130
 .L127:
 # Line: 863, Stmt: 0
-	ldr	x15,[x29,-8]
-	mov	x0,x15
+	ldr	x0,[x29,-8]
 	bl	.P11  // printline
 .L126:
 .L130:
@@ -3076,8 +3074,7 @@
 	b	.L225
 .L227:
 # Line: 1107, Stmt: 0
-	ldr	x27,[x29,-16]
-	mov	x0,x27
+	ldr	x0,[x29,-16]
 	bl	.P9  // writea
 .L222:
 .L225:
@@ -6106,8 +6103,7 @@
 	b.ge	.L653
 .L658:
 # Line: 2109, Stmt: 0
-	ldr	x15,[x29,-24]
-	mov	x0,x15
+	ldr	x0,[x29,-24]
 	bl	.P20  // indentplus
 # Line: 2110, Stmt: 0
 	adrp	x15,.L32767@PAGE

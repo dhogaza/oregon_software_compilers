@@ -175,9 +175,8 @@
 	mov	x1,13
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldrb	w15,[x29,16]
-	ubfx	x15,x15,0,3
-	mov	x0,x15
+	ldrb	w0,[x29,16]
+	ubfx	x0,x0,0,3
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -193,10 +192,9 @@
 	lsr	x27,x27,61
 	ubfx	x15,x15,1,48
 	add	x26,x26,x15
-	ldrb	w15,[x26]
-	lsr	w15,w15,w27
-	ubfx	x15,x15,0,1
-	mov	x0,x15
+	ldrb	w0,[x26]
+	lsr	w0,w0,w27
+	ubfx	x0,x0,0,1
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -206,10 +204,9 @@
 	mov	x1,21
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldrb	w15,[x26]
-	lsr	w15,w15,w27
-	ubfx	x15,x15,1,1
-	mov	x0,x15
+	ldrb	w0,[x26]
+	lsr	w0,w0,w27
+	ubfx	x0,x0,1,1
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -219,10 +216,9 @@
 	mov	x1,21
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldrb	w15,[x26]
-	lsr	w15,w15,w27
-	ubfx	x15,x15,2,1
-	mov	x0,x15
+	ldrb	w0,[x26]
+	lsr	w0,w0,w27
+	ubfx	x0,x0,2,1
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -232,10 +228,9 @@
 	mov	x1,22
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldrb	w27,[x26]
-	lsr	w27,w27,w27
-	ubfx	x27,x27,3,1
-	mov	x0,x27
+	ldrb	w0,[x26]
+	lsr	w0,w0,w27
+	ubfx	x0,x0,3,1
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -251,10 +246,9 @@
 	lsr	x26,x26,61
 	ubfx	x27,x27,3,48
 	add	x15,x15,x27
-	ldrb	w27,[x15]
-	lsr	w27,w27,w26
-	ubfx	x27,x27,0,1
-	mov	x0,x27
+	ldrb	w0,[x15]
+	lsr	w0,w0,w26
+	ubfx	x0,x0,0,1
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -272,10 +266,9 @@
 	lsr	x14,x14,61
 	ubfx	x15,x15,3,48
 	add	x13,x13,x15
-	ldrb	w15,[x13]
-	lsr	w15,w15,w14
-	ubfx	x15,x15,0,1
-	mov	x0,x15
+	ldrb	w0,[x13]
+	lsr	w0,w0,w14
+	ubfx	x0,x0,0,1
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -291,10 +284,9 @@
 	lsr	x14,x14,61
 	ubfx	x15,x15,1,48
 	add	x13,x13,x15
-	ldrb	w15,[x13]
-	lsr	w15,w15,w14
-	ubfx	x15,x15,0,4
-	mov	x0,x15
+	ldrb	w0,[x13]
+	lsr	w0,w0,w14
+	ubfx	x0,x0,0,4
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -309,10 +301,9 @@
 	lsr	x15,x15,61
 	ubfx	x27,x27,1,48
 	add	x14,x14,x27
-	ldrb	w27,[x14]
-	lsr	w27,w27,w15
-	ubfx	x27,x27,0,4
-	mov	x0,x27
+	ldrb	w0,[x14]
+	lsr	w0,w0,w15
+	ubfx	x0,x0,0,4
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -328,10 +319,9 @@
 	lsr	x26,x26,61
 	ubfx	x27,x27,1,48
 	add	x15,x15,x27
-	ldrb	w27,[x15]
-	lsr	w27,w27,w26
-	ubfx	x27,x27,0,4
-	mov	x0,x27
+	ldrb	w0,[x15]
+	lsr	w0,w0,w26
+	ubfx	x0,x0,0,4
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -385,10 +375,9 @@
 	lsr	x15,x15,61
 	ubfx	x26,x26,3,48
 	add	x14,x14,x26
-	ldrb	w26,[x14]
-	lsr	w26,w26,w15
-	ubfx	x26,x26,0,1
-	mov	x0,x26
+	ldrb	w0,[x14]
+	lsr	w0,w0,w15
+	ubfx	x0,x0,0,1
 	mov	x1,7
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -541,9 +530,8 @@ _main:
 	mov	x1,13
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldrb	w15,[x28,.L32767+24@PAGEOFF]
-	ubfx	x15,x15,0,3
-	mov	x0,x15
+	ldrb	w0,[x28,.L32767+24@PAGEOFF]
+	ubfx	x0,x0,0,3
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -559,10 +547,9 @@ _main:
 	lsr	x27,x27,61
 	ubfx	x15,x15,1,48
 	add	x26,x26,x15
-	ldrb	w15,[x26]
-	lsr	w15,w15,w27
-	ubfx	x15,x15,0,1
-	mov	x0,x15
+	ldrb	w0,[x26]
+	lsr	w0,w0,w27
+	ubfx	x0,x0,0,1
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -572,10 +559,9 @@ _main:
 	mov	x1,21
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldrb	w15,[x26]
-	lsr	w15,w15,w27
-	ubfx	x15,x15,1,1
-	mov	x0,x15
+	ldrb	w0,[x26]
+	lsr	w0,w0,w27
+	ubfx	x0,x0,1,1
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -585,10 +571,9 @@ _main:
 	mov	x1,21
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldrb	w15,[x26]
-	lsr	w15,w15,w27
-	ubfx	x15,x15,2,1
-	mov	x0,x15
+	ldrb	w0,[x26]
+	lsr	w0,w0,w27
+	ubfx	x0,x0,2,1
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -598,10 +583,9 @@ _main:
 	mov	x1,22
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldrb	w27,[x26]
-	lsr	w27,w27,w27
-	ubfx	x27,x27,3,1
-	mov	x0,x27
+	ldrb	w0,[x26]
+	lsr	w0,w0,w27
+	ubfx	x0,x0,3,1
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -617,10 +601,9 @@ _main:
 	lsr	x26,x26,61
 	ubfx	x27,x27,3,48
 	add	x15,x15,x27
-	ldrb	w27,[x15]
-	lsr	w27,w27,w26
-	ubfx	x27,x27,0,1
-	mov	x0,x27
+	ldrb	w0,[x15]
+	lsr	w0,w0,w26
+	ubfx	x0,x0,0,1
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -638,10 +621,9 @@ _main:
 	lsr	x14,x14,61
 	ubfx	x15,x15,3,48
 	add	x13,x13,x15
-	ldrb	w15,[x13]
-	lsr	w15,w15,w14
-	ubfx	x15,x15,0,1
-	mov	x0,x15
+	ldrb	w0,[x13]
+	lsr	w0,w0,w14
+	ubfx	x0,x0,0,1
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -657,10 +639,9 @@ _main:
 	lsr	x14,x14,61
 	ubfx	x15,x15,1,48
 	add	x13,x13,x15
-	ldrb	w15,[x13]
-	lsr	w15,w15,w14
-	ubfx	x15,x15,0,4
-	mov	x0,x15
+	ldrb	w0,[x13]
+	lsr	w0,w0,w14
+	ubfx	x0,x0,0,4
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -675,10 +656,9 @@ _main:
 	lsr	x15,x15,61
 	ubfx	x27,x27,1,48
 	add	x14,x14,x27
-	ldrb	w27,[x14]
-	lsr	w27,w27,w15
-	ubfx	x27,x27,0,4
-	mov	x0,x27
+	ldrb	w0,[x14]
+	lsr	w0,w0,w15
+	ubfx	x0,x0,0,4
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -694,10 +674,9 @@ _main:
 	lsr	x26,x26,61
 	ubfx	x27,x27,1,48
 	add	x15,x15,x27
-	ldrb	w27,[x15]
-	lsr	w27,w27,w26
-	ubfx	x27,x27,0,4
-	mov	x0,x27
+	ldrb	w0,[x15]
+	lsr	w0,w0,w26
+	ubfx	x0,x0,0,4
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -752,10 +731,9 @@ _main:
 	lsr	x15,x15,61
 	ubfx	x26,x26,3,48
 	add	x14,x14,x26
-	ldrb	w26,[x14]
-	lsr	w26,w26,w15
-	ubfx	x26,x26,0,1
-	mov	x0,x26
+	ldrb	w0,[x14]
+	lsr	w0,w0,w15
+	ubfx	x0,x0,0,1
 	mov	x1,7
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
