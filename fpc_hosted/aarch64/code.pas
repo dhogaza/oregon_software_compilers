@@ -6457,7 +6457,7 @@ procedure dovarx(s: boolean {signed variable reference} );
 procedure movintptrx;
 
   begin {movintptrx}
-    unpack(right, 0);
+    unpack(right, left);
     if keytable[left].packedaccess then
       begin
       address(left, 0);
