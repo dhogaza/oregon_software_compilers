@@ -3193,7 +3193,7 @@ procedure handle_intconst12(var after:  nodeptr; var k: keyindex);
           begin
             gen2(after, buildinst(movz, true, false), regkeys[ip0],
                  settemp(len, imm16_oprnd((int_value div $10000) and $FFFF, 16)));
-            k := settemp(len, imm12_oprnd(int_value, false))
+            k := settemp(len, reg_oprnd(ip0));
           end
         else
           begin
