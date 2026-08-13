@@ -2743,6 +2743,8 @@ procedure unpack(var k: keyindex; {operand to unpack}
              settemp(long, imm12_oprnd(len, false)));
         end;
       changevalue(k, target);
+      keytable[k].len := long;
+      keytable[k].packedaccess := false;
       end;
   end {unpack} ;
 
@@ -7365,7 +7367,11 @@ procedure aindxx;
       2: extend := xth;
       4: extend := xtw;
       8: extend := xtx;
-      otherwise compilerabort(inconsistent);
+      otherwise
+        begin
+        write('Bad length ', keytable[right].len, ' for key ', right);
+        compilerabort(inconsistent);
+        end;
     end;
 
     setvalue(reg_offset_oprnd(keytable[tempkey].oprnd.reg, keytable[right].oprnd.reg, bits(len),
