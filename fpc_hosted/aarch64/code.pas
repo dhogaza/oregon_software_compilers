@@ -2029,7 +2029,7 @@ procedure addtempsave(k: keyindex; first, last: nodeptr);
 function volatileorparamreg(r: regindex): boolean;
 
 { Returns true if the register is not allocated
-  permanently to a regtemp, not one of io0-pr or fp or sp etc.
+  permanently to a regtemp, not one of ip0-pr or fp or sp etc.
 }
 
 
@@ -2040,7 +2040,7 @@ function volatileorparamreg(r: regindex): boolean;
 function volatilereg(r: regindex): boolean;
 
 { Returns true if the register is volatile, in other words not a regparam or
-  allocated permanently to a regtemp, not one of io0-pr or fp or sp etc.
+  allocated permanently to a regtemp, not one of ip0-pr or fp or sp etc.
 }
 
 
@@ -2048,6 +2048,15 @@ function volatilereg(r: regindex): boolean;
     volatilereg := (r >= firstreg) and (r <= lastscratchreg) or
                    (r > pr) and (r <= lastreg);
   end {volatilereg};
+
+function scratchreg(r: regindex): boolean;
+
+{ Returns true if the register is a current scratch register.
+}
+
+  begin {scratchreg}
+    scratchreg := (firstreg <= r) and (r <= lastscratchreg);
+  end {scratchreg};
 
 function savereg(r: regindex; regenok: boolean {caller can handle regen}) : keyindex;
 
@@ -5557,7 +5566,7 @@ begin {definelazyx}
   unlock(left);
   callsupport(libdefinebuf, true);
   definelastlabel;
-  keytable[key].regvalid := false;
+  keytable[key].regvalid := not scratchreg(keytable[key].oprnd.reg);
 end {definelazyx} ;
 
    
@@ -5576,7 +5585,9 @@ begin
   loadreg(left, 0);
   bufferptrkey := settemp(long, index_oprnd(unsigned_offset, keytable[left].oprnd.reg,
                           ptrsize, false));
+{
   loadreg(bufferptrkey, 0);
+}
   power2key := settemp(long, intconst_oprnd(power2(whichbit)));
   handle_bitmask(lastnode, power2key);
   loadreg(bufferptrkey, regkeys[0]);
