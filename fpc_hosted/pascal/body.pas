@@ -3065,14 +3065,10 @@ procedure updatelabelnest;
         end;
   end {updatelabelnest} ;
 
-procedure regparams;
+procedure regparamsinitial;
 
 { We must assign the parameter registers used to pass parameters at the
-  beginning of the block.  If they are used in such a way that we've
-  moved them to memory, generate a reference to that location so the
-  code generator can move the value there at block entry.  Otherwise,
-  we just specify the register and the code generator can figure out
-  how to spill it and restore it if necessary.
+  beginning of the block.
 }
 
   var
@@ -3080,7 +3076,55 @@ procedure regparams;
     t: index; {last parameter index}
     p: entryptr; {used for accessing procedure and parameters}
 
-begin {regparams}
+begin {regparamsinitial}
+  if bigcompilerversion then p := @(bigtable[display[level].blockname]);
+  t := p^.paramlist;
+{ DRB 2023 function return value might be passed as a regparam ptr
+  i := display[level].blockname  + 1;
+}
+  i := display[level].blockname;
+  while i <= t do
+    begin
+    if bigcompilerversion then p := @(bigtable[i]);
+    if not p^.form and p^.allocated then
+      if (p^.varalloc <> normalalloc) then
+        begin
+        debugstmt(simple, 0, 0, 0);
+        intstate := opstate;
+        genlit(0);
+        pushdummy;
+        genlit(p^.offset);
+        genlit(p^.regid);
+        oprndstk[sp].oprndlen := p^.length;
+        case p^.varalloc of
+          regparam: genunary(regparamop, none);
+          ptrregparam: genunary(ptrregparamop, none);
+          realregparam: genunary(realregparamop, none);
+          end; 
+        genoprndstmt;
+        end;
+      if p^.namekind in [procparam, funcparam] then
+        i := p^.nextparamlink;
+    i := i + 1;
+    end;
+end {regparamsinitial};
+
+
+procedure regparamsfinal;
+
+{ If a parameter has been assigned to memory due to a reference by an
+  inner procedure or being passed as a var parameter, we must tell
+  travrss, which eventually will pass it on to the code generator.
+  The code gnerator will then move the register value to the memory
+  location before any references are made to it.
+}
+
+  var
+    i: index; {induction var}
+    t: index; {last parameter index}
+    p: entryptr; {used for accessing procedure and parameters}
+
+begin {regparamsfinal}
   if bigcompilerversion then p := @(bigtable[display[level].blockname]);
   t := p^.paramlist;
 { DRB 2023 function return value might be passed as a regparam ptr
@@ -3096,35 +3140,33 @@ begin {regparams}
         debugstmt(simple, 0, 0, 0);
         intstate := opstate;
         if p^.registercandidate then
-          begin
-          genlit(0);
-          pushdummy;
-          genlit(p^.offset);
           { add it to the list of vars to consider for regtemp
             allocation.  Should only do this if there are procedure
             calls but that comes later.
           }
-          possibletemp(p);
-          end
+          possibletemp(p)
         else
           begin
-          getlevel(level, true);
+          genlit(1);
+          pushdummy;
+          p^.offset := p^.paramoffset;
           genlit(p^.offset);
+          genlit(p^.regid);
+          oprndstk[sp].oprndlen := p^.length;
+          case p^.varalloc of
+            regparam: genunary(regparamop, none);
+            ptrregparam: genunary(ptrregparamop, none);
+            realregparam: genunary(realregparamop, none);
+            end; 
+          genoprndstmt;
+          p^.varalloc := normalalloc;
           end;
-        genlit(p^.regid);
-        oprndstk[sp].oprndlen := p^.length;
-        case p^.varalloc of
-          regparam: genunary(regparamop, none);
-          ptrregparam: genunary(ptrregparamop, none);
-          realregparam: genunary(realregparamop, none);
-          end; 
-        genoprndstmt;
         end;
       if p^.namekind in [procparam, funcparam] then
         i := p^.nextparamlink;
     i := i + 1;
     end;
-end {regparams};
+end {regparamsfinal};
 
 
 procedure statement(follow: tokenset {legal following symbols} );
@@ -3849,8 +3891,8 @@ procedure statement(follow: tokenset {legal following symbols} );
                 else
                   if (namekind in [param, constparam, varparam, funcparam, procparam,
                                   confparam, constconfparam, varconfparam, boundid]) and
-                     (varalloc in [regparam, ptrregparam, realregparam]) and
-                     registercandidate then
+                     (varalloc in [regparam, ptrregparam, realregparam]){ and
+                     registercandidate} then
                     begin
                     genlit(0);
                     pushdummy;
@@ -4655,13 +4697,11 @@ procedure statement(follow: tokenset {legal following symbols} );
             case namekind of
               varparam:
                 begin
-{
                 if (actualptr^.namekind in [param, varparam, funcparam, procparam,
                                             confparam, constconfparam, varconfparam,
                                             boundid]) and
                    (actualptr^.varalloc in [regparam, realregparam, ptrregparam]) then
                   forcememoryparam(lev, actualptr);
-}
                 modifyvariable(false, false);
                 if bigcompilerversion then p := @(bigtable[paramindex]);
                 if not (p^.univparam or identical(p^.vartype, resulttype)) then
@@ -8288,8 +8328,7 @@ procedure body;
     nest := 1;
     jumpoutnest := maxint;
     nolabelsofar := true;
-    regparams;
-
+    regparamsinitial;
     if token in [ifsym..gotosym, ident] then warn(nobeginerr)
     else verifytoken(beginsym, nobeginerr);
     statement(neverskipset);
@@ -8299,6 +8338,7 @@ procedure body;
       else verify1([semicolon], nosemierr);
       statement(neverskipset);
       end;
+    regparamsfinal;
     functionreturn;
   end {body} ;
 

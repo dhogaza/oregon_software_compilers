@@ -129,7 +129,7 @@ type
 
              blkhdr:
                (procref: proctableindex; { Reference into global proc table }
-                bs, ps, pcs: addressrange; { Local, param, and paramcopy  storage }
+                bs, ps: addressrange; { Local and param storage }
                 blkbody: nodeindex; { Point to first statement in block }
                 blkexit: basicblockptr; {exit block for return}
                 fileline: integer {line in actual file where block starts} );
@@ -366,6 +366,7 @@ var
   nextpseudofile: 0..diskbufsize; {next entry in pseudo file block}
 
   final_block_size: addressrange; {size of block as known at end of proc}
+  pcs: addressrange; { size of reg params copied to memory, unknown until end of proc }
 
   laststmt: integer; {statement number of last statement generated(debugging)}
   controlstmt: boolean; {statement is control point (debugging)}

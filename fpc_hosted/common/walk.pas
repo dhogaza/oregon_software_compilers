@@ -672,20 +672,30 @@ procedure walknode(root: nodeindex; {root of tree to walk}
     procedure regnode(p: pseudoop {operator for root node} );
 
 { Walk and generate code for some flavor of register node (regparam, regtemp, etc)
+
+  if l = -1 then the second operand is a regtemp for the code generator to move the
+  value to (to avoid spilling to and restoring from the stack).
+
+  if 0 then the register parameter is simply referenced directly.
+
+  if 1 then it must be saved in the current frame at the offset given by the
+  second operand.
 }
 
+      var
+        oprnd2: integer;
+
       begin
-        { lkey of -1 is used to tell the codgen that this regparam is meant
-          to be saved in a regtemp reg in order to avoid having to shuffle
-          it back-and-forth to a stack temp.  This is either a kludge or
-          outright abuse of the node, take your pick.
-        }
-        if l > 0 then
-          walknode(l, lkey, 0, true)
-        else
-          lkey := l;
         mapkey;
-        genpseudo(p, len, key, refcount, copycount, lkey, rootp^.oprnds[2],
+
+        { Zap the annoying large register key which is no longer needed for assigning
+          regtemps.  Purely cosmetic.
+        }
+        if rootp^.oprnds[1] = 0 then
+          oprnd2 := 0
+        else oprnd2 := rootp^.oprnds[2];
+
+        genpseudo(p, len, key, refcount, copycount, rootp^.oprnds[1], oprnd2,
                   rootp^.oprnds[3]);
       end {regnode} ;
 
@@ -1665,8 +1675,10 @@ with target = 0.
 }
 
 
-      begin {stacknode}
+      begin {stacknoderegnode}
+{
         walknode(l, lkey, 0, true);
+}
         mapkey;
 
         if targetmachine <> aarch64 then
@@ -1680,7 +1692,7 @@ with target = 0.
           end;
 
         if language <> c then clearkeys;
-      end {stacknode} ;
+      end {stacknoderegnode} ;
 
 
     procedure pushaddrnode(op: operatortype;
@@ -3275,7 +3287,7 @@ procedure walk;
 }
 
   var
-    blocksize: addressrange;
+    blocksize: addressrange; { C allows each block to declare variables }
 
 
   begin {walk}

@@ -3104,7 +3104,6 @@ procedure block;
       genint(blockref);
       if level = 1 then globalsize := blocksize;
       genint(paramsize);
-      genint(paramcopysize);
       genint(blocksize);
       genint(thistoken.baseline);
       end;
@@ -3129,6 +3128,8 @@ procedure block;
     verify1(neverskipset + [dot], blockenderr);
 
     listundeflabels;
+    genstmt(paramcopysize);
+    genint(display[level].paramcopysize);
     genstmt(endblk);
     exitblock(level);
   end {block} ;

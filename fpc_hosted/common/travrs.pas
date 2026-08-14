@@ -927,6 +927,7 @@ procedure build;
     templink: locallabelptr; { for disposing the local label links }
     i: integer; {induction var for reading temps}
     temp: nodeindex; { place holder }
+    procblkhdr: nodeindex; { points to this proc's blkhdr node }
     lastblock: basicblockptr; { most recent block added to dfo chain }
     currentblock: basicblockptr; { current basic block }
     retblock: basicblockptr; {return block for C programs}
@@ -1681,8 +1682,6 @@ procedure build;
               read(tempfiletwo, tempfilebuf);
               ps := getintfileint;
               read(tempfiletwo, tempfilebuf);
-              pcs := getintfileint;
-              read(tempfiletwo, tempfilebuf);
               bs := getintfileint;
               read(tempfiletwo, tempfilebuf);
               fileline := getintfileint;
@@ -1872,6 +1871,7 @@ procedure build;
       this_loop := nil;
       this_case := nil;
       final_block_size := 0;
+      pcs := 0;
 
       with context[2] do
         begin
@@ -2794,13 +2794,15 @@ procedure build;
             if bigcompilerversion then p := @(bignodetable[nindex]);
             equal := p^.valid and (n.op = p^.op) and (n.form = p^.form) and
                      (n.len = p^.len);
-
             if equal then
               case language of
                 pascal, modula2:
-                  equal := (n.oprndlist[2].i = getclass(2)) and
-                           (n.oprndlist[1].i = getclass(1)) and
-                           (n.oprndlist[3].i = getclass(3));
+                  if n.op in [regparamop, ptrregparamop, realregparamop] then
+                    equal := n.oprndlist[3].i = getclass(3)
+                  else
+                    equal := (n.oprndlist[2].i = getclass(2)) and
+                             (n.oprndlist[1].i = getclass(1)) and
+                             (n.oprndlist[3].i = getclass(3));
                 c:
                   if n.op = realop then
                     equal := fpcomp(n.rval, p^.realvalue) = 0
@@ -4198,6 +4200,44 @@ procedure build;
                 end;
             end {buildreal} ;
 
+          procedure buildregparam;
+
+          { Regparam nodes are matched using only the particular reg param op
+            and the register value (third operand).
+
+            A parameter may be referenced in such a way that it needs to be
+            copied to memory, and the front end may not know until after the
+            procedure body has been partially compiled.  By only matching on
+            the register value, we can then modify the regparam node to force
+            it being saved to memory and all values retrieved from there.
+           }
+
+            var
+              savedn: workingnode;
+              ptr: nodeptr;
+
+            begin {buildregparam}
+              collectwork(3);
+
+              { insertexpression has been taught to only use the register as
+                the determinant for equality. C did something similar for real
+                literals.
+
+                However we still need to assign zero to the first two operands
+                to fool the hash function.
+              }
+              savedn := n;
+              n.oprndlist[1].i := 0;
+              n.oprndlist[2].i := 0;
+
+              insertnode(1);
+
+              ptr := @(bignodetable[stack[sp].p]);
+              ptr^.oprnds[1] := savedn.oprndlist[1].i;
+              ptr^.oprnds[2] := savedn.oprndlist[2].i;
+
+            end {buildregparam};
+
 
           begin {buildnode}
             { Initialize the working node }
@@ -4322,10 +4362,7 @@ procedure build;
                 end;
               vindxop: collectargs(3);
               regparamop, ptrregparamop, realregparamop:
-                begin
-                collectwork(3);
-                insertnode(1);
-                end;
+                buildregparam;
               parmop: collectargs(2);
               moveop:
                 begin
@@ -6610,6 +6647,23 @@ procedure build;
           gotodead := gotodead + 1;
         end; {buildlcont}
 
+      procedure buildsize(var size: addressrange);
+
+      { blksize and paramcopysize pass size bookkeeping information which
+        isn't known until the compilation of a procedure is known.
+
+        There should be a single statement pseudo op that passes size
+        information at the end of a block and nothing should be passed
+        with begblk. Maybe later (DRB 2026).
+      }
+
+        begin {buildsize}
+          while deadcode do decr_deadcount;
+          read(tempfiletwo, tempfilebuf);
+          size := getintfileint;
+          read(tempfiletwo, tempfilebuf);
+       end {buildsize};
+
 
       procedure buildsbreak;
 
@@ -6645,13 +6699,8 @@ procedure build;
           loopcont: buildlcont;
           switchbreak: buildsbreak;
           begdata: passdata;
-          blksize:
-            begin
-            while deadcode do decr_deadcount;
-            read(tempfiletwo, tempfilebuf);
-            final_block_size := getintfileint;
-            read(tempfiletwo, tempfilebuf);
-            end;
+          blksize: buildsize(final_block_size);
+          paramcopysize: buildsize(pcs);
           otherwise
             begin
             writeln('travrs: unhandled stmt operator #',
@@ -6685,7 +6734,7 @@ procedure build;
     newblock(retblock, nil, false);
     retblock^.blocklabel := newlabel;
     newblock(root, nil, false);
-    newstmt(temp, blkhdr);
+    newstmt(procblkhdr, blkhdr);
     buildstmtlist(endblk, retblock);
     addpredsuccs(retblock, tail);
 

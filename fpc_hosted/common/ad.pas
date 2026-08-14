@@ -239,6 +239,7 @@ procedure statement;
         inits: write('inits');
         loopbreak: write('loopbreak');
         loopcont: write('loopcont');
+        paramcopysize: write('paramcopysize');
         simple: write('simple');
         switchbreak: write('switchbreak');
         syscall: write('syscall');
@@ -736,8 +737,6 @@ procedure statement;
         read(tempfiletwo, tempfilebuf);
         write(' ref:', getintfileint: 1);
         read(tempfiletwo, tempfilebuf);
-        write(' ps:', getintfileint: 1);
-        read(tempfiletwo, tempfilebuf);
         write(' pcs:', getintfileint: 1);
         read(tempfiletwo, tempfilebuf);
         write(' bs:', getintfileint: 1);
@@ -759,7 +758,7 @@ procedure statement;
         write(' high:', getintfileint: 1);
         end;
 
-      blksize:
+      blksize, paramcopysize:
         begin
         read(tempfiletwo, tempfilebuf);
         write(' size:', getintfileint: 1)

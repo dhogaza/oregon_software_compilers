@@ -506,7 +506,8 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.registercandidate := true;
       paramptr^.regid := regparams.realregparams;
       paramptr^.regcount := 1;
-      paramptr^.offset := maxlong - paramptr^.regid - maxregparams;
+      paramptr^.paramoffset := maxlong - paramptr^.regid - maxregparams;
+      paramptr^.offset := 0;
       regparams.realregparams := regparams.realregparams + 1;
       end
     else if (alloc = regparam) and (regparams.regparams < maxregparams) then
@@ -514,7 +515,8 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.varalloc := regparam;
       paramptr^.regid := regparams.regparams;
       paramptr^.regcount := 1;
-      paramptr^.offset := maxlong - paramptr^.regid;
+      paramptr^.paramoffset := maxlong - paramptr^.regid;
+      paramptr^.offset := 0;
       regparams.regparams := regparams.regparams + 1;
 
       { If we allow structured types to be left in registers, then

@@ -208,6 +208,7 @@ type
                 nextparamlink: index; {if parameter, points to next param in
                                        list}
                 offset: unsignedint; {address of item within block}
+                paramoffset: unsignedint; {address of param forced to memory}
                 regid: regrange; {register assigned for a register param}
                 regcount: regrange; {register params can occupy more than one register}
                 length: addressrange; {length of item}
