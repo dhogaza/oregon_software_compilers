@@ -3093,7 +3093,7 @@ begin {regparamsinitial}
         intstate := opstate;
         genlit(0);
         pushdummy;
-        genlit(p^.offset);
+        genlit(p^.paramoffset);
         genlit(p^.regid);
         oprndstk[sp].oprndlen := p^.length;
         case p^.varalloc of
@@ -3140,16 +3140,21 @@ begin {regparamsfinal}
         debugstmt(simple, 0, 0, 0);
         intstate := opstate;
         if p^.registercandidate then
+          begin
           { add it to the list of vars to consider for regtemp
             allocation.  Should only do this if there are procedure
-            calls but that comes later.
+            calls but that comes later.  Paramoffset is the key for
+            the regparam.
           }
-          possibletemp(p)
+          p^.offset := p^.paramoffset;
+          possibletemp(p);
+          end
         else
           begin
+{
           genlit(1);
-          pushdummy;
-          p^.offset := p^.paramoffset;
+}
+getlevel(level, true);
           genlit(p^.offset);
           genlit(p^.regid);
           oprndstk[sp].oprndlen := p^.length;
@@ -3159,7 +3164,9 @@ begin {regparamsfinal}
             realregparam: genunary(realregparamop, none);
             end; 
           genoprndstmt;
+{
           p^.varalloc := normalalloc;
+}
           end;
         end;
       if p^.namekind in [procparam, funcparam] then
@@ -3891,12 +3898,12 @@ procedure statement(follow: tokenset {legal following symbols} );
                 else
                   if (namekind in [param, constparam, varparam, funcparam, procparam,
                                   confparam, constconfparam, varconfparam, boundid]) and
-                     (varalloc in [regparam, ptrregparam, realregparam]){ and
-                     registercandidate} then
+                     (varalloc in [regparam, ptrregparam, realregparam]) and
+                     registercandidate then
                     begin
                     genlit(0);
                     pushdummy;
-                    genlit(offset);
+                    genlit(paramoffset);
                     genlit(regid);
                     oprndstk[sp].oprndlen := length;
                     case varalloc of
@@ -8276,7 +8283,7 @@ procedure body;
           begin
           genlit(0);
           pushdummy;
-          genlit(off);
+          genlit(procptr^.paramoffset);
           genlit(procptr^.regid);
           len := procptr^.length;
           if procptr^.refparam then

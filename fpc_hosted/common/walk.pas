@@ -669,34 +669,30 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 }
 
 
-    procedure regnode(p: pseudoop {operator for root node} );
+    procedure regnode(p: pseudoop {operator for root node};
+                      literalleft: boolean { left is not a node reference } );
 
 { Walk and generate code for some flavor of register node (regparam, regtemp, etc)
-
-  if l = -1 then the second operand is a regtemp for the code generator to move the
-  value to (to avoid spilling to and restoring from the stack).
-
-  if 0 then the register parameter is simply referenced directly.
-
-  if 1 then it must be saved in the current frame at the offset given by the
-  second operand.
 }
 
       var
         oprnd2: integer;
 
       begin
-        mapkey;
-
+        if l > 0 then
+          walknode(l, lkey, 0, true)
+        else
+          lkey := l;
         { Zap the annoying large register key which is no longer needed for assigning
           regtemps.  Purely cosmetic.
         }
-        if rootp^.oprnds[1] = 0 then
+
+        if lkey = 0 then
           oprnd2 := 0
         else oprnd2 := rootp^.oprnds[2];
 
-        genpseudo(p, len, key, refcount, copycount, rootp^.oprnds[1], oprnd2,
-                  rootp^.oprnds[3]);
+        mapkey;
+        genpseudo(p, len, key, refcount, copycount, lkey, oprnd2, rootp^.oprnds[3]);
       end {regnode} ;
 
 
@@ -1676,9 +1672,7 @@ with target = 0.
 
 
       begin {stacknoderegnode}
-{
         walknode(l, lkey, 0, true);
-}
         mapkey;
 
         if targetmachine <> aarch64 then
@@ -2294,12 +2288,12 @@ with target = 0.
           fileparamop: fileparamnode;
           defforindexop, defunsforindexop: defforindexnode(true);
           defforlitindexop, defunsforlitindexop: defforindexnode(false);
-          regparamop: regnode(regparam);
-          ptrregparamop: regnode(ptrregparam);
-          realregparamop: regnode(realregparam);
-          regtempop: regnode(regtemp);
-          ptrtempop: regnode(ptrtemp);
-          realtempop: regnode(realtemp);
+          regparamop: regnode(regparam, true);
+          ptrregparamop: regnode(ptrregparam, true);
+          realregparamop: regnode(realregparam, true);
+          regtempop: regnode(regtemp, false);
+          ptrtempop: regnode(ptrtemp, false);
+          realtempop: regnode(realtemp, false);
           indxop: indxnode(indx);
           pindxop: indxnode(pindx);
           vindxop, parmop: vindxnode;

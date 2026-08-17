@@ -3497,10 +3497,11 @@ procedure build;
                 context_mark := 0; 
                 litflag := false;
                 i := 0; {clear any previous junk}
+uniqueoprnd := false;
 {
                 relation := relationbuilt;
 }
-                p := insertexpression(n, contextlevel, unique, relationbuilt, l,
+                p := insertexpression(n, contextlevel, {unique}false, relationbuilt, l,
                                       uniqueoprnd);
                 end;
             end {insertnode} ;
@@ -4217,6 +4218,7 @@ procedure build;
               ptr: nodeptr;
 
             begin {buildregparam}
+
               collectwork(3);
 
               { insertexpression has been taught to only use the register as
@@ -4227,14 +4229,21 @@ procedure build;
                 to fool the hash function.
               }
               savedn := n;
+              n.oprndlist[1].litflag := true;
               n.oprndlist[1].i := 0;
               n.oprndlist[2].i := 0;
 
               insertnode(1);
 
               ptr := @(bignodetable[stack[sp].p]);
+              ptr^.nodeoprnd[1] := not savedn.oprndlist[1].litflag;
               ptr^.oprnds[1] := savedn.oprndlist[1].i;
               ptr^.oprnds[2] := savedn.oprndlist[2].i;
+              if not savedn.oprndlist[1].litflag then
+                begin
+                ptr := @(bignodetable[savedn.oprndlist[1].p]);
+                ptr^.refcount := ptr^.refcount + 1;
+                end;
 
             end {buildregparam};
 

@@ -737,7 +737,7 @@ procedure statement;
         read(tempfiletwo, tempfilebuf);
         write(' ref:', getintfileint: 1);
         read(tempfiletwo, tempfilebuf);
-        write(' pcs:', getintfileint: 1);
+        write(' ps:', getintfileint: 1);
         read(tempfiletwo, tempfilebuf);
         write(' bs:', getintfileint: 1);
         read(tempfiletwo, tempfilebuf);

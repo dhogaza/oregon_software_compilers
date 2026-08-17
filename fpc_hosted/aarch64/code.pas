@@ -7225,10 +7225,11 @@ begin {regparamx}
     begin
     setvalue(reg_oprnd(pseudoinst.oprnds[3]));
     regused[pseudoinst.oprnds[3]] := true;
-    if left = 1 then
+    if left <> 0 then
       begin
+      address(left, 0);
       with keytable[left].oprnd do
-        tempkey := settemp(long, index_oprnd(abstract_offset, fp,
+        tempkey := settemp(long, index_oprnd(abstract_offset, reg,
                            index + pseudoinst.oprnds[2], false));
       gensimplemove(lastnode, key, tempkey);
       setkeyvalue(tempkey);
