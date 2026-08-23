@@ -339,14 +339,13 @@ _main:
 	add	x0,x27,.L32767+24@PAGEOFF
 	bl	_p_define 
 .L32758:
-	ldr	x15,[x29,-32]
-	ldr	x14,[x15,8]
-	ands	wzr,w14,2
+	ldr	x15,[x26,8]
+	ands	wzr,w15,2
 	b.ne	.L25
 .L26:
 # Line: 76, Stmt: 0
-	ldr	x14,[x15]
-	ldrb	w0,[x14]
+	ldr	x15,[x26]
+	ldrb	w0,[x15]
 	mov	x1,1
 	bl	_p_wtc_o 
 # Line: 77, Stmt: 0
@@ -355,8 +354,8 @@ _main:
 	b	.L3
 .L25:
 # Line: 80, Stmt: 0
-	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+273@PAGEOFF
+	adrp	x26,.L32766@PAGE
+	add	x0,x26,.L32766+273@PAGEOFF
 	mov	x1,47
 	mov	x2,x1
 	bl	_p_wts_o 

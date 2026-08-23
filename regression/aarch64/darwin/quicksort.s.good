@@ -221,7 +221,7 @@ _main:
 	str	x26,[x29,-24]
 	bl	_p_initio 
 # Line: 94, Stmt: 1
-# Line: 95, Stmt: 0
+# Line: 95, Stmt: 2
 	adrp	x15,.L32766@PAGE
 	add	x0,x15,.L32766+1@PAGEOFF
 	mov	x1,8

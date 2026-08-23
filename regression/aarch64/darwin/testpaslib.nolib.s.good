@@ -3496,8 +3496,8 @@ _p_rdxs_i:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 1329, Stmt: 1
-# Line: 1330, Stmt: 2
 	str	x0,[x29,-8]
+# Line: 1330, Stmt: 2
 	str	x1,[x29,-16]
 	adrp	x15,.L32767@PAGE
 	add	x0,x15,.L32767+8@PAGEOFF
@@ -3520,8 +3520,8 @@ _p_rds_i:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 # Line: 1335, Stmt: 1
-# Line: 1336, Stmt: 2
 	str	x0,[x29,-8]
+# Line: 1336, Stmt: 2
 	str	x1,[x29,-16]
 	adrp	x15,.L32767@PAGE
 	add	x0,x15,.L32767+8@PAGEOFF

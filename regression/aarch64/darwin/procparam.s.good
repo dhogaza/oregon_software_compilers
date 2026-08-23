@@ -220,7 +220,7 @@ ext:
 	add	x29,sp,32
 	str	x28,[x29,-8]
 # Line: 49, Stmt: 1
-# Line: 50, Stmt: 0
+# Line: 50, Stmt: 2
 	mov	x0,42
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
