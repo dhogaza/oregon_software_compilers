@@ -314,7 +314,6 @@ procedure assignregs;
           j: 0..regtablelimit; { var for temp search }
 
         begin {applytoregparamnode}
-
           exprp := @(bignodetable[expr]);
           offset := exprp^.oprnds[2];
             { This hashes the var's offset, really should be a function call.

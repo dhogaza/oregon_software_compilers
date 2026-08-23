@@ -84,16 +84,6 @@ if seeking value, wzr is replaced with a register.
 
 --- current work
 
-  -- packed
-
-     check things like createfalse/true to verify they handle packed
-     correctly.  look for addressboth that should be unpackboth.  etc.
-
-  -- packed
-
-     check things like createfalse/true to verify they handle packed
-     correctly.  look for addressboths that should be unpackboth
-
   -- the precedes lastbranch code is safe but silly.  It is really where
      labels are defined that is the issue, and if the key being considered
      lies between a branch and its label.

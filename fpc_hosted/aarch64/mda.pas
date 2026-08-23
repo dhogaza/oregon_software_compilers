@@ -506,7 +506,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.registercandidate := true;
       paramptr^.regid := regparams.realregparams;
       paramptr^.regcount := 1;
-      paramptr^.paramoffset := maxlong - paramptr^.regid - maxregparams;
+      paramptr^.regparamkey := maxlong - paramptr^.regid - maxregparams;
       paramptr^.offset := 0;
       regparams.realregparams := regparams.realregparams + 1;
       end
@@ -515,7 +515,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
       paramptr^.varalloc := regparam;
       paramptr^.regid := regparams.regparams;
       paramptr^.regcount := 1;
-      paramptr^.paramoffset := maxlong - paramptr^.regid;
+      paramptr^.regparamkey := maxlong - paramptr^.regid;
       paramptr^.offset := 0;
       regparams.regparams := regparams.regparams + 1;
 

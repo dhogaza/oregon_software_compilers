@@ -3093,7 +3093,7 @@ begin {regparamsinitial}
         intstate := opstate;
         genlit(0);
         pushdummy;
-        genlit(p^.paramoffset);
+        genlit(p^.regparamkey);
         genlit(p^.regid);
         oprndstk[sp].oprndlen := p^.length;
         case p^.varalloc of
@@ -3137,24 +3137,21 @@ begin {regparamsfinal}
     if not p^.form and p^.allocated then
       if (p^.varalloc <> normalalloc) then
         begin
-        debugstmt(simple, 0, 0, 0);
-        intstate := opstate;
         if p^.registercandidate then
           begin
           { add it to the list of vars to consider for regtemp
             allocation.  Should only do this if there are procedure
-            calls but that comes later.  Paramoffset is the key for
-            the regparam.
+            calls but that comes later.  offset is set to regparamkey
+            to simplify possibletemp.
           }
-          p^.offset := p^.paramoffset;
+          p^.offset := p^.regparamkey;
           possibletemp(p);
           end
         else
           begin
-{
-          genlit(1);
-}
-getlevel(level, true);
+          debugstmt(simple, 0, 0, 0);
+          intstate := opstate;
+          getlevel(level, true);
           genlit(p^.offset);
           genlit(p^.regid);
           oprndstk[sp].oprndlen := p^.length;
@@ -3164,9 +3161,6 @@ getlevel(level, true);
             realregparam: genunary(realregparamop, none);
             end; 
           genoprndstmt;
-{
-          p^.varalloc := normalalloc;
-}
           end;
         end;
       if p^.namekind in [procparam, funcparam] then
@@ -3281,6 +3275,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                      var constpart: addressrange; {const part of addr}
                      var len: addressrange; {operand length}
                      var off: addressrange; {offset for travrs}
+                     var varkey: addressrange; {same as off actually?}
                      var varlev: levelindex; {varlev for travrs}
                      var ownvar: boolean {own variable flag for travrs} );
 
@@ -3607,7 +3602,7 @@ procedure statement(follow: tokenset {legal following symbols} );
             genop(unsvarop);
             genint(len);
             genint(varlev);
-            genint(off);
+            genint(varkey);
             genint(ord(ownvar));
             oprndstk[sp].oprndlen := ptrsize;
             if switchcounters[nilcheck] > 0 then genunary(ptrchkop, ints);
@@ -3622,6 +3617,7 @@ procedure statement(follow: tokenset {legal following symbols} );
             varlev := 0;
             unpacking := false;
             off := newoff;
+            varkey := newoff;
             ownvar := false;
             len := sizeof(resultptr, false);
             gettoken
@@ -3666,7 +3662,7 @@ procedure statement(follow: tokenset {legal following symbols} );
       else warn(wantvarname);
       gettoken;
       if token in [lbrack, dot, uparrow] then
-        selector(true, false, true, false, unpacking, constpart, len, dummy1, dummy2,
+        selector(true, false, true, false, unpacking, constpart, len, dummy1, dummy1, dummy2,
                  unpacking)
       else if token = lpar then parameterlist(0);
       newresulttype(noneindex);
@@ -3738,6 +3734,7 @@ procedure statement(follow: tokenset {legal following symbols} );
       i: forstackindex; {which for index, if it is an index}
       varptr: entryptr; {used to access var name entry}
       off: addressrange; {offset for use by travrs (see selector)}
+      varkey: addressrange; {key for varops (index, ptrkey, filekey, regparamkey}
       len: addressrange; {length of value}
 
 
@@ -3768,6 +3765,8 @@ procedure statement(follow: tokenset {legal following symbols} );
           end
         else
           begin {not a for index}
+          varkey := offset;
+          off := offset;
           var_is_valid := false;
           case namekind of
             varname, fieldname, param, constparam, varparam, funcparam, procparam,
@@ -3775,11 +3774,14 @@ procedure statement(follow: tokenset {legal following symbols} );
               begin
               var_is_valid := (namekind in [param, boundid]) or knownvalid;
               newresulttype(vartype);
-              if (varlev < level) and
-                 (namekind in [param, varparam, funcparam, procparam, confparam,
+             if (namekind in [param, varparam, funcparam, procparam, confparam,
                                constconfparam, varconfparam, boundid]) and
                  (varalloc in [regparam, realregparam, ptrregparam]) then
-                forcememoryparam(varlev, varptr);
+               begin
+               if (varlev < level) then forcememoryparam(varlev, varptr);
+{DRB ???}
+               if registercandidate then varkey := regparamkey;
+               end;
               if varlev > level then
                 with display[varlev] do
                   begin {within a with}
@@ -3793,6 +3795,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                   genint(varlev - level);
                   varlev := withlevel;
                   off := withoffset;
+                  varkey := off;
                   setnowunpacking(withpacking, offset, nowunpacking);
                   if nowunpacking then
                     begin
@@ -3813,8 +3816,14 @@ procedure statement(follow: tokenset {legal following symbols} );
                   end
               else
                 begin {not within a with}
+{
+                constpart := off;
+}
                 constpart := offset;
                 off := offset;
+{
+                varkey := off;
+}
                 if (varlev = level) then
                   begin {local variable}
                   if not (varalloc in [usealloc, definealloc, sharedalloc]) and
@@ -3901,9 +3910,10 @@ procedure statement(follow: tokenset {legal following symbols} );
                      (varalloc in [regparam, ptrregparam, realregparam]) and
                      registercandidate then
                     begin
+varkey := regparamkey;
                     genlit(0);
                     pushdummy;
-                    genlit(paramoffset);
+                    genlit(varkey);
                     genlit(regid);
                     oprndstk[sp].oprndlen := length;
                     case varalloc of
@@ -3944,6 +3954,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 
                 end;
               if refparam then
+{DRB check this}
                 begin
                 genlit(constpart);
                 genunary(indxop, ints);
@@ -3958,7 +3969,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                 gettoken;
                 if token in [lbrack, dot, uparrow] then
                   selector(variantok, varianttag, packedok, newflag, unpacking,
-                           constpart, len, off, varlev, ownvar);
+                           constpart, len, off, varkey, varlev, ownvar);
                 end;
               if namekind in [funcparam, procparam] then len := procparamsize;
               end;
@@ -3987,6 +3998,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                   if refparam then
                     genunary(indrop, ptrs);
                   constpart := 0;
+                  varkey := 0;
                   end 
                 end
               else
@@ -4030,6 +4042,9 @@ procedure statement(follow: tokenset {legal following symbols} );
                   proctable[display[level].blockref].intlevelrefs := true;
                   end;
                 off := constpart;
+{DRB ???
+                varkey := off;
+}
                 newresulttype(vartype);
                 len := sizeof(resultptr, false);
                 if parsing then gettoken;
@@ -4060,7 +4075,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                   if off > high then high := off;
                   end;
               end;
-          genint(off);
+          genint(varkey);
           genint(ord(ownvar));
           oprndstk[sp].oprndlen := sizeof(resultptr, false);
           oprndstk[sp].extended := resultptr^.extendedrange;
@@ -4995,7 +5010,7 @@ procedure statement(follow: tokenset {legal following symbols} );
       setisconst: boolean; {true if [setexpression] is constant}
       varindex: index; {index of var if found}
       varptr, p: entryptr; {provides access to var nameentry if needed}
-      constpart, constantlen, off: addressrange;
+      constpart, constantlen, off, varkey: addressrange;
       {"selector" args for const struct}
       ownvar: boolean; {false as only const structs are handled here}
       varlev: levelindex; {dummy arg to "selector"}
@@ -6010,6 +6025,8 @@ procedure statement(follow: tokenset {legal following symbols} );
 
 
     begin {factor}
+      off := 0;
+      varkey := 0;
       newresulttype(noneindex);
       if token in begfactset then
         case token of
@@ -6054,7 +6071,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                       oprndstk[sp].cost := 0;
                       ownvar := false;
                       selector(true, false, true, false, unpacking, constpart,
-                               constantlen, off, varlev, ownvar);
+                               constantlen, off, varkey, varlev, ownvar);
                       lastindex(unpacking, constpart, constantlen);
                       if unsigned(resultptr, constantlen, unpacking) then
                         genop(unsvarop)
@@ -8283,7 +8300,7 @@ procedure body;
           begin
           genlit(0);
           pushdummy;
-          genlit(procptr^.paramoffset);
+          genlit(procptr^.regparamkey);
           genlit(procptr^.regid);
           len := procptr^.length;
           if procptr^.refparam then
