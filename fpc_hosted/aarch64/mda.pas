@@ -298,7 +298,11 @@ end; {initialblocksize}
 function setalign(size:addressrange): addressrange;
 
 begin {setalign}
-  setalign := min(size, ptrsize);
+  case size of
+    1,2: setalign := size;
+    3: setalign := 4;
+    otherwise setalign := 8;
+  end;
 end {setalign};
 
 function paramalloc(paramptr, typeptr: entryptr): allockind;
@@ -701,9 +705,8 @@ procedure getallocdata(form: entryptr; {type being allocated}
       maxalign := max(maxalign, packingunit * bitsperunit)
     else if not packedresult then
       case fieldlen of
-        1: fieldalign := 1;
-        2: fieldalign := 2;
-        3,4: fieldalign := 4;
+        1,2,4: fieldalign := fieldlen;
+        3: fieldalign := 4;
         otherwise fieldalign := 8;
       end;
     maxalign := max(maxalign, fieldalign);

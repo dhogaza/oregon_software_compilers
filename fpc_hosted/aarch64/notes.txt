@@ -41,10 +41,7 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
-   -- for loop issue global index that must be saved ... add a field to the forloop
-      stack rather use the properreg kludge to get around the counting issues which
-      would keep the key entry from being bumped and block lastkey from being
-      recovered.  Maybe.  One hopes.
+   -- in comma why is the adp register wiped out for each movset?
 
    -- set arithmetic probably doesn't really handle intconsts
       correctly, need to check for handle bitmasks?
