@@ -983,10 +983,10 @@
 # Line: 458, Stmt: 0
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
-	add	x14,x15,w28, uxtb 0
+	add	x14,x15,w28, uxtw 0
 	strb	w28,[x14,856]
 # Line: 459, Stmt: 0
-	add	x15,x15,w28, uxtb 0
+	add	x15,x15,w28, uxtw 0
 	strb	w28,[x15,600]
 	add	w28,w28,1
 	cmp	w28,127
@@ -998,7 +998,7 @@
 # Line: 463, Stmt: 0
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
-	add	x15,x15,w28, uxtb 0
+	add	x15,x15,w28, uxtw 0
 	add	w14,w28,97
 	sub	w14,w14,65
 	strb	w14,[x15,856]
@@ -4136,7 +4136,7 @@
 	add	x11,x11,w14, uxtw 0
 	ldrb	w11,[x11,1952]
 	add	x10,x10,.L32767@PAGEOFF
-	add	x11,x10,w11, uxtb 0
+	add	x11,x10,w11, uxtw 0
 	ldrb	w16,[x11,856]
 	strb	w16,[x12,15]
 .L390:
@@ -4250,7 +4250,7 @@
 	mul	w15,w15,w13
 	adrp	x10,.L32767@PAGE
 	add	x13,x10,.L32767@PAGEOFF
-	add	x13,x13,w11, uxtb 0
+	add	x13,x13,w11, uxtw 0
 	ldrb	w13,[x13,600]
 	add	w15,w15,w13
 	and	w15,w15,1023
@@ -4355,13 +4355,13 @@
 	add	x9,x9,w15, sxtw 0
 	ldrb	w8,[x9,1952]
 	add	x9,x10,.L32767@PAGEOFF
-	add	x9,x9,w8, uxtb 0
+	add	x9,x9,w8, uxtw 0
 	add	x7,x10,.L32767@PAGEOFF
 	add	x7,x7,w12, uxtw 3
 	ldr	x7,[x7,11400]
 	ldrb	w6,[x7, w14, uxtw]
 	add	x7,x10,.L32767@PAGEOFF
-	add	x7,x7,w6, uxtb 0
+	add	x7,x7,w6, uxtw 0
 	ldrb	w5,[x0,12]
 	cmp	w13,w5
 	b.ne	.L422
@@ -4640,7 +4640,7 @@
 	add	x25,x13,.L32767@PAGEOFF
 	add	x25,x25,w27, uxtw 0
 	add	x13,x13,.L32767@PAGEOFF
-	add	x13,x13,w24, uxtb 0
+	add	x13,x13,w24, uxtw 0
 	ldrb	w16,[x13,600]
 	strb	w16,[x25,1952]
 	b	.L455
@@ -4652,7 +4652,7 @@
 	add	x25,x13,.L32767@PAGEOFF
 	add	x25,x25,w27, uxtw 0
 	add	x13,x13,.L32767@PAGEOFF
-	add	x13,x13,w24, uxtb 0
+	add	x13,x13,w24, uxtw 0
 	ldrb	w16,[x13,856]
 	strb	w16,[x25,1952]
 .L455:
@@ -4715,7 +4715,7 @@
 	ldrb	w14,[x25,1952]
 	adrp	x12,.L32767@PAGE
 	add	x13,x12,.L32767@PAGEOFF
-	add	x14,x13,w14, uxtb 0
+	add	x14,x13,w14, uxtw 0
 	ldrb	w16,[x14,600]
 	strb	w16,[x25,1952]
 	adds	w28,w28,1
@@ -4737,7 +4737,7 @@
 	ldrb	w14,[x25,1952]
 	adrp	x12,.L32767@PAGE
 	add	x13,x12,.L32767@PAGEOFF
-	add	x14,x13,w14, uxtb 0
+	add	x14,x13,w14, uxtw 0
 	ldrb	w16,[x14,856]
 	strb	w16,[x25,1952]
 	adds	w28,w28,1
@@ -4772,7 +4772,7 @@
 	ldrb	w15,[x25,1952]
 	adrp	x13,.L32767@PAGE
 	add	x14,x13,.L32767@PAGEOFF
-	add	x15,x14,w15, uxtb 0
+	add	x15,x14,w15, uxtw 0
 	ldrb	w16,[x15,600]
 	strb	w16,[x25,1952]
 	adds	w28,w28,1
@@ -4794,7 +4794,7 @@
 	ldrb	w15,[x25,1952]
 	adrp	x13,.L32767@PAGE
 	add	x14,x13,.L32767@PAGEOFF
-	add	x15,x14,w15, uxtb 0
+	add	x15,x14,w15, uxtw 0
 	ldrb	w16,[x15,856]
 	strb	w16,[x25,1952]
 	adds	w28,w28,1
@@ -5016,7 +5016,7 @@
 # Line: 1745, Stmt: 0
 	adrp	x15,.L32767@PAGE
 	add	x25,x15,.L32767@PAGEOFF
-	add	x25,x25,w26, uxtb 0
+	add	x25,x25,w26, uxtw 0
 	ldrb	w0,[x25,600]
 	bl	.P39  // symbolput
 	b	.L484
@@ -5524,7 +5524,7 @@
 	add	x14,x14,w28, uxtw 0
 	ldrb	w14,[x14,1952]
 	add	x13,x13,.L32767@PAGEOFF
-	add	x14,x13,w14, uxtb 0
+	add	x14,x13,w14, uxtw 0
 	ldrb	w16,[x14,856]
 	strb	w16,[x15,15]
 .L584:
@@ -5945,7 +5945,7 @@
 	ldrb	w12,[x12,-1]
 	adrp	x10,.L32767@PAGE
 	add	x11,x10,.L32767@PAGEOFF
-	add	x12,x11,w12, uxtb 0
+	add	x12,x11,w12, uxtw 0
 	ldrb	w16,[x12,600]
 	strb	w16,[x13,1952]
 	b	.L638
@@ -5958,7 +5958,7 @@
 	ldrb	w12,[x12,-1]
 	adrp	x10,.L32767@PAGE
 	add	x11,x10,.L32767@PAGEOFF
-	add	x12,x11,w12, uxtb 0
+	add	x12,x11,w12, uxtw 0
 	ldrb	w16,[x12,856]
 	strb	w16,[x13,1952]
 .L638:

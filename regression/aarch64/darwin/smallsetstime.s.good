@@ -94,7 +94,7 @@
 .L6:
 # Line: 34, Stmt: 0
 	add	x14,sp,0
-	add	x14,x14,w15, uxtb 0
+	add	x14,x14,w15, uxtw 0
 	lsr	w16,w0,w15
 	ands	w16,w16,1
 	cset	w13,ne
@@ -119,7 +119,7 @@
 .L10:
 # Line: 42, Stmt: 0
 	add	x14,sp,-8
-	add	x14,x14,w15, uxtb 0
+	add	x14,x14,w15, uxtw 0
 	lsr	w16,w0,w15
 	ands	w16,w16,1
 	cset	w13,ne
