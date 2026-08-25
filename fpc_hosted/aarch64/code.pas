@@ -389,7 +389,7 @@ function alignmentof(i: integer): alignmentrange;
   end;
 
 
-{ Weird bitmask patters for aarch64 are handled by the following
+{ Weird bitmask patterns for aarch64 are handled by the following
   two functions shamelessly lifted from Free Pascal.  
 }
 
@@ -2760,7 +2760,7 @@ procedure unpack(var k: keyindex; {operand to unpack}
 
 procedure unpackboth(target: keyindex {try to unpack one operand here});
 
-{ Unpack both operands (from the globals "l" and "r")
+{ Unpack both operands (from the globals "left" and "right")
 }
 
 
@@ -4304,7 +4304,11 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
         pseudolabelx
       else
         begin
+unpack(target, 0);
+rereference(target);
+{
         makeaddressable(target, 0);
+}
         loadreg(target, regkey);
         limitreg := keytable[target].oprnd.reg;
         adjustregcount(target, 1);
@@ -5324,6 +5328,12 @@ procedure setinsertx;
     unpackboth(0);
     if len <= long then
       begin
+      { kludge until we have 64 bit sets passed as intconsts }
+      if keytable[right].oprnd.mode = dataref then
+        begin
+        genmoveaddress(lastnode, right, regkeys[ip0]);
+        right := regkeys[ip0];
+        end;
       loadreg(right, left);
       { need to make is_bitmask work with 64 bit masks }
       if (keytable[left].oprnd.mode = intconst) and
@@ -7251,7 +7261,7 @@ procedure indxx;
 
   begin {indxx}
     if (pseudoinst.oprnds[2] = 0) and
-        not (keytable[left].oprnd.mode in [dataref, reg_offset]) then
+       not (keytable[left].oprnd.mode in [dataref, reg_offset]) then
       begin
       setallfields(left);
       dereference(left);
@@ -7297,17 +7307,20 @@ procedure indxx;
             end;
           end;
         reg_offset:
-          begin
-          prefersafereg := keytable[key].refcount > assigninitialpenalty;
-          newkey := settemp(long, reg_oprnd(getreg(prefersafereg)));
-          genmoveaddress(lastnode, left, newkey);
-          settemp(long, index_oprnd(abstract_offset,
-                  keytable[newkey].oprnd.reg, pseudoinst.oprnds[2], false));
-          setallfields(tempkey);
-          if alignmentof(len) < alignmentof(pseudoinst.oprnds[2]) then
-            keytable[key].alignment := alignmentof(len)
-          else keytable[key].alignment := alignmentof(pseudoinst.oprnds[2])
-          end;
+          if (keytable[left].oprnd.extend = xtw) and (pseudoinst.oprnds[2] = 0) then
+            setallfields(left)
+          else
+            begin
+            prefersafereg := keytable[key].refcount > assigninitialpenalty;
+            newkey := settemp(long, reg_oprnd(getreg(prefersafereg)));
+            genmoveaddress(lastnode, left, newkey);
+            settemp(long, index_oprnd(abstract_offset,
+                    keytable[newkey].oprnd.reg, pseudoinst.oprnds[2], false));
+            setallfields(tempkey);
+            if alignmentof(len) < alignmentof(pseudoinst.oprnds[2]) then
+              keytable[key].alignment := alignmentof(len)
+            else keytable[key].alignment := alignmentof(pseudoinst.oprnds[2])
+            end;
         abstract_offset:
           begin
           setallfields(left);
@@ -7346,6 +7359,7 @@ procedure aindxx;
   var
     extend: reg_extends;
     regkey, lefttemp: keyindex;
+    signedextend: boolean;
 
   begin {aindxx}
     address(left, 0);;
@@ -7377,10 +7391,21 @@ procedure aindxx;
       end;
 
     case keytable[right].len of
-      1: extend := xtb;
-      2: extend := xth;
-      4: extend := xtw;
-      8: extend := xtx;
+      byte, half:
+        begin
+        signedextend := false;
+        extend := xtw;
+        end;
+      word:
+        begin
+        signedextend := keytable[right].signed;
+        extend := xtw;
+        end;
+      long:
+        begin
+        signedextend := true;
+        extend := xtx;
+        end;
       otherwise
         begin
         write('Bad length ', keytable[right].len, ' for key ', right);
@@ -7389,7 +7414,7 @@ procedure aindxx;
     end;
 
     setvalue(reg_offset_oprnd(keytable[tempkey].oprnd.reg, keytable[right].oprnd.reg, bits(len),
-                          extend, keytable[right].signed));                         
+                          extend, signedextend));                         
     keytable[key].len := keytable[right].len; {The front end changed the length because of
                                 index scaling}
   end {aindxx} ;
