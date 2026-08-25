@@ -7251,7 +7251,7 @@ procedure indxx;
 
   begin {indxx}
     if (pseudoinst.oprnds[2] = 0) and
-        (keytable[left].oprnd.mode <> dataref) then
+        not (keytable[left].oprnd.mode in [dataref, reg_offset]) then
       begin
       setallfields(left);
       dereference(left);
