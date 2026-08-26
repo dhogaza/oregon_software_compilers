@@ -41,6 +41,9 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
+  -- genblk ... lots of mode errors etc compiling m68K
+  -- mda loops with a packed constant structure compiling m68K commc
+
    -- in comma why is the adp register wiped out for each movset?
 
    -- set arithmetic probably doesn't really handle intconsts

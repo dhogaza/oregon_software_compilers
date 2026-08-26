@@ -6546,7 +6546,7 @@ procedure pshlitintptrx;
 procedure pshintptrx;
 
   begin {pshintptrx}
-    address(left, 0);
+    unpack(left, 0);
     gensimplemove(lastnode, left, key);
     dontchangevalue := dontchangevalue - 1;
   end {pshintptrx};
