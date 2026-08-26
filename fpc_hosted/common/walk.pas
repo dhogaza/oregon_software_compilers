@@ -2452,6 +2452,7 @@ procedure walkvalue(root: nodeindex; {root of tree to walk}
         walknode(root, k1, 0, true);
         key := newkey;
         context[contextsp].high := key;
+        keytable[key] := root;
         if inverted then
           genpseudo(condvaluef, valsize, key, 1, 0, k1, 0, targetkey)
         else
