@@ -2709,20 +2709,19 @@ procedure addressboth;
   end {addressboth} ;
 
 
-procedure unpack(var k: keyindex; {operand to unpack}
-                 target: keyindex {unpack it to this key, if nonzero });
+procedure unpackwork(var k: keyindex; {operand to unpack}
+                     target: keyindex {unpack it to this key, if nonzero });
 
 { Make a source reference to a possibly packed operand.  If the operand
-  is not packed, it is simply addressed.  If it is packed, unpack it to
-  the target register, if given, or a scratch register, if not.
+  is not packed, do nothing.  If it is packed, unpack it to the target register,
+  if given, or a scratch register, if not.
 }
 
   var
     inst:insts;
     basekey, reg2key, bitindexkey, maskkey: keyindex;
 
-  begin {unpack}
-    address(k, target);
+  begin {unpackwork}
     if keytable[k].packedaccess then
       begin
       { can't put inside the with statement because of that fucking fpc
@@ -2755,6 +2754,23 @@ procedure unpack(var k: keyindex; {operand to unpack}
       keytable[k].len := long;
       keytable[k].packedaccess := false;
       end;
+  end {unpackwork} ;
+
+
+procedure unpack(var k: keyindex; {operand to unpack}
+                 target: keyindex {unpack it to this key, if nonzero });
+
+{ address an operand and, if it is packed, unpack it to the target
+  register, if given, or a scratch register, if not.
+}
+
+  var
+    inst:insts;
+    basekey, reg2key, bitindexkey, maskkey: keyindex;
+
+  begin {unpack}
+    address(k, target);
+    unpackwork(k, target);
   end {unpack} ;
 
 
@@ -4304,11 +4320,8 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
         pseudolabelx
       else
         begin
-unpack(target, 0);
-rereference(target);
-{
         makeaddressable(target, 0);
-}
+        unpackwork(target, 0);
         loadreg(target, regkey);
         limitreg := keytable[target].oprnd.reg;
         adjustregcount(target, 1);
@@ -4368,6 +4381,8 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
 
     with forstack[forsp] do
       begin
+if blockref = 172 then
+writeln(macfile, 'forbottomx ',pseudoinst.oprnds[1], ' ', pseudoinst.oprnds[2], ' ', limitreg, ' ', forkey);
       adjustregcount(settemp(long, reg_oprnd(limitreg)), -1);
       sgn := keytable[forkey].signed;
       dereference(forkey);
@@ -7376,7 +7391,6 @@ procedure aindxx;
   var
     extend: reg_extends;
     regkey, lefttemp: keyindex;
-    signedextend: boolean;
 
   begin {aindxx}
     address(left, 0);;
@@ -7408,21 +7422,9 @@ procedure aindxx;
       end;
 
     case keytable[right].len of
-      byte, half:
-        begin
-        signedextend := false;
-        extend := xtw;
-        end;
-      word:
-        begin
-        signedextend := keytable[right].signed;
-        extend := xtw;
-        end;
-      long:
-        begin
-        signedextend := true;
-        extend := xtx;
-        end;
+      byte, half: extend := xtw;
+      word: extend := xtw;
+      long: extend := xtx;
       otherwise
         begin
         write('Bad length ', keytable[right].len, ' for key ', right);
@@ -7431,7 +7433,7 @@ procedure aindxx;
     end;
 
     setvalue(reg_offset_oprnd(keytable[tempkey].oprnd.reg, keytable[right].oprnd.reg, bits(len),
-                          extend, signedextend));                         
+                          extend, keytable[right].signed));                         
     keytable[key].len := keytable[right].len; {The front end changed the length because of
                                 index scaling}
   end {aindxx} ;
@@ -8339,7 +8341,6 @@ procedure codeone;
     while (keytable[lastkey].refcount = 0) and
           (lastkey >= context[contextsp].keymark) do
       lastkey := lastkey - 1;
-
   end {codeone};
 
 
