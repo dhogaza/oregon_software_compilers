@@ -3353,7 +3353,7 @@ procedure prepareoprnd(var k: keyindex; { the key we're interested inn }
       else loadreg(k, other)
   end {prepareoprnd};
 
-function preparelitint(value: integer; other: keyindex): keyindex;
+function preparelitint(value: integer): keyindex;
 
   { none of the lit pseudoops have a literal bitmask.
   }
@@ -4304,7 +4304,8 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
   var
     c: conds;
     regkey: keyindex; {descriptor of for-index register}
-
+    i: insts; 
+    lit: integer;
 
   begin {fortopx}
     with forstack[forsp] do
@@ -4317,21 +4318,31 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
       if target = 0 then
         pseudolabelx
       else
-{begin
-if keytable[target].oprnd.mode = intconst then
-begin
-can NOT use cbz/cbnz to terminate forloop as this won't catch zero-trip loops
-end
-else}
         begin
-        makeaddressable(target, 0);
-        unpackwork(target, 0);
-        loadreg(target, regkey);
-        limitreg := keytable[target].oprnd.reg;
-        adjustregcount(target, 1);
-{end}
-        pseudolabelx;
-        gen2(lastnode, buildinst(cmp, savedlen = long, false), regkey, target);
+        if keytable[target].oprnd.mode = intconst then
+          begin
+          pseudolabelx;
+          lit := keytable[target].oprnd.int_value;
+          if not keytable[forkey].signed or (lit >= 0) then
+            i := cmp
+          else
+            begin
+            i := cmn;
+            lit := -lit;
+            end;
+          target := preparelitint(lit);
+          end
+        else
+          begin
+          i := cmp;
+          makeaddressable(target, 0);
+          unpackwork(target, 0);
+          loadreg(target, regkey);
+          limitreg := keytable[target].oprnd.reg;
+          adjustregcount(target, 1);
+          pseudolabelx;
+          end;
+        gen2(lastnode, buildinst(i, savedlen = long, false), regkey, target);
         genbcond(lastnode, c, pseudoinst.oprnds[2]);
         end;
 
@@ -4475,7 +4486,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
           end;
 
         gen2(lastnode, buildinst(cmp, keytable[forkey].len = long, false), forkey,
-             preparelitint(finalvalue, forkey));
+             preparelitint(finalvalue));
         genbcond(lastnode, c, pseudoinst.oprnds[1]);
         end {if needcompare}
       else if sgn then genbcond(lastnode, vc, pseudoinst.oprnds[1])
@@ -4704,7 +4715,7 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
         i := cmn;
         pseudoinst.oprnds[2]:= -pseudoinst.oprnds[2];
         end;
-      litkey := preparelitint(pseudoinst.oprnds[2], left);
+      litkey := preparelitint(pseudoinst.oprnds[2]);
       gen2(lastnode, buildinst(i, len = long, false), left, litkey);
       if keytable[left].signed then
         setvalue(cond_oprnd(signedcond))
@@ -7796,9 +7807,9 @@ begin {casebranchx}
   scratch := settemp(word, reg_oprnd(scratchreg));
   lock(scratch);
   gensimplemove(lastnode, target, scratch);
-  t1 := preparelitint(pseudoinst.oprnds[1], scratch);
+  t1 := preparelitint(pseudoinst.oprnds[1]);
   gen3(lastnode, buildinst(sub, false, false), scratch, scratch, t1);
-  t1 := preparelitint(pseudoinst.oprnds[2] - pseudoinst.oprnds[1], scratch);
+  t1 := preparelitint(pseudoinst.oprnds[2] - pseudoinst.oprnds[1]);
   gen2(lastnode, buildinst(cmp, false, false), scratch, t1);
   if errordefault then
     begin
