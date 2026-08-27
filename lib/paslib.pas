@@ -20,13 +20,6 @@ const
   _p_maxstringlen = 255;
 
 type
-
-  { For faking out C strings and passing optional packed array string parameters
-    to Pascal library procs.  The latter are passed as nil if they aren't given
-    as part of the parameter list.
-  }
-
-
   _p_charptr = ^char; 
   _p_intptr = ^integer;
   _p_stringarray = array [0..maxint] of char;
@@ -39,7 +32,8 @@ type
   _p_streamptr = ^int64; {for now}
 
   { The first three enum valued must be matched in the code generator. The
-    others are taken from the MC68000 library and not all will apply to our files.
+    others are taken from the MC68000 library and not all will apply to our
+    files.
   }
 
   _p_filestatusenum = (
@@ -562,7 +556,7 @@ end;
 procedure _p_close;
 
 { Close a file and remove it from the file list and set filevar
-  to nil.  Since files are automatically closed closed when the scope
+  to nil.  Since files are automatically closed when the scope
   it was opened in exits, this shouldn't really be called by most
   user code.
 }
@@ -632,10 +626,6 @@ begin {_p_clsall}
     curp := nextp;
     end;
 end {_p_clsall};
-
-{ We will need to deal with passing errors back to the caller when
-  asked.  Gotos will be involved.  Currently all errors are fatal.
-}
 
 procedure _p_filecommon(filevar: _p_addressptr;
                         const size:integer; {-1 for text, otherwise binary file}
@@ -801,7 +791,7 @@ end;
   optional default extension and flags, and an error variable to return
   error codes is not.
 
-  Pascal was originally implemented on a CDC 6000 family 64 bit computer with
+  Pascal was originally implemented on a CDC 6000 family 60 bit computer with
   a batch operating system that assigned files to programs at invocation.  So
   "reset(foo)" would attach the file specified at invocation to "foo".  In
   some vague way not all that different than "helloworld >helloworld.txt" or

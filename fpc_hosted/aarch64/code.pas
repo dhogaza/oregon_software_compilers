@@ -4296,11 +4296,9 @@ procedure defforindexx(sgn, { true if signed induction var }
 
 procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
 
-{ Start a for loop, top or bottom.  Branch arguments determine if we
-  are going up or down.  If we have constant limits we do not generate a
-  cmp/brfinished pair at this point. If the induction var is on the
-  stack we will force storage of the original loaded register for the
-  value onto the stack after the comparison (if there is one).
+{ Start a for loop.  Branch arguments determine if we are going up or down.  If we
+  have constant limits, target is zero and we do not generate a cmp/brfinished pair
+  at this point.
 }
 
   var
@@ -4319,12 +4317,19 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
       if target = 0 then
         pseudolabelx
       else
+{begin
+if keytable[target].oprnd.mode = intconst then
+begin
+can NOT use cbz/cbnz to terminate forloop as this won't catch zero-trip loops
+end
+else}
         begin
         makeaddressable(target, 0);
         unpackwork(target, 0);
         loadreg(target, regkey);
         limitreg := keytable[target].oprnd.reg;
         adjustregcount(target, 1);
+{end}
         pseudolabelx;
         gen2(lastnode, buildinst(cmp, savedlen = long, false), regkey, target);
         genbcond(lastnode, c, pseudoinst.oprnds[2]);
