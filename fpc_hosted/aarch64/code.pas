@@ -4252,42 +4252,42 @@ procedure defforindexx(sgn, { true if signed induction var }
       nonvolatile := target <> 0;
       globalreg := (keytable[right].oprnd.mode = register) and
                    not volatilereg(keytable[right].oprnd.reg);
-    if globalreg then
-      begin
-       setkeyvalue(right);
-      if equivaddr(right, fortarget) then
+      if globalreg then
         begin
-        allowmodify(fortarget, false);
-        adjustregcount(fortarget, -keytable[fortarget].refcount);
-        limitreg := getreg(false);
-        keytable[fortarget].oprnd.reg := limitreg;
-        adjustregcount(fortarget, keytable[fortarget].refcount);
-        gensimplemove(lastnode, right, fortarget);
-        savekey(fortarget, false);
+        setkeyvalue(right);
+        if equivaddr(right, fortarget) then
+          begin
+          allowmodify(fortarget, false);
+          adjustregcount(fortarget, -keytable[fortarget].refcount);
+          limitreg := getreg(false);
+          keytable[fortarget].oprnd.reg := limitreg;
+          adjustregcount(fortarget, keytable[fortarget].refcount);
+          gensimplemove(lastnode, right, fortarget);
+          savekey(fortarget, false);
+          end
         end
-      end
-    else
-      begin
-      setkeyvalue(settemp(long, reg_oprnd(getreg(false))));
-      keytable[key].regsaved := true;
-      if nonvolatile then
-          keytable[key].properreg := right;
+      else
+        begin
+        setkeyvalue(settemp(long, reg_oprnd(getreg(false))));
+        keytable[key].regsaved := true;
+        if nonvolatile then
+            keytable[key].properreg := right;
+        end;
+
+      unlock(left);
+      unlock(right);
+
+      keytable[key].signed := sgn;
+
+      { We make it long if it's free, or if it might be used as an index.
+      }
+      originalreg := oprnd.reg;
+      litinitial := lit;
+      forkey := key;
+      firstclear := true;
+      savedlen := len;
+      initval := pseudoinst.oprnds[1];
       end;
-
-    unlock(left);
-    unlock(right);
-
-    keytable[key].signed := sgn;
-
-    { We make it long if it's free, or if it might be used as an index.
-    }
-    originalreg := oprnd.reg;
-    litinitial := lit;
-    forkey := key;
-    firstclear := true;
-    savedlen := len;
-    initval := pseudoinst.oprnds[1];
-    end;
 
     gensimplemove(lastnode, left, key);
 
@@ -4340,10 +4340,11 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
 
       enterloop;
 
-      markloopregused(keytable[forkey].oprnd.reg, keytable[forkey].properreg, nomode_oprnd);
-      if target <> 0 then
-        markloopregused(limitreg, keytable[target].properreg,
-                        keytable[target].regenoprnd);
+      with loopstack[loopsp] do
+        begin
+        regstate[keytable[forkey].oprnd.reg].used := true;
+        if target <> 0 then regstate[limitreg].used := true;
+        end;
 
       { see defforindexx for an explaination of this }
 {
@@ -4381,8 +4382,6 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
 
     with forstack[forsp] do
       begin
-if blockref = 172 then
-writeln(macfile, 'forbottomx ',pseudoinst.oprnds[1], ' ', pseudoinst.oprnds[2], ' ', limitreg, ' ', forkey);
       adjustregcount(settemp(long, reg_oprnd(limitreg)), -1);
       sgn := keytable[forkey].signed;
       dereference(forkey);
