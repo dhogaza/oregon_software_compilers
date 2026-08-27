@@ -41,8 +41,7 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
-  -- genblk ... lots of mode errors etc compiling m68K
-  -- mda loops with a packed constant structure compiling m68K commc
+   -- mda loops with a packed constant structure compiling m68K commc
 
    -- in comma why is the adp register wiped out for each movset?
 
@@ -62,6 +61,10 @@ if seeking value, wzr is replaced with a register.
    -- settemp and signed ...
 
    -- for i := 1 to -1 fails? (treated as unsigned???)
+
+   -- for i := var [down]to const (unimproved) should cmp with the const
+      rather than load it into a register as it does now.  Scavenge code
+      from cmplitint
 
    -- removing regparamhack reminded me that we need to recover stack
       space when we delete unneeded register spills.

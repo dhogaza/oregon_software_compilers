@@ -4340,11 +4340,12 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
 
       enterloop;
 
-      with loopstack[loopsp] do
-        begin
-        regstate[keytable[forkey].oprnd.reg].used := true;
-        if target <> 0 then regstate[limitreg].used := true;
-        end;
+      if loopoverflow = 0 then
+        with loopstack[loopsp] do
+          begin
+          regstate[keytable[forkey].oprnd.reg].used := true;
+          if target <> 0 then regstate[limitreg].used := true;
+          end;
 
       { see defforindexx for an explaination of this }
 {
