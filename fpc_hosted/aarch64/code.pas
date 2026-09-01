@@ -4629,7 +4629,7 @@ procedure compintx;
     unpack(left, 0);
     loadreg(left, 0);
     settargetorreg; 
-    gen2(lastnode, buildinst(movn, len = long, false), key, left);
+    gen2(lastnode, buildinst(mvn, len = long, false), key, left);
     keytable[key].signed := keytable[left].signed;
   end {compintx};
 
