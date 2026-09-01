@@ -22,7 +22,8 @@ const
 type
   _p_charptr = ^char; 
   _p_intptr = ^integer;
-  _p_stringarray = array [0..maxint] of char;
+  { eventually maxint but currently aarch64 P2 doesn't support that }
+  _p_stringarray = array [0..32767] of char;
   _p_stringarrayp = ^_p_stringarray;
   _p_string = string[_p_maxstringlen];
   _p_stringptr = ^_p_string;
