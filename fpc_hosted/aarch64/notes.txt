@@ -87,6 +87,11 @@ if seeking value, wzr is replaced with a register.
 
 --- current work
 
+  -- travrs fix up oprnds p/i mess have a single value since travrs depends
+     on p and i overlapping.
+
+  -- travrs fix up more varkey/off mess stuff.
+
   -- the precedes lastbranch code is safe but silly.  It is really where
      labels are defined that is the issue, and if the key being considered
      lies between a branch and its label.

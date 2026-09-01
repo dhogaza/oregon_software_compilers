@@ -669,8 +669,7 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 }
 
 
-    procedure regnode(p: pseudoop {operator for root node};
-                      literalleft: boolean { left is not a node reference } );
+    procedure regnode(p: pseudoop {operator for root node});
 
 { Walk and generate code for some flavor of register node (regparam, regtemp, etc)
 }
@@ -2288,12 +2287,12 @@ with target = 0.
           fileparamop: fileparamnode;
           defforindexop, defunsforindexop: defforindexnode(true);
           defforlitindexop, defunsforlitindexop: defforindexnode(false);
-          regparamop: regnode(regparam, true);
-          ptrregparamop: regnode(ptrregparam, true);
-          realregparamop: regnode(realregparam, true);
-          regtempop: regnode(regtemp, false);
-          ptrtempop: regnode(ptrtemp, false);
-          realtempop: regnode(realtemp, false);
+          regparamop: regnode(regparam);
+          ptrregparamop: regnode(ptrregparam);
+          realregparamop: regnode(realregparam);
+          regtempop: regnode(regtemp);
+          ptrtempop: regnode(ptrtemp);
+          realtempop: regnode(realtemp);
           indxop: indxnode(indx);
           pindxop: indxnode(pindx);
           vindxop, parmop: vindxnode;
