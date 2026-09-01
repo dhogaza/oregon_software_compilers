@@ -131,7 +131,7 @@ const
   hostintsize = 4;  {host integer size in HOST addressing units}
   maxintarray = 1; {number of integral host integers per target integer}
 
-  maxaddr = $7FFFFFFF; { 32 bits is max value of address on aarch64 }
+  maxaddr = $FFFFFFFF; { 32 bits is max value of address on aarch64 }
   defaulttargetmaxint = $7FFFFFFF; { max value for integer on aarch64 }
   defaulttargetminint = $80000000; { min value for an integer on the aarch64 }
   shortmaxint = $7FFFFFFF; {Max value for a short integer}
@@ -489,7 +489,7 @@ type
 
   {DRB for free pascal}
   unsignedint = longword;
-  addressrange = longint; { regparams saved to memory can have negative offset }
+  addressrange = int64;
   targetaddress = longword;
   unsignedword = word;
 

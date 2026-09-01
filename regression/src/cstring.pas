@@ -8,7 +8,7 @@ type
     If compiled with array bounds checking enabled it will still work.
   }
 
-  stringarray = array [0..32767] of char;
+  stringarray = array [0..maxint] of char;
   stringarrayp = ^stringarray;
   shortstring = string[255];
 
