@@ -4719,8 +4719,7 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
       end
     else
       begin
-      if not keytable[left].signed or
-         (pseudoinst.oprnds[2] >= 0) then
+      if pseudoinst.oprnds[2] >= 0 then
         i := cmp
       else
         begin

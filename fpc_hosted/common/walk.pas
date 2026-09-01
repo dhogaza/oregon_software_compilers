@@ -2222,8 +2222,8 @@ with target = 0.
           pushproc: pushprocnode;
           pushfinal: pushfinalnode;
           pushvalue, pushlitvalue, pushfptr: stacknode(op, form);
-          regreturnop: regreturnnode(regtarget, form);
-          regtargetop: regtargetnode(regtarget, form, oprnds[3]);
+          regreturnop, realregreturnop, ptrregreturnop: regreturnnode(regtarget, form);
+          regtargetop, realregtargetop, ptrregtargetop: regtargetnode(regtarget, form, oprnds[3]);
           pushcvalue: pushcvaluenode(form);
           pushret: pushretnode;
           sysfn: sysfnnode(op, form);
@@ -2308,7 +2308,10 @@ with target = 0.
           questop: questnode;
           otherwise
             begin
+{
             write('travrs walk error ', ord(op): 3);
+}
+            write('travrs walk error ', op);
             compilerabort(walkerror);
             end;
           end;
