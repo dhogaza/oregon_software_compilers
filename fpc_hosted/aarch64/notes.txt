@@ -90,9 +90,6 @@ if seeking value, wzr is replaced with a register.
   -- travrs fix up oprnds p/i mess have a single value since travrs depends
      on p and i overlapping.
 
-  -- var params passed as a var param do not need to be assigned to memory.
-     Might have to tweak pseudocode output from body though to avoid indr of reg
-     followed by addr of same which would presumably result in a reg-reg move.
   -- the precedes lastbranch code is safe but silly.  It is really where
      labels are defined that is the issue, and if the key being considered
      lies between a branch and its label.
