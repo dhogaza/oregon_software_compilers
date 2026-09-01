@@ -4719,9 +4719,9 @@ varkey := regparamkey;
             case namekind of
               varparam:
                 begin
-                if (actualptr^.namekind in [param, varparam, funcparam, procparam,
-                                            confparam, constconfparam, varconfparam,
-                                            boundid]) and
+                { varparams don't need to be forced to memory }
+                if (actualptr^.namekind in [param, funcparam, procparam, confparam,
+                                            constconfparam, boundid]) and
                    (actualptr^.varalloc in [regparam, realregparam, ptrregparam]) then
                   forcememoryparam(lev, actualptr);
                 modifyvariable(false, false);
