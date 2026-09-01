@@ -7811,7 +7811,7 @@ begin {casebranchx}
   keytable[key].refcount := 0; {so we can loadreg etc }
   default := len;
 
-  address(target, 0);
+  unpack(target, 0);
   scratchreg := getreg(false);
   scratch := settemp(word, reg_oprnd(scratchreg));
   lock(scratch);
