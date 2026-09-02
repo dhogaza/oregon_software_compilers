@@ -5541,9 +5541,9 @@ var
   skiplabel: labelindex;
 
 begin {cmpsetinclusion}
-  address(operand1, 0);
+  unpack(operand1, 0);
   lock(operand1);
-  address(operand2, 0);
+  unpack(operand2, 0);
   unlock(operand1);
   if len <= long then
     begin
