@@ -3441,9 +3441,6 @@ procedure genmoveaddress(var after: nodeptr; src, dst: keyindex);
         keytable[src].oprnd.lowbits := false;
         end;
       abstract_offset:
-{
-        if index <> 0 then
-}
           if spabsolute or (reg <> sp) then
             makeoffsetptr(lastnode, index, reg, keytable[dst].oprnd.reg)
           else
@@ -3458,6 +3455,7 @@ procedure genmoveaddress(var after: nodeptr; src, dst: keyindex);
         end;
       otherwise
         begin
+        writeln(macfile, 'bad operand in genmoveaddress key: ', src, ' mode: ', ord(mode));
         write('bad operand in genmoveaddress key: ', src, ' mode: ', ord(mode));
         compilerabort(inconsistent);
         end;
@@ -5619,9 +5617,19 @@ var
 begin {definelazyx}
   address(left, 0);
   lock(left);
-  setvalue(reg_oprnd(getreg(false)));
-  gensimplemove(lastnode, left, key);
-  savekey(key, true);
+  { previous indxindr MAY have moved left into a register, rare but happens
+  }
+  if keytable[left].oprnd.mode = register then setkeyvalue(left)
+  else
+    begin
+    setvalue(reg_oprnd(getreg(false)));
+    gensimplemove(lastnode, left, key);
+    end;
+  { if its mot a scratchreg it is still saved by saveactkeys and marked as
+    used in a while eof(f) style loop but is not restored.  Hmmm ... wasted
+    save.
+  }
+  if scratchreg(keytable[key].oprnd.reg) then savekey(key, true);
   statuskey := settemp(long, index_oprnd(unsigned_offset, keytable[key].oprnd.reg,
                        ptrsize, false));
   bitkey := settemp(long, imm12_oprnd(lazybit, false));
@@ -5631,7 +5639,9 @@ begin {definelazyx}
   gensimplemove(lastnode, statuskey, regkey);
   gen3(lastnode, buildinst(tbnz, len = long, true), regkey, bitkey,
        settemp(long, labeltarget_oprnd(lastlabel)));
-  genmoveaddress(lastnode, left, regkeys[0]);
+
+  if keytable[left].oprnd.mode = register then gensimplemove(lastnode, left, regkeys[0])
+  else genmoveaddress(lastnode, left, regkeys[0]);
   unlock(left);
   callsupport(libdefinebuf, true);
   definelastlabel;
