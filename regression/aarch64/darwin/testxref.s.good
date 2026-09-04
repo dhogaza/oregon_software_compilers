@@ -886,7 +886,6 @@
 # Line: 248, Stmt: 0
 	adrp	x27,.L32767@PAGE
 	ldr	x26,[x27,.L32767+8@PAGEOFF]
-	str	x26,[x29,-24]
 	ldr	x15,[x26,8]
 	tbnz	x15,0,.L32715
 	add	x0,x27,.L32767+8@PAGEOFF

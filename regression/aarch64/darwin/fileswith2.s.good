@@ -101,7 +101,6 @@ _main:
 .L3:
 # Line: 26, Stmt: 0
 	ldr	x26,[x27,.L32767+24@PAGEOFF]
-	str	x26,[x29,-32]
 	ldr	x15,[x26,8]
 	tbnz	x15,0,.L32762
 	add	x0,x27,.L32767+24@PAGEOFF

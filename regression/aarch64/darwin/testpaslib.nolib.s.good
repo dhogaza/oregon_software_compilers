@@ -1772,17 +1772,17 @@ _p_clsall:
 .L167:
 # Line: 728, Stmt: 0
 	ldr	x15,[sp,512]
-	mov	x14,48
-	strh	w14,[x15,8]
+	str	x15,[sp,512]
+	mov	w16,48
+	strh	w16,[x15,8]
 # Line: 729, Stmt: 0
 	ldrb	w14,[x29,825]
 	cmp	w14,119
 	b.ne	.L168
 .L169:
 # Line: 730, Stmt: 0
-	mov	x14,1
 	ldrh	w13,[x15,8]
-	orr	w14,w13,w14
+	orr	w14,w13,1
 	strh	w14,[x15,8]
 	b	.L168
 .L166:
@@ -1793,14 +1793,14 @@ _p_clsall:
 .L171:
 # Line: 733, Stmt: 0
 	ldr	x15,[sp,512]
-	mov	x14,16
-	strh	w14,[x15,8]
+	mov	w16,16
+	strh	w16,[x15,8]
 	b	.L168
 .L170:
 # Line: 735, Stmt: 0
 	ldr	x15,[sp,512]
-	mov	x14,33
-	strh	w14,[x15,8]
+	mov	w16,33
+	strh	w16,[x15,8]
 .L168:
 # Line: 736, Stmt: 0
 	cmp	w28,wzr
@@ -1808,9 +1808,9 @@ _p_clsall:
 .L172:
 # Line: 737, Stmt: 0
 	ldr	x15,[sp,512]
-	mov	x14,8
+	str	x15,[sp,512]
 	ldrh	w13,[x15,8]
-	orr	w14,w13,w14
+	orr	w14,w13,8
 	strh	w14,[x15,8]
 	b	.L135
 .L147:
@@ -1839,9 +1839,8 @@ _p_clsall:
 .L175:
 # Line: 748, Stmt: 0
 	ldr	x15,[x29,16]
-	mov	x14,1
 	ldrh	w13,[x15,8]
-	orr	w14,w13,w14
+	orr	w14,w13,1
 	strh	w14,[x15,8]
 	b	.L177
 .L173:
@@ -1851,9 +1850,8 @@ _p_clsall:
 .L178:
 # Line: 751, Stmt: 0
 	ldr	x14,[x29,16]
-	mov	x13,7
 	ldrh	w12,[x14,8]
-	bic	w13,w12,w13
+	bic	w13,w12,7
 	strh	w13,[x14,8]
 .L177:
 # Line: 752, Stmt: 0
@@ -2182,25 +2180,22 @@ _p_define:
 	b.ge	.L196
 .L197:
 # Line: 869, Stmt: 0
-	mov	x15,6
 	ldrh	w14,[x28,8]
-	orr	w15,w14,w15
+	orr	w15,w14,6
 	strh	w15,[x28,8]
 	b	.L198
 .L196:
 # Line: 872, Stmt: 0
-	mov	x15,6
 	ldrh	w14,[x28,8]
-	bic	w15,w14,w15
+	bic	w15,w14,6
 	strh	w15,[x28,8]
 # Line: 873, Stmt: 0
 	cmp	w27,10
 	b.ne	.L199
 .L200:
 # Line: 875, Stmt: 0
-	mov	x15,4
 	ldrh	w14,[x28,8]
-	orr	w15,w14,w15
+	orr	w15,w14,4
 	strh	w15,[x28,8]
 # Line: 876, Stmt: 0
 	mov	w16,32
@@ -2227,16 +2222,14 @@ _p_define:
 	cbz	w0,.L201
 .L202:
 # Line: 885, Stmt: 0
-	mov	x15,2
 	ldrh	w14,[x28,8]
-	orr	w15,w14,w15
+	orr	w15,w14,2
 	strh	w15,[x28,8]
 	b	.L198
 .L201:
 # Line: 887, Stmt: 0
-	mov	x15,2
 	ldrh	w14,[x28,8]
-	bic	w15,w14,w15
+	bic	w15,w14,2
 	strh	w15,[x28,8]
 .L198:
 # Line: 889, Stmt: 0
@@ -2285,8 +2278,7 @@ _p_get:
 	b	.L209
 .L207:
 # Line: 909, Stmt: 0
-	mov	x14,1
-	bic	w14,w15,w14
+	bic	w14,w15,1
 	strh	w14,[x28,8]
 	b	.L209
 .L205:
@@ -3129,8 +3121,7 @@ _p_rdc:
 	b.ne	.L280
 .L281:
 # Line: 1167, Stmt: 0
-	mov	x14,1
-	bic	w14,w15,w14
+	bic	w14,w15,1
 	strh	w14,[x28,8]
 .L280:
 # Line: 1168, Stmt: 0
