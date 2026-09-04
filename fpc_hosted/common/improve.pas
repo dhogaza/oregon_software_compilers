@@ -465,178 +465,178 @@ procedure assignregs;
 
     begin {applytotree}
       { now walk the block in dfo }
-      currentblock := root;
-      repeat
-        if not currentblock^.isdead then
-          applytostmtlist(currentblock^.beginstmt);
-        currentblock := currentblock^.dfolist;
-      until currentblock = nil;
-    end {applytotree};
+	      currentblock := root;
+	      repeat
+		if not currentblock^.isdead then
+		  applytostmtlist(currentblock^.beginstmt);
+		currentblock := currentblock^.dfolist;
+	      until currentblock = nil;
+	    end {applytotree};
 
-  begin {assignregs}
-    if switcheverplus[tblock] and (tblocknum = blockref) then
-      begin
-      { show register lifetimes }
-      writeln('  off param  typ worth lmin lmax fmin fmax');
-      for i := 0 to regtablelimit do
-        if regvars[i].registercandidate then
-          begin
-          with regvars[i], varlife do
-            writeln(offset: 5, parameter:6, ord(regkind): 3, worth: 7, lonmin: 5, lonmax: 5,
-                    fonmin: 5, fonmax: 5);
-          end;
-      end;
-    { assign general registers }
-    case targetmachine of
-      ns32k, aarch64:
-        begin
-        { static link comes out of general regs }
-        if newtravrsinterface then
-          if new_proctable[blockref div (pts + 1)]^[blockref mod (pts +
-             1)].intlevelrefs then
-            regtemps := 1 { static link gets first register}
-          else regtemps := 0
-        else if proctable[blockref].intlevelrefs then
-          regtemps := 1 { static link gets first register}
-        else regtemps := 0;
-        allocateregs(assignreg, [reg, ptrreg], regtemps);
-        { no specific ptr reg on 32k }
-        ptrtemps := 0;
-        realtemps := 0;
-        allocateregs(assignrealreg, [realreg], realtemps);
-        end;
-      vax:
-        begin
-        if newtravrsinterface then
-          with new_proctable[blockref div (pts + 1)]^[blockref mod (pts + 1)] do
-            begin
-            { static link comes out of general regs }
-            if intlevelrefs then regtemps := 1
-            else regtemps := 0;
- { static link gets first register, or ap if non pascal; check paramsize,
-   later...
- }
-            end
-        else
-          with proctable[blockref] do
-            begin
-            if intlevelrefs then regtemps := 1
-            else regtemps := 0;
-            end;
+	  begin {assignregs}
+	    if switcheverplus[tblock] and (tblocknum = blockref) then
+	      begin
+	      { show register lifetimes }
+	      writeln('  off param  typ worth lmin lmax fmin fmax');
+	      for i := 0 to regtablelimit do
+		if regvars[i].registercandidate then
+		  begin
+		  with regvars[i], varlife do
+		    writeln(offset: 5, parameter:6, ord(regkind): 3, worth: 7, lonmin: 5, lonmax: 5,
+			    fonmin: 5, fonmax: 5);
+		  end;
+	      end;
+	    { assign general registers }
+	    case targetmachine of
+	      ns32k, aarch64:
+		begin
+		{ static link comes out of general regs }
+		if newtravrsinterface then
+		  if new_proctable[blockref div (pts + 1)]^[blockref mod (pts +
+		     1)].intlevelrefs then
+		    regtemps := 1 { static link gets first register}
+		  else regtemps := 0
+		else if proctable[blockref].intlevelrefs then
+		  regtemps := 1 { static link gets first register}
+		else regtemps := 0;
+		allocateregs(assignreg, [reg, ptrreg], regtemps);
+		{ no specific ptr reg on 32k }
+		ptrtemps := 0;
+		realtemps := 0;
+		allocateregs(assignrealreg, [realreg], realtemps);
+		end;
+	      vax:
+		begin
+		if newtravrsinterface then
+		  with new_proctable[blockref div (pts + 1)]^[blockref mod (pts + 1)] do
+		    begin
+		    { static link comes out of general regs }
+		    if intlevelrefs then regtemps := 1
+		    else regtemps := 0;
+	 { static link gets first register, or ap if non pascal; check paramsize,
+	   later...
+	 }
+		    end
+		else
+		  with proctable[blockref] do
+		    begin
+		    if intlevelrefs then regtemps := 1
+		    else regtemps := 0;
+		    end;
 
-        allocateregs(assignreg, [reg], regtemps);
-        { no specific ptr or real regs on the VAX }
-        ptrtemps := 0;
-        realtemps := 0;
-        end;
-      iAPX86:
-        begin
-        regtemps := 0;
-        {static link must be register bx}
-        {static link gets the only available register}
-        if newtravrsinterface then
-          if not new_proctable[blockref div (pts + 1)]^[blockref mod (pts +
-             1)].intlevelrefs then
-            begin
-            allocateregs(assignreg, [reg], regtemps);
-            end
-          else if not proctable[blockref].intlevelrefs then
-            begin
-            allocateregs(assignreg, [reg], regtemps);
-            end;
-        { no specific ptr or real regs on the iAPX-86 }
-        ptrtemps := 0;
-        realtemps := 0;
-        end;
-      i80386:
-        begin
-        regtemps := 0;
-        {static link must be register ebx}
-        if newtravrsinterface then
-          with new_proctable[blockref div (pts + 1)]^[blockref mod (pts + 1)] do
-            begin
-            if intlevelrefs then
-              regtemps := 1 { static link gets only register}
-            else regtemps := 0;
-            frameneeded := needsframeptr;
-            end
-        else
-          with proctable[blockref] do
-            begin
-            if intlevelrefs then
-              regtemps := 1 { static link gets only register}
-            else regtemps := 0;
-            frameneeded := needsframeptr;
-            end;
-        allocateregs(1 {assignreg} , [reg, bytereg], regtemps);
+		allocateregs(assignreg, [reg], regtemps);
+		{ no specific ptr or real regs on the VAX }
+		ptrtemps := 0;
+		realtemps := 0;
+		end;
+	      iAPX86:
+		begin
+		regtemps := 0;
+		{static link must be register bx}
+		{static link gets the only available register}
+		if newtravrsinterface then
+		  if not new_proctable[blockref div (pts + 1)]^[blockref mod (pts +
+		     1)].intlevelrefs then
+		    begin
+		    allocateregs(assignreg, [reg], regtemps);
+		    end
+		  else if not proctable[blockref].intlevelrefs then
+		    begin
+		    allocateregs(assignreg, [reg], regtemps);
+		    end;
+		{ no specific ptr or real regs on the iAPX-86 }
+		ptrtemps := 0;
+		realtemps := 0;
+		end;
+	      i80386:
+		begin
+		regtemps := 0;
+		{static link must be register ebx}
+		if newtravrsinterface then
+		  with new_proctable[blockref div (pts + 1)]^[blockref mod (pts + 1)] do
+		    begin
+		    if intlevelrefs then
+		      regtemps := 1 { static link gets only register}
+		    else regtemps := 0;
+		    frameneeded := needsframeptr;
+		    end
+		else
+		  with proctable[blockref] do
+		    begin
+		    if intlevelrefs then
+		      regtemps := 1 { static link gets only register}
+		    else regtemps := 0;
+		    frameneeded := needsframeptr;
+		    end;
+		allocateregs(1 {assignreg} , [reg, bytereg], regtemps);
 
-        {allocate register ebp - the frame pointer - if not used}
-        if not switcheverplus[framepointer] and not frameneeded then
-          allocateregs(2, [reg], regtemps);
-        { no specific ptr or real regs }
-        ptrtemps := 0;
-        realtemps := 0;
-        end;
-      mc68000:
-        begin
-          { Static link comes out of general regs.
-          }
-        ptrtemps := 0;
-        if newtravrsinterface then
-          with new_proctable[blockref div (pts + 1)]^[blockref mod (pts + 1)] do
-            begin
-            if intlevelrefs then ptrtemps := 1;
-            if (register_return and not switcheverplus[structstatic] and
-               (struct_calls or struct_ret)) or (language = c) and
-               (switcheverplus[debugging] or switcheverplus[targdebug]) then
-              ptrtemps := ptrtemps + 1;
-            end
-        else
-          with proctable[blockref] do
-            begin
-            if intlevelrefs then ptrtemps := 1;
-            if (register_return and not switcheverplus[structstatic] and
-               (struct_calls or struct_ret)) or (language = c) and
-               (switcheverplus[debugging] or switcheverplus[targdebug]) then
-              ptrtemps := ptrtemps + 1;
-            end;
+		{allocate register ebp - the frame pointer - if not used}
+		if not switcheverplus[framepointer] and not frameneeded then
+		  allocateregs(2, [reg], regtemps);
+		{ no specific ptr or real regs }
+		ptrtemps := 0;
+		realtemps := 0;
+		end;
+	      mc68000:
+		begin
+		  { Static link comes out of general regs.
+		  }
+		ptrtemps := 0;
+		if newtravrsinterface then
+		  with new_proctable[blockref div (pts + 1)]^[blockref mod (pts + 1)] do
+		    begin
+		    if intlevelrefs then ptrtemps := 1;
+		    if (register_return and not switcheverplus[structstatic] and
+		       (struct_calls or struct_ret)) or (language = c) and
+		       (switcheverplus[debugging] or switcheverplus[targdebug]) then
+		      ptrtemps := ptrtemps + 1;
+		    end
+		else
+		  with proctable[blockref] do
+		    begin
+		    if intlevelrefs then ptrtemps := 1;
+		    if (register_return and not switcheverplus[structstatic] and
+		       (struct_calls or struct_ret)) or (language = c) and
+		       (switcheverplus[debugging] or switcheverplus[targdebug]) then
+		      ptrtemps := ptrtemps + 1;
+		    end;
 
-          { For Versados the debugger/profiler uses one dedicated register.
-            If generating 68000 pic and there is an own section, then a
-            dedicated register is used here too.  If both are true the
-            debugger loses and debugger steps are three instructions long.
-          }
-        if (targetopsys = vdos) and ((switcheverplus[pic] and (ownsize > 0)) or
-           switcheverplus[debugging] or switcheverplus[profiling]) then
-          ptrtemps := ptrtemps + 1;
+		  { For Versados the debugger/profiler uses one dedicated register.
+		    If generating 68000 pic and there is an own section, then a
+		    dedicated register is used here too.  If both are true the
+		    debugger loses and debugger steps are three instructions long.
+		  }
+		if (targetopsys = vdos) and ((switcheverplus[pic] and (ownsize > 0)) or
+		   switcheverplus[debugging] or switcheverplus[profiling]) then
+		  ptrtemps := ptrtemps + 1;
 
-        allocateregs(assignptrreg, [ptrreg], ptrtemps);
-        regtemps := 0;
-        allocateregs(assignreg, [reg], regtemps);
-        realtemps := 0;
-        if switcheverplus[fpc68881] then
-          allocateregs(assignrealreg, [realreg], realtemps);
-        end;
-      end;
-    if switcheverplus[tswitch1] and switcheverplus[details] then
-      begin
-      writeln('register assignments for block ', blockref: 1);
-      for i := 0 to regtablelimit do
-        with regvars[i], varlife do
-          begin
-          if regid <> 0 then
-            begin
-            writeln('id ', regid: 2, ' typ ', ord(regkind): 1, ' param ', parameter: 1,
-                    ' off ', offset: 1, ' lon ', lonmin: 1, ' ', lonmax: 1, ' fon ',
-                    fonmin: 1, ' ', fonmax: 1);
-            end;
-          end;
-      end;
-    applytotree;
-  end {assignregs} ;
+		allocateregs(assignptrreg, [ptrreg], ptrtemps);
+		regtemps := 0;
+		allocateregs(assignreg, [reg], regtemps);
+		realtemps := 0;
+		if switcheverplus[fpc68881] then
+		  allocateregs(assignrealreg, [realreg], realtemps);
+		end;
+	      end;
+	    if switcheverplus[tswitch1] and switcheverplus[details] then
+	      begin
+	      writeln('register assignments for block ', blockref: 1);
+	      for i := 0 to regtablelimit do
+		with regvars[i], varlife do
+		  begin
+		  if regid <> 0 then
+		    begin
+		    writeln('id ', regid: 2, ' typ ', ord(regkind): 1, ' param ', parameter: 1,
+			    ' off ', offset: 1, ' lon ', lonmin: 1, ' ', lonmax: 1, ' fon ',
+			    fonmin: 1, ' ', fonmax: 1);
+		    end;
+		  end;
+	      end;
+	    applytotree;
+	  end {assignregs} ;
 
 
-procedure loops;
+	procedure loops;
 {
     Purpose:
       Hoist invariant expressions out of loops.
@@ -1721,6 +1721,175 @@ procedure loops;
 
   end {loops} ;
 
+  procedure improvesets;
+
+{
+    Purpose:
+      Improve sets by making empty set lengths equal to the length of the
+      operation applied to them, and if possible pass as the integer zero.
+
+      body.pas already does this for non-empty constant sets, because it
+      knows the type of the set from the type of the elements used to build
+      it.
+
+      Code generators had the responsibility of trimming empty sets to the
+      proper length.  When I (DRB) began writing the aarch64 code generator
+      I wanted set operations to happen in registers where possible, and
+      decided to remove the empty set complication away from the code generator.
+
+      This all stems from the fact that this technology was originally written
+      for the 16-bit PDP-11.  Short sets were treated like long sets, always
+      in memory.
+
+      This does open the door for further improvements to set code ...
+
+    Inputs:
+      Head of a list of basic blocks.
+
+    Outputs:
+      None:
+
+    Algorithm:
+      Walk basic blocks, statements, and expressions recursively and for
+      each expression in the DAG, look for for set operations that reference
+      a set constant which is longer than length than the length of the operator
+      referencing it.  We know this is an empty set so can shorten it.  We can
+      do so in place because set constants are never CSEs.  If the resulting
+      length is less than setintbytes we pass it as zero.
+
+    Sideeffects:
+      Current procedure is modified.
+
+    Written 9/4/2026.
+
+}
+
+  procedure improvesetexpr(expr: nodeindex);
+{
+    Purpose:
+      Fixes up bldset nodes that build an empty set.
+
+    Inputs:
+      expression : index of the expression to be examined.
+
+    Outputs:
+      none.
+
+    Algorithm:
+      Walk all of the nodes of the expression looking for bldset
+      nodes.
+
+    Sideeffects:
+      Graph is changed.
+
+    Written 9/4/2026
+
+}
+
+    var
+      setexprlen: addressrange; { size ranges of expression }
+      exprp, oprndp: nodeptr;
+      i: oprndindex;
+
+
+    begin {improvesetexpr}
+      if expr <> 0 then
+        begin
+        if bigcompilerversion then exprp := @(bignodetable[expr]);
+        if exprp^.action = copy then
+          exprp := @(bignodetable[exprp^.directlink]);
+        if (exprp^.op < intop) and (exprp^.slink <> 0) then
+          improvesetexpr(exprp^.slink);
+        if  (exprp^.form = sets) then
+          begin
+          if exprp^.op <> bldset then
+            begin
+            setexprlen := exprp^.len;
+            for i := 1 to maxoprnd do
+              if exprp^.nodeoprnd[i] then
+                begin
+                oprndp := @(bignodetable[exprp^.oprnds[i]]);
+                if (oprndp^.op = bldset) and (oprndp^.oprnds[1] = 0) and
+                   (oprndp^.len > setexprlen) then
+                  begin {we know it is the empty set}
+                  oprndp^.len := setexprlen;
+                  if setexprlen <= setintbytes then
+                    begin
+                    oprndp^.op := intop;
+                    oprndp^.nodeoprnd[1] := false;
+                    oprndp^.oprnds[1] := 0;
+                    oprndp^.nodeoprnd[2] := false;
+                    oprndp^.oprnds[2] := 0;
+                    end;
+                  end;
+                end;
+            end
+          end;
+        for i := 1 to maxoprnd do
+          if exprp^.nodeoprnd[i] then
+            improvesetexpr(exprp^.oprnds[i]);
+        end;
+    end {improvesetexpr} ;
+
+    procedure improvesetstmtlist(firststmt: nodeindex);
+
+   { Improve bldset nodes in a list of statements.
+   }
+
+    var
+      p: nodeptr; { for access to statement node }
+
+    procedure improvesetstmt(stmt: nodeindex);
+
+    { Improve bldset nodes in a single statement.
+    }
+
+    var
+      currentstmt: node; { current stmt node }
+      p: nodeptr;
+
+
+      begin {improvesetstmt}
+      if bigcompilerversion then p := @(bignodetable[stmt]);
+      currentstmt := p^;
+      with currentstmt do
+        begin
+        case stmtkind of
+          blkhdr, labelhdr, gotohdr, nohdr, caseerrhdr, loopbrkhdr, cswbrkhdr,
+          loopconthdr, swbrkhdr, caselabhdr, casegroup, whilebothdr, loopbothdr,
+          loophdr: { no expressions };
+          casehdr: improvesetexpr(selector);
+          whilehdr, rpthdr, ifhdr, foruphdr, fordnhdr, withhdr, simplehdr,
+          syscallhdr, untilhdr, cforhdr, cforbothdr, returnhdr, forbothdr:
+            begin
+            improvesetexpr(expr1);
+            improvesetexpr(expr2);
+            end;
+          otherwise writeln('statement missing from improvesetstmt ', ord(stmtkind))
+          end;
+        end;
+      end {applytostmt};
+
+    begin {improvesettmtlist}
+      while firststmt <> 0 do
+        begin
+        if bigcompilerversion then p := @(bignodetable[firststmt]);
+        improvesetstmt(firststmt);
+        firststmt := p^.nextstmt;
+        end;
+    end {improvesetstmtlist};
+
+    begin {improvesets}
+      { now walk the block in dfo }
+      currentblock := root;
+      repeat
+        if not currentblock^.isdead then
+          improvesetstmtlist(currentblock^.beginstmt);
+        currentblock := currentblock^.dfolist;
+      until currentblock = nil;
+    end {applytotree};
+
+
 procedure smooth;
 {
     Purpose:
@@ -2019,6 +2188,7 @@ procedure improve;
 
 
   begin {improve}
+    if language in [pascal, modula2] then improvesets;
     assignregs;
     { smooth before hoisting }
     case targetmachine of

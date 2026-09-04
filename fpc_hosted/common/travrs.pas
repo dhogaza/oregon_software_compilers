@@ -3481,6 +3481,7 @@ procedure build;
             n: workingnode; {used to accumulate operands for node}
             i: oprndindex; {induction var for operand search}
             cnvts: standardids; {converted standard id}
+            initsp: stackindex; {for variable operands to an op i.e. bldset}
 
           procedure insertnode(contextlevel: contextindex);
                       
@@ -4249,14 +4250,13 @@ uniqueoprnd := false;
 
 
           begin {buildnode}
-            { Initialize the working node }
-
             relationbuilt := false;
             unique := false;
               { if the statement we are collecting now are useless don't
                 search for them!
               }
             unique := deadcode and (removedeadcode in genset);
+            { Initialize the working node }
             n.len := targetintsize;
             n.cost := 0;
             n.ownvar := false;
@@ -4332,7 +4332,7 @@ uniqueoprnd := false;
                 else collectoprnds(2);
                 insertsequential;
                 end;
-              setelt, plusop, minusop, mulop, bldset, divop, stddivop,
+              setelt, plusop, minusop, mulop, divop, stddivop, bldset,
               dummyarg2op, slashop, kwoop, modop, stdmodop, shiftlop, indxop,
               pindxop, aindxop, paindxop, forerrchkop, loopholeop, shiftrop,
               xorop, returnop, castfptrop, castintop, castptrop, castrealop:
@@ -4673,7 +4673,7 @@ uniqueoprnd := false;
                 stack[sp] := stack[sp - 1];
                 stack[sp - 1] := tmp
                 end;
-              bldnil, newset:
+             bldnil, newset:
                 begin
                 sp := sp + 1;
                 with stack[sp] do
@@ -4681,9 +4681,9 @@ uniqueoprnd := false;
                   context_mark := 0;
                   relation := false;
                   uniqueoprnd := false;
-                  litflag := false;
+                  litflag := true;
                   l := 1;
-                  p := 0
+                  i := 0
                   end;
                 end;
               daddop, daddrop, dfaddrop, dfieldop, dfillop, dintop, drealop,

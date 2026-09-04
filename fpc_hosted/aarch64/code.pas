@@ -5158,6 +5158,7 @@ procedure dosetx;
       setallfields(left)
     else
       begin
+      keytable[key].signed := false;
       if len <= long then    
         begin
         settargetorreg;
@@ -5178,6 +5179,7 @@ procedure dosetx;
         settargetortemp(len);
         moveset(left, key);
         end;
+      keytable[key].signed := false;
       target := key;
     end;
   end {dosetx} ;
@@ -5472,7 +5474,16 @@ var
 
 begin {cmpsetx}
   if len <= long then
+    begin
+    { kludge until we have 64 bit sets passed as intconsts }
+    if keytable[right].oprnd.mode = dataref then
+      begin
+      genmoveaddress(lastnode, right, regkeys[ip0]);
+      { we can clobber right because datarefs are never CSEs }
+      right := regkeys[ip0];
+      end;
     cmpintptrx(cond, cond)
+    end
   else
     begin
     unpackboth(0);
