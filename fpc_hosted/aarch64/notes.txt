@@ -6,18 +6,12 @@ followed by a setvalue(cond) can peek ahead for a jumpcond pseudo op, poach
 its label, and to a tb[n]z directly if it has a refcount of one.  First peephole
 optimization?
 
-optimizing sets ...
-
-write another pass in improve?  doset lengths could be set to the eventual
-length that's needed, for instance, though the code generator can hack that
-easily enough.  
-
 optimizing scratch register operations ...
 
 Use improve to walk the tree looking at procedures that are called in the
 current procedure and track the registers they have used when compiled, to
 guide the codegenerator into prefered scratch registers to use.  And, of course,
-and codegen time just mark scratch registers used by the called procedure.
+at codegen time just mark scratch registers used by the called procedure.
 
 Also ...
 
@@ -27,6 +21,8 @@ if (i>=a) and (i<=b)
 
 by improve which, after all, is what we do generally to stay away from the "in"
 operator when we know that it will be slower than the compare code.
+
+only worth it for big sets.
 
 implmentation in codegen could be something like ...
 
@@ -41,12 +37,7 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
-   -- mda loops with a packed constant structure compiling m68K commc
-
    -- in comma why is the adp register wiped out for each movset?
-
-   -- set arithmetic probably doesn't really handle intconsts
-      correctly, need to check for handle bitmasks?
 
    -- assignment to a regparam is, as the procedure's comments say, what
       triggers addtempsaves to do so.
@@ -57,10 +48,6 @@ if seeking value, wzr is replaced with a register.
       in there, and remove the "var" qualifier on the file pointer parameter.
       While it must be allowed, it's not what is wanted (it needs to be
       a var param).
-
-   -- settemp and signed ...
-
-   -- for i := 1 to -1 fails? (treated as unsigned???)
 
    -- for i := var [down]to const (unimproved) should cmp with the const
       rather than load it into a register as it does now.  Scavenge code
@@ -80,10 +67,6 @@ if seeking value, wzr is replaced with a register.
 
    -- 64-bit arithmetic doesn't work, not suprisingly.
 
-  -- set arithmetic with the empty set fails unless the other set oprnds are
-     longer than 32 bits.
-
-     code generator needs to be able to shrink set operands.
 
 --- current work
 
@@ -132,7 +115,7 @@ Needs more thinking.  Nodes probably need numbering.
 
      externs not defined need to use GOT crap.  For our code, if I add a
      --dynlib or the like switch we would, too.  GOT operands shouldn't be used
-     as a regenoprnd because generation requires an ldr anyway, which is what
+     as a regenoprnd because generation requires an ldr, which is what
      regenoprnd is meant to avoid in the first place.
 `
   -- error calls
@@ -144,12 +127,6 @@ Needs more thinking.  Nodes probably need numbering.
 
     -- Compiler
 
-     main initiation:
-
-	adrp	x0, :got:stdout
-	ldr	x0, [x0, :got_lo12:stdout]
-
-
     -- Library
 
      Will have to figure out how to build a dynamic library (including GOT
@@ -158,13 +135,6 @@ Needs more thinking.  Nodes probably need numbering.
      using this code (keep reminding yourself of this, Don).
 
   --
-
-     Make special empty set integer constant and make movsetx deal with it rather
-     than generate it in the string file.  This will be needed when type:[set const]
-     extension. Conditionalize it as aarch64.
-
-     test for case where short set variables are assigned regtemps due
-     to frequent use.  Might generate some lousy code with extra moves?
 
      -- do for simplicity and clarity 
 
@@ -175,34 +145,11 @@ Needs more thinking.  Nodes probably need numbering.
 
 -- next priorities:
 
-0.1 Alignment and think about unaligned addressing which appears to work 
-    except another thread can walk on you in between two parts being read
-    or written if you cross a long boundary.  Investigate.  Track basic
-    alignment in code generator much as "knowneven" in the mc68K codegen.
-
-0.2 improve vs pushfinal which no longer exists (simpleinvar), need
-    to add a finalop to replace pushfinal?  This is used to designate
-    an invariant final limit ...
-
-    Needs testing, it might actually work as is.
-
-0.3
-    align variables, too.
-
-    unless in packed structure of course.
-
-    This makes using 2, 4, 8, 16 byte moves possible for structs.
-
 2. improve for loops/fix
 
    a. if a register is loaded before the top compare and after
       last branch (boolean expressions in first or last expression),
       mark it.  It doesn't need to be reloaded at the bottom.
-
-9. lots of sign extension and the like issues?
-
-10.targeting logic sucks on this machine, too many instances
-   of ld xn, mem/op xm,xn/mov xn,xm/ when xm is no longer useful.
 
 -- more general
 
@@ -231,8 +178,6 @@ Future enhancements to improve:
    b) combine multiply followed by aindx with length of 1 (no scaling)
       into addrop+MADD/MSUB.
    c) don't forget the MNEG instruction!
-
-2. flatten expressions with comparisions
 
 n-1: find uses for all sorts of weird instructions
 n. vectorization because that was something I always wanted to do ...
