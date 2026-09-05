@@ -4943,6 +4943,12 @@ procedure dointx;
     keytable[key].modifiable := false;
   end {dointx} ;
 
+procedure dorealx;
+{ temporarily just treat it as an intconst
+}
+begin
+dointx;
+end;
 
 {
 procedure dorealx;
@@ -6573,6 +6579,18 @@ procedure movintptrx;
     setallfields(left);
   end {movintptrx};
 
+procedure movrealx;
+
+  begin {movrealx}
+    if keytable[left].oprnd.mode <> fpregister then
+      movintptrx
+    else
+      begin
+      write('movrealx with fpregister source not yet implemented');
+      compilerabort(inconsistent);
+      end;
+  end {movrealx};
+
 procedure movptrx;
 
   var
@@ -7324,6 +7342,43 @@ begin {regparamx}
       end;
     end;
 end {regparamx};
+
+procedure realregparamx;
+
+{TEMPORARY until basic fp register operations are implemented.  Just testing
+ compile of mc68000 compiler bits.
+}
+
+var
+  o: oprndtype;
+  tempkey: keyindex;
+
+begin {realregparamx}
+{
+  if (left = -1) then
+    begin
+    tempkey := settemp(long, reg_oprnd(pseudoinst.oprnds[3]));
+    setvalue(reg_oprnd(fp - pseudoinst.oprnds[2]));
+    regused[fp - pseudoinst.oprnds[2]] := true;
+    gensimplemove(lastnode, tempkey, key);
+    end
+  else
+    begin
+    setvalue(reg_oprnd(pseudoinst.oprnds[3]));
+    regused[pseudoinst.oprnds[3]] := true;
+    if left <> 0 then
+      begin
+      address(left, 0);
+      with keytable[left].oprnd do
+        tempkey := settemp(long, index_oprnd(abstract_offset, reg,
+                           index + pseudoinst.oprnds[2], false));
+      gensimplemove(lastnode, key, tempkey);
+      setkeyvalue(tempkey);
+      end;
+    end;
+}
+setvalue(reg_oprnd(ip0));
+end {realregparamx};
 
 procedure indxx;
 
@@ -8324,12 +8379,15 @@ procedure codeone;
       ptrchk: ptrchkx;
 
   Reals
+}
+      movreal, returnreal: movrealx;
       doreal: dorealx;
-      dofptr: dofptrx;
       realregparam: realregparamx;
+      wrreal: {wrrealx};
+{
+      dofptr: dofptrx;
       realtemp: realtempx;
       flt: fltx;
-      movreal, returnreal: movrealx;
       movlitreal: movlitrealx;
       addreal: realarithmeticx(true, libfadd, libdadd, fadd);
       subreal: realarithmeticx(false, libfsub, libdsub, fsub);
@@ -8348,7 +8406,6 @@ procedure codeone;
       leqreal: cmprealx(ble, libdlss, fble);
       geqreal: cmprealx(bge, libdgtr, fbge);
       gtrreal: cmprealx(bgt, libdgtr, fbgt);
-      wrreal: wrrealx;
       pshfptr: pshfptrx;
       pshlitreal: pshlitrealx;
       pshreal: pshx;
