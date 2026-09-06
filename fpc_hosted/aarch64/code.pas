@@ -5654,13 +5654,14 @@ begin {definelazyx}
   regkey := settemp(long, reg_oprnd(getreg(false)));
   unlock(key);
   gensimplemove(lastnode, statuskey, regkey);
+  markscratchregs;
   gen3(lastnode, buildinst(tbnz, len = long, true), regkey, bitkey,
        settemp(long, labeltarget_oprnd(lastlabel)));
 
   if keytable[left].oprnd.mode = register then gensimplemove(lastnode, left, regkeys[0])
   else genmoveaddress(lastnode, left, regkeys[0]);
   unlock(left);
-  callsupport(libdefinebuf, true);
+  callsupport(libdefinebuf, false);
   definelastlabel;
   keytable[key].regvalid := not scratchreg(keytable[key].oprnd.reg);
 end {definelazyx} ;

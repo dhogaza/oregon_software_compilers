@@ -37,6 +37,10 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
+   -- in csi after getcommandline x15 is saved AFTER p_define is called which is
+      clearly incorrect.  Moving that save mannually up before the preceding tbnz
+      gets rid of the access error and the line is read in properly.
+
    -- in comma why is the adp register wiped out for each movset?
 
    -- assignment to a regparam is, as the procedure's comments say, what
