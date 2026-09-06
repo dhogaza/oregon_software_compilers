@@ -81,7 +81,8 @@ type
   _p_tm =
     record
       second, minute, hour, monthday, month, year,
-      weekday, yearday, isdst, gmtoff: integer;
+      weekday, yearday, isdst: integer;
+      gmtoff: int64;
       timezone: _p_charptr;
     end;
   
@@ -122,6 +123,10 @@ procedure exitst(code: integer); external;
 procedure timestamp(var day, month, year, hour, minute, second: integer); external;
 
 { I/O }
+
+{dummy for now, needed by front end}
+
+procedure getpos(var f: text; var i1,i2: integer); external;
 
 { written in C until we get external vars implemented }
 function _p_inputstream: _p_addressptr; nonpascal;
@@ -417,6 +422,15 @@ end;
   will used the predefined text file type.  Formatted read procedures only work
   with these as does readln.  
 }
+
+procedure getpos;
+
+{strictly a dummy for now}
+
+begin {getpos}
+  i1 := 0;
+  i2 := 0;
+end {getpos};
 
 procedure _p_dumpfilelist;
 
