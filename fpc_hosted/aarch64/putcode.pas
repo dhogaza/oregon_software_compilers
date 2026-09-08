@@ -773,7 +773,7 @@ begin
       if unixtarget = linux then write(macfile, ':lo12:');
       writedatalabel(o.labelno, o.labelownflag, o.externref);
       if (o.externref = 0) and (o.labeloffset <> 0) then
-        write(macfile, '+',o.labeloffset and $FFF:1);
+        write(macfile, '+',o.labeloffset:1);
       if unixtarget = darwin then write(macfile, '@PAGEOFF');
       write(macfile, ']');
       end;

@@ -2744,7 +2744,8 @@ procedure unpackwork(var k: keyindex; {operand to unpack}
       with keytable[k], oprnd do
         begin
         if (keytable[target].oprnd.mode <> register) or
-           not keytable[target].regvalid then
+           not keytable[target].regvalid or
+           (keytable[target].oprnd.reg < firstreg) and (keytable[k].refcount > 1) then
           target := settemp(long, reg_oprnd(getreg(false)));
         if mode = reg_offset then
           basekey := settemp(alignment div bitsperunit,
@@ -6563,7 +6564,14 @@ procedure dovarx(s: boolean {signed variable reference} );
 procedure movintptrx;
 
   begin {movintptrx}
+{
+if keytable[right].refcount = 1 then
+}
     unpack(right, left);
+{
+else
+unpack(right, 0);
+}
     if keytable[left].packedaccess then
       begin
       address(left, 0);
@@ -7405,10 +7413,6 @@ procedure indxx;
       address(left, 0);
       case keytable[left].oprnd.mode of
         dataref:
-          {We would like to index the var with a label offset but one
-           has to scale that by the length of the load or store operation.
-           Need to study clang output.
-          }
           begin
           prefersafereg := keytable[key].refcount + keytable[left].refcount - 1 >
                            assigninitialpenalty;
@@ -7430,14 +7434,43 @@ procedure indxx;
           else keytable[key].alignment := alignmentof(keytable[labelkey].oprnd.labeloffset)
           end;
         label_offset:
+          {This is simple unless the new labeloffset is greater than 4095.  This can happen
+           with a constant index into a packed array, where the array base is in one page
+           but is long enough to spill into another.  For unpacked array access body.pas
+           only generates one indxop for this case so it is not a problem, but two indxops
+           can be generated the packed array case.  This could probably be cleaned up in
+           body.pas but it rarely happens and I am not going to try to do it now.
+          }
           begin
+          { Check if we are crossing page boundary }
+          if keytable[left].oprnd.labeloffset + pseudoinst.oprnds[2] > 4095 then
+            begin
+            labelkey := settemp(long,keytable[left].oprnd);
+            prefersafereg := keytable[key].refcount + keytable[left].refcount - 1 >
+                             assigninitialpenalty;
+            newkey := settemp(long, reg_oprnd(noreg));
+            with keytable[labelkey],oprnd do
+              begin
+              mode := dataref;
+              labeloffset := labeloffset + pseudoinst.oprnds[2];
+              lowbits := false;
+              regenoprnd := oprnd;
+              regsaved := true;
+              genadrp(lastnode, prefersafereg, newkey, labelkey);
+              reg := keytable[newkey].oprnd.reg;
+              lowbits := true;
+              mode := label_offset;
+              pseudoinst.oprnds[2] := 0;
+              end;
+            left := labelkey;
+            end;
           setallfields(left);
           with keytable[key].oprnd do
             begin
             labeloffset := labeloffset + pseudoinst.oprnds[2];
             if alignmentof(len) < alignmentof(labeloffset) then
               keytable[key].alignment := alignmentof(len)
-            else  keytable[key].alignment := alignmentof(labeloffset)
+            else  keytable[key].alignment := alignmentof(labeloffset);
             end;
           end;
         reg_offset:
@@ -8003,14 +8036,15 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
     regkey: keyindex;
 
   begin {jumpcond}
-    address(right, 0);
     labeltarget := settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1]));
     if keytable[right].oprnd.mode = cond then
       begin
+      dereference(right);
       c := keytable[right].oprnd.condition
       end
     else
       begin
+      unpack(right, 0);
       c := ne;
       loadreg(right, 0);
       end;

@@ -6,6 +6,10 @@ followed by a setvalue(cond) can peek ahead for a jumpcond pseudo op, poach
 its label, and to a tb[n]z directly if it has a refcount of one.  First peephole
 optimization?
 
+likewise (and related!) for something like "if packedbitarray[n] then " doesn't have
+to unpack the bit then compare with zero.  It can load the correct byte and do a test
+bit and branch.
+
 optimizing scratch register operations ...
 
 Use improve to walk the tree looking at procedures that are called in the
