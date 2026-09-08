@@ -361,7 +361,7 @@ const
   defextreturnlinksize = 16; {size of a procedure return link in addressing
                             units (includes dynamic link on 68k) for externals}
   procparamsize = 16; {size of a procedure parameter in addressing units}
-  staticlinkoffset = -8; {position of static link in saved registers area}
+  staticlinkoffset = {-8}0; {offset to static link to access variables}
   stackalign = 8; {alignment requirement for the stack}
   bitsperunit = 8; {bits per address unit}
   bitsperfileunit = 8; {bits per file allocation unit}
