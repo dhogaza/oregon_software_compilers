@@ -1169,7 +1169,7 @@
 .L15:
 # Line: 515, Stmt: 0
 	adrp	x24,.L32767+16384@PAGE
-	str	wzr,[x24,.L32767+3208@PAGEOFF]
+	str	wzr,[x24,.L32767+19592@PAGEOFF]
 .L5:
 	ldp	x27,x28,[x29,-16]
 	ldp	x25,x26,[x29,-32]
@@ -1321,7 +1321,7 @@
 	mov	x0,x27
 	bl	_p_wts 
 	adrp	x26,.L32767+16384@PAGE
-	ldrsw	x1,[x26,.L32767+3208@PAGEOFF]
+	ldrsw	x1,[x26,.L32767+19592@PAGEOFF]
 	mov	x2,1
 	mov	x0,x27
 	bl	_p_wti 
@@ -1882,7 +1882,7 @@
 # Line: 726, Stmt: 1
 # Line: 728, Stmt: 2
 	adrp	x28,.L32767+16384@PAGE
-	strb	wzr,[x28,.L32767+3212@PAGEOFF]
+	strb	wzr,[x28,.L32767+19596@PAGEOFF]
 # Line: 729, Stmt: 0
 	adrp	x28,.L32767@PAGE
 	ldrsw	x27,[x28,.L32767+1940@PAGEOFF]
@@ -2164,7 +2164,7 @@
 # Line: 811, Stmt: 0
 	adrp	x27,.L32767+16384@PAGE
 	mov	w16,1
-	strb	w16,[x27,.L32767+3220@PAGEOFF]
+	strb	w16,[x27,.L32767+19604@PAGEOFF]
 # Line: 812, Stmt: 0
 	b	.L32763
 .L111:
@@ -4431,12 +4431,12 @@
 	strb	w16,[x15,12]
 # Line: 1606, Stmt: 0
 	adrp	x24,.L32767+16384@PAGE
-	ldrsw	x24,[x24,.L32767+3208@PAGEOFF]
+	ldrsw	x24,[x24,.L32767+19592@PAGEOFF]
 	add	w14,w24,1
 	str	w14,[x15,8]
 # Line: 1608, Stmt: 0
 	adrp	x24,.L32767+16384@PAGE
-	ldrsw	x15,[x24,.L32767+3208@PAGEOFF]
+	ldrsw	x15,[x24,.L32767+19592@PAGEOFF]
 	cbnz	w15,.L430
 .L431:
 # Line: 1608, Stmt: 0
@@ -4447,7 +4447,7 @@
 .L430:
 # Line: 1609, Stmt: 0
 	adrp	x24,.L32767+16384@PAGE
-	ldrsw	x15,[x24,.L32767+3208@PAGEOFF]
+	ldrsw	x15,[x24,.L32767+19592@PAGEOFF]
 	mov	x24,512
 	sdiv	w14,w15,w24
 	msub	w13,w14,w24,w15
@@ -4484,9 +4484,9 @@
 	add	w28,w28,1
 .L436:
 # Line: 1620, Stmt: 0
-	ldrsw	x14,[x24,.L32767+3208@PAGEOFF]
+	ldrsw	x14,[x24,.L32767+19592@PAGEOFF]
 	add	w23,w14,1
-	str	w23,[x24,.L32767+3208@PAGEOFF]
+	str	w23,[x24,.L32767+19592@PAGEOFF]
 # Line: 1621, Stmt: 0
 	adrp	x14,.L32767@PAGE
 	add	x23,x14,.L32767@PAGEOFF
@@ -9282,7 +9282,7 @@ _main:
 	bl	.P2  // csi
 # Line: 3351, Stmt: 0
 	adrp	x28,.L32767+16384@PAGE
-	ldrb	w28,[x28,.L32767+3212@PAGEOFF]
+	ldrb	w28,[x28,.L32767+19596@PAGEOFF]
 	cbz	w28,.L1010
 .L1011:
 # Line: 3353, Stmt: 0
@@ -9320,7 +9320,7 @@ _main:
 .L32764:
 # Line: 3362, Stmt: 0
 	adrp	x28,.L32767+16384@PAGE
-	ldrb	w28,[x28,.L32767+3220@PAGEOFF]
+	ldrb	w28,[x28,.L32767+19604@PAGEOFF]
 	cbz	w28,.L1013
 .L1014:
 # Line: 3362, Stmt: 0
