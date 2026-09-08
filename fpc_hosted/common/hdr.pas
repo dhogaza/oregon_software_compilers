@@ -29,8 +29,6 @@ Update release version for PC-VV0-GS0 at 2.3.0.1
 
 }
 
-
-
 unit hdr;
 
 interface
