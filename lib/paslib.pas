@@ -715,7 +715,7 @@ begin
         _p_liberror('empty flags parameter for ' + filename);
       flags := copy(str2, flagspos + 1, length(str2));
       if (defflags[1] <> flags[1]) then
-        _p_liberror('flags incompatible with reset or rewrite call for ' + filename);
+        _p_liberror('flags ' + flags + ' incompatible with reset or rewrite call for ' + filename);
       end;
     if size > 0 then
       flags := flags + 'b';
