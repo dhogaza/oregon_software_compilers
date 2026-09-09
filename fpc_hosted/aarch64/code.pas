@@ -7841,7 +7841,7 @@ procedure callroutinex(s: boolean {signed function value} );
     if linkreg and ((pseudoinst.oprnds[3] > 0) or (level > 2) and
        (levelhack <> 0)) then
       gensimplemove(lastnode, settemp(long,
-                    index_oprnd(signed_offset, fp, {staticlinkoffset} -long, false)), regkeys[sl]);
+                    index_oprnd(signed_offset, fp, -long, false)), regkeys[sl]);
 
     tempkey := savetempkey;
 
