@@ -332,7 +332,7 @@ procedure unnestparams(root: nodeindex {tree to visit});
 
   var
     j: 1..3; {induction for operand scan}
-    k: keyindex; {dummy argument to walknode}
+    k: keyindex; {dummy argument to salknode}
     ptr: nodeptr; {used for access to root node}
     op: operatortype; {operator for this node}
 
@@ -1616,8 +1616,27 @@ with target = 0.
 
      var
        tk: keyindex;
+       slink: nodeindex;
+       slinkp: nodeptr;
 
       begin {regtargetnode}
+
+      { Another horrible artifact of how body.pas generates pseudocode for
+        writes.  We have to pull function calls out of bldfmt operands but
+        we don't know where an individual wr starts.
+
+        All pretense of supporting caching versions of the compiler have
+        officially disappeared at this point.
+      }
+
+      slink := rootp^.slink; 
+      while (slink <> 0) and (bignodetable[slink].op <> wr) do
+        begin
+        if (bignodetable[slink].action = visit) and (bignodetable[slink].op = bldfmt) then
+          unnestparams(bignodetable[slink].oprnds[2]);
+       slink := bignodetable[slink].slink;
+       end;
+
         if targetmachine = aarch64 then unnestparams(r);
         walknode(l, lkey, 0, true);
         mapkey;
@@ -1837,6 +1856,32 @@ with target = 0.
           end;
         clearkeys;
       end {rdnode} ;
+
+    procedure bldfmtnode;
+
+{ Walk and generate code for a bldfmtnode which pushes a value on the stack
+  or to a hard-wired register (known to the code generator)
+
+  Left operand is the link to other parameters, right operand is the
+  value.
+
+  DRB: yes, this is a hack to work around the existing logic of this old
+  compiler technology without doing a lot of rewriting.
+}
+
+      begin {stacknoderegnode}
+        walknode(l, lkey, 0, true);
+        mapkey;
+
+        if targetmachine <> aarch64 then
+          genpseudo(stacktarget, len, key, refcount, copycount, 1, 0, 0);
+
+        walkvalue(r, rkey, key);
+        genpseudo(fmt, len, key, 0, 0, rkey, 0, 0);
+
+        clearkeys;
+      end {stacknoderegnode} ;
+
 
 
     procedure reservenode;
@@ -2218,7 +2263,7 @@ with target = 0.
           unscallparam: callparamnode(op);
           reserve: reservenode;
           pushaddr, pushstraddr: pushaddrnode(op, form);
-          bldfmt: stackregnode(op, none);
+          bldfmt: {stackregnode(op, none)} bldfmtnode;
           pushproc: pushprocnode;
           pushfinal: pushfinalnode;
           pushvalue, pushlitvalue, pushfptr: stacknode(op, form);
@@ -2382,7 +2427,7 @@ with target = 0.
         end;
       root := nextroot;
       end;
-  end {walknode} ;
+  end {walknode};
 
 
 procedure walkboolean(root: nodeindex; {root of tree to walk}
@@ -3112,6 +3157,7 @@ stinks}
       var
         ptr: nodeptr; {used to access expr node for new call}
         targetflag: 0..2; {flag to pass the type of number used}
+p:nodeptr;
 
       begin
         genstmtbrk;
