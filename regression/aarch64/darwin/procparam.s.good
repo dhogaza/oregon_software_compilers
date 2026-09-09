@@ -161,7 +161,7 @@ ext:
 	mov	x1,15
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldrsw	x0,[x28,-16]
+	ldrsw	x0,[x28,-8]
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -198,7 +198,7 @@ ext:
 	bl	.P3  // funcparam
 # Line: 46, Stmt: 0
 	mov	x0,1
-	add	x15,x29,8
+	add	x15,x29,xzr
 	str	x15,[sp]
 	adr	x16,.P8  // upref
 	str	x16,[sp,8]
