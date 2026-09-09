@@ -705,15 +705,13 @@ begin
       begin
       str2 := trimright(str2ptr^);
       flagspos := pos(str2, ':');
-      if flagspos = 0 then
-        ext := str2
-      else
-        ext := copy(str2, 1, flagspos - 1);
+      if flagspos = 0 then ext := str2
+      else ext := copy(str2, 1, flagspos - 1);
       if pos(filename, '.') = 0 then
         filename := filename + ext;
       if flagspos = length(str2) then
         _p_liberror('empty flags parameter for ' + filename);
-      flags := copy(str2, flagspos + 1, length(str2));
+      if flagspos <> 0 then flags := copy(str2, flagspos + 1, length(str2));
       if (defflags[1] <> flags[1]) then
         _p_liberror('flags ' + flags + ' incompatible with reset or rewrite call for ' + filename);
       end;
