@@ -316,8 +316,8 @@ type
   oprnd_modes = (nomode, register, fpregister, tworeg, shift_reg, extend_reg,
                  imm12, imm16, immbitmask, relative, pre_index, post_index,
                  abstract_offset, signed_offset, unsigned_offset, label_offset,
-                 reg_offset, literal, labeltarget, dataref, extprocref,
-                 localprocref, proccall, libcall, cond, intconst, realconst);
+                 reg_offset, reg_bitoffset, literal, labeltarget, dataref,
+                 extprocref, localprocref, proccall, libcall, cond, intconst, realconst);
 
   oprnd_mode_set = set of oprnd_modes;
 

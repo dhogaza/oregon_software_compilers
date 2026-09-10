@@ -696,6 +696,21 @@ function reg_offset_oprnd(reg, reg2: regindex; shift: bits2;
   end;
 
 
+function reg_bitoffset_oprnd(reg, reg2: regindex): oprndtype;
+
+{ This mode is only used by paindxx and never emitted }
+
+  var
+    o:oprndtype;
+
+  begin
+    o.mode := reg_bitoffset;
+    o.reg := reg;
+    o.reg2 := reg2;
+    o.bitoffset := 0;
+    reg_bitoffset_oprnd := o;
+  end;
+
 function tworeg_oprnd(reg, reg2: regindex): oprndtype;
 
   var
@@ -1479,7 +1494,7 @@ procedure adjustregcount(k: keyindex; {operand to adjust}
         abstract_offset, signed_offset, unsigned_offset, label_offset:
           if regvalid then
             registers[reg] := registers[reg] + delta;
-        reg_offset, tworeg:
+        reg_offset, reg_bitoffset, tworeg:
           begin
           if regvalid then
             registers[reg] := registers[reg] + delta;
@@ -2732,6 +2747,7 @@ procedure unpackwork(var k: keyindex; {operand to unpack}
   var
     inst:insts;
     basekey, reg2key, bitindexkey, maskkey: keyindex;
+    l: addressrange;
 
   begin {unpackwork}
     if keytable[k].packedaccess then
@@ -2747,14 +2763,20 @@ procedure unpackwork(var k: keyindex; {operand to unpack}
            not keytable[target].regvalid or
            (keytable[target].oprnd.reg < firstreg) and (keytable[k].refcount > 1) then
           target := settemp(long, reg_oprnd(getreg(false)));
-        if mode = reg_offset then
+        if mode = reg_bitoffset then
           basekey := settemp(alignment div bitsperunit,
                             index_oprnd(unsigned_offset, reg, 0, false))
         else
-          basekey := settemp(alignment div bitsperunit, oprnd);
+          begin
+          if (mode = reg_offset) then
+            if shift = 3 then l := long
+            else l := word
+          else l := alignment div bitsperunit;
+          basekey := settemp(l, oprnd);
+          end;
         keytable[basekey].signed := false;
         gensimplemove(lastnode, basekey, target);
-        if mode = reg_offset then
+        if mode = reg_bitoffset then
           begin
           reg2key := settemp(long, reg_oprnd(reg2));
 	  gen3(lastnode, buildinst(lsrinst,false, false), target, target, reg2key);
@@ -3799,6 +3821,7 @@ procedure pack(src, dst: keyindex);
     isconst, allones: boolean;
     constvalue: integer;
     optimizeconst: boolean; { field values that are 0 or all ones are special }
+    l: addressrange;
 
 begin {pack}
   with keytable[src].oprnd do
@@ -3812,7 +3835,7 @@ begin {pack}
     end;
   with keytable[dst], oprnd do
     begin
-    optimizeconst := (mode = reg_offset) and isconst and ((constvalue = 0) or allones);
+    optimizeconst := (mode = reg_bitoffset) and isconst and ((constvalue = 0) or allones);
     if optimizeconst then
         maskkey := settemp(long, intconst_oprnd((power2(len) - 1) * power2(bitoffset)));
     end;
@@ -3822,23 +3845,28 @@ begin {pack}
   lock(dst);
   dstregkey := settemp(long, reg_oprnd(getreg(false)));
   lock(dstregkey);
-  if keytable[dst].oprnd.mode = reg_offset then
-    begin
-    with keytable[dst], oprnd do
+  with keytable[dst], oprnd do
+    if mode = reg_bitoffset then
       begin
       dstbasekey := settemp(alignment div bitsperunit,
                             index_oprnd(unsigned_offset, reg, 0, true));
       reg2key := settemp(long, reg_oprnd(reg2));
+      end
+    else
+      begin
+      if (mode = reg_offset) then
+        if shift = 3 then l := long
+        else l := word
+      else
+        l := keytable[dst].alignment div bitsperunit;
+      dstbasekey := settemp(l, keytable[dst].oprnd);
       end;
-    end
-  else
-    dstbasekey := settemp(keytable[dst].alignment div bitsperunit, keytable[dst].oprnd);
   unlock(src);
   unlock(dst);
   keytable[dstbasekey].signed := false;
   gensimplemove(lastnode, dstbasekey, dstregkey);
 
-  if keytable[dst].oprnd.mode = reg_offset then
+  if keytable[dst].oprnd.mode = reg_bitoffset then
     begin
     if optimizeconst then
       begin
@@ -3862,7 +3890,7 @@ begin {pack}
            settemp(long, imm12_oprnd(keytable[dst].oprnd.bitoffset, false)),
            settemp(long, imm12_oprnd(keytable[dst].len, false)));
 
-  if not optimizeconst and (keytable[dst].oprnd.mode = reg_offset) then
+  if not optimizeconst and (keytable[dst].oprnd.mode = reg_bitoffset) then
     begin
     gen2(lastnode, buildinst(neg, false, false), regkeys[ip0], reg2key);
     gen3(lastnode, buildinst(rorinst, false, false), dstregkey, dstregkey, regkeys[ip0]);
@@ -7638,8 +7666,7 @@ procedure paindxx;
          settemp(long, imm12_oprnd(3 - lenbits, false)),
          settemp(long, imm12_oprnd(48, false)));
     gen3(lastnode, buildinst(add, true, false), leftaddrkey, leftaddrkey, tempregkey);
-    setvalue(reg_offset_oprnd(keytable[leftaddrkey].oprnd.reg, keytable[reg2key].oprnd.reg,
-                              0, xtx, keytable[right].signed));                         
+    setvalue(reg_bitoffset_oprnd(keytable[leftaddrkey].oprnd.reg, keytable[reg2key].oprnd.reg));
     unlock(reg2key);
     keytable[key].alignment := bitsperunit;
     keytable[key].packedaccess := true;
