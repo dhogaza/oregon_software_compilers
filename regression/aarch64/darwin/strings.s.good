@@ -231,10 +231,10 @@
 # Line: 29, Stmt: 0
 	mov	x28,1
 	ldrb	w15,[x27]
-	str	x15,[x29,-24]
 .L7:
 	cmp	w28,w15
 	b.gt	.L6
+	str	x15,[x29,-24]
 # Line: 30, Stmt: 0
 	ldrb	w0,[x27, w28, sxtw]
 	mov	x1,1
@@ -304,10 +304,10 @@
 # Line: 53, Stmt: 0
 	mov	x28,1
 	ldrb	w15,[x27]
-	str	x15,[x29,-24]
 .L12:
 	cmp	w28,w15
 	b.gt	.L11
+	str	x15,[x29,-24]
 # Line: 54, Stmt: 0
 	ldrb	w0,[x27, w28, sxtw]
 	mov	x1,1

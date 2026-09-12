@@ -326,7 +326,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x28,.L32767@PAGE
-	ldrb	w0,[x28,.L32767+124@PAGEOFF]
+	ldrsb	w0,[x28,.L32767+124@PAGEOFF]
 	mov	x1,5
 	bl	_p_wtb_o 
 	adrp	x28,.L32766@PAGE
@@ -335,7 +335,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x28,.L32767@PAGE
-	ldrb	w0,[x28,.L32767+125@PAGEOFF]
+	ldrsb	w0,[x28,.L32767+125@PAGEOFF]
 	mov	x1,5
 	bl	_p_wtb_o 
 	adrp	x28,.L32766@PAGE
@@ -344,7 +344,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x28,.L32767@PAGE
-	ldrb	w0,[x28,.L32767+126@PAGEOFF]
+	ldrsb	w0,[x28,.L32767+126@PAGEOFF]
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -355,7 +355,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x28,.L32767@PAGE
-	ldrb	w0,[x28,.L32767+127@PAGEOFF]
+	ldrsb	w0,[x28,.L32767+127@PAGEOFF]
 	mov	x1,5
 	bl	_p_wtb_o 
 	adrp	x28,.L32766@PAGE
@@ -364,7 +364,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x28,.L32767@PAGE
-	ldrb	w0,[x28,.L32767+128@PAGEOFF]
+	ldrsb	w0,[x28,.L32767+128@PAGEOFF]
 	mov	x1,5
 	bl	_p_wtb_o 
 	adrp	x28,.L32766@PAGE
@@ -373,7 +373,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x28,.L32767@PAGE
-	ldrb	w0,[x28,.L32767+130@PAGEOFF]
+	ldrsb	w0,[x28,.L32767+130@PAGEOFF]
 	mov	x1,5
 	bl	_p_wtb_o 
 	adrp	x28,.L32766@PAGE
@@ -382,7 +382,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x28,.L32767@PAGE
-	ldrb	w0,[x28,.L32767+129@PAGEOFF]
+	ldrsb	w0,[x28,.L32767+129@PAGEOFF]
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 
@@ -393,7 +393,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x28,.L32767@PAGE
-	ldrb	w0,[x28,.L32767+131@PAGEOFF]
+	ldrsb	w0,[x28,.L32767+131@PAGEOFF]
 	mov	x1,5
 	bl	_p_wtb_o 
 	adrp	x28,.L32766@PAGE
@@ -402,7 +402,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x28,.L32767@PAGE
-	ldrb	w0,[x28,.L32767+132@PAGEOFF]
+	ldrsb	w0,[x28,.L32767+132@PAGEOFF]
 	mov	x1,5
 	bl	_p_wtb_o 
 	adrp	x28,.L32766@PAGE
@@ -411,7 +411,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x28,.L32767@PAGE
-	ldrb	w0,[x28,.L32767+134@PAGEOFF]
+	ldrsb	w0,[x28,.L32767+134@PAGEOFF]
 	mov	x1,5
 	bl	_p_wtb_o 
 	adrp	x28,.L32766@PAGE
@@ -420,7 +420,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	adrp	x28,.L32767@PAGE
-	ldrb	w0,[x28,.L32767+133@PAGEOFF]
+	ldrsb	w0,[x28,.L32767+133@PAGEOFF]
 	mov	x1,5
 	bl	_p_wtb_o 
 	bl	_p_wtln_o 

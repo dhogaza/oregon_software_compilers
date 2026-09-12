@@ -28,7 +28,7 @@
 	cset	w15,eq
 	strb	w15,[sp,8]
 # Line: 10, Stmt: 0
-	ldrb	w0,[sp,8]
+	ldrsb	w0,[sp,8]
 .L2:
 	add	sp,sp,16
 	ret
@@ -45,7 +45,7 @@
 	cset	w15,ne
 	strb	w15,[sp,8]
 # Line: 16, Stmt: 0
-	ldrb	w0,[sp,8]
+	ldrsb	w0,[sp,8]
 .L3:
 	add	sp,sp,16
 	ret
@@ -62,7 +62,7 @@
 	cset	w15,lt
 	strb	w15,[sp,8]
 # Line: 22, Stmt: 0
-	ldrb	w0,[sp,8]
+	ldrsb	w0,[sp,8]
 .L4:
 	add	sp,sp,16
 	ret
@@ -79,7 +79,7 @@
 	cset	w15,gt
 	strb	w15,[sp,8]
 # Line: 28, Stmt: 0
-	ldrb	w0,[sp,8]
+	ldrsb	w0,[sp,8]
 .L5:
 	add	sp,sp,16
 	ret
@@ -96,7 +96,7 @@
 	cset	w15,le
 	strb	w15,[sp,8]
 # Line: 34, Stmt: 0
-	ldrb	w0,[sp,8]
+	ldrsb	w0,[sp,8]
 .L6:
 	add	sp,sp,16
 	ret
@@ -113,7 +113,7 @@
 	cset	w15,ge
 	strb	w15,[sp,8]
 # Line: 40, Stmt: 0
-	ldrb	w0,[sp,8]
+	ldrsb	w0,[sp,8]
 .L7:
 	add	sp,sp,16
 	ret

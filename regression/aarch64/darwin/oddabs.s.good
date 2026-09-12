@@ -26,7 +26,7 @@
 	cset	w15,ne
 	strb	w15,[sp,8]
 # Line: 5, Stmt: 0
-	ldrb	w0,[sp,8]
+	ldrsb	w0,[sp,8]
 .L2:
 	add	sp,sp,16
 	ret

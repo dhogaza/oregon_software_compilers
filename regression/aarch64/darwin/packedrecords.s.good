@@ -58,7 +58,7 @@
 	bfi	x14,x15,15,32
 	str	x14,[x28,.L32767+24@PAGEOFF]
 # Line: 21, Stmt: 0
-	ldrb	w27,[x28,.L32767+30@PAGEOFF]
+	ldrsb	w27,[x28,.L32767+30@PAGEOFF]
 	ldrh	w15,[x28,.L32767+24@PAGEOFF]
 	bfi	x15,x27,11,1
 	strh	w15,[x28,.L32767+24@PAGEOFF]

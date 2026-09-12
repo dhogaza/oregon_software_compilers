@@ -134,7 +134,7 @@
 	lsl	w15,w28,5
 	adrp	x13,.L32767@PAGE
 	add	x14,x13,.L32767@PAGEOFF
-	add	x15,x14,w15, uxtw 0
+	add	x15,x14,w15, sxtw 0
 	adrp	x13,.L32766@PAGE
 	add	x14,x13,.L32766+1@PAGEOFF
 	add	x15,x15,792
@@ -146,7 +146,7 @@
 	cbnz	x16,.L32762
 	add	w28,w28,1
 	cmp	w28,732
-	b.ls	.L4
+	b.le	.L4
 .L5:
 # Line: 156, Stmt: 0
 	adrp	x27,.L32767@PAGE
@@ -785,7 +785,7 @@
 	add	w15,w14,1
 	str	w15,[x28,.L32767+52@PAGEOFF]
 # Line: 227, Stmt: 0
-	ldrb	w15,[x28,.L32767+61@PAGEOFF]
+	ldrsb	w15,[x28,.L32767+61@PAGEOFF]
 	cbz	w15,.L7
 .L8:
 # Line: 227, Stmt: 0
@@ -845,7 +845,7 @@
 .L13:
 # Line: 238, Stmt: 0
 	adrp	x26,.L32767@PAGE
-	ldrb	w26,[x26,.L32767+61@PAGEOFF]
+	ldrsb	w26,[x26,.L32767+61@PAGEOFF]
 	cbz	w26,.L14
 .L15:
 # Line: 238, Stmt: 0
@@ -915,7 +915,7 @@
 # Line: 255, Stmt: 1
 # Line: 256, Stmt: 0
 	adrp	x15,.L32767@PAGE
-	ldrb	w15,[x15,.L32767+61@PAGEOFF]
+	ldrsb	w15,[x15,.L32767+61@PAGEOFF]
 	cbz	w15,.L22
 .L23:
 # Line: 256, Stmt: 0
@@ -1054,7 +1054,7 @@
 # Line: 288, Stmt: 0
 	strb	w14,[sp,24]
 # Line: 289, Stmt: 0
-	ldrb	w0,[sp,24]
+	ldrsb	w0,[sp,24]
 .L24:
 	add	sp,sp,48
 	ret
@@ -1084,7 +1084,7 @@
 # Line: 304, Stmt: 0
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
-	add	x15,x15,w25, uxtw 0
+	add	x15,x15,w25, sxtw 0
 	ldrb	w14,[x15,23]
 	mul	w15,w28,w14
 	mov	x14,733
@@ -1094,7 +1094,7 @@
 	cneg	w28,w13,mi
 	add	w25,w25,1
 	cmp	w25,8
-	b.ls	.L44
+	b.le	.L44
 .L45:
 # Line: 305, Stmt: 0
 	adrp	x24,.L32767@PAGE
@@ -1107,7 +1107,7 @@
 	bl	_p_new 
 # Line: 307, Stmt: 0
 	adrp	x24,.L32767+20480@PAGE
-	ldrb	w24,[x24,.L32767+24296@PAGEOFF]
+	ldrsb	w24,[x24,.L32767+24296@PAGEOFF]
 	cbz	w24,.L46
 .L47:
 # Line: 307, Stmt: 0
@@ -1127,10 +1127,10 @@
 	str	xzr,[x24,8]
 # Line: 312, Stmt: 0
 	adrp	x23,.L32767@PAGE
-	ldrb	w23,[x23,.L32767+784@PAGEOFF]
+	ldrsb	w23,[x23,.L32767+784@PAGEOFF]
 	cbz	w23,.L48
 	adrp	x23,.L32767@PAGE
-	ldrb	w23,[x23,.L32767+785@PAGEOFF]
+	ldrsb	w23,[x23,.L32767+785@PAGEOFF]
 	cbnz	w23,.L48
 .L49:
 # Line: 312, Stmt: 0
@@ -1152,7 +1152,7 @@
 # Line: 316, Stmt: 0
 	lsl	w15,w28,5
 	add	x14,x23,.L32767@PAGEOFF
-	add	x15,x14,w15, uxtw 0
+	add	x15,x14,w15, sxtw 0
 # Line: 318, Stmt: 0
 	add	x14,x15,792
 	add	x13,x23,.L32767+24@PAGEOFF
@@ -1212,7 +1212,7 @@
 	str	x16,[x15,808]
 # Line: 330, Stmt: 0
 	adrp	x22,.L32767+20480@PAGE
-	ldr	w14,[x22,.L32767+24284@PAGEOFF]
+	ldrsw	x14,[x22,.L32767+24284@PAGEOFF]
 	ldrh	w13,[x15,816]
 	bfi	x13,x14,0,10
 	strh	w13,[x15,816]
@@ -1223,13 +1223,13 @@
 # Line: 335, Stmt: 0
 	add	w28,w28,w27
 	mov	x22,733
-	udiv	w14,w28,w22
+	sdiv	w14,w28,w22
 	msub	w28,w14,w22,w28
 # Line: 336, Stmt: 0
 	add	w27,w27,2
 # Line: 337, Stmt: 0
 	cmp	w27,733
-	b.lo	.L53
+	b.lt	.L53
 .L56:
 # Line: 339, Stmt: 0
 	bl	_p_wtln_o 
@@ -1274,7 +1274,7 @@
 # Line: 354, Stmt: 1
 # Line: 355, Stmt: 0
 	adrp	x28,.L32767+20480@PAGE
-	ldrb	w28,[x28,.L32767+24298@PAGEOFF]
+	ldrsb	w28,[x28,.L32767+24298@PAGEOFF]
 	cbnz	w28,.L61
 .L64:
 # Line: 357, Stmt: 0
@@ -1431,6 +1431,7 @@
 .L75:
 	adrp	x15,.L32767@PAGE
 .L76:
+	adrp	x15,.L32767@PAGE
 # Line: 387, Stmt: 0
 # Line: 388, Stmt: 0
 	bl	.P6  // copy_char
@@ -1491,7 +1492,7 @@
 	ldrb	w15,[x15]
 	cmp	w15,39
 	b.eq	.L81
-	ldrb	w15,[x28,.L32767+60@PAGEOFF]
+	ldrsb	w15,[x28,.L32767+60@PAGEOFF]
 	cbz	w15,.L80
 .L81:
 # Line: 401, Stmt: 0
@@ -1754,7 +1755,7 @@
 .L111:
 # Line: 456, Stmt: 0
 	adrp	x26,.L32767+20480@PAGE
-	ldrb	w26,[x26,.L32767+24298@PAGEOFF]
+	ldrsb	w26,[x26,.L32767+24298@PAGEOFF]
 	cbnz	w26,.L112
 .L113:
 # Line: 456, Stmt: 0
@@ -1801,8 +1802,8 @@
 	mov	x0,32
 	bl	.P4  // new_line
 	adrp	x28,.L32767@PAGE
-	adrp	x15,.L32767+20480@PAGE
 .L117:
+	adrp	x15,.L32767+20480@PAGE
 # Line: 473, Stmt: 0
 	ldr	x14,[x28,.L32767+8@PAGEOFF]
 	str	x14,[x29,-16]
@@ -1812,7 +1813,7 @@
 	bl	_p_define 
 .L32691:
 	adrp	x15,.L32767+20480@PAGE
-	ldrb	w15,[x15,.L32767+24297@PAGEOFF]
+	ldrsb	w15,[x15,.L32767+24297@PAGEOFF]
 	cbnz	w15,.L118
 	ldr	x15,[x29,-16]
 	ldr	x15,[x15,8]
@@ -2067,7 +2068,7 @@
 # Line: 551, Stmt: 1
 # Line: 552, Stmt: 0
 	adrp	x25,.L32767@PAGE
-	ldrb	w25,[x25,.L32767+61@PAGEOFF]
+	ldrsb	w25,[x25,.L32767+61@PAGEOFF]
 	cbz	w25,.L152
 .L153:
 # Line: 552, Stmt: 0
@@ -2084,7 +2085,7 @@
 	bl	_p_wtln_o 
 # Line: 555, Stmt: 0
 	adrp	x25,.L32767+20480@PAGE
-	ldr	w26,[x25,.L32767+24284@PAGEOFF]
+	ldrsw	x26,[x25,.L32767+24284@PAGEOFF]
 .L151:
 # Line: 556, Stmt: 0
 	cmp	w26,733
@@ -2096,7 +2097,7 @@
 	lsl	w25,w26,5
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
-	add	x25,x15,w25, uxtw 0
+	add	x25,x15,w25, sxtw 0
 	ldrh	w28,[x25,816]
 	ubfx	x28,x28,0,10
 .L150:
@@ -2108,11 +2109,11 @@
 	lsl	w25,w28,5
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
-	add	x14,x15,w25, uxtw 0
+	add	x14,x15,w25, sxtw 0
 	lsl	w13,w27,5
 	adrp	x11,.L32767@PAGE
 	add	x12,x11,.L32767@PAGEOFF
-	add	x13,x12,w13, uxtw 0
+	add	x13,x12,w13, sxtw 0
 	add	x12,x14,792
 	add	x14,x13,792
 	mov	x16,12
@@ -2130,7 +2131,7 @@
 	mov	x27,x28
 .L158:
 # Line: 563, Stmt: 0
-	add	x25,x15,w25, uxtw 0
+	add	x25,x15,w25, sxtw 0
 	ldrh	w28,[x25,816]
 	ubfx	x28,x28,0,10
 	b	.L150
@@ -2140,7 +2141,7 @@
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
 	str	x15,[x29,-40]
-	add	x14,x15,w25, uxtw 0
+	add	x14,x15,w25, sxtw 0
 	add	x14,x14,792
 	sub	x13,x29,80
 	mov	x16,26
@@ -2157,11 +2158,11 @@
 .L161:
 # Line: 568, Stmt: 0
 	ldr	x15,[x29,-40]
-	add	x14,x15,w25, uxtw 0
+	add	x14,x15,w25, sxtw 0
 	lsl	w13,w26,5
 	adrp	x11,.L32767@PAGE
 	add	x12,x11,.L32767@PAGEOFF
-	add	x11,x12,w13, uxtw 0
+	add	x11,x12,w13, sxtw 0
 	add	x11,x11,792
 	add	x14,x14,792
 	ldr	w16,[x11],4
@@ -2171,8 +2172,8 @@
 	ldr	w16,[x11],4
 	str	w16,[x14],4
 # Line: 569, Stmt: 0
-	add	x15,x15,w25, uxtw 0
-	add	x14,x12,w13, uxtw 0
+	add	x15,x15,w25, sxtw 0
+	add	x14,x12,w13, sxtw 0
 	ldr	x16,[x14,808]
 	str	x16,[x15,808]
 .L160:
@@ -2180,7 +2181,7 @@
 	lsl	w25,w26,5
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
-	add	x25,x15,w25, uxtw 0
+	add	x25,x15,w25, sxtw 0
 	ldrh	w26,[x25,816]
 	ubfx	x26,x26,0,10
 	b	.L151
@@ -2191,7 +2192,7 @@
 	bl	_p_wtln_o 
 # Line: 575, Stmt: 0
 	adrp	x25,.L32767+20480@PAGE
-	ldrb	w25,[x25,.L32767+24298@PAGEOFF]
+	ldrsb	w25,[x25,.L32767+24298@PAGEOFF]
 	cbz	w25,.L162
 .L163:
 # Line: 577, Stmt: 0

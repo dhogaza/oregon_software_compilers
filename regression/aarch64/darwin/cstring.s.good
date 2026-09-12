@@ -22,20 +22,20 @@
 .L3:
 # Line: 33, Stmt: 0
 	cmp	w15,255
-	b.hs	.L4
-	ldrb	w13,[x14, w15, uxtw]
+	b.ge	.L4
+	ldrb	w13,[x14, w15, sxtw]
 	cbz	w13,.L4
 .L5:
 # Line: 35, Stmt: 0
-	add	x13,x0,w15, uxtw 0
-	ldrb	w16,[x14, w15, uxtw]
+	add	x13,x0,w15, sxtw 0
+	ldrb	w16,[x14, w15, sxtw]
 	strb	w16,[x13,1]
 # Line: 36, Stmt: 0
 	add	w15,w15,1
 	b	.L3
 .L4:
 # Line: 38, Stmt: 0
-	add	x14,x0,w15, uxtw 0
+	add	x14,x0,w15, sxtw 0
 	strb	wzr,[x14,1]
 # Line: 39, Stmt: 0
 	strb	w15,[x0]

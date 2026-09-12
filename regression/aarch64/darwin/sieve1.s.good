@@ -40,7 +40,7 @@ _main:
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
 	add	x15,x15,w27, sxtw 0
-	ldrb	w15,[x15,24]
+	ldrsb	w15,[x15,24]
 	cbz	w15,.L10
 .L11:
 # Line: 22, Stmt: 0
