@@ -88,6 +88,8 @@ begin
   write('expected ''abc 3 abc'': ');
   tests255(short);
   s := '0123456789abcdef';
+  write('expected ''0123456789abcdefabc 19 0123456789abcdefabc'': ');
+  writeln(s + short);
   writeln('expected ''0123456789abcdef'': ', s);
   write('expected ''0123456789abcdef 16 0123456789abcdef'': ');
   tests255(s);
