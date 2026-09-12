@@ -1087,11 +1087,11 @@ function newinsertafter(after: nodeptr; kind: nodekinds): nodeptr;
     newinsertafter := p;
   end {newinsertafter};
 
+procedure checkinst(p: nodeptr);
+
 {Check to make sure all of an instructions operands have
  been set.  Useful to track down nomodes
 }
-
-procedure checkinst(p: nodeptr);
 
 var
   i: oprnd_range;
@@ -1116,6 +1116,23 @@ begin {checkinst}
     compilerabort(inconsistent);
     end;
 end {checkinst};
+
+
+procedure regreferences(p: nodeptr);
+
+var
+  i: oprnd_range;
+
+begin {regreferences}
+  if loopoverflow = 0 then
+    for i := 2 to p^.oprnd_cnt do
+      with p^.oprnds[i] do
+        with loopstack[loopsp] do
+          begin
+          if regstate[reg].active then regstate[reg].used := true;
+          if regstate[reg2].active then regstate[reg2].used := true;
+          end;
+end {regreferences};
 
 procedure geninst(p: nodeptr;
                   i: insttype;
@@ -1207,6 +1224,7 @@ procedure gen2p(p: nodeptr;
     p^.oprnds[1] := keytable[o1].oprnd;
     p^.oprnds[2] := keytable[o2].oprnd;
     checkinst(p);
+    regreferences(p);
   end {gen2p} ;
 
 
@@ -1238,6 +1256,7 @@ procedure gen3p(p: nodeptr;
     p^.oprnds[2] := keytable[o2].oprnd;
     p^.oprnds[3] := keytable[o3].oprnd;
     checkinst(p);
+    regreferences(p);
   end {gen3p} ;
 
 
@@ -1270,6 +1289,7 @@ procedure gen4p(p: nodeptr;
     p^.oprnds[3] := keytable[o3].oprnd;
     p^.oprnds[4] := keytable[o4].oprnd;
     checkinst(p);
+    regreferences(p);
   end {gen4p} ;
 
 
@@ -3249,12 +3269,6 @@ procedure handle_intconst12(var after:  nodeptr; var k: keyindex);
           k := settemp(len, imm12_oprnd(int_value, false))
         else if ((int_value and $FFF) = 0) and (int_value <= $FFF000) then
           k := settemp(len, imm12_oprnd(int_value div $1000, true))
-        else if ((int_value and $F000 = 0) and (int_value <= $FFFFFF)) then
-          begin
-            gen2(after, buildinst(movz, true, false), regkeys[ip0],
-                 settemp(len, imm16_oprnd((int_value div $10000) and $FFFF, 16)));
-            k := settemp(len, reg_oprnd(ip0));
-          end
         else
           begin
           genlongint(after, int_value, ip0);
@@ -3280,7 +3294,9 @@ procedure handle_intconst16(var after: nodeptr; var k: keyindex; r: regindex);
       if mode = intconst then
       begin
         val := int_value;
-        if (val and $FFFF0000) = 0 then
+        if (val = 0) then
+          k := settemp(len, reg_oprnd(zero))
+        else if (val and $FFFF0000) = 0 then
           k := settemp(len, imm16_oprnd(val, 0))
         else
           begin
@@ -4132,6 +4148,7 @@ procedure restoreloopx;
                     keytable[tempreg].oprnd.reg := i;
                     with keytable[stackcopy] do
                       case regenoprnd.mode of
+{
                         dataref:
                           begin
                           genadrp(lastnode, false, tempreg, settemp(long, regenoprnd));
@@ -4143,7 +4160,8 @@ procedure restoreloopx;
                                             regenoprnd.labelownflag,
                                             regenoprnd.externref, regenoprnd.labeloffset)));
                           end;
-                        label_offset:
+}
+                        dataref, label_offset:
                           genadrp(lastnode, false, tempreg, settemp(long, regenoprnd));
                         abstract_offset:
                           gen2(lastnode, ldrinst(len, signed), tempreg,
@@ -4376,7 +4394,13 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
           i := cmp;
           makeaddressable(target, 0);
           unpackwork(target, 0);
+{DRB when we split enterloop into two parts (init and then update reg status)
+ this should not be necessary as regused will be set according to when it is
+ first referenced as an operand..
+}
+          dontchangevalue := ord(keytable[target].oprnd.mode <> nomode);
           loadreg(target, regkey);
+          dontchangevalue := 0;
           limitreg := keytable[target].oprnd.reg;
           adjustregcount(target, 1);
           pseudolabelx;
@@ -4395,6 +4419,8 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
 
       enterloop;
 
+      { Need to set this manually because of the delayed enterloop.
+      }
       if loopoverflow = 0 then
         with loopstack[loopsp] do
           begin
