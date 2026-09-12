@@ -819,7 +819,7 @@ end;
 procedure _p_rewrite;
 
 begin
-  _p_filecommon(filevar, size, str1ptr, str2ptr, errptr, 'w');
+  _p_filecommon(filevar, size, str1ptr, str2ptr, errptr, 'w+');
 end;
 
 function _p_checkio(filevar: _p_addressptr; state: _p_filestatusenum): _p_fileinfoptr;
