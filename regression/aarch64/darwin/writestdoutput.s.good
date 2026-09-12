@@ -87,8 +87,8 @@ _main:
 	mov	x2,4
 	bl	_p_wts_o 
 	adrp	x15,.L32767@PAGE
-	ldrb	w1,[x15,.L32767+40@PAGEOFF]
 	add	x0,x15,.L32767+40@PAGEOFF
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,4
 	bl	_p_wts_o 

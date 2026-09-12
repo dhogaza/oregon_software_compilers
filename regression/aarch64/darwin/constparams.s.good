@@ -18,8 +18,8 @@
 # Line: 6, Stmt: 2
 	str	x0,[x29,-8]
 	ldr	x15,[x29,-8]
-	ldrb	w1,[x15]
 	add	x0,x15,xzr
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 

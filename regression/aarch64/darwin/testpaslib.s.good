@@ -115,8 +115,8 @@ _main:
 	mov	x1,3
 	mov	x2,4
 	bl	_p_wts_o 
-	ldrb	w1,[x28,.L32767+40@PAGEOFF]
 	add	x0,x28,.L32767+40@PAGEOFF
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,4
 	bl	_p_wts_o 
@@ -236,8 +236,8 @@ _main:
 	add	x0,x28,.L32766+144@PAGEOFF
 	sub	x8,x29,272
 	bl	_p_trimright
-	ldrb	w1,[x8]
 	add	x0,x8,xzr
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -253,8 +253,8 @@ _main:
 	add	x0,x28,.L32766+180@PAGEOFF
 	sub	x8,x29,272
 	bl	_p_trimleft 
-	ldrb	w1,[x8]
 	add	x0,x8,xzr
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -270,8 +270,8 @@ _main:
 	add	x0,x28,.L32766+212@PAGEOFF
 	sub	x8,x29,272
 	bl	_p_trim 
-	ldrb	w1,[x8]
 	add	x0,x8,xzr
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -289,8 +289,8 @@ _main:
 	mov	x2,10
 	sub	x8,x29,272
 	bl	_p_copy 
-	ldrb	w1,[x8]
 	add	x0,x8,xzr
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -308,8 +308,8 @@ _main:
 	mov	x2,10
 	sub	x8,x29,272
 	bl	_p_copy 
-	ldrb	w1,[x8]
 	add	x0,x8,xzr
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -327,8 +327,8 @@ _main:
 	mov	w2,4294967291
 	sub	x8,x29,272
 	bl	_p_copy 
-	ldrb	w1,[x8]
 	add	x0,x8,xzr
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -346,8 +346,8 @@ _main:
 	mov	x2,6
 	sub	x8,x29,272
 	bl	_p_copy 
-	ldrb	w1,[x8]
 	add	x0,x8,xzr
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -365,8 +365,8 @@ _main:
 	mov	x2,10
 	sub	x8,x29,272
 	bl	_p_copy 
-	ldrb	w1,[x8]
 	add	x0,x8,xzr
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 

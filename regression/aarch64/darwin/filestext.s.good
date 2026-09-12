@@ -249,8 +249,8 @@ _main:
 	mov	x0,x25
 	bl	_p_rdln 
 # Line: 37, Stmt: 0
-	ldrb	w1,[x26,.L32767+48@PAGEOFF]
 	add	x0,x26,.L32767+48@PAGEOFF
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -375,8 +375,8 @@ _main:
 	mov	x0,x25
 	bl	_p_rdxs 
 # Line: 65, Stmt: 0
-	ldrb	w1,[x26,.L32767+312@PAGEOFF]
 	add	x0,x26,.L32767+312@PAGEOFF
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -819,8 +819,8 @@ _main:
 	mov	x0,x25
 	bl	_p_rdln 
 # Line: 148, Stmt: 0
-	ldrb	w1,[x26,.L32767+48@PAGEOFF]
 	add	x0,x26,.L32767+48@PAGEOFF
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 

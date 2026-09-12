@@ -181,8 +181,8 @@ _main:
 	bl	.P1  // toshortstring
 # Line: 72, Stmt: 0
 	adrp	x15,.L32767@PAGE
-	ldrb	w1,[x15,.L32767+24@PAGEOFF]
 	add	x0,x15,.L32767+24@PAGEOFF
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
