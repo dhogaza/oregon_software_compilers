@@ -6618,14 +6618,7 @@ procedure dovarx(s: boolean {signed variable reference} );
 procedure movintptrx;
 
   begin {movintptrx}
-{
-if keytable[right].refcount = 1 then
-}
     unpack(right, left);
-{
-else
-unpack(right, 0);
-}
     if keytable[left].packedaccess then
       begin
       address(left, 0);
@@ -6657,20 +6650,22 @@ procedure movrealx;
 procedure movptrx;
 
   var
-    regkey, reg2key, rightregkey, onekey: keyindex;
+    regkey, reg2key, indexregkey, onekey: keyindex;
 
   begin {movptrx}
-    if keytable[left].oprnd.mode = tworeg then
-      begin
-      addressboth;
-      regkey := settemp(long, reg_oprnd(keytable[left].oprnd.reg));
-      reg2key := settemp(long, reg_oprnd(keytable[left].oprnd.reg2));
-      genldr(lastnode, byte, false, reg2key, right);
-      genmoveaddress(lastnode, right, regkey);
-      onekey := settemp(long, imm12_oprnd(1, false));
-      gen3(lastnode, buildinst(add, true, false), regkey, regkey, onekey);
-      end
-    else movintptrx;
+    with keytable[left].oprnd do
+      if mode = tworeg then
+        begin
+        addressboth;
+        regkey := settemp(long, reg_oprnd(reg));
+        indexregkey := settemp(byte, index_oprnd(abstract_offset, reg, 0, false));
+        reg2key := settemp(long, reg_oprnd(reg2));
+        genmoveaddress(lastnode, right, regkey);
+        genldr(lastnode, byte, false, reg2key, indexregkey);
+        onekey := settemp(long, imm12_oprnd(1, false));
+        gen3(lastnode, buildinst(add, true, false), regkey, regkey, onekey);
+        end
+      else movintptrx;
   end {movptrx};
 
 procedure movlitintx;

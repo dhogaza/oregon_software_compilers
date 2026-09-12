@@ -340,7 +340,8 @@ procedure unnestparams(root: nodeindex {tree to visit});
     if bigcompilerversion then ptr := @(bignodetable[root]);
     op := ptr^.op;
     if ptr^.action = visit then
-      if op in [call, unscall, callparam, unscallparam, sysfn] then
+      if (op in [call, unscall, callparam, unscallparam, sysfn]) or
+         ((op = plusop) and (ptr^.form = strings)) then
         walknode(root, k, 0, false)
       else
         begin
@@ -3157,7 +3158,6 @@ stinks}
       var
         ptr: nodeptr; {used to access expr node for new call}
         targetflag: 0..2; {flag to pass the type of number used}
-p:nodeptr;
 
       begin
         genstmtbrk;
