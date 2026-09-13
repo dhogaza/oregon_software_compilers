@@ -5800,15 +5800,15 @@ procedure wrstx;
   for write don't extend into the stack.
 }
 
-  var lengthregkey, widthregkey: keyindex;
+  var
     fileregkey: keyindex;
 
   begin
     if formatinfo.count = 0 then
       begin
-      lengthregkey := settemp(long, reg_oprnd(formatinfo.regcount + 1));
-      widthregkey := settemp(long, reg_oprnd(formatinfo.regcount + 2));
-      gensimplemove(lastnode, lengthregkey, widthregkey);
+      markreg(formatinfo.regcount + 2);
+      gensimplemove(lastnode, regkeys[formatinfo.regcount + 1],
+                    regkeys[formatinfo.regcount + 2]);
       end;
     formatinfo.count := 0;
     formatinfo.regcount := ord(filenamed);
@@ -5940,8 +5940,8 @@ procedure fmtx;
 
 begin {fmtx}
   address(left, 0);
-  gensimplemove(lastnode, left, settemp(long, reg_oprnd(firstreg)));
   markreg(firstreg);
+  gensimplemove(lastnode, left, regkeys[firstreg]);
   formatinfo.count := formatinfo.count + 1;
   formatinfo.regcount := firstreg;
   firstreg := firstreg + 1;
