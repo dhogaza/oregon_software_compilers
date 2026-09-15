@@ -4776,9 +4776,10 @@ uniqueoprnd := false;
           start_deadcount: natural; {starting value of deadcount}
           deadthen: boolean; { true if removing and then is dead }
           deadelse: boolean; { true if removing and else is dead }
+          contextactions: boolean; { true if neither branch is dead }
           constvalue: integer; { value if constant }
           saveminfon, { fon before stmtlist }
-           savemaxfon: fonrange; { fon after stmtlist }
+          savemaxfon: fonrange; { fon after stmtlist }
 
 
         begin
@@ -4795,12 +4796,13 @@ uniqueoprnd := false;
           elseblock := nil;
           deadthen := removing and (constvalue = 0);
           deadelse := removing and (constvalue = 1);
+          contextactions := not (deadthen or deadelse) and (removedeadcode in genset);
           { starting a new basic block }
           if deadthen then incr_deadcount;
           { always enter a new context unless removing and we take then path}
           { not deadelse == not removing or ( constvalue = 0 )) }
           newblock(thenblock, startblock, false);
-          if not removing or (deadcode and (removedeadcode in genset)) then
+          if contextactions then
             begin
             savecontext;
             thenblock^.saveop := true;
@@ -4809,7 +4811,7 @@ uniqueoprnd := false;
           buildstmtlist(endthen, nil);
           savemaxfon := foncount;
           foncount := saveminfon;
-          if not removing or (deadcode and (removedeadcode in genset)) then
+          if contextactions then
             restorecontext;
           if deadthen then decr_deadcount;
           dead_exit(start_deadcount);
@@ -4821,18 +4823,17 @@ uniqueoprnd := false;
             if deadelse then incr_deadcount;
             newblock(elseblock, startblock, false);
             elseblock^.restoreop := thenblock^.saveop;
-            if not removing or (deadcode and (removedeadcode in genset)) then
+            if contextactions then
               begin
               savecontext;
               elseblock^.saveop := true;
               end;
             buildstmtlist(endelse, nil);
-            if not removing or (deadcode and (removedeadcode in genset)) then
+            if contextactions then
               restorecontext;
             if deadelse then decr_deadcount;
             dead_exit(start_deadcount);
             end;
-
           newblock(currentblock, currentblock, false);
           addpredsuccs(endthenblock, currentblock);
           if elseblock = nil then
