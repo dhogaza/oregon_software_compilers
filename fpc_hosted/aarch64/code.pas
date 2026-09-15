@@ -6257,9 +6257,19 @@ procedure blockexitx;
       { We only save registers x19 ... and if the proc has a frame we
         we do this indexing negatively off the fp to make sure the index is in range.
 
-        The static link must be the first register saved if used.
+        If we have saved regparam values to memory, the front end has reserved room for
+        the static link in the the first slot of the paramsavesize space. If not, it
+        will be saved with the other callee-saved registers, as the first register saved,
+        which will put it in the same address relative to the frame pointer.
+
+        The static link must always end up saved at [fp, -8] if it is used.
        }
-      regcost := paramcopysize;
+
+      if (paramsavesize <> 0) and (proctable[blockref].intlevelrefs) then
+        regused[sl] := false;
+
+      regcost := paramsavesize;
+
       regcount := -1;
       for i := sp downto pr + 1 do
         if regused[i] then
@@ -6341,8 +6351,8 @@ procedure blockexitx;
           callsupport(libcloseinrange, true);
           end;
 
-      { Save and restore callee-saved registers, link and frame pointer
-        registers, and shrink stack.
+      { Save and restore callee-saved registers, link frame pointer, and if
+        necessary static link registers, and shrink stack.
 
         If this is a leaf proc, this is complicated by the fact that we have to
         index up from sp which might be further away than 12 bits.  The code uses
@@ -6360,6 +6370,14 @@ procedure blockexitx;
         nested proc that makes intermediate level references).
 
       } 
+
+      if (paramsavesize <> 0) and (proctable[blockref].intlevelrefs) then
+        begin
+        keytable[saveregoffsettemp].oprnd.mode := signed_offset;
+        keytable[saveregoffsettemp].oprnd.index := -long;
+        genstr(p1, long, regkeys[sl], saveregoffsettemp);
+        genldr(lastnode, long, false, regkeys[sl], saveregoffsettemp);
+        end;
 
       i := 0;
       while i <= regcount do
@@ -6528,7 +6546,7 @@ procedure blockentryx;
       begin
       blockref := oprnds[1];
       paramsize := oprnds[2];
-      paramcopysize := len;
+      paramsavesize := len;
       if blockref = 0 then
        blksize := quad
       else blksize := oprnds[3];
