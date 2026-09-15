@@ -5452,9 +5452,11 @@ procedure setinsertx;
       if keytable[right].oprnd.mode = dataref then
         begin
         lock(left);
-        genmoveaddress(lastnode, right, regkeys[ip0]);
+        genadrp(lastnode, false, regkeys[ip0], right);
         unlock(left);
-        right := regkeys[ip0];
+        with keytable[right].oprnd do
+          right := settemp(len, labeloffset_oprnd(ip0, labelno, labelownflag, externref,
+                           labeloffset));
         end;
       loadreg(right, left);
       { need to make is_bitmask work with 64 bit masks }
