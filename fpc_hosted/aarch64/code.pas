@@ -5451,7 +5451,9 @@ procedure setinsertx;
       { kludge until we have 64 bit sets passed as intconsts }
       if keytable[right].oprnd.mode = dataref then
         begin
+        lock(left);
         genmoveaddress(lastnode, right, regkeys[ip0]);
+        unlock(left);
         right := regkeys[ip0];
         end;
       loadreg(right, left);

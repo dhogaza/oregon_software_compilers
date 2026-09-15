@@ -330,6 +330,9 @@ procedure forcememoryparam(varlev: levelindex; paramptr: entryptr);
 
 {Register parameters must be assigned to the stack if it is referenced
  by a nested procedure.  
+
+ We must also save room for the static link register just under the
+ frame pointer.
 }
 
 var overflowed: boolean;
