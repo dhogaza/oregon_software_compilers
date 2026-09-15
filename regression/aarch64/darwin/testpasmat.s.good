@@ -3415,7 +3415,7 @@
 	adrp	x27,.L32767@PAGE
 	ldrsb	w27,[x27,.L32767+1926@PAGEOFF]
 	cbz	w27,.L282
-	ldrsb	w27,[x28,-8]
+	ldrsb	w27,[x28,-16]
 	cbnz	w27,.L282
 .L283:
 # Line: 1266, Stmt: 0
@@ -3595,7 +3595,7 @@
 	bl	.P31  // blockcomchar
 .L309:
 # Line: 1309, Stmt: 0
-	ldrsb	w27,[x28,-8]
+	ldrsb	w27,[x28,-16]
 	cbz	w27,.L310
 .L311:
 # Line: 1309, Stmt: 0
@@ -3847,15 +3847,15 @@
 	sub	sp,sp,80
 	stp	x30,x29,[sp,56]
 	add	x29,sp,56
-	stp	x27,x28,[x29,-24]
-	str	x26,[x29,-32]
+	str	x28,[x29,-8]
+	stp	x26,x27,[x29,-32]
 # Line: 1394, Stmt: 1
-	str	x0,[x29,-8]
+	str	x0,[x29,-16]
 # Line: 1395, Stmt: 2
 	adrp	x27,.L32767@PAGE
 	strb	wzr,[x27,.L32767+1930@PAGEOFF]
 # Line: 1396, Stmt: 0
-	ldrsb	w15,[x29,-8]
+	ldrsb	w15,[x29,-16]
 	cbnz	w15,.L350
 	ldrsb	w15,[x27,.L32767+1926@PAGEOFF]
 	cbz	w15,.L349
@@ -3914,8 +3914,8 @@
 	mov	w16,64
 	strb	w16,[x27,.L32767+1312@PAGEOFF]
 .L347:
-	ldp	x27,x28,[x29,-24]
-	ldr	x26,[x29,-32]
+	ldr	x28,[x29,-8]
+	ldp	x26,x27,[x29,-32]
 	ldp	x30,x29,[sp,56]
 	add	sp,sp,80
 	ret

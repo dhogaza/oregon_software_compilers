@@ -161,7 +161,7 @@ ext:
 	mov	x1,15
 	mov	x2,x1
 	bl	_p_wts_o 
-	ldrsw	x0,[x28,-8]
+	ldrsw	x0,[x28,-16]
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
@@ -178,12 +178,12 @@ ext:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
 	add	x29,sp,32
-	str	x28,[x29,-16]
+	str	x28,[x29,-8]
 # Line: 42, Stmt: 1
-	str	x0,[x29,-8]
+	str	x0,[x29,-16]
 # Line: 43, Stmt: 2
 	mov	w16,5
-	str	w16,[x29,-8]
+	str	w16,[x29,-16]
 # Line: 44, Stmt: 0
 	ldr	x16,[x29,24]
 	ldr	x28,[x29,16]
@@ -205,7 +205,7 @@ ext:
 	mov	x1,2
 	bl	.P4  // procparam
 .L8:
-	ldr	x28,[x29,-16]
+	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,32]
 	add	sp,sp,48
 	ret
