@@ -41,8 +41,8 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
-   -- reg params that are saved to memory are saved to where the sl is supposed
-      to go.  need to move information to proctable for one thing?
+   -- need to fix proc prologue and epilogue to save sl individually if
+      paramcopy is nonzero.
 
    -- in comma why is the adp register wiped out for each movset?
 

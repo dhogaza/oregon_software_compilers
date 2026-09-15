@@ -78,7 +78,7 @@ procedure enterblock(level: levelindex; {lex level of block}
       blockkind := codeblock;
       blocksize := initialblocksize(level);
       paramsize := 0;
-      paramcopysize := 0;
+      paramsavesize := 0;
       oldundeftabletop := undeftabletop;
       labellist := labelflag;
       threshold := tabletop;
@@ -3128,8 +3128,8 @@ procedure block;
     verify1(neverskipset + [dot], blockenderr);
 
     listundeflabels;
-    genstmt(paramcopysize);
-    genint(display[level].paramcopysize);
+    genstmt(paramsavesize);
+    genint(display[level].paramsavesize);
     genstmt(endblk);
     exitblock(level);
   end {block} ;

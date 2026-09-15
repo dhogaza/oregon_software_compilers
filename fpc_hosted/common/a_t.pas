@@ -46,7 +46,7 @@ type
               caselabrange, endcase, begcfor, endcfor, begreturn, begloop,
               endloop, begexit, blksize, hiddenstmt, begswitch, endswitch,
               inits, loopbreak, loopcont, switchbreak, syscall, simple,
-              begdata, paramcopysize, endall);
+              begdata, paramsavesize, endall);
 
 
   { expression operators emitted by analys, read by travrs }

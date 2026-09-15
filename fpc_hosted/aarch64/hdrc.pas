@@ -594,7 +594,7 @@ var
   blockusesframe: boolean; {set to true in blockentryx if frame is used}
   leaf: boolean; {set to true in blockentryx if this is a leaf proc}
 
-  paramsize, blksize, paramcopysize: addressrange;
+  paramsize, blksize, paramsavesize: addressrange;
 
   stackcounter: keyindex; {key describing top of runtime stack}
   stackbase: keyindex; {key describing the base of the runtime stack}

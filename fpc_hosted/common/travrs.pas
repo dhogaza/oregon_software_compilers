@@ -6658,7 +6658,7 @@ uniqueoprnd := false;
 
       procedure buildsize(var size: addressrange);
 
-      { blksize and paramcopysize pass size bookkeeping information which
+      { blksize and paramsavesize pass size bookkeeping information which
         isn't known until the compilation of a procedure is known.
 
         There should be a single statement pseudo op that passes size
@@ -6709,7 +6709,7 @@ uniqueoprnd := false;
           switchbreak: buildsbreak;
           begdata: passdata;
           blksize: buildsize(final_block_size);
-          paramcopysize: buildsize(pcs);
+          paramsavesize: buildsize(pcs);
           otherwise
             begin
             writeln('travrs: unhandled stmt operator #',

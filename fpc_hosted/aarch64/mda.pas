@@ -343,8 +343,10 @@ begin
     if registercandidate then
       begin 
       registercandidate := false;
-      dummy := allocparamoffset(display[varlev].paramcopysize, length, overflowed);
-      offset := -display[varlev].paramcopysize;
+      if display[varlev].paramsavesize = 0 then
+        display[varlev].paramsavesize := ptrsize;
+      dummy := allocparamoffset(display[varlev].paramsavesize, length, overflowed);
+      offset := -display[varlev].paramsavesize;
       end;
 end;
 
