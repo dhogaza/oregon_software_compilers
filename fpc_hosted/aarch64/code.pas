@@ -3699,7 +3699,10 @@ procedure enterloop;
               if active then
                 begin
                 context[contextsp].bump[i] := true;
-                stackcopy := savereg(i, true);
+                { Using regenoprnd for limit reg could break semantics as change to that
+                  location would change the limit calculation mid-loop.
+                }
+                stackcopy := savereg(i, (forsp > 0) and (i <> forstack[forsp].limitreg));
                 if keytable[stackcopy].validtemp then
                   keytable[stackcopy].refcount := keytable[stackcopy].refcount + 1;
                 end;
@@ -4363,8 +4366,10 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
     regkey: keyindex; {descriptor of for-index register}
     i: insts; 
     lit: integer;
+    loopentered: boolean; {set true if non-const target triggers enterloop}
 
   begin {fortopx}
+    loopentered := false;
     with forstack[forsp] do
       begin
       if keytable[forkey].signed then c := signedcond
@@ -4394,15 +4399,11 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
           i := cmp;
           makeaddressable(target, 0);
           unpackwork(target, 0);
-{DRB when we split enterloop into two parts (init and then update reg status)
- this should not be necessary as regused will be set according to when it is
- first referenced as an operand..
-}
-          dontchangevalue := ord(keytable[target].oprnd.mode <> nomode);
           loadreg(target, regkey);
-          dontchangevalue := 0;
           limitreg := keytable[target].oprnd.reg;
           adjustregcount(target, 1);
+          enterloop;
+          loopentered := true;
           pseudolabelx;
           end;
         gen2(lastnode, buildinst(i, savedlen = long, false), regkey, target);
@@ -4417,7 +4418,7 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
         savekey(forkey, false);
         end;
 
-      enterloop;
+      if not loopentered then enterloop;
 
       { Need to set this manually because of the delayed enterloop.
       }
@@ -4442,9 +4443,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
 
 { Finish a for loop. If improved is true, we inc/dec and compare at
   this point. If improved is false, we inc/dec and branch to comparison
-  at the top of the loop. We pop off induction variable to save a word
-  if the loop is finished. The code at the top of the loop will re-push
-  the value if we are not finished.
+  at the top of the loop.
 }
 
   var

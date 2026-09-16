@@ -41,8 +41,7 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
-   -- need to fix proc prologue and epilogue to save sl individually if
-      paramcopy is nonzero.
+   -- change to enterloop can lead to needless register save.
 
    -- in comma why is the adp register wiped out for each movset?
 
