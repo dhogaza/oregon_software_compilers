@@ -98,6 +98,7 @@ _main:
 	mov	x3,xzr
 	mov	x4,xzr
 	bl	_p_reset 
+	str	x27,[x29,-32]
 .L3:
 # Line: 26, Stmt: 0
 	ldr	x26,[x27,.L32767+24@PAGEOFF]

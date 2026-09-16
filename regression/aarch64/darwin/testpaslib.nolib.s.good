@@ -2798,10 +2798,10 @@ _p_wtb:
 # Line: 1045, Stmt: 0
 	mov	x28,1
 	ldrb	w15,[x29,32]
+	str	x15,[x29,-24]
 .L249:
 	cmp	w28,w15
 	b.gt	.L248
-	str	x15,[x29,-24]
 # Line: 1046, Stmt: 0
 	mov	x0,x27
 	add	x14,x29,w28, sxtw 0
