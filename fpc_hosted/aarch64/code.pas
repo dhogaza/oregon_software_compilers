@@ -2785,7 +2785,7 @@ procedure unpackwork(var k: keyindex; {operand to unpack}
           target := settemp(long, reg_oprnd(getreg(false)));
         if mode = reg_bitoffset then
           basekey := settemp(alignment div bitsperunit,
-                            index_oprnd(unsigned_offset, reg, 0, false))
+                            index_oprnd(unsigned_offset, reg, bitoffset div bitsperunit, false))
         else
           begin
           if (mode = reg_offset) then
@@ -2800,10 +2800,14 @@ procedure unpackwork(var k: keyindex; {operand to unpack}
           begin
           reg2key := settemp(long, reg_oprnd(reg2));
 	  gen3(lastnode, buildinst(lsrinst,false, false), target, target, reg2key);
-          end;
-        gen4(lastnode, buildinst(inst, true, false), target, target,
-             settemp(long, imm12_oprnd(bitoffset, false)),
-             settemp(long, imm12_oprnd(len, false)));
+          gen4(lastnode, buildinst(inst, true, false), target, target,
+               settemp(long, imm12_oprnd(bitoffset mod bitsperunit, false)),
+               settemp(long, imm12_oprnd(len, false)));
+          end
+           else
+           gen4(lastnode, buildinst(inst, true, false), target, target,
+                settemp(long, imm12_oprnd(bitoffset, false)),
+                settemp(long, imm12_oprnd(len, false)));
         end;
       changevalue(k, target);
       keytable[k].len := long;
@@ -3840,7 +3844,7 @@ procedure pack(src, dst: keyindex);
     isconst, allones: boolean;
     constvalue: integer;
     optimizeconst: boolean; { field values that are 0 or all ones are special }
-    l: addressrange;
+    l, bitoff: addressrange;
 
 begin {pack}
   with keytable[src].oprnd do
@@ -3854,9 +3858,11 @@ begin {pack}
     end;
   with keytable[dst], oprnd do
     begin
+      if mode = reg_bitoffset then bitoff := bitoffset mod bitsperunit
+      else bitoff := bitoffset;
     optimizeconst := (mode = reg_bitoffset) and isconst and ((constvalue = 0) or allones);
     if optimizeconst then
-        maskkey := settemp(long, intconst_oprnd((power2(len) - 1) * power2(bitoffset)));
+        maskkey := settemp(long, intconst_oprnd((power2(len) - 1) * power2(bitoff)));
     end;
   if not optimizeconst and not (isconst and (constvalue = 0)) then
     loadreg(src, dst);
@@ -3868,7 +3874,7 @@ begin {pack}
     if mode = reg_bitoffset then
       begin
       dstbasekey := settemp(alignment div bitsperunit,
-                            index_oprnd(unsigned_offset, reg, 0, true));
+                            index_oprnd(unsigned_offset, reg, bitoffset div bitsperunit, true));
       reg2key := settemp(long, reg_oprnd(reg2));
       end
     else
@@ -3902,11 +3908,11 @@ begin {pack}
   if not optimizeconst then
     if isconst and (constvalue = 0) then
       gen3(lastnode, buildinst(bfc, true, false), dstregkey,
-           settemp(long, imm12_oprnd(keytable[dst].oprnd.bitoffset, false)),
+           settemp(long, imm12_oprnd(bitoff, false)),
            settemp(long, imm12_oprnd(keytable[dst].len, false)))
     else
       gen4(lastnode, buildinst(bfi, true, false), dstregkey, src,
-           settemp(long, imm12_oprnd(keytable[dst].oprnd.bitoffset, false)),
+           settemp(long, imm12_oprnd(bitoff, false)),
            settemp(long, imm12_oprnd(keytable[dst].len, false)));
 
   if not optimizeconst and (keytable[dst].oprnd.mode = reg_bitoffset) then
