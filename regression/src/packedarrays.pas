@@ -10,6 +10,15 @@ var
   a: packed array [0..9] of boolean;
   a1: packed array [0..9] of 0..15;
 
+  { check crossing of byte boundaries as was failing in compiler
+    at one point.
+  }
+  r2: packed record
+        i: -1..65535;
+        a: packed array [1..3] of 0..1;
+      end;
+
+
 procedure foo;
 begin
   r.k := 3;
@@ -19,6 +28,7 @@ begin
   r.b[i].d := false;
   a[i] := true; a[i + 1] := false;
   a1[i] := 0; a1[i + 1] := 5; a1[i + 2] := 15;
+  r2.a[1] := 1; r2.a[2] := 0; r2.a[3] := 1;
 end;
 
 begin
@@ -29,6 +39,9 @@ begin
   writeln('r.b[i].b expect true ', r.b[i].b);
   writeln('r.b[i].c expect true ', r.b[i].c);
   writeln('r.b[i].d expect false ', r.b[i].d);
+  writeln('r2.a[i] expect 1 ', r2.a[i]);
+  writeln('r2.a[i+1] expect 0 ', r2.a[i+1]);
+  writeln('r2.a[i+2] expect 1 ', r2.a[i+2]);
   writeln('a[i] expect true ', a[i]);
   writeln('a[i + 1] expect false ', a[i + 1]);
   writeln('a1[i] expect 0' , a1[i]);

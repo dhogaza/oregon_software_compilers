@@ -3,6 +3,9 @@ r.b[i].a expect false false
 r.b[i].b expect true  true
 r.b[i].c expect true  true
 r.b[i].d expect false false
+r2.a[i] expect 1            1
+r2.a[i+1] expect 0            0
+r2.a[i+2] expect 1            1
 a[i] expect true  true
 a[i + 1] expect false false
 a1[i] expect 0           0
