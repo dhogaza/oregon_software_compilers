@@ -946,8 +946,7 @@ procedure _p_break;
   I/O is record-oriented.  In Unix-land we're writing individual characters
   rather than building a record which is then flushed, normally by writeln.
 
-  Just to be obnoxious we'll give an error if this is called on a non-text
-  or non-writeable file.
+  We'll give an error if this is called on a non-writeable file.
 }
 
 var
@@ -955,8 +954,6 @@ var
 
 begin {_p_break}
   filep := _p_checkio(filevar, _p_write);
-  if not (_p_text in filep^.status) then
-    _p_libfileerror(filep, nil, 0, 'break on non-text file');
 end {_p_break};
   
 procedure _p_delete;
