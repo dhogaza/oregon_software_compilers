@@ -5839,6 +5839,17 @@ uniqueoprnd := false;
   places.  A savecontext and restorecontext around the controlled
   statement make common expressions from the boolean available on exit.
 
+  DRB: as originally written save/restorecontext pairs needed to be followed
+  by a joincontext.  Apparently when Steve from Encore added basic block structures
+  to the travrs pass, along with hoisting and some other stuff, he thought that if
+  only one save/restorecontext pair was generated that the joincontext was not
+  needed.  Wrong.  I can only imagine that the reason why this didn't break things
+  before I started testing with complex code on Aarch64 is that the previous
+  machines the compiler targeted had fewer registers available and didn't attempt
+  to use them as aggressively as I have done for Aarch64.
+
+  Anyway, I've added the joincontext, which fixed some things.
+
   The presence of a "break" statement within the loop invalidates these
   statements.
 
@@ -5913,10 +5924,12 @@ uniqueoprnd := false;
 
           if this_loop^.break_found then popcontext
           else restorecontext;
+          joincontext;  { popcontext sets join bits FWIW }
 
           ptr^.has_break := this_loop^.break_found;
 
           currentblock^.restoreop := true;
+          currentblock^.joinop := true;
           controlled^.saveop := true;
 
           if removing and (constvalue = 0) then decr_deadcount;
