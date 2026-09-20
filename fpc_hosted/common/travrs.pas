@@ -5843,12 +5843,10 @@ uniqueoprnd := false;
   by a joincontext.  Apparently when Steve from Encore added basic block structures
   to the travrs pass, along with hoisting and some other stuff, he thought that if
   only one save/restorecontext pair was generated that the joincontext was not
-  needed.  Wrong.  I can only imagine that the reason why this didn't break things
-  before I started testing with complex code on Aarch64 is that the previous
-  machines the compiler targeted had fewer registers available and didn't attempt
-  to use them as aggressively as I have done for Aarch64.
-
-  Anyway, I've added the joincontext, which fixed some things.
+  needed.  Wrong.  I think this didn't lead to errors in the generated code in the
+  past because aarch64 is the first where the compiler had to support caller-saved
+  registers, which was what was failing in some cases without the joincontext.  This
+  is actually an artifact of the ABI, not the hardware architecture itself.
 
   The presence of a "break" statement within the loop invalidates these
   statements.
