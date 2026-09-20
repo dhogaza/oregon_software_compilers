@@ -741,7 +741,7 @@ function arraysizeof(f: entryptr; {form to get size of}
   begin
     s := sizeof(f, packedresult);
     if packedresult then
-      if s > bitsperunit then s := sizeof(f, false) * bitsperunit
+      if s >= packingunit * bitsperunit then s := sizeof(f, false) * bitsperunit
       else
         begin
         s1 := 1;
