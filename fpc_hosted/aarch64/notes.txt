@@ -76,6 +76,11 @@ if seeking value, wzr is replaced with a register.
 
 --- current work
 
+  -- a[i].foo := a[i].foo - 1
+
+     There's all sorts of optimization available to us for this kind of
+     thing. Look at dereference() in code.
+
   -- travrs fix up oprnds p/i mess have a single value since travrs depends
      on p and i overlapping.
 
