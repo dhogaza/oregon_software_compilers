@@ -6646,14 +6646,15 @@ procedure movintptrx;
 
   begin {movintptrx}
     unpack(right, left);
+    lock(right);
     if keytable[left].packedaccess then
       begin
       address(left, 0);
+      unlock(right);
       pack(right, left);
       end
     else
       begin
-      lock(right);
       addressdst(left);
       unlock(right);
       gensimplemove(lastnode, right, left);
