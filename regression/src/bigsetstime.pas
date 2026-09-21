@@ -129,8 +129,4 @@ procedure sets;
 
 begin
   sets;
-  writeln('expect all true');
-  writeln('b1: ', b1, ' b2: ', b2, ' b3: ', b3);
-  writeln('eq128: ', eq128, ' ne128: ', ne128, ' geq128: ', geq128, ' leq128: ', leq128);
-  writeln('eq192: ', eq192, ' ne192: ', ne192, ' geq192: ', geq192, ' leq192: ', leq192);
 end.
