@@ -2613,7 +2613,6 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
     i, t, t1: keyindex;
     found: boolean;
     recallkey: keyindex;
-    accesslen: addressrange; {computed for packedaccess, k's length otherwise}
 
 
   procedure recall_reg(regx: regindex; properregx: keyindex);
@@ -2637,17 +2636,6 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
       restorereg := not regvalid;
       restorereg2 := not reg2valid;
       end;
-
-    { broken out of with because of fpc bug with accessing signed and the fact
-      that packed access is boolean, too.   Didn't bother to test to see if the
-      bug actually bites.
-
-      Both modifications of the length seem to be needed when the underlying indx
-      for a pindx has been clobbered and it can be restored from its regenoprnd.
-    }
-    if keytable[k].packedaccess then accesslen := long
-    else if keytable[k].len > long then accesslen := long
-    else accesslen:= keytable[k].len;
 
     if restorereg or restorereg2 then allowmodify(k, false);
 
@@ -2681,8 +2669,11 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
             begin
             reg := getreg(false);
             t := settemp(long, reg_oprnd(reg));
-            gen2(lastnode, ldrinst(accesslen, keytable[key].signed),
-                   t, settemp(len, regenoprnd));
+            if (mode = register) and not packedaccess then
+              gen2(lastnode, ldrinst(keytable[k].len, keytable[k].signed),
+                   t, settemp(len, regenoprnd))
+            else
+              gen2(lastnode, ldrinst(long, false), t, settemp(len, regenoprnd));
             end;
           nomode:
             begin
@@ -2696,7 +2687,11 @@ procedure makeaddressable(var k: keyindex; target: keyindex);
                (keytable[target].oprnd.mode = register) then
               reg := keytable[target].oprnd.reg
             else
+              begin
+              registers[reg2] := registers[reg2] + maxrefcount;
               reg := getreg(false);
+              registers[reg2] := registers[reg2] - maxrefcount;
+              end;
   {
         recall_reg(reg, properreg);
   }
