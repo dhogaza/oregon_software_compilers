@@ -2409,22 +2409,23 @@
 	mov	x28,4
 .L140:
 # Line: 901, Stmt: 0
-	adrp	x23,.L32767@PAGE
-	add	x24,x23,.L32767@PAGEOFF
 	cmp	w28,wzr
 	b.le	.L144
-	add	x23,x24,w28, sxtw 3
-	ldrsw	x23,[x23,1272]
-	cbnz	w23,.L144
+	adrp	x23,.L32767@PAGE
+	add	x24,x23,.L32767@PAGEOFF
+	add	x24,x24,w28, sxtw 3
+	ldrsw	x24,[x24,1272]
+	cbnz	w24,.L144
 .L145:
 # Line: 901, Stmt: 0
 	sub	w28,w28,1
 	b	.L140
 .L144:
 # Line: 902, Stmt: 0
+	adrp	x23,.L32767@PAGE
+	add	x24,x23,.L32767@PAGEOFF
 	add	x24,x24,w28, sxtw 3
 # Line: 903, Stmt: 0
-	adrp	x23,.L32767@PAGE
 	ldrsb	w15,[x23,.L32767+1856@PAGEOFF]
 	cbnz	w15,.L147
 	ldrsb	w15,[x23,.L32767+1920@PAGEOFF]
@@ -3554,6 +3555,7 @@
 	b	.L280
 .L300:
 # Line: 1299, Stmt: 0
+	ldrb	w26,[x27,.L32767+1937@PAGEOFF]
 	cmp	w26,42
 	b.ne	.L302
 .L303:
@@ -3784,6 +3786,7 @@
 	b	.L317
 .L337:
 # Line: 1372, Stmt: 0
+	ldrb	w26,[x27,.L32767+1937@PAGEOFF]
 	cmp	w26,42
 	b.ne	.L339
 .L340:
@@ -4513,34 +4516,33 @@
 	b	.L437
 .L428:
 # Line: 1625, Stmt: 0
-	ldr	x24,[x29,16]
 # Line: 1627, Stmt: 0
-	ldrsw	x23,[x24,8]
-	mov	x15,512
-	sdiv	w14,w23,w15
-	msub	w13,w14,w15,w23
+	ldrsw	x24,[x15,8]
+	mov	x23,512
+	sdiv	w14,w24,w23
+	msub	w13,w14,w23,w24
 	mov	x27,x14
 # Line: 1628, Stmt: 0
 	mov	x28,x13
 # Line: 1629, Stmt: 0
-	adrp	x23,.L32767@PAGE
-	ldrb	w16,[x24,12]
-	str	w16,[x23,.L32767+2088@PAGEOFF]
+	adrp	x24,.L32767@PAGE
+	ldrb	w16,[x15,12]
+	str	w16,[x24,.L32767+2088@PAGEOFF]
 # Line: 1630, Stmt: 0
 	mov	x26,1
-	ldrb	w23,[x24,12]
+	ldrb	w24,[x15,12]
 .L439:
-	cmp	w26,w23
+	cmp	w26,w24
 	b.gt	.L438
 # Line: 1632, Stmt: 0
 	adrp	x14,.L32767@PAGE
-	add	x15,x14,.L32767@PAGEOFF
-	add	x15,x15,w26, sxtw 0
+	add	x23,x14,.L32767@PAGEOFF
+	add	x23,x23,w26, sxtw 0
 	add	x14,x14,.L32767@PAGEOFF
 	add	x14,x14,w27, sxtw 3
 	ldr	x14,[x14,11400]
 	ldrb	w16,[x14, w28, sxtw]
-	strb	w16,[x15,1952]
+	strb	w16,[x23,1952]
 # Line: 1633, Stmt: 0
 	cmp	w28,511
 	b.ne	.L440
@@ -4871,6 +4873,7 @@
 	b	.L485
 .L486:
 # Line: 1719, Stmt: 0
+	ldrb	w27,[x28,.L32767+1937@PAGEOFF]
 	cmp	w27,46
 	b.ne	.L489
 .L490:
@@ -5542,7 +5545,8 @@
 	b	.L574
 .L586:
 # Line: 1949, Stmt: 0
-	cmp	w15,39
+	ldrb	w27,[x27,.L32767+1937@PAGEOFF]
+	cmp	w27,39
 	b.ne	.L588
 .L589:
 # Line: 1949, Stmt: 0
@@ -7515,6 +7519,7 @@
 	b	.L803
 .L807:
 # Line: 2698, Stmt: 0
+	ldrsb	w26,[x25,.L32767+1948@PAGEOFF]
 	cmp	w26,27
 	b.eq	.L817
 	cmp	w26,8
@@ -8076,6 +8081,7 @@
 	b	.L871
 .L872:
 # Line: 2888, Stmt: 0
+	ldrsb	w15,[x26,.L32767+1948@PAGEOFF]
 	cmp	w15,3
 	b.ne	.L878
 .L879:
@@ -9183,7 +9189,8 @@
 	b	.L990
 .L991:
 # Line: 3308, Stmt: 0
-	cmp	w27,2
+	ldrsb	w28,[x28,.L32767+1948@PAGEOFF]
+	cmp	w28,2
 	b.ne	.L996
 .L997:
 # Line: 3310, Stmt: 0
