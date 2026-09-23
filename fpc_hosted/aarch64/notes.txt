@@ -41,6 +41,12 @@ if seeking value, wzr is replaced with a register.
 
 *** current bugs
 
+   -- alignment issues with mov struct (or the code just ignores alignment).
+
+   -- movlitint keeps reference to doint around after folding, probably
+      because of how I changed where stuff is inserted into the tree in
+      travrs.  Ugly but doesn't break code.
+
    -- change to enterloop can lead to needless register save.
 
    -- in comma why is the adp register wiped out for each movset?
