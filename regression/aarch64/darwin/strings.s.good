@@ -215,10 +215,11 @@
 //	tests255
 //
 .P3:
-	sub	sp,sp,48
-	stp	x30,x29,[sp,24]
-	add	x29,sp,24
+	sub	sp,sp,64
+	stp	x30,x29,[sp,40]
+	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
+	str	x26,[x29,-24]
 # Line: 27, Stmt: 1
 	mov	x27,x0
 # Line: 28, Stmt: 2
@@ -235,16 +236,14 @@
 	bl	_p_wtc_o 
 # Line: 29, Stmt: 0
 	mov	x28,1
-	ldrb	w15,[x27]
-	str	x15,[x29,-24]
+	ldrb	w26,[x27]
 .L7:
-	cmp	w28,w15
+	cmp	w28,w26
 	b.gt	.L6
 # Line: 30, Stmt: 0
 	ldrb	w0,[x27, w28, sxtw]
 	mov	x1,1
 	bl	_p_wtc_o 
-	ldr	x15,[x29,-24]
 	adds	w28,w28,1
 	b.vc	.L7
 .L6:
@@ -252,8 +251,9 @@
 	bl	_p_wtln_o 
 .L4:
 	ldp	x27,x28,[x29,-16]
-	ldp	x30,x29,[sp,24]
-	add	sp,sp,48
+	ldr	x26,[x29,-24]
+	ldp	x30,x29,[sp,40]
+	add	sp,sp,64
 	ret
 	.text
 	.align 2
@@ -288,10 +288,11 @@
 //	tests255mod
 //
 .P5:
-	sub	sp,sp,48
-	stp	x30,x29,[sp,24]
-	add	x29,sp,24
+	sub	sp,sp,64
+	stp	x30,x29,[sp,40]
+	add	x29,sp,40
 	stp	x27,x28,[x29,-16]
+	str	x26,[x29,-24]
 # Line: 51, Stmt: 1
 	mov	x27,x0
 # Line: 52, Stmt: 2
@@ -308,16 +309,14 @@
 	bl	_p_wtc_o 
 # Line: 53, Stmt: 0
 	mov	x28,1
-	ldrb	w15,[x27]
-	str	x15,[x29,-24]
+	ldrb	w26,[x27]
 .L12:
-	cmp	w28,w15
+	cmp	w28,w26
 	b.gt	.L11
 # Line: 54, Stmt: 0
 	ldrb	w0,[x27, w28, sxtw]
 	mov	x1,1
 	bl	_p_wtc_o 
-	ldr	x15,[x29,-24]
 	adds	w28,w28,1
 	b.vc	.L12
 .L11:
@@ -328,8 +327,9 @@
 	strb	w16,[x27,2]
 .L9:
 	ldp	x27,x28,[x29,-16]
-	ldp	x30,x29,[sp,24]
-	add	sp,sp,48
+	ldr	x26,[x29,-24]
+	ldp	x30,x29,[sp,40]
+	add	sp,sp,64
 	ret
 	.text
 	.align 2

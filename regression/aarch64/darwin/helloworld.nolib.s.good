@@ -360,14 +360,15 @@ _p_trim:
 	add	w12,w12,1
 # Line: 326, Stmt: 0
 	mov	x13,1
+	mov	x11,x12
 .L47:
-	cmp	w13,w12
+	cmp	w13,w11
 	b.gt	.L46
 # Line: 328, Stmt: 0
-	add	x11,sp,8
-	add	x11,x11,w13, sxtw 0
+	add	x10,sp,8
+	add	x10,x10,w13, sxtw 0
 	ldrb	w16,[x0, w15, sxtw]
-	strb	w16,[x11,32]
+	strb	w16,[x10,32]
 # Line: 329, Stmt: 0
 	add	w15,w15,1
 	adds	w13,w13,1
@@ -424,14 +425,15 @@ _p_trimleft:
 	strb	w13,[sp,40]
 # Line: 348, Stmt: 0
 	mov	x14,1
+	mov	x12,x13
 .L55:
-	cmp	w14,w13
+	cmp	w14,w12
 	b.gt	.L54
 # Line: 350, Stmt: 0
-	add	x12,sp,8
-	add	x12,x12,w14, sxtw 0
+	add	x11,sp,8
+	add	x11,x11,w14, sxtw 0
 	ldrb	w16,[x0, w15, sxtw]
-	strb	w16,[x12,32]
+	strb	w16,[x11,32]
 # Line: 351, Stmt: 0
 	add	w15,w15,1
 	adds	w14,w14,1
@@ -461,7 +463,7 @@ _p_trimleft:
 //
 	.global _p_trimright
 _p_trimright:
-	sub	sp,sp,288
+	sub	sp,sp,304
 # Line: 362, Stmt: 1
 # Line: 363, Stmt: 2
 	ldrb	w15,[x0]
@@ -478,22 +480,23 @@ _p_trimright:
 	b	.L58
 .L59:
 # Line: 366, Stmt: 0
-	strb	w15,[sp,24]
+	strb	w15,[sp,40]
 # Line: 367, Stmt: 0
 	mov	x14,1
+	mov	x13,x15
 .L63:
-	cmp	w14,w15
+	cmp	w14,w13
 	b.gt	.L62
 # Line: 368, Stmt: 0
-	add	x13,sp,0
-	add	x13,x13,w14, sxtw 0
+	add	x12,sp,16
+	add	x12,x12,w14, sxtw 0
 	ldrb	w16,[x0, w14, sxtw]
-	strb	w16,[x13,24]
+	strb	w16,[x12,24]
 	adds	w14,w14,1
 	b.vc	.L63
 .L62:
 # Line: 369, Stmt: 0
-	add	x13,sp,24
+	add	x13,sp,40
 	add	x12,x8,xzr
 	ldrb	w16,[x13],1
 	strb	w16,[x12],1
@@ -507,7 +510,7 @@ _p_trimright:
 	strb	wzr,[x12],1
 # Line: 370, Stmt: 0
 .L56:
-	add	sp,sp,288
+	add	sp,sp,304
 	ret
 	.text
 	.align 2
@@ -2676,27 +2679,28 @@ _p_wtc:
 //
 	.global _p_wtb
 _p_wtb:
-	sub	sp,sp,80
-	stp	x30,x29,[sp,40]
-	add	x29,sp,40
+	sub	sp,sp,96
+	stp	x30,x29,[sp,56]
+	add	x29,sp,56
 	stp	x27,x28,[x29,-16]
+	str	x26,[x29,-24]
 # Line: 1034, Stmt: 1
-	str	x1,[x29,-24]
+	str	x1,[x29,-32]
 # Line: 1035, Stmt: 2
-	str	x0,[x29,-32]
-	str	x2,[x29,-40]
-	ldr	x0,[x29,-32]
+	str	x0,[x29,-40]
+	str	x2,[x29,-48]
+	ldr	x0,[x29,-40]
 	mov	x1,5
 	bl	.P83  // _p_checkio
 	mov	x27,x0
 # Line: 1036, Stmt: 0
-	ldr	x15,[x29,-24]
+	ldr	x15,[x29,-32]
 	eor	w15,w15,1
 	mov	x14,5
 	add	w15,w14,w15
-	str	x15,[x29,-32]
+	str	x15,[x29,-40]
 	mov	x28,x15
-	ldr	x15,[x29,-40]
+	ldr	x15,[x29,-48]
 .L242:
 	cmp	w28,w15
 	b.gt	.L241
@@ -2704,12 +2708,12 @@ _p_wtb:
 	mov	x0,x27
 	mov	x1,32
 	bl	.P84  // wrchar
-	ldr	x15,[x29,-40]
+	ldr	x15,[x29,-48]
 	adds	w28,w28,1
 	b.vc	.L242
 .L241:
 # Line: 1038, Stmt: 0
-	ldr	x15,[x29,-24]
+	ldr	x15,[x29,-32]
 	cbz	w15,.L243
 .L244:
 # Line: 1039, Stmt: 0
@@ -2751,24 +2755,24 @@ _p_wtb:
 .L245:
 # Line: 1042, Stmt: 0
 	mov	x28,1
-	ldrb	w15,[x29,32]
-	str	x15,[x29,-24]
+	ldrb	w26,[x29,32]
+	str	x26,[x29,-32]
 .L247:
-	cmp	w28,w15
+	cmp	w28,w26
 	b.gt	.L246
 # Line: 1043, Stmt: 0
 	mov	x0,x27
-	add	x14,x29,w28, sxtw 0
-	ldrb	w1,[x14,32]
+	add	x15,x29,w28, sxtw 0
+	ldrb	w1,[x15,32]
 	bl	.P84  // wrchar
-	ldr	x15,[x29,-24]
 	adds	w28,w28,1
 	b.vc	.L247
 .L246:
 .L238:
 	ldp	x27,x28,[x29,-16]
-	ldp	x30,x29,[sp,40]
-	add	sp,sp,80
+	ldr	x26,[x29,-24]
+	ldp	x30,x29,[sp,56]
+	add	sp,sp,96
 	ret
 	.text
 	.align 2
