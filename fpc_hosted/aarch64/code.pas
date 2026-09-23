@@ -4365,6 +4365,7 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
   var
     c: conds;
     regkey: keyindex; {descriptor of for-index register}
+targetregkey: keyindex; {descriptor of saved target value if necessary}
     i: insts; 
     lit: integer;
     loopentered: boolean; {set true if non-const target triggers enterloop}
@@ -4400,7 +4401,22 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
           i := cmp;
           makeaddressable(target, 0);
           unpackwork(target, 0);
-          loadreg(target, regkey);
+          { This is essentially loadreg except it will copy a limit if it is
+            in a globally assigned register, as Pascal semantics compute the loop
+            start and limit values at the top of the loop, and a globally assigned
+            variable might be modified inside the loop.
+          }
+          if (keytable[target].oprnd.mode <> register) or
+             not volatilereg(keytable[target].oprnd.reg) then
+            begin
+            lock(regkey);
+            allowmodify(target, dontchangevalue > 0);
+            targetregkey := settemp(keytable[target].len, reg_oprnd(getreg(true)));
+            keytable[targetregkey].signed := keytable[target].signed;
+            gensimplemove(lastnode, target, targetregkey);
+            unlock(regkey);
+            changevalue(target, targetregkey);
+            end;
           limitreg := keytable[target].oprnd.reg;
           adjustregcount(target, 1);
           enterloop;
