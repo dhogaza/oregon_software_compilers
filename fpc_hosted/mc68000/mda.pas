@@ -496,6 +496,7 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
     paramptr^.varalloc := normalalloc;
     paramsize := forcealign(paramsize, align, false);
     paramptr^.offset := paramsize;
+    paramptr^.length := length;
     if maxaddr - paramsize > length then
       begin
       paramsize := paramsize + length;
