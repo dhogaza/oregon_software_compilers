@@ -1,3 +1,17 @@
+-- PLAN
+
+   1. add file and line no information for gcc so breakpoints can be set and
+      backtraces executed.
+
+   1a. Figure out how to make it work under darwin.  Plugin for P2?
+
+   1b. add runtime checking operators once this is done.
+
+   2. Maybe allow forward/external procedure definitions to redeclare the parameter
+      list as long as it is identical which means same param names and congruent types.
+
+   3. figure out how to organize files.  Probably self_hosted to match fpc_hosted with
+      the goal of getting rid of fpc_hosted.
 
 -- random stuff
 
@@ -40,6 +54,13 @@ implmentation in codegen could be something like ...
 if seeking value, wzr is replaced with a register.
 
 *** current bugs
+
+   -- var r: packed record i:0..1023 end; or the like.
+
+      r := <some value> seems to pack it.  While <some value> := r seems to
+      know that a full 32 bits it taken up by the variable.
+
+      sorttable in mc68000 code.pas.
 
    -- alignment issues with mov struct (or the code just ignores alignment).
 
