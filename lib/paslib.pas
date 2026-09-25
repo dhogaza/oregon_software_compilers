@@ -109,6 +109,7 @@ function ftruncate(fd: integer; size: integer): integer; nonpascal;
 function fileno(streamp: _p_addressptr): integer; nonpascal;
 function feof(streamp: _p_addressptr): boolean; nonpascal;
 function ferror(streamp: _p_addressptr): integer; nonpascal;
+function tmpfile: _p_streamptr; nonpascal;
 
 { pascal-2 lib declarations }
 
@@ -656,8 +657,10 @@ procedure _p_filecommon(filevar: _p_addressptr;
   sent to reset are read flags (as in the example) and those sent to rewrite are
   write flags.  In the streams world, "r+" allows both reads and writes but checks
   that the file already exists, while "w+" also allows both but replaces an
-  existing file.  Reset defaults to "r" while rewrite defaults to "w".  The code
+  existing file.  Reset defaults to "r" while rewrite defaults to "w+".  The code
   automatically adds "b" to the flags if the file is a binary file.
+
+  If the filename is nil and the default flags are "w+" a glibc tempfile is opened.
 
   Not sure what to do about append mode or seek regarding _p_def.
 
@@ -677,6 +680,7 @@ var
   streamp: _p_streamptr;
   filename, str2, ext, flags: _p_string;
   extpos, flagspos: integer;
+  tempfile: boolean;
 
 begin
   { Always assume the best of people }
@@ -685,8 +689,13 @@ begin
   if (str1ptr = nil) and (str2ptr <> nil) then
     _p_liberror('Missing file name.');
   filep := _p_filep(filevar);
-  if (filep = nil) and (str1ptr = nil) then
-    _p_liberror('File name is required to open a new file.');
+  tempfile := (filep = nil) and (str1ptr = nil);
+  if tempfile then
+    if defflags[1] = 'r' then
+      _p_liberror('File name is required to open a new file for reading.')
+    else if size = -1 then
+      _p_liberror('Temporary file can not be a text file')
+    else filename := '<tempfile>';
 
   { If the file is already open and a file name is provided, close
     it and then do a reset/write with the file name.
@@ -699,32 +708,35 @@ begin
 
   if _p_filep(filevar) = nil then
     begin
-    filename := trimright(str1ptr^);
     flags := defflags;
-    if str2ptr <> nil then
+    if not tempfile then
       begin
-      str2 := trimright(str2ptr^);
-      flagspos := pos(str2, ':');
-      if flagspos = 0 then ext := str2
-      else ext := copy(str2, 1, flagspos - 1);
-      if pos(filename, '.') = 0 then
-        filename := filename + ext;
-      if flagspos = length(str2) then
-        _p_liberror('empty flags parameter for ' + filename);
-      if flagspos <> 0 then flags := copy(str2, flagspos + 1, length(str2));
-      if (defflags[1] <> flags[1]) then
-        _p_liberror('flags ' + flags + ' incompatible with reset or rewrite call for ' + filename);
+      filename := trimright(str1ptr^);
+      if str2ptr <> nil then
+        begin
+        str2 := trimright(str2ptr^);
+        flagspos := pos(str2, ':');
+        if flagspos = 0 then ext := str2
+        else ext := copy(str2, 1, flagspos - 1);
+        if pos(filename, '.') = 0 then filename := filename + ext;
+        if flagspos = length(str2) then
+          _p_liberror('empty flags parameter for ' + filename);
+        if flagspos <> 0 then flags := copy(str2, flagspos + 1, length(str2));
+        if (defflags[1] <> flags[1]) then
+          _p_liberror('flags ' + flags + ' incompatible with reset or rewrite call for ' + filename);
+        end;
       end;
     if size > 0 then
       flags := flags + 'b';
     filep := _p_addfile(filevar);
     filep^.filename := filename;
     filep^.flags := flags;
-    streamp := fopen(cstring(filename), cstring(flags));
+    if tempfile then streamp := tmpfile
+    else streamp := fopen(cstring(filename), cstring(flags));
     if streamp = nil then
       begin
       _p_libfileerror(filep, errptr, 0, 'Open failed');
-      _p_removefile(filep);
+      if not tempfile then _p_removefile(filep);
       goto 1;
       end;
     filep^.streamp := streamp;
@@ -752,7 +764,7 @@ begin
     begin
       if defflags[1] = 'w' then
         begin
-        if ftruncate(fileno(filep^.streamp), 0) <> 0 then
+        if not tempfile and (ftruncate(fileno(filep^.streamp), 0) <> 0) then
           begin
           _p_libfileerror(filep, errptr, 0, 'failed to truncate file during rewrite');
           goto 1;
