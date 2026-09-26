@@ -33,6 +33,12 @@ uses config, hdr, hdrt, a_t, t_c, code;
 
 { Tree build/improve/walk }
 
+function hashvaroffset(varoffset: addressrange): reghashindex;
+
+{ Generate hash to use in table that tracks variables for global register
+  assignment.
+}
+
 function newlabel: labelrange;
 
 { Create a new pseudo-code label.
@@ -89,6 +95,19 @@ procedure genrealop(o: pseudoop; {operator}
 
 
 implementation
+
+function hashvaroffset(varoffset: addressrange): reghashindex;
+
+{ Generate hash to use in table that tracks variables for global register
+  assignment.
+}
+
+  begin {hashvaroffset}
+    if modworks then
+      hashvaroffset := (varoffset div targetintsize) mod (regtablelimit + 1)
+    else
+      hashvaroffset := (abs(varoffset) div targetintsize) mod (regtablelimit + 1);
+  end {hashvaroffset};
 
 function newlabel: labelrange;
 

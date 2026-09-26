@@ -316,13 +316,7 @@ procedure assignregs;
         begin {applytoregparamnode}
           exprp := @(bignodetable[expr]);
           offset := exprp^.oprnds[2];
-            { This hashes the var's offset, really should be a function call.
-              However it would be called in several high bandwidth places and
-              places an unneeded speed penalty on this phase.
-              This code is replicated in procedures: doreference, killasreg
-              and dodefine in travrs.
-            }
-          j := (offset div targetintsize) mod (regtablelimit + 1);
+          j := hashvaroffset(offset);
           while ((regvars[j].offset <> offset) or not regvars[j].parameter) and
                 (regvars[j].worth >= 0) do
             j := (j + 1) mod (regtablelimit + 1);
@@ -372,13 +366,7 @@ procedure assignregs;
           third := 0;
           if (leftp^.op = levop) and (leftp^.oprnds[1] = level) then
             begin
-              { This hashes the var's offset, really should be a function call.
-                However it would be called in several high bandwidth places and
-                places an unneeded speed penalty on this phase.
-                This code is replicated in procedures: doreference, killasreg
-                and dodefine in travrs.
-              }
-            j := (offset div targetintsize) mod (regtablelimit + 1);
+            j := hashvaroffset(offset);
             while ((regvars[j].offset <> offset) or regvars[j].parameter) and
                   (regvars[j].worth >= 0) do
               j := (j + 1) mod (regtablelimit + 1);

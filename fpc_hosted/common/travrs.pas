@@ -1073,13 +1073,7 @@ procedure build;
       bumpvarcount := false;
       if varlev = level then
         begin
-          { This hashes the variable's offset.  Really should be a
-            function call.  However, it would be called in several
-            high bandwidth places, and would produce an unneeded
-            speed penalty in this phase.  This code is replicated
-            in doreference, killasreg, initbuild and walk:indxnode.
-          }
-        i := (varoffset div targetintsize) mod (regtablelimit + 1);
+        i := hashvaroffset(varoffset);
         while ((regvars[i].offset <> varoffset) or
                (regvars[i].parameter <> varisparam)) and
                (regvars[i].worth >= 0) do
@@ -1451,13 +1445,7 @@ procedure build;
           varisparam := (ptr1^.oprnds[1] = localparamnode) or (varlev = level) and
                     (varoffset >= maxlong - maxregparams - maxptrregparams - maxrealregparams);
 
-          { This hashes the variable's offset.  Really should be a
-            function call.  However, it would be called in several
-            high bandwidth places, and would produce an unneeded
-            speed penalty in this phase.  This code is replicated
-            in doreference, dodefine, initbuild and walk:indxnode.
-            }
-        i := (varoffset div targetintsize) mod (regtablelimit + 1);
+        i := hashvaroffset(varoffset);
         while ((regvars[i].offset <> varoffset) or
               (regvars[i].parameter <> varisparam)) and
               (regvars[i].worth >= 0) do
@@ -1966,13 +1954,7 @@ procedure build;
       read(locals, localvar);
       while localvar.typ <> none do
         begin
-          { This hashes the var's offset, really should be a function call.
-            However it would be called in several high bandwidth places and
-            places an unneeded speed penalty on this phase.
-            This code is replicated in doreference, killasreg, dodefine
-            and walk:indxnode.
-          }
-        j := (localvar.offset div targetintsize) mod (regtablelimit + 1);
+        j := hashvaroffset(localvar.offset);
         while regvars[j].worth >= 0 do j := (j + 1) mod (regtablelimit + 1);
         with regvars[j] do
           begin

@@ -780,13 +780,7 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 
         if trav_offset <> 0 then
           begin
-          { This hashes the var's offset, really should be a function call.
-            However it would be called in several high bandwidth places and
-            places an unneeded speed penalty on this phase.
-            This code is replicated in procedures: doreference, killasreg
-            and dodefine in travrs.
-          }
-          j := (trav_offset div targetintsize) mod (regtablelimit + 1);
+          j := hashvaroffset(trav_offset);
           while ((regvars[j].offset <> trav_offset) or regvars[j].parameter) and
                 (regvars[j].worth >= 0) do
             j := (j + 1) mod (regtablelimit + 1);
