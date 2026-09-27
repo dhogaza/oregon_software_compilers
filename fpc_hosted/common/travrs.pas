@@ -1717,7 +1717,7 @@ procedure build;
               orderedlink := 0;
               end;
             whilehdr, rpthdr, ifhdr, foruphdr, fordnhdr, withhdr, simplehdr,
-            syscallhdr, untilhdr, cforhdr, cforbothdr, nohdr:
+            syscallhdr, untilhdr, cforhdr, cforbothdr, forbothdr, nohdr:
               begin
               expr1 := 0;
               expr2 := 0;
