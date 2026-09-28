@@ -3,7 +3,7 @@
 #
 	.section	.rodata
 	.align 12
-.L32765:
+.L32766:
 	.byte	0x10,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 	.byte	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 	.byte	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
@@ -27,26 +27,16 @@
 	.byte	0x00,0x00,0x00,0x02,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 	.byte	0x00,0x00,0x00,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 	.byte	0x00,0x00,0x00,0x02,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	.byte	0x00,0x00,0x00,0x80,0x0F,0x65,0x78,0x70,0x65,0x63,0x74,0x20
-	.byte	0x61,0x6C,0x6C,0x20,0x74,0x72,0x75,0x65,0x00,0x04,0x62,0x31
-	.byte	0x3A,0x20,0x00,0x05,0x20,0x62,0x32,0x3A,0x20,0x00,0x05,0x20
-	.byte	0x62,0x33,0x3A,0x20,0x00,0x07,0x65,0x71,0x31,0x32,0x38,0x3A
-	.byte	0x20,0x00,0x08,0x20,0x6E,0x65,0x31,0x32,0x38,0x3A,0x20,0x00
-	.byte	0x09,0x20,0x67,0x65,0x71,0x31,0x32,0x38,0x3A,0x20,0x00,0x09
-	.byte	0x20,0x6C,0x65,0x71,0x31,0x32,0x38,0x3A,0x20,0x00,0x07,0x65
-	.byte	0x71,0x31,0x39,0x32,0x3A,0x20,0x00,0x08,0x20,0x6E,0x65,0x31
-	.byte	0x39,0x32,0x3A,0x20,0x00,0x09,0x20,0x67,0x65,0x71,0x31,0x39
-	.byte	0x32,0x3A,0x20,0x00,0x09,0x20,0x6C,0x65,0x71,0x31,0x39,0x32
-	.byte	0x3A,0x20,0x00
+	.byte	0x00,0x00,0x00,0x80
 	.text
 	.align 2
-#
-#	sets
-#
+//
+//	sets
+//
 .P1:
-	sub	sp,sp,48
+	sub	sp,sp,32
 # Line: 101, Stmt: 1
-	adrp	x13,.L32766
+	adrp	x13,.L32767
 # Line: 102, Stmt: 2
 	mov	x14,1
 .L5:
@@ -55,37 +45,37 @@
 .L6:
 # Line: 105, Stmt: 0
 	mov	w16,74
-	strb	w16,[x13,:lo12:.L32766+120]
+	strb	w16,[x13,:lo12:.L32767+120]
 # Line: 106, Stmt: 0
-	adrp	x11,.L32765
-	add	x12,x11,:lo12:.L32765
-	add	x11,x13,:lo12:.L32766+24
+	adrp	x11,.L32766
+	add	x12,x11,:lo12:.L32766
+	add	x11,x13,:lo12:.L32767+24
 	ldp	x16,x17,[x12],16
 	stp	x16,x17,[x11],16
 # Line: 107, Stmt: 0
 	mov	w16,94
-	strb	w16,[x13,:lo12:.L32766+121]
+	strb	w16,[x13,:lo12:.L32767+121]
 # Line: 108, Stmt: 0
 	mov	w16,5
-	strb	w16,[x13,:lo12:.L32766+122]
+	strb	w16,[x13,:lo12:.L32767+122]
 # Line: 109, Stmt: 0
 	mov	w16,189
-	strb	w16,[x13,:lo12:.L32766+123]
+	strb	w16,[x13,:lo12:.L32767+123]
 # Line: 110, Stmt: 0
-	adrp	x11,.L32765
-	add	x12,x11,:lo12:.L32765+16
-	add	x11,x13,:lo12:.L32766+40
+	adrp	x11,.L32766
+	add	x12,x11,:lo12:.L32766+16
+	add	x11,x13,:lo12:.L32767+40
 	ldp	x16,x17,[x12],16
 	stp	x16,x17,[x11],16
 	ldr	x16,[x12],16
 	str	x16,[x11],16
-	ldrb	w11,[x13,:lo12:.L32766+122]
-	ldrb	w10,[x13,:lo12:.L32766+121]
-.L32763:
+	ldrb	w11,[x13,:lo12:.L32767+122]
+	ldrb	w10,[x13,:lo12:.L32767+121]
+.L32764:
 	cmp	w11,w10
-	b.hi	.L32762
+	b.hi	.L32763
 	mov	x12,1
-	add	x9,x13,:lo12:.L32766+40
+	add	x9,x13,:lo12:.L32767+40
 	asr	x16,x11,3
 	and	x17,x11,7
 	lsl	x12,x12,x17
@@ -93,19 +83,19 @@
 	orr	x17,x17,x12
 	strb	w17,[x9, x16]
 	add	w11,w11,1
-	b	.L32763
-.L32762:
+	b	.L32764
+.L32763:
 # Line: 111, Stmt: 0
-	adrp	x11,.L32765
-	add	x12,x11,:lo12:.L32765+48
-	add	x11,x13,:lo12:.L32766+64
+	adrp	x11,.L32766
+	add	x12,x11,:lo12:.L32766+48
+	add	x11,x13,:lo12:.L32767+64
 	ldp	x16,x17,[x12],16
 	stp	x16,x17,[x11],16
 	ldr	x16,[x12],16
 	str	x16,[x11],16
 # Line: 112, Stmt: 0
-	add	x10,x13,:lo12:.L32766+40
-	add	x9,x13,:lo12:.L32766+64
+	add	x10,x13,:lo12:.L32767+40
+	add	x9,x13,:lo12:.L32767+64
 	add	x8,sp,0
 	ldp	x16,x17,[x10],16
 	ldp	x12,x11,[x9],16
@@ -117,8 +107,8 @@
 	orr	x16,x16,x17
 	str	x16,[x8],16
 	add	x10,sp,0
-	add	x9,x13,:lo12:.L32766+40
-	add	x8,x13,:lo12:.L32766+40
+	add	x9,x13,:lo12:.L32767+40
+	add	x8,x13,:lo12:.L32767+40
 	ldp	x16,x17,[x10],16
 	ldp	x12,x11,[x9],16
 	and	x16,x16,x12
@@ -129,20 +119,20 @@
 	and	x16,x16,x17
 	str	x16,[x8],16
 # Line: 113, Stmt: 0
-	ldrb	w16,[x13,:lo12:.L32766+51]
+	ldrb	w16,[x13,:lo12:.L32767+51]
 	ands	w16,w16,2
 	cset	w12,ne
-	strb	w12,[x13,:lo12:.L32766+124]
+	strb	w12,[x13,:lo12:.L32767+124]
 # Line: 114, Stmt: 0
-	ldrb	w16,[x13,:lo12:.L32766+63]
+	ldrb	w16,[x13,:lo12:.L32767+63]
 	ands	w16,w16,128
 	cset	w12,ne
 	eor	w12,w12,1
-	strb	w12,[x13,:lo12:.L32766+125]
+	strb	w12,[x13,:lo12:.L32767+125]
 # Line: 115, Stmt: 0
-	add	x10,x13,:lo12:.L32766+40
-	adrp	x8,.L32765
-	add	x9,x8,:lo12:.L32765+72
+	add	x10,x13,:lo12:.L32767+40
+	adrp	x8,.L32766
+	add	x9,x8,:lo12:.L32766+72
 	add	x8,sp,0
 	ldp	x16,x17,[x10],16
 	ldp	x12,x11,[x9],16
@@ -157,12 +147,12 @@
 	ands	w16,w16,1
 	cset	w12,ne
 	eor	w12,w12,1
-	strb	w12,[x13,:lo12:.L32766+126]
+	strb	w12,[x13,:lo12:.L32767+126]
 # Line: 116, Stmt: 0
-	add	x10,x13,:lo12:.L32766+40
-	adrp	x8,.L32765
-	add	x9,x8,:lo12:.L32765+96
-	add	x8,x13,:lo12:.L32766+40
+	add	x10,x13,:lo12:.L32767+40
+	adrp	x8,.L32766
+	add	x9,x8,:lo12:.L32766+96
+	add	x8,x13,:lo12:.L32767+40
 	ldp	x16,x17,[x10],16
 	ldp	x12,x11,[x9],16
 	orr	x16,x16,x12
@@ -173,33 +163,45 @@
 	orr	x16,x16,x17
 	str	x16,[x8],16
 # Line: 118, Stmt: 0
-	add	x12,x13,:lo12:.L32766+24
-	adrp	x10,.L32765
-	add	x11,x10,:lo12:.L32765+120
+	add	x12,x13,:lo12:.L32767+24
+	adrp	x10,.L32766
+	add	x11,x10,:lo12:.L32766+120
+	ldp	x16,x17,[x12],16
+	ldp	x10,x9,[x11],16
+	cmp	x16,x10
+	b.ne	.L32762
+	cmp	x17,x9
+.L32762:
+	cset	w12,eq
+	strb	w12,[x13,:lo12:.L32767+127]
+# Line: 119, Stmt: 0
+	add	x12,x13,:lo12:.L32767+24
+	adrp	x10,.L32766
+	add	x11,x10,:lo12:.L32766+136
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
 	cmp	x16,x10
 	b.ne	.L32761
 	cmp	x17,x9
 .L32761:
-	cset	w12,eq
-	strb	w12,[x13,:lo12:.L32766+127]
-# Line: 119, Stmt: 0
-	add	x12,x13,:lo12:.L32766+24
-	adrp	x10,.L32765
-	add	x11,x10,:lo12:.L32765+136
+	cset	w12,ne
+	strb	w12,[x13,:lo12:.L32767+128]
+# Line: 120, Stmt: 0
+	add	x12,x13,:lo12:.L32767+24
+	adrp	x10,.L32766
+	add	x11,x10,:lo12:.L32766+152
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
-	cmp	x16,x10
+	bics	xzr,x10,x16
 	b.ne	.L32760
-	cmp	x17,x9
+	bics	x17,x9,x17
 .L32760:
-	cset	w12,ne
-	strb	w12,[x13,:lo12:.L32766+128]
-# Line: 120, Stmt: 0
-	add	x12,x13,:lo12:.L32766+24
-	adrp	x10,.L32765
-	add	x11,x10,:lo12:.L32765+152
+	cset	w12,eq
+	strb	w12,[x13,:lo12:.L32767+130]
+# Line: 121, Stmt: 0
+	adrp	x11,.L32766
+	add	x12,x11,:lo12:.L32766+168
+	add	x11,x13,:lo12:.L32767+24
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
 	bics	xzr,x10,x16
@@ -207,23 +209,27 @@
 	bics	x17,x9,x17
 .L32759:
 	cset	w12,eq
-	strb	w12,[x13,:lo12:.L32766+130]
-# Line: 121, Stmt: 0
-	adrp	x11,.L32765
-	add	x12,x11,:lo12:.L32765+168
-	add	x11,x13,:lo12:.L32766+24
+	strb	w12,[x13,:lo12:.L32767+129]
+# Line: 123, Stmt: 0
+	add	x12,x13,:lo12:.L32767+64
+	adrp	x10,.L32766
+	add	x11,x10,:lo12:.L32766+184
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
-	bics	xzr,x10,x16
+	cmp	x16,x10
 	b.ne	.L32758
-	bics	x17,x9,x17
+	cmp	x17,x9
+	b.ne	.L32758
+	ldr	x16,[x12],16
+	ldr	x10,[x11],16
+	cmp	x16,x10
 .L32758:
 	cset	w12,eq
-	strb	w12,[x13,:lo12:.L32766+129]
-# Line: 123, Stmt: 0
-	add	x12,x13,:lo12:.L32766+64
-	adrp	x10,.L32765
-	add	x11,x10,:lo12:.L32765+184
+	strb	w12,[x13,:lo12:.L32767+131]
+# Line: 124, Stmt: 0
+	add	x12,x13,:lo12:.L32767+64
+	adrp	x10,.L32766
+	add	x11,x10,:lo12:.L32766+208
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
 	cmp	x16,x10
@@ -234,28 +240,28 @@
 	ldr	x10,[x11],16
 	cmp	x16,x10
 .L32757:
-	cset	w12,eq
-	strb	w12,[x13,:lo12:.L32766+131]
-# Line: 124, Stmt: 0
-	add	x12,x13,:lo12:.L32766+64
-	adrp	x10,.L32765
-	add	x11,x10,:lo12:.L32765+208
+	cset	w12,ne
+	strb	w12,[x13,:lo12:.L32767+132]
+# Line: 125, Stmt: 0
+	adrp	x11,.L32766
+	add	x12,x11,:lo12:.L32766+232
+	add	x11,x13,:lo12:.L32767+64
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
-	cmp	x16,x10
+	bics	xzr,x10,x16
 	b.ne	.L32756
-	cmp	x17,x9
+	bics	x17,x9,x17
 	b.ne	.L32756
 	ldr	x16,[x12],16
 	ldr	x10,[x11],16
-	cmp	x16,x10
+	bics	xzr,x10,x16
 .L32756:
-	cset	w12,ne
-	strb	w12,[x13,:lo12:.L32766+132]
-# Line: 125, Stmt: 0
-	adrp	x11,.L32765
-	add	x12,x11,:lo12:.L32765+232
-	add	x11,x13,:lo12:.L32766+64
+	cset	w12,eq
+	strb	w12,[x13,:lo12:.L32767+133]
+# Line: 126, Stmt: 0
+	add	x12,x13,:lo12:.L32767+64
+	adrp	x10,.L32766
+	add	x11,x10,:lo12:.L32766+256
 	ldp	x16,x17,[x12],16
 	ldp	x10,x9,[x11],16
 	bics	xzr,x10,x16
@@ -267,23 +273,7 @@
 	bics	xzr,x10,x16
 .L32755:
 	cset	w12,eq
-	strb	w12,[x13,:lo12:.L32766+133]
-# Line: 126, Stmt: 0
-	add	x12,x13,:lo12:.L32766+64
-	adrp	x10,.L32765
-	add	x11,x10,:lo12:.L32765+256
-	ldp	x16,x17,[x12],16
-	ldp	x10,x9,[x11],16
-	bics	xzr,x10,x16
-	b.ne	.L32754
-	bics	x17,x9,x17
-	b.ne	.L32754
-	ldr	x16,[x12],16
-	ldr	x10,[x11],16
-	bics	xzr,x10,x16
-.L32754:
-	cset	w12,eq
-	strb	w12,[x13,:lo12:.L32766+134]
+	strb	w12,[x13,:lo12:.L32767+134]
 	add	w15,w15,1
 	movz	x16,5000
 	cmp	w15,w16
@@ -295,13 +285,13 @@
 	b.le	.L5
 .L8:
 .L2:
-	add	sp,sp,48
+	add	sp,sp,32
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global main
 main:
 	stp	x30,x29,[sp,-16]!
@@ -310,119 +300,7 @@ main:
 # Line: 130, Stmt: 1
 # Line: 131, Stmt: 0
 	bl	.P1  // sets
-# Line: 132, Stmt: 0
-	adrp	x15,.L32765
-	add	x0,x15,:lo12:.L32765+281
-	mov	x1,15
-	mov	x2,x1
-	bl	_p_wts_o 
-	bl	_p_wtln_o 
-# Line: 133, Stmt: 0
-	adrp	x15,.L32765
-	add	x0,x15,:lo12:.L32765+298
-	mov	x1,4
-	mov	x2,x1
-	bl	_p_wts_o 
-	adrp	x15,.L32766
-	ldrb	w0,[x15,:lo12:.L32766+124]
-	mov	x1,5
-	bl	_p_wtb_o 
-	adrp	x15,.L32765
-	add	x0,x15,:lo12:.L32765+304
-	mov	x1,5
-	mov	x2,x1
-	bl	_p_wts_o 
-	adrp	x15,.L32766
-	ldrb	w0,[x15,:lo12:.L32766+125]
-	mov	x1,5
-	bl	_p_wtb_o 
-	adrp	x15,.L32765
-	add	x0,x15,:lo12:.L32765+311
-	mov	x1,5
-	mov	x2,x1
-	bl	_p_wts_o 
-	adrp	x15,.L32766
-	ldrb	w0,[x15,:lo12:.L32766+126]
-	mov	x1,5
-	bl	_p_wtb_o 
-	bl	_p_wtln_o 
-# Line: 134, Stmt: 0
-	adrp	x15,.L32765
-	add	x0,x15,:lo12:.L32765+318
-	mov	x1,7
-	mov	x2,x1
-	bl	_p_wts_o 
-	adrp	x15,.L32766
-	ldrb	w0,[x15,:lo12:.L32766+127]
-	mov	x1,5
-	bl	_p_wtb_o 
-	adrp	x15,.L32765
-	add	x0,x15,:lo12:.L32765+327
-	mov	x1,8
-	mov	x2,x1
-	bl	_p_wts_o 
-	adrp	x15,.L32766
-	ldrb	w0,[x15,:lo12:.L32766+128]
-	mov	x1,5
-	bl	_p_wtb_o 
-	adrp	x15,.L32765
-	add	x0,x15,:lo12:.L32765+337
-	mov	x1,9
-	mov	x2,x1
-	bl	_p_wts_o 
-	adrp	x15,.L32766
-	ldrb	w0,[x15,:lo12:.L32766+130]
-	mov	x1,5
-	bl	_p_wtb_o 
-	adrp	x15,.L32765
-	add	x0,x15,:lo12:.L32765+348
-	mov	x1,9
-	mov	x2,x1
-	bl	_p_wts_o 
-	adrp	x15,.L32766
-	ldrb	w0,[x15,:lo12:.L32766+129]
-	mov	x1,5
-	bl	_p_wtb_o 
-	bl	_p_wtln_o 
-# Line: 135, Stmt: 0
-	adrp	x15,.L32765
-	add	x0,x15,:lo12:.L32765+359
-	mov	x1,7
-	mov	x2,x1
-	bl	_p_wts_o 
-	adrp	x15,.L32766
-	ldrb	w0,[x15,:lo12:.L32766+131]
-	mov	x1,5
-	bl	_p_wtb_o 
-	adrp	x15,.L32765
-	add	x0,x15,:lo12:.L32765+368
-	mov	x1,8
-	mov	x2,x1
-	bl	_p_wts_o 
-	adrp	x15,.L32766
-	ldrb	w0,[x15,:lo12:.L32766+132]
-	mov	x1,5
-	bl	_p_wtb_o 
-	adrp	x15,.L32765
-	add	x0,x15,:lo12:.L32765+378
-	mov	x1,9
-	mov	x2,x1
-	bl	_p_wts_o 
-	adrp	x15,.L32766
-	ldrb	w0,[x15,:lo12:.L32766+134]
-	mov	x1,5
-	bl	_p_wtb_o 
-	adrp	x15,.L32765
-	add	x0,x15,:lo12:.L32765+389
-	mov	x1,9
-	mov	x2,x1
-	bl	_p_wts_o 
-	adrp	x15,.L32766
-	ldrb	w0,[x15,:lo12:.L32766+133]
-	mov	x1,5
-	bl	_p_wtb_o 
-	bl	_p_wtln_o 
 .L9:
 	ldp	x30,x29,[sp],16
 	ret
-	.comm	.L32766,136,12
+	.comm	.L32767,136,12

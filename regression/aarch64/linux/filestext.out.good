@@ -48,3 +48,8 @@ rewrite, write csv integers, read/print
 
 123,456
 654,321
+copying ../../data/filestext.txt.foo
+Random data for filestext test
+
+reset fails: -1
+reset succeeds:0

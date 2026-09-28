@@ -1,8 +1,8 @@
 	.text
 	.align 2
-#
-#	bar
-#
+//
+//	bar
+//
 .P2:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -19,7 +19,6 @@
 # Line: 6, Stmt: 0
 	mov	x0,x28
 	bl	putchar
-	ldr	x0,[x29,-16]
 	ldr	x1,[x29,-24]
 	adds	w28,w28,1
 	b.cc	.L4
@@ -51,9 +50,9 @@
 	ret
 	.text
 	.align 2
-#
-#	foo
-#
+//
+//	foo
+//
 .P3:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,8]
@@ -93,9 +92,9 @@
 	ret
 	.text
 	.align 2
-#
-#	bar1
-#
+//
+//	bar1
+//
 .P4:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -112,7 +111,6 @@
 # Line: 28, Stmt: 0
 	add	w0,w28,48
 	bl	putchar
-	ldr	x0,[x29,-16]
 	ldr	x1,[x29,-24]
 	adds	w28,w28,1
 	b.vc	.L14
@@ -144,9 +142,9 @@
 	ret
 	.text
 	.align 2
-#
-#	foo1
-#
+//
+//	foo1
+//
 .P5:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,8]
@@ -186,9 +184,9 @@
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global main
 main:
 	stp	x30,x29,[sp,-16]!
@@ -222,4 +220,4 @@ main:
 .L22:
 	ldp	x30,x29,[sp],16
 	ret
-	.comm	.L32766,24,12
+	.comm	.L32767,24,12

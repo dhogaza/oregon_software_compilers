@@ -3,14 +3,14 @@
 #
 	.section	.rodata
 	.align 12
-.L32765:
+.L32766:
 	.byte	0x03,0x61,0x62,0x63,0x00,0x03,0x78,0x79,0x7A,0x00,0x06,0x61
 	.byte	0x62,0x63,0x64,0x65,0x66,0x00
 	.text
 	.align 2
-#
-#	toshortstring
-#
+//
+//	toshortstring
+//
 .P1:
 	sub	sp,sp,48
 # Line: 30, Stmt: 1
@@ -22,20 +22,20 @@
 .L3:
 # Line: 33, Stmt: 0
 	cmp	w15,255
-	b.hs	.L4
-	ldrb	w13,[x14, w15, uxtw]
+	b.ge	.L4
+	ldrb	w13,[x14, w15, sxtw]
 	cbz	w13,.L4
 .L5:
 # Line: 35, Stmt: 0
-	add	x13,x0,w15, uxtw 0
-	ldrb	w16,[x14, w15, uxtw]
+	add	x13,x0,w15, sxtw 0
+	ldrb	w16,[x14, w15, sxtw]
 	strb	w16,[x13,1]
 # Line: 36, Stmt: 0
 	add	w15,w15,1
 	b	.L3
 .L4:
 # Line: 38, Stmt: 0
-	add	x14,x0,w15, uxtw 0
+	add	x14,x0,w15, sxtw 0
 	strb	wzr,[x14,1]
 # Line: 39, Stmt: 0
 	strb	w15,[x0]
@@ -44,9 +44,9 @@
 	ret
 	.text
 	.align 2
-#
-#	cstring
-#
+//
+//	cstring
+//
 .P2:
 	sub	sp,sp,16
 # Line: 44, Stmt: 1
@@ -64,9 +64,9 @@
 	ret
 	.text
 	.align 2
-#
-#	writecstring
-#
+//
+//	writecstring
+//
 .P3:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,32]
@@ -100,9 +100,9 @@
 	ret
 	.text
 	.align 2
-#
-#	 (main)
-#
+//
+//	 (main)
+//
 	.global main
 main:
 	sub	sp,sp,48
@@ -111,21 +111,21 @@ main:
 	bl	_p_initio 
 # Line: 66, Stmt: 1
 # Line: 67, Stmt: 0
-	adrp	x14,.L32765
-	add	x15,x14,:lo12:.L32765
+	adrp	x14,.L32766
+	add	x15,x14,:lo12:.L32766
 	sub	x14,x29,8
 	ldrb	w16,[x15],1
 	mov	x17,3
 	cmp	w16,w17
 	csel	w16,w16,w17,lo
 	strb	w16,[x14],1
-	cbz	x16,.L32763
-.L32762:
+	cbz	x16,.L32764
+.L32763:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32762
-.L32763:
+	cbnz	x16,.L32763
+.L32764:
 	strb	wzr,[x14],1
 	sub	x0,x29,8
 	bl	.P2  // cstring
@@ -133,21 +133,21 @@ main:
 # Line: 68, Stmt: 0
 	bl	_p_wtln_o 
 # Line: 69, Stmt: 0
-	adrp	x14,.L32765
-	add	x15,x14,:lo12:.L32765+5
+	adrp	x14,.L32766
+	add	x15,x14,:lo12:.L32766+5
 	sub	x14,x29,16
 	ldrb	w16,[x15],1
 	mov	x17,3
 	cmp	w16,w17
 	csel	w16,w16,w17,lo
 	strb	w16,[x14],1
-	cbz	x16,.L32761
-.L32760:
+	cbz	x16,.L32762
+.L32761:
 	ldrb	w17,[x15],1
 	strb	w17,[x14],1
 	subs	x16,x16,1
-	cbnz	x16,.L32760
-.L32761:
+	cbnz	x16,.L32761
+.L32762:
 	strb	wzr,[x14],1
 	sub	x0,x29,16
 	bl	.P2  // cstring
@@ -155,34 +155,34 @@ main:
 # Line: 70, Stmt: 0
 	bl	_p_wtln_o 
 # Line: 71, Stmt: 0
-	adrp	x15,.L32766
-	adrp	x13,.L32765
-	add	x14,x13,:lo12:.L32765+10
+	adrp	x15,.L32767
+	adrp	x13,.L32766
+	add	x14,x13,:lo12:.L32766+10
 	sub	x13,x29,24
 	ldrb	w16,[x14],1
 	mov	x17,6
 	cmp	w16,w17
 	csel	w16,w16,w17,lo
 	strb	w16,[x13],1
-	cbz	x16,.L32759
-.L32758:
+	cbz	x16,.L32760
+.L32759:
 	ldrb	w17,[x14],1
 	strb	w17,[x13],1
 	subs	x16,x16,1
-	cbnz	x16,.L32758
-.L32759:
+	cbnz	x16,.L32759
+.L32760:
 	strb	wzr,[x13],1
 	sub	x0,x29,24
 	bl	.P2  // cstring
 	str	x0,[x29,-32]
-	adrp	x15,.L32766
-	add	x0,x15,:lo12:.L32766+24
+	adrp	x15,.L32767
+	add	x0,x15,:lo12:.L32767+24
 	ldr	x1,[x29,-32]
 	bl	.P1  // toshortstring
 # Line: 72, Stmt: 0
-	adrp	x15,.L32766
-	ldrb	w1,[x15,:lo12:.L32766+24]
-	add	x0,x15,:lo12:.L32766+24
+	adrp	x15,.L32767
+	add	x0,x15,:lo12:.L32767+24
+	ldrb	w1,[x0]
 	add	x0,x0,1
 	mov	x2,x1
 	bl	_p_wts_o 
@@ -191,4 +191,4 @@ main:
 	ldp	x30,x29,[sp,32]
 	add	sp,sp,48
 	ret
-	.comm	.L32766,288,12
+	.comm	.L32767,288,12
