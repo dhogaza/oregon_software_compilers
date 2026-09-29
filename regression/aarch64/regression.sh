@@ -6,7 +6,7 @@ for f in $src/*.pas; do
   . ./fileattrs.sh $f
   pushd $os >/dev/null
   if [[ "$type" == "pas" || "$type" == "nolib" ]]; then
-    $pasdir/pas2arm64 $f --include=$lib --noch --mac=$base
+    $pasdir/pas2arm64 $f --include=$lib --noch --mac=$base $1 $2
     diff $base.s $base.s.good > $base.s.diff
     if [ -s "$base.s.diff" ]; then
       echo "$base.s is different than $base.s.good"
