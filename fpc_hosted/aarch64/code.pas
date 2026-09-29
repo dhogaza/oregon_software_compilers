@@ -528,7 +528,7 @@ function hasframeptr: boolean;
 
   begin {hasframeptr}
     hasframeptr := not leaf or switcheverplus[leafframepointer] or
-                   (blockref = 0);
+                   switcheverplus[walkback] or (blockref = 0);
   end {haframepointer};
 
 function regmoveok(n: integer): boolean;
