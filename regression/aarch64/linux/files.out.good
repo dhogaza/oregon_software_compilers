@@ -1,3 +1,4 @@
+Illegal operation on file ../env.sh:rb
 rewrite(f, 'foo.txt', ':w+'), put, get and print foo.txt
 abcdefghijklmnopqrstuvwxyzrewrite(f), put, get and print foo.txt
 zyxwvutsrqponmlkjihgfedcbaseek(f,2), put, get and print foo.txt
@@ -23,4 +24,3 @@ if [ ! -d "$os" ]; then
   mkdir $os
 fi
 try to do a put on the read-only file ../env.sh
-Illegal operation on file ../env.sh:rb
