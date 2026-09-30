@@ -444,7 +444,7 @@ procedure copysfile;
           if stringblkptr^[nextstringfile] <> 0 then
             begin
             if stringblkptr^[nextstringfile] <> ord('/') then
-              write(macfile, currentdir, '" "');
+              write(macfile, currentdir, '/');
             repeat
               if stringblkptr^[nextstringfile] = ord('.') then
                 extfound := true;
@@ -592,6 +592,13 @@ procedure writeproclabel(procn: proctableindex);
       else
         writeln(macfile, '.P', procn, ':');
       end;
+
+      if switcheverplus[walkback] then
+        begin
+        currentfilenumber := filenumber(proctable[blockref].fileindex);
+        writeln(macfile,chr(9),'.loc ', currentfilenumber:1, ' ',
+                proctable[blockref].line - lineoffset:1, ' ', 0);
+        end;
 
   end {writeproclabel};
 

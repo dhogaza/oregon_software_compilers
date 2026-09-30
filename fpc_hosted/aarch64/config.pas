@@ -325,7 +325,7 @@ const
 { Blocking definitions for environment files }
 
   tableentriesperblock = 16;
-  proctableentriesperblock = 15;
+  proctableentriesperblock = 10;
   hashtableentriesperblock = 72; {based on 6 bytes per entry}
   switchesperblock = 101; {based on two bytes per entry}
 

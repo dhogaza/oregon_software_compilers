@@ -349,6 +349,9 @@ function newproc: proctableindex;
       backlink := 0; {to be complete}
       level := 1;
       levelspread := 0;
+      fileindex := 0;
+      line := 0;
+      baseline := 0;
       end;
     newproc := proctabletop;
   end { newproc } ;
@@ -3114,13 +3117,27 @@ procedure block;
     nowdebugging := (switchcounters[debugging] > 0) or
                     (switchcounters[profiling] > 0);
 
+    { DRB changed this in 2026 to store proc location info in the proctable because
+      not all of the above information was passed to the code generator and I'm no
+      longer concerned about the space of the global tables as we are token in terms
+      of gigabytes, not mega- or even kilobytes nowadays.
+    }
     if (level > 1) or (switchcounters[mainbody] > 0) or (token <> eofsym) then
       begin
       if level = 1 then
         begin
         proctable[0].bodydefined := true; { use this entry for main body }
+        proctable[0].fileindex := thistoken.fileindex;
+        proctable[0].baseline := thistoken.baseline;
+        proctable[0].line := thistoken.line;
         if (switchcounters[mainbody] <= 0) and (token <> eofsym) then
           warn(extrastmterr);
+        end
+      else
+        begin
+        proctable[blockref].fileindex := thistoken.fileindex;
+        proctable[blockref].baseline := thistoken.baseline;
+        proctable[blockref].line := thistoken.line;
         end;
       body.body;
       verifytoken(endsym, noenderr);
