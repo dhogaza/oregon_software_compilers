@@ -87,7 +87,7 @@ function getstringfile: hostfilebyte;
     else nextstringfile := nextstringfile + 1;
   end {getstringfile} ;
 
-  function filenumber(fileoffset: addressrange): addressrange;
+  function filenumber(fileindex: addressrange): addressrange;
 
   { Map file name offset to the file number assigned in the .file
     directive that defiens it.
@@ -100,14 +100,14 @@ function getstringfile: hostfilebyte;
   begin {writefiledirectives}
     curfileptr := filerememberlist;
     filecount := 1;
-    while (curfileptr <> nil) and (curfileptr^.offset <> fileoffset) do
+    while (curfileptr <> nil) and (curfileptr^.offset <> fileindex) do
       begin
       filecount := filecount + 1;
       curfileptr := curfileptr^.next;
       end;
     if curfileptr = nil then
       begin
-      write('Can''t find source file.  Offset: ', fileoffset:1);
+      write('Can''t find source file.  Offset: ', fileindex:1);
       compilerabort(inconsistent);
       filenumber := 1;
       end
@@ -908,8 +908,8 @@ begin {write_node}
                         ', Stmt: ', i: 1);
     if switcheverplus[walkback] then
       begin
-      if p^.fileoffset <> 0 then 
-        currentfilenumber := filenumber(p^.fileoffset);
+      if p^.fileindex <> 0 then 
+        currentfilenumber := filenumber(p^.fileindex);
       writeln(macfile, chr(9), '.loc ', currentfilenumber:1, ' ',
               p^.sourceline - lineoffset:1, ' ', i:1);
       end;

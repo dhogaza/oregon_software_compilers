@@ -4997,7 +4997,7 @@ procedure stmtbrkx;
       current_stmt := pseudoinst.oprnds[1];
       sourceline := pseudoinst.oprnds[2];
       current_line := pseudoinst.oprnds[2] - lineoffset;
-      fileoffset := len;
+      fileindex := len;
       end;
   end; {stmtbrkx}
 
@@ -8612,7 +8612,6 @@ procedure initcode;
     curstringblock := 0;
     nextstringfile := 0;
     level := 0;
-    fileoffset := 0;
     formatinfo.count := 0;
     formatinfo.regcount := 0;
     filenamed := false;

@@ -395,7 +395,7 @@ type
         stmtnode:
           (stmtno: unsigned; {statement number (for debugger)}
            sourceline: unsigned; {line number (for walkback)}
-           fileoffset: stringtableindex; {stringfile index of file name} );
+           fileindex: stringtableindex; {stringfile index of file name} );
         commnode: (commsize: addressrange; {for globals}
                    commalign: addressrange;
                    commownflag: boolean;
@@ -575,8 +575,6 @@ var
     count: integer; {number of field-width expressions in current write}
     regcount: regindex; {will differ from count when writing an fp reg}
   end;
-
-  fileoffset: integer; {0 if default file for read/write, 2 if specified}
 
   globaldatalabel, savesplabel, rodatalabel: integer;
 
