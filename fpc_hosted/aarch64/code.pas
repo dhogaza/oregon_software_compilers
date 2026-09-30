@@ -528,7 +528,8 @@ function hasframeptr: boolean;
 
   begin {hasframeptr}
     hasframeptr := not leaf or switcheverplus[leafframepointer] or
-                   switcheverplus[walkback] or (blockref = 0);
+                   switcheverplus[walkback] or (blockref = 0) or
+	           (language = modula2) and proctable[blockref].needsframeptr;
   end {haframepointer};
 
 function regmoveok(n: integer): boolean;
@@ -6572,8 +6573,7 @@ procedure blockentryx;
     level := proctable[blockref].level;
     leaf := proctable[blockref].leaf;
 {DRB need to look into needsframeptr}
-    blockusesframe := switcheverplus[framepointer]
-	or ((language = modula2) and proctable[blockref].needsframeptr);
+    blockusesframe := hasframeptr;
   end {blockentryx} ;
 
 procedure regtargetx;
