@@ -1,6 +1,6 @@
-#
-#  Constants
-#
+//
+//  Constants
+//
 	.section	.rodata
 	.align 12
 .L32766:
@@ -17,12 +17,12 @@
 //
 .P2:
 	sub	sp,sp,16
-# Line: 4, Stmt: 1
-# Line: 5, Stmt: 2
+// Line: 4, Stmt: 1
+// Line: 5, Stmt: 2
 	ands	wzr,w0,1
 	cset	w15,ne
 	strb	w15,[sp,8]
-# Line: 6, Stmt: 0
+// Line: 6, Stmt: 0
 	ldrsb	w0,[sp,8]
 .L2:
 	add	sp,sp,16
@@ -37,8 +37,8 @@ ext:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-# Line: 10, Stmt: 1
-# Line: 11, Stmt: 2
+// Line: 10, Stmt: 1
+// Line: 11, Stmt: 2
 	str	x0,[x29,-8]
 	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+1
@@ -63,15 +63,15 @@ ext:
 	stp	x30,x29,[sp,24]
 	add	x29,sp,24
 	str	x28,[x29,-8]
-# Line: 16, Stmt: 1
-# Line: 17, Stmt: 0
+// Line: 16, Stmt: 1
+// Line: 17, Stmt: 0
 	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+8
 	mov	x1,13
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
-# Line: 18, Stmt: 0
+// Line: 18, Stmt: 0
 	mov	x0,1
 	ldr	x16,[x29,32]
 	ldr	x28,[x29,24]
@@ -95,19 +95,19 @@ ext:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 	str	x28,[x29,-8]
-# Line: 22, Stmt: 1
-# Line: 23, Stmt: 2
+// Line: 22, Stmt: 1
+// Line: 23, Stmt: 2
 	str	x1,[x29,-16]
 	mov	x1,12
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
-# Line: 24, Stmt: 0
+// Line: 24, Stmt: 0
 	mov	x0,1
 	ldr	x16,[x29,24]
 	ldr	x28,[x29,16]
 	blr	x16
 	ldr	x28,[x29,-8]
-# Line: 25, Stmt: 0
+// Line: 25, Stmt: 0
 	ldr	x0,[x29,-16]
 	mov	x1,12
 	bl	_p_wti_o 
@@ -125,8 +125,8 @@ ext:
 .P5:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
-# Line: 29, Stmt: 1
-# Line: 30, Stmt: 0
+// Line: 29, Stmt: 1
+// Line: 30, Stmt: 0
 	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+23
 	mov	x1,11
@@ -145,8 +145,8 @@ ext:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-# Line: 38, Stmt: 1
-# Line: 39, Stmt: 2
+// Line: 38, Stmt: 1
+// Line: 39, Stmt: 2
 	str	x0,[x29,-8]
 	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+36
@@ -179,24 +179,24 @@ ext:
 	stp	x30,x29,[sp,32]
 	add	x29,sp,32
 	str	x28,[x29,-8]
-# Line: 42, Stmt: 1
+// Line: 42, Stmt: 1
 	str	x0,[x29,-16]
-# Line: 43, Stmt: 2
+// Line: 43, Stmt: 2
 	mov	w16,5
 	str	w16,[x29,-16]
-# Line: 44, Stmt: 0
+// Line: 44, Stmt: 0
 	ldr	x16,[x29,24]
 	ldr	x28,[x29,16]
 	blr	x16
 	ldr	x28,[x29,-8]
-# Line: 45, Stmt: 0
+// Line: 45, Stmt: 0
 	adrp	x14,.L32767
 	add	x15,x14,:lo12:.L32767
 	str	x15,[sp]
 	adr	x16,.P2  // f
 	str	x16,[sp,8]
 	bl	.P3  // funcparam
-# Line: 46, Stmt: 0
+// Line: 46, Stmt: 0
 	mov	x0,1
 	add	x15,x29,xzr
 	str	x15,[sp]
@@ -219,8 +219,8 @@ ext:
 	stp	x30,x29,[sp,32]
 	add	x29,sp,32
 	str	x28,[x29,-8]
-# Line: 49, Stmt: 1
-# Line: 50, Stmt: 2
+// Line: 49, Stmt: 1
+// Line: 50, Stmt: 2
 	mov	x0,42
 	adrp	x14,.L32767
 	add	x15,x14,:lo12:.L32767
@@ -245,10 +245,10 @@ main:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 	bl	_p_initio 
-# Line: 53, Stmt: 1
-# Line: 54, Stmt: 0
+// Line: 53, Stmt: 1
+// Line: 54, Stmt: 0
 	bl	.P6  // p0
-# Line: 55, Stmt: 0
+// Line: 55, Stmt: 0
 	mov	x0,3
 	adrp	x14,.L32767
 	add	x15,x14,:lo12:.L32767
@@ -258,7 +258,7 @@ main:
 	str	x16,[sp,8]
 	mov	x1,4
 	bl	.P4  // procparam
-# Line: 56, Stmt: 0
+// Line: 56, Stmt: 0
 	adrp	x14,.L32767
 	add	x15,x14,:lo12:.L32767
 	str	x15,[sp]

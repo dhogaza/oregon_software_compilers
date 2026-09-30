@@ -397,6 +397,10 @@ type
                                    characters)}
       levelspread: levelindex; {number of static hack instructions needed}
       level: levelindex; {static level of this proc}
+      {should really move all of the location information here}
+      fileindex: integer; {current file index}
+      baseline: integer; {first line of proc sourcefile}
+      line: integer; {first line of proc itself}
     end;
 
   proctable_block = array [0..proctablespan] of proctableentry;

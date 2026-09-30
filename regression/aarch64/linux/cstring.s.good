@@ -1,6 +1,6 @@
-#
-#  Constants
-#
+//
+//  Constants
+//
 	.section	.rodata
 	.align 12
 .L32766:
@@ -13,31 +13,31 @@
 //
 .P1:
 	sub	sp,sp,48
-# Line: 30, Stmt: 1
-# Line: 31, Stmt: 2
+// Line: 30, Stmt: 1
+// Line: 31, Stmt: 2
 	str	x1,[sp,40]
-# Line: 32, Stmt: 0
+// Line: 32, Stmt: 0
 	mov	x15,xzr
 	ldr	x14,[sp,40]
 .L3:
-# Line: 33, Stmt: 0
+// Line: 33, Stmt: 0
 	cmp	w15,255
 	b.ge	.L4
 	ldrb	w13,[x14, w15, sxtw]
 	cbz	w13,.L4
 .L5:
-# Line: 35, Stmt: 0
+// Line: 35, Stmt: 0
 	add	x13,x0,w15, sxtw 0
 	ldrb	w16,[x14, w15, sxtw]
 	strb	w16,[x13,1]
-# Line: 36, Stmt: 0
+// Line: 36, Stmt: 0
 	add	w15,w15,1
 	b	.L3
 .L4:
-# Line: 38, Stmt: 0
+// Line: 38, Stmt: 0
 	add	x14,x0,w15, sxtw 0
 	strb	wzr,[x14,1]
-# Line: 39, Stmt: 0
+// Line: 39, Stmt: 0
 	strb	w15,[x0]
 .L2:
 	add	sp,sp,48
@@ -49,15 +49,15 @@
 //
 .P2:
 	sub	sp,sp,16
-# Line: 44, Stmt: 1
-# Line: 45, Stmt: 2
+// Line: 44, Stmt: 1
+// Line: 45, Stmt: 2
 	add	x15,x0,xzr
 	str	x15,[sp,8]
-# Line: 46, Stmt: 0
+// Line: 46, Stmt: 0
 	ldr	x15,[sp,8]
 	add	x14,x15,1
 	str	x14,[sp]
-# Line: 47, Stmt: 0
+// Line: 47, Stmt: 0
 	ldr	x0,[sp]
 .L7:
 	add	sp,sp,16
@@ -72,24 +72,24 @@
 	stp	x30,x29,[sp,32]
 	add	x29,sp,32
 	str	x28,[x29,-8]
-# Line: 54, Stmt: 1
-# Line: 55, Stmt: 2
+// Line: 54, Stmt: 1
+// Line: 55, Stmt: 2
 	str	x0,[x29,16]
-# Line: 56, Stmt: 0
+// Line: 56, Stmt: 0
 	mov	x28,xzr
 	ldr	x15,[x29,16]
 	str	x15,[x29,-16]
 .L9:
 	ldr	x15,[x29,-16]
-# Line: 57, Stmt: 0
+// Line: 57, Stmt: 0
 	ldrb	w14,[x15, w28, sxtw]
 	cbz	w14,.L10
 .L11:
-# Line: 59, Stmt: 0
+// Line: 59, Stmt: 0
 	mov	x0,x14
 	mov	x1,1
 	bl	_p_wtc_o 
-# Line: 60, Stmt: 0
+// Line: 60, Stmt: 0
 	add	w28,w28,1
 	b	.L9
 .L8:
@@ -109,8 +109,8 @@ main:
 	stp	x30,x29,[sp,32]
 	add	x29,sp,32
 	bl	_p_initio 
-# Line: 66, Stmt: 1
-# Line: 67, Stmt: 0
+// Line: 66, Stmt: 1
+// Line: 67, Stmt: 0
 	adrp	x14,.L32766
 	add	x15,x14,:lo12:.L32766
 	sub	x14,x29,8
@@ -130,9 +130,9 @@ main:
 	sub	x0,x29,8
 	bl	.P2  // cstring
 	bl	.P3  // writecstring
-# Line: 68, Stmt: 0
+// Line: 68, Stmt: 0
 	bl	_p_wtln_o 
-# Line: 69, Stmt: 0
+// Line: 69, Stmt: 0
 	adrp	x14,.L32766
 	add	x15,x14,:lo12:.L32766+5
 	sub	x14,x29,16
@@ -152,9 +152,9 @@ main:
 	sub	x0,x29,16
 	bl	.P2  // cstring
 	bl	printf
-# Line: 70, Stmt: 0
+// Line: 70, Stmt: 0
 	bl	_p_wtln_o 
-# Line: 71, Stmt: 0
+// Line: 71, Stmt: 0
 	adrp	x15,.L32767
 	adrp	x13,.L32766
 	add	x14,x13,:lo12:.L32766+10
@@ -179,7 +179,7 @@ main:
 	add	x0,x15,:lo12:.L32767+24
 	ldr	x1,[x29,-32]
 	bl	.P1  // toshortstring
-# Line: 72, Stmt: 0
+// Line: 72, Stmt: 0
 	adrp	x15,.L32767
 	add	x0,x15,:lo12:.L32767+24
 	ldrb	w1,[x0]

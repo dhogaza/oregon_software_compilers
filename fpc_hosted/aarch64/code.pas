@@ -6191,12 +6191,12 @@ procedure blockcodex;
       end;
     firstreg := 0;
     firstfpreg := 0;
-    lineoffset := pseudoinst.len;
 
     p := newnode(lastnode, textnode);
 
     with proctable[blockref] do
       begin
+      lineoffset := proctable[blockref].baseline;
       if intlevelrefs then
         begin
         t1 := settemp(long, reg_oprnd(sl));
