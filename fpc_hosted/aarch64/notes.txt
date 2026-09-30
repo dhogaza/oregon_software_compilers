@@ -7,6 +7,10 @@
       names.  Will probably be '.file n "<pwd>" "filename"'.  When stmtbrk
       length file is non-zero, find corresponding file number and save.
 
+      begblk needs srcindex as well as line info so proc definition can
+      start with a .loc directive so setting breakpoint at proc name
+      will show the right line.
+
       Add cfi info: startproc, endproc, reg save/restore
 
    1a. Figure out how to make it work under darwin.  Plugin for P2?

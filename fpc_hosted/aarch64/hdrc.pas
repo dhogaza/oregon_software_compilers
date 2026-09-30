@@ -395,7 +395,7 @@ type
         stmtnode:
           (stmtno: unsigned; {statement number (for debugger)}
            sourceline: unsigned; {line number (for walkback)}
-           filename: stringtableindex; {stringfile index of file name} );
+           fileoffset: stringtableindex; {stringfile index of file name} );
         commnode: (commsize: addressrange; {for globals}
                    commalign: addressrange;
                    commownflag: boolean;
@@ -679,6 +679,7 @@ var
 
   stringbase: addressrange; {start of string and constant data}
   constbase: addressrange; {start of constants for the current procedure}
+  currentfilenumber: addressrange; {for the file corresponding to current pseudoop}
 
   { Loop stack, used to restore registers at the bottom of loops }
 

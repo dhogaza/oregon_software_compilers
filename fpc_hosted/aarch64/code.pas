@@ -4997,7 +4997,7 @@ procedure stmtbrkx;
       current_stmt := pseudoinst.oprnds[1];
       sourceline := pseudoinst.oprnds[2];
       current_line := pseudoinst.oprnds[2] - lineoffset;
-      filename := len;
+      fileoffset := len;
       end;
   end; {stmtbrkx}
 

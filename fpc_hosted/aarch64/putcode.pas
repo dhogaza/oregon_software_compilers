@@ -87,6 +87,33 @@ function getstringfile: hostfilebyte;
     else nextstringfile := nextstringfile + 1;
   end {getstringfile} ;
 
+  function filenumber(fileoffset: addressrange): addressrange;
+
+  { Map file name offset to the file number assigned in the .file
+    directive that defiens it.
+  }
+
+  var
+    curfileptr: filerememberptr;  {used to step through input files}
+    filecount: integer; {file directives are numbered in DWARF}
+
+  begin {writefiledirectives}
+    curfileptr := filerememberlist;
+    filecount := 1;
+    while (curfileptr <> nil) and (curfileptr^.offset <> fileoffset) do
+      begin
+      filecount := filecount + 1;
+      curfileptr := curfileptr^.next;
+      end;
+    if curfileptr = nil then
+      begin
+      write('Can''t find source file.  Offset: ', fileoffset:1);
+      compilerabort(inconsistent);
+      filenumber := 1;
+      end
+    else filenumber := filecount;
+  end {writefiledirectives};
+
 procedure libname(libroutine: libroutines;
                   var s: string);
 
@@ -879,6 +906,13 @@ begin {write_node}
     if i <> 0 then i := i - firststmt + 1;
     writeln(macfile, '// Line: ', p^.sourceline - lineoffset: 1,
                         ', Stmt: ', i: 1);
+    if switcheverplus[walkback] then
+      begin
+      if p^.fileoffset <> 0 then 
+        currentfilenumber := filenumber(p^.fileoffset);
+      writeln(macfile, chr(9), '.loc ', currentfilenumber:1, ' ',
+              p^.sourceline - lineoffset:1, ' ', i:1);
+      end;
     end;
   rodatanode:
     begin
@@ -1027,6 +1061,8 @@ begin
   data_region := false;
 
   if switcheverplus[outputmacro] then initmac;
+
+  currentfilenumber := 1; {there is always one source file}
 
 end;
 
