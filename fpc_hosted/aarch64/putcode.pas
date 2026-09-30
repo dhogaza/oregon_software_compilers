@@ -369,9 +369,9 @@ procedure copysfile;
     { first write the string table as fixed length character strings }
     i := stringfilecount;
     if i > 0 then begin
-      writeln(macfile, '#');
-      writeln(macfile, '#  Constants');
-      writeln(macfile, '#');
+      writeln(macfile, '//');
+      writeln(macfile, '//  Constants');
+      writeln(macfile, '//');
       if unixtarget = linux then
         writeln(macfile, chr(9), '.section', chr(9), '.rodata')
      else
@@ -382,6 +382,56 @@ procedure copysfile;
       end;
   end {copysfile} ;
 
+
+  procedure writefiledirectives;
+
+  { Emit the assembly directives to define files in the eventual DWARF output.
+
+    We only do this if walkback is enabled.
+
+    Using strings since we do implement them.
+
+  }
+
+  var
+    curfileptr: filerememberptr;  {used to step through input files}
+    filecount: integer; {file directives are numbered in DWARF}
+    extfound: boolean; {if no extension, we will assume ".pas"}
+    currentdir: shortstring; {file name is relative to current dir if not abs path}
+
+  begin {writefiledirectives}
+    if switcheverplus[walkback] then
+      begin
+      curfileptr := filerememberlist;
+      if curfileptr <> nil then
+        begin
+        writeln(macfile, '//');
+        writeln(macfile, '//', chr(9),'File Directives');
+        writeln(macfile, '//');
+        currentdir := getcurrentdir;
+        filecount := 1;
+        extfound := false;
+        repeat
+          write(macfile, '.file ', filecount, ' "');
+          seekstringfile(stringfilecount + curfileptr^.offset - 1);
+          if stringblkptr^[nextstringfile] <> 0 then
+            begin
+            if stringblkptr^[nextstringfile] <> ord('/') then
+              write(macfile, currentdir, '" "');
+            repeat
+              if stringblkptr^[nextstringfile] = ord('.') then
+                extfound := true;
+              write(macfile, chr(getstringfile));
+            until stringblkptr^[nextstringfile] = 0;
+          end;
+          if not extfound then write(macfile, '.pas');
+            writeln(macfile,'"');
+          filecount := filecount + 1;
+          curfileptr := curfileptr^.next;
+        until curfileptr = nil;
+        end;
+      end;
+  end {writefiledirectives};
 
   procedure writelibname(l: libroutines);
 
@@ -827,7 +877,7 @@ begin {write_node}
     begin
     i := p^.stmtno;
     if i <> 0 then i := i - firststmt + 1;
-    writeln(macfile, '# Line: ', p^.sourceline - lineoffset: 1,
+    writeln(macfile, '// Line: ', p^.sourceline - lineoffset: 1,
                         ', Stmt: ', i: 1);
     end;
   rodatanode:
@@ -866,7 +916,7 @@ begin {write_node}
   labeldeltanode:
     writeln(macfile, chr(9), '.long', chr(9), '.L', p^.targetlabel,
                      '-.L', p^.tablebase);
-  commentnode: writeln(macfile, '# ', p^.comment);
+  commentnode: writeln(macfile, '// ', p^.comment);
   otherwise writeln('bad node');
   end;
 end {write_node};
@@ -963,6 +1013,8 @@ begin
   conds_text[pl] := 'pl';
   conds_text[vs] := 'vs';
   conds_text[vc] := 'vc';
+
+  writefiledirectives;
 
   copysfile;
 

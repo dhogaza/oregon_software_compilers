@@ -3,6 +3,12 @@
    1. add file and line no information for gcc so breakpoints can be set and
       backtraces executed.
 
+      walk file remember list issuing .file directives.  Check include file
+      names.  Will probably be '.file n "<pwd>" "filename"'.  When stmtbrk
+      length file is non-zero, find corresponding file number and save.
+
+      Add cfi info: startproc, endproc, reg save/restore
+
    1a. Figure out how to make it work under darwin.  Plugin for P2?
 
    1b. add runtime checking operators once this is done.
