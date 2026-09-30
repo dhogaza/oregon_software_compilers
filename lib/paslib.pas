@@ -88,6 +88,7 @@ type
   
 function time(var rawtime: integer): integer; nonpascal;
 function localtime_r(var rawtime: integer; var tmdata: _p_tm): _p_addressptr; nonpascal;
+function getcwd(buf: _p_charptr; len: integer): _p_charptr; nonpascal;
 
 procedure exit(const code: integer); nonpascal;
 function malloc(const size: integer): _p_charptr; nonpascal;
@@ -122,6 +123,7 @@ procedure _p_caseerr; external;
 
 procedure exitst(code: integer); external;
 procedure timestamp(var day, month, year, hour, minute, second: integer); external;
+function getcurrentdir: _p_string; external;
 
 { I/O }
 
@@ -205,7 +207,7 @@ procedure _p_arraytostring(var dst: _p_string; const src: _p_stringarrayp;
 }
 
 var
-  i: 0 .. 255;
+  i: 0 .. _p_maxstringlen;
 
 begin
   { Remember Delphi short strings truncate rather than throw error }
@@ -222,10 +224,6 @@ begin
 end;
 
 procedure _p_cstringtostring(var dst: _p_string; src: _p_charptr);
-
-{ Will probably return cstrings into packed arrays of chars making this
-  unused.  This will truncate overly long C strings.
-}
 
 var
   i: 0 .. 255;
@@ -1363,6 +1361,19 @@ end;
 { library routines that weren't made standard and predefined for whatever
   reason, decades ago.
 }
+
+function getcurrentdir;
+
+var
+  buf: _p_charptr;
+  temp: _p_string;
+
+begin
+  buf := getcwd(nil, 0);
+  _p_cstringtostring(temp, buf);
+  free(buf);
+  getcurrentdir := temp;
+end;
 
 procedure timestamp;
 
