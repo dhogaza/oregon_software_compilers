@@ -1,6 +1,6 @@
-//
-//  Constants
-//
+#
+#  Constants
+#
 	.section	.rodata
 	.align 12
 .L32766:
@@ -8,15 +8,15 @@
 	.byte	0x20,0x00
 	.text
 	.align 2
-//
-//	foo
-//
+#
+##	foo
+#
 .P1:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-// Line: 4, Stmt: 1
-// Line: 5, Stmt: 2
+# Line: 4, Stmt: 1
+# Line: 5, Stmt: 2
 	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+1
 	str	x1,[x29,-8]
@@ -40,15 +40,15 @@
 	ret
 	.text
 	.align 2
-//
-//	bar
-//
+#
+##	bar
+#
 .P2:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-// Line: 10, Stmt: 1
-// Line: 11, Stmt: 2
+# Line: 10, Stmt: 1
+# Line: 11, Stmt: 2
 	str	x0,[x29,-8]
 	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+8
@@ -71,21 +71,21 @@
 	ret
 	.text
 	.align 2
-//
-//	 (main)
-//
+#
+##	 (main)
+#
 	.global main
 main:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
 	add	x29,sp,32
 	bl	_p_initio 
-// Line: 14, Stmt: 1
-// Line: 16, Stmt: 0
+# Line: 14, Stmt: 1
+# Line: 16, Stmt: 0
 	adrp	x15,.L32767
 	mov	w16,3
 	str	w16,[x15,:lo12:.L32767+24]
-// Line: 18, Stmt: 0
+# Line: 18, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	mov	x2,3
@@ -103,7 +103,7 @@ main:
 	mov	x16,12
 	str	x16,[sp,24]
 	bl	.P1  // foo
-// Line: 19, Stmt: 0
+# Line: 19, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	mov	x2,3
@@ -121,12 +121,12 @@ main:
 	mov	x16,12
 	str	x16,[sp,24]
 	bl	.P2  // bar
-// Line: 21, Stmt: 0
+# Line: 21, Stmt: 0
 	mov	x15,3
 	cmp	w15,3
 	b.ne	.L5
 .L6:
-// Line: 22, Stmt: 0
+# Line: 22, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	mov	x2,3
@@ -146,7 +146,7 @@ main:
 	bl	.P1  // foo
 	b	.L7
 .L5:
-// Line: 24, Stmt: 0
+# Line: 24, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	mov	x2,3
@@ -165,7 +165,7 @@ main:
 	str	x16,[sp,24]
 	bl	.P2  // bar
 .L7:
-// Line: 26, Stmt: 0
+# Line: 26, Stmt: 0
 	mov	x0,1
 	mov	x1,2
 	mov	x2,3

@@ -1,6 +1,6 @@
-//
-//  Constants
-//
+#
+#  Constants
+#
 	.section	.rodata
 	.align 12
 .L32766:
@@ -30,38 +30,38 @@
 	.byte	0x00,0x00,0x00,0x80
 	.text
 	.align 2
-//
-//	sets
-//
+#
+##	sets
+#
 .P1:
 	sub	sp,sp,32
-// Line: 101, Stmt: 1
+# Line: 101, Stmt: 1
 	adrp	x13,.L32767
-// Line: 102, Stmt: 2
+# Line: 102, Stmt: 2
 	mov	x14,1
 .L5:
-// Line: 103, Stmt: 0
+# Line: 103, Stmt: 0
 	mov	x15,1
 .L6:
-// Line: 105, Stmt: 0
+# Line: 105, Stmt: 0
 	mov	w16,74
 	strb	w16,[x13,:lo12:.L32767+120]
-// Line: 106, Stmt: 0
+# Line: 106, Stmt: 0
 	adrp	x11,.L32766
 	add	x12,x11,:lo12:.L32766
 	add	x11,x13,:lo12:.L32767+24
 	ldp	x16,x17,[x12],16
 	stp	x16,x17,[x11],16
-// Line: 107, Stmt: 0
+# Line: 107, Stmt: 0
 	mov	w16,94
 	strb	w16,[x13,:lo12:.L32767+121]
-// Line: 108, Stmt: 0
+# Line: 108, Stmt: 0
 	mov	w16,5
 	strb	w16,[x13,:lo12:.L32767+122]
-// Line: 109, Stmt: 0
+# Line: 109, Stmt: 0
 	mov	w16,189
 	strb	w16,[x13,:lo12:.L32767+123]
-// Line: 110, Stmt: 0
+# Line: 110, Stmt: 0
 	adrp	x11,.L32766
 	add	x12,x11,:lo12:.L32766+16
 	add	x11,x13,:lo12:.L32767+40
@@ -85,7 +85,7 @@
 	add	w11,w11,1
 	b	.L32764
 .L32763:
-// Line: 111, Stmt: 0
+# Line: 111, Stmt: 0
 	adrp	x11,.L32766
 	add	x12,x11,:lo12:.L32766+48
 	add	x11,x13,:lo12:.L32767+64
@@ -93,7 +93,7 @@
 	stp	x16,x17,[x11],16
 	ldr	x16,[x12],16
 	str	x16,[x11],16
-// Line: 112, Stmt: 0
+# Line: 112, Stmt: 0
 	add	x10,x13,:lo12:.L32767+40
 	add	x9,x13,:lo12:.L32767+64
 	add	x8,sp,0
@@ -118,18 +118,18 @@
 	ldr	x17,[x9],16
 	and	x16,x16,x17
 	str	x16,[x8],16
-// Line: 113, Stmt: 0
+# Line: 113, Stmt: 0
 	ldrb	w16,[x13,:lo12:.L32767+51]
 	ands	w16,w16,2
 	cset	w12,ne
 	strb	w12,[x13,:lo12:.L32767+124]
-// Line: 114, Stmt: 0
+# Line: 114, Stmt: 0
 	ldrb	w16,[x13,:lo12:.L32767+63]
 	ands	w16,w16,128
 	cset	w12,ne
 	eor	w12,w12,1
 	strb	w12,[x13,:lo12:.L32767+125]
-// Line: 115, Stmt: 0
+# Line: 115, Stmt: 0
 	add	x10,x13,:lo12:.L32767+40
 	adrp	x8,.L32766
 	add	x9,x8,:lo12:.L32766+72
@@ -148,7 +148,7 @@
 	cset	w12,ne
 	eor	w12,w12,1
 	strb	w12,[x13,:lo12:.L32767+126]
-// Line: 116, Stmt: 0
+# Line: 116, Stmt: 0
 	add	x10,x13,:lo12:.L32767+40
 	adrp	x8,.L32766
 	add	x9,x8,:lo12:.L32766+96
@@ -162,7 +162,7 @@
 	ldr	x17,[x9],16
 	orr	x16,x16,x17
 	str	x16,[x8],16
-// Line: 118, Stmt: 0
+# Line: 118, Stmt: 0
 	add	x12,x13,:lo12:.L32767+24
 	adrp	x10,.L32766
 	add	x11,x10,:lo12:.L32766+120
@@ -174,7 +174,7 @@
 .L32762:
 	cset	w12,eq
 	strb	w12,[x13,:lo12:.L32767+127]
-// Line: 119, Stmt: 0
+# Line: 119, Stmt: 0
 	add	x12,x13,:lo12:.L32767+24
 	adrp	x10,.L32766
 	add	x11,x10,:lo12:.L32766+136
@@ -186,7 +186,7 @@
 .L32761:
 	cset	w12,ne
 	strb	w12,[x13,:lo12:.L32767+128]
-// Line: 120, Stmt: 0
+# Line: 120, Stmt: 0
 	add	x12,x13,:lo12:.L32767+24
 	adrp	x10,.L32766
 	add	x11,x10,:lo12:.L32766+152
@@ -198,7 +198,7 @@
 .L32760:
 	cset	w12,eq
 	strb	w12,[x13,:lo12:.L32767+130]
-// Line: 121, Stmt: 0
+# Line: 121, Stmt: 0
 	adrp	x11,.L32766
 	add	x12,x11,:lo12:.L32766+168
 	add	x11,x13,:lo12:.L32767+24
@@ -210,7 +210,7 @@
 .L32759:
 	cset	w12,eq
 	strb	w12,[x13,:lo12:.L32767+129]
-// Line: 123, Stmt: 0
+# Line: 123, Stmt: 0
 	add	x12,x13,:lo12:.L32767+64
 	adrp	x10,.L32766
 	add	x11,x10,:lo12:.L32766+184
@@ -226,7 +226,7 @@
 .L32758:
 	cset	w12,eq
 	strb	w12,[x13,:lo12:.L32767+131]
-// Line: 124, Stmt: 0
+# Line: 124, Stmt: 0
 	add	x12,x13,:lo12:.L32767+64
 	adrp	x10,.L32766
 	add	x11,x10,:lo12:.L32766+208
@@ -242,7 +242,7 @@
 .L32757:
 	cset	w12,ne
 	strb	w12,[x13,:lo12:.L32767+132]
-// Line: 125, Stmt: 0
+# Line: 125, Stmt: 0
 	adrp	x11,.L32766
 	add	x12,x11,:lo12:.L32766+232
 	add	x11,x13,:lo12:.L32767+64
@@ -258,7 +258,7 @@
 .L32756:
 	cset	w12,eq
 	strb	w12,[x13,:lo12:.L32767+133]
-// Line: 126, Stmt: 0
+# Line: 126, Stmt: 0
 	add	x12,x13,:lo12:.L32767+64
 	adrp	x10,.L32766
 	add	x11,x10,:lo12:.L32766+256
@@ -289,16 +289,16 @@
 	ret
 	.text
 	.align 2
-//
-//	 (main)
-//
+#
+##	 (main)
+#
 	.global main
 main:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
 	bl	_p_initio 
-// Line: 130, Stmt: 1
-// Line: 131, Stmt: 0
+# Line: 130, Stmt: 1
+# Line: 131, Stmt: 0
 	bl	.P1  // sets
 .L9:
 	ldp	x30,x29,[sp],16

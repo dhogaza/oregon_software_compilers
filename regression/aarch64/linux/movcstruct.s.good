@@ -1,6 +1,6 @@
-//
-//  Constants
-//
+#
+#  Constants
+#
 	.section	.rodata
 	.align 12
 .L32766:
@@ -9,9 +9,9 @@
 	.byte	0x65,0x6E,0x74,0x20,0x61,0x3A,0x20,0x00
 	.text
 	.align 2
-//
-//	p
-//
+#
+##	p
+#
 .P1:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,56]
@@ -19,24 +19,24 @@
 	stp	x27,x28,[x29,-16]
 	stp	x25,x26,[x29,-32]
 	stp	x23,x24,[x29,-48]
-// Line: 9, Stmt: 1
+# Line: 9, Stmt: 1
 	mov	x26,x0
 	mov	x25,x1
 	mov	x27,x2
 	mov	x24,x3
-// Line: 10, Stmt: 2
+# Line: 10, Stmt: 2
 	adrp	x15,.L32766
 	add	x0,x15,:lo12:.L32766+1
 	mov	x1,3
 	mov	x2,x1
 	bl	_p_wts_o 
-// Line: 11, Stmt: 0
+# Line: 11, Stmt: 0
 	mov	x28,x27
 	mov	x23,x24
 .L7:
 	cmp	w28,w23
 	b.gt	.L6
-// Line: 11, Stmt: 0
+# Line: 11, Stmt: 0
 	sub	w15,w28,w27
 	ldrsw	x0,[x26, w15, sxtw 2]
 	mov	x1,12
@@ -44,21 +44,21 @@
 	adds	w28,w28,1
 	b.vc	.L7
 .L6:
-// Line: 12, Stmt: 0
+# Line: 12, Stmt: 0
 	bl	_p_wtln_o 
-// Line: 13, Stmt: 0
+# Line: 13, Stmt: 0
 	adrp	x23,.L32766
 	add	x0,x23,:lo12:.L32766+6
 	mov	x1,3
 	mov	x2,x1
 	bl	_p_wts_o 
-// Line: 14, Stmt: 0
+# Line: 14, Stmt: 0
 	mov	x28,x27
 	mov	x23,x24
 .L9:
 	cmp	w28,w23
 	b.gt	.L8
-// Line: 14, Stmt: 0
+# Line: 14, Stmt: 0
 	sub	w15,w28,w27
 	ldrsw	x0,[x25, w15, sxtw 2]
 	mov	x1,12
@@ -66,9 +66,9 @@
 	adds	w28,w28,1
 	b.vc	.L9
 .L8:
-// Line: 15, Stmt: 0
+# Line: 15, Stmt: 0
 	bl	_p_wtln_o 
-// Line: 16, Stmt: 0
+# Line: 16, Stmt: 0
 	sub	w23,w24,w27
 	add	w15,w23,1
 	lsl	w23,w15,2
@@ -79,19 +79,19 @@
 	str	w16,[x15],4
 	sub	x23,x23,4
 	cbnz	x23,.L32764
-// Line: 17, Stmt: 0
+# Line: 17, Stmt: 0
 	adrp	x23,.L32766
 	add	x0,x23,:lo12:.L32766+11
 	mov	x1,20
 	mov	x2,x1
 	bl	_p_wts_o 
-// Line: 18, Stmt: 0
+# Line: 18, Stmt: 0
 	mov	x28,x27
 	mov	x23,x24
 .L11:
 	cmp	w28,w23
 	b.gt	.L10
-// Line: 18, Stmt: 0
+# Line: 18, Stmt: 0
 	sub	w15,w28,w27
 	ldrsw	x0,[x26, w15, sxtw 2]
 	mov	x1,12
@@ -99,7 +99,7 @@
 	adds	w28,w28,1
 	b.vc	.L11
 .L10:
-// Line: 19, Stmt: 0
+# Line: 19, Stmt: 0
 	bl	_p_wtln_o 
 .L2:
 	ldp	x27,x28,[x29,-16]
@@ -110,9 +110,9 @@
 	ret
 	.text
 	.align 2
-//
-//	 (main)
-//
+#
+##	 (main)
+#
 	.global main
 main:
 	sub	sp,sp,48
@@ -120,28 +120,28 @@ main:
 	add	x29,sp,32
 	str	x28,[x29,-8]
 	bl	_p_initio 
-// Line: 22, Stmt: 1
-// Line: 23, Stmt: 0
+# Line: 22, Stmt: 1
+# Line: 23, Stmt: 0
 	adrp	x28,.L32767
 	mov	w16,1
 	str	w16,[x28,:lo12:.L32767+24]
-// Line: 23, Stmt: 0
+# Line: 23, Stmt: 0
 	mov	w16,2
 	str	w16,[x28,:lo12:.L32767+28]
-// Line: 23, Stmt: 0
+# Line: 23, Stmt: 0
 	mov	w16,3
 	str	w16,[x28,:lo12:.L32767+32]
-// Line: 24, Stmt: 0
+# Line: 24, Stmt: 0
 	movz	x16,65535
 	movk	x16,65535,lsl 16
 	str	w16,[x28,:lo12:.L32767+40]
-// Line: 24, Stmt: 0
+# Line: 24, Stmt: 0
 	mov	w16,4294967294
 	str	w16,[x28,:lo12:.L32767+44]
-// Line: 24, Stmt: 0
+# Line: 24, Stmt: 0
 	mov	w16,4294967293
 	str	w16,[x28,:lo12:.L32767+48]
-// Line: 25, Stmt: 0
+# Line: 25, Stmt: 0
 	add	x28,x28,:lo12:.L32767+24
 	sub	x15,x29,24
 	ldr	w16,[x28],4
