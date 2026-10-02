@@ -1353,7 +1353,7 @@ procedure genlongint(var after: nodeptr; value: unsigned; dst: regindex);
     savedtempkey := tempkey;
     regkey := settemp(long, reg_oprnd(dst));
     if is_bitmask(value, 32) then
-      gen2(after, buildinst(mov, true, false), regkey,
+      gen2(after, buildinst(mov, false, false), regkey,
            settemp(len, immbitmask_oprnd(value)))
     else
       begin
@@ -8403,7 +8403,8 @@ procedure checkrange;
   var
     upperoffset: unsigned; {upper range limit if literal}
     lower, upper, checkkey, checkvaluekey: keyindex;
-    checkvalue: unsigned;
+    checkvalue: integer;
+    adjinst: insts; { sub or add depending on lower bounds }
 
   begin {checkrange}
     lower := right;
@@ -8419,17 +8420,27 @@ procedure checkrange;
     if keytable[lower].oprnd.int_value = 0 then checkkey := key
     else
       begin
-      checkkey := regkeys[ip0];
-      gen3(lastnode, buildinst(sub, len = long, false), checkkey, key, lower);
+      checkkey := regkeys[ip1];
+      with keytable[lower] do
+        if oprnd.int_value >= 0 then
+          adjinst := sub
+        else
+          begin
+          lower := settemp(len, intconst_oprnd(-oprnd.int_value));
+          adjinst := add;
+          end;
+      handle_intconst12(lastnode, lower);
+      gen3(lastnode, buildinst(adjinst, len = long, false), checkkey, key, lower);
       end;
     if checkvalue = 0 then
-      gen2(lastnode, buildinst(cbz, false, false), checkkey, lastlabel)
+      gen2(lastnode, buildinst(cbz, false, false), checkkey,
+           settemp(0, labeltarget_oprnd(lastlabel)))
     else
       begin
       checkvaluekey := settemp(len, intconst_oprnd(checkvalue));
       handle_intconst12(lastnode, checkvaluekey);
       gen2(lastnode, buildinst(cmp, len = long, false), checkkey, checkvaluekey);
-      genbcond(lastnode, le, lastlabel);
+      genbcond(lastnode, ls, lastlabel);
       end;
     callsupport(librangetrap, false);
     definelastlabel;
