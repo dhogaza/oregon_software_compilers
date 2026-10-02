@@ -5777,7 +5777,6 @@ procedure removefileparam;
 begin {removefileparam}
   if filenamed then
     begin
-    markreg(0);
     fileregkey := settemp(long, reg_oprnd(filereg));
     unlock(fileregkey);
     end;
@@ -5804,7 +5803,6 @@ procedure wrcommon(libroutine: libroutines; {formatting routine to call}
     formatinfo.regcount := ord(filenamed);
     if filenamed then
       begin
-      markreg(0);
       fileregkey := settemp(long, reg_oprnd(filereg));
       gensimplemove(lastnode, fileregkey, regkeys[0]);
       end;
@@ -5835,7 +5833,6 @@ procedure wrstx;
     formatinfo.regcount := ord(filenamed);
     if filenamed then
       begin
-      markreg(0);
       fileregkey := settemp(long, reg_oprnd(filereg));
       gensimplemove(lastnode, fileregkey, regkeys[0]);
       end;
@@ -5850,7 +5847,6 @@ procedure readwritelnx(libroutine: libroutines);
   begin {readwritelnx}
     if filenamed then
       begin
-      markreg(0);
       fileregkey := settemp(long, reg_oprnd(filereg));
       gensimplemove(lastnode, fileregkey, regkeys[0]);
       end;
@@ -5878,6 +5874,7 @@ begin {setbinfilex}
     lock(key);
     end;
   dontchangevalue := dontchangevalue + 1;
+  markreg(0);
   firstreg := 1;
 end {setbinfilex} ;
 
@@ -5905,6 +5902,7 @@ begin {setfilex}
     dontchangevalue := dontchangevalue + 1;
     formatinfo.count := 0;
     formatinfo.regcount := 1;
+    markreg(0);
     firstreg := 1;
     end;
   filenamed := true;
@@ -5918,7 +5916,6 @@ procedure  rdintcharx(libroutine: libroutines; len: addressrange);
 begin {rdintcharx}
   if filenamed then
     begin
-    markreg(0);
     fileregkey := settemp(long, reg_oprnd(filereg));
     gensimplemove(lastnode, fileregkey, regkeys[0]);
     end;
@@ -5935,7 +5932,6 @@ procedure rdstrx(libroutine: libroutines);
 begin {rdxstrx}
   if filenamed then
     begin
-    markreg(0);
     fileregkey := settemp(long, reg_oprnd(filereg));
     gensimplemove(lastnode, fileregkey, regkeys[0]);
     end;
