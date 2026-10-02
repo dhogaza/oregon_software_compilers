@@ -1322,7 +1322,7 @@
 	add	x27,x14,w27, sxtw 0
 	ldr	x14,[x15]
 	ldrb	w13,[x14]
-	mov	x16,4294967264
+	mov	w16,4294967264
 	add	w14,w13,w16
 	strb	w14,[x27,23]
 	b	.L65
