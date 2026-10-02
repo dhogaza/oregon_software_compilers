@@ -122,7 +122,7 @@ procedure libname(libroutine: libroutines;
       libarctan:        s := '_p_fatn    ';
       libbreak:         s := '_p_break   ';
       libcap:           s := '_p_cap     ';  { for Modula-2}
-      libcasetrap:      s := '_p_caseerr ';
+      libcasetrap:      s := '_p_case    ';
       libcexit:         s := '_p_cexit   ';  { for C }
       libmexit:         s := '_p_mexit   ';  { for Modula-2 }
       libcidiv:         s := '_p_cidiv   ';  { for C }
@@ -203,7 +203,7 @@ procedure libname(libroutine: libroutines;
       libprofilerinit:  s := '_p_prinit  ';
       libprofilerstmt:  s := '_p_prstmt  ';
       libput:           s := '_p_put     ';
-      librangetrap:     s := '_p_subrng  ';
+      librangetrap:     s := '_p_range   ';
       libreadchar:      s := '_p_rdc     ';
       libreadchari:     s := '_p_rdc_i   ';
       libreaddouble:    s := '_p_rdd     ';
@@ -396,9 +396,9 @@ procedure copysfile;
     { first write the string table as fixed length character strings }
     i := stringfilecount;
     if i > 0 then begin
-      writeln(macfile, '//');
-      writeln(macfile, '//  Constants');
-      writeln(macfile, '//');
+      writeln(macfile, '#');
+      writeln(macfile, '#  Constants');
+      writeln(macfile, '#');
       if unixtarget = linux then
         writeln(macfile, chr(9), '.section', chr(9), '.rodata')
      else
@@ -432,9 +432,9 @@ procedure copysfile;
       curfileptr := filerememberlist;
       if curfileptr <> nil then
         begin
-        writeln(macfile, '//');
-        writeln(macfile, '//', chr(9),'File Directives');
-        writeln(macfile, '//');
+        writeln(macfile, '#');
+        writeln(macfile, '#', chr(9),'File Directives');
+        writeln(macfile, '#');
         currentdir := getcurrentdir;
         filecount := 1;
         extfound := false;
@@ -444,7 +444,8 @@ procedure copysfile;
           if stringblkptr^[nextstringfile] <> 0 then
             begin
             if stringblkptr^[nextstringfile] <> ord('/') then
-              write(macfile, currentdir, '/');
+              if unixtarget = linux then write(macfile, currentdir, '/')
+              else write(macfile, currentdir, '" "');
             repeat
               if stringblkptr^[nextstringfile] = ord('.') then
                 extfound := true;
@@ -549,15 +550,15 @@ procedure writeproclabel(procn: proctableindex);
 
     if (blockref <> 0) or (switchcounters[mainbody] > 0) then
       begin
-      { banner which needs to be a '//' comment because '# error' causes gcc
-        of the generated assembly code to give an error, in darwin, at least!
+      { Procname needs to be ## because preprocessor recognizes names like
+        "error" and turning it off isn't as simple as one might thing.
       }
-      writeln(macfile, '//');
-      write(macfile, '//', chr(9));
+      writeln(macfile, '#');
+      write(macfile, '##', chr(9));
       writeprocname(procn);
       if blockref = 0 then writeln(macfile, ' (main)')
       else writeln(macfile);
-      writeln(macfile, '//');
+      writeln(macfile, '#');
   
       if proctable[blockref].externallinkage
          or ((proctable[blockref].calllinkage = implementationbody)
@@ -911,7 +912,7 @@ begin {write_node}
     begin
     i := p^.stmtno;
     if i <> 0 then i := i - firststmt + 1;
-    writeln(macfile, '// Line: ', p^.sourceline - lineoffset: 1,
+    writeln(macfile, '# Line: ', p^.sourceline - lineoffset: 1,
                         ', Stmt: ', i: 1);
     if switcheverplus[walkback] then
       begin
@@ -957,7 +958,7 @@ begin {write_node}
   labeldeltanode:
     writeln(macfile, chr(9), '.long', chr(9), '.L', p^.targetlabel,
                      '-.L', p^.tablebase);
-  commentnode: writeln(macfile, '// ', p^.comment);
+  commentnode: writeln(macfile, '## ', p^.comment);
   otherwise writeln('bad node');
   end;
 end {write_node};
