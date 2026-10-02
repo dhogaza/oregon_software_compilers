@@ -115,7 +115,11 @@ function tmpfile: _p_streamptr; nonpascal;
 { pascal-2 lib declarations }
 
 { errors }
-procedure _p_caseerr; external;
+procedure _p_error(errmsg: _p_string); external;
+procedure _p_case; external;
+procedure _p_range; external;
+procedure _p_array; external;
+procedure _p_congruent; external;
 
 { library routines that weren't made standard and predefined for whatever
   reason, decades ago.
@@ -367,11 +371,34 @@ begin {_p_trimright}
     trimmed[i] := src[i];
   _p_trimright := trimmed;
 end {_p_trimright};
-    
-procedure _p_caseerr;
+
+{ Providing this common routine makes it possible to set one breakpoint
+  for any runtime error while in lldb or gdb.
+}
+
+procedure _p_error;
   begin
-    writeln(stderror, 'Case error');
+    writeln(stderror, 'Pascal-2 runtime error: ', errmsg);
     exit(1);
+  end;
+
+procedure _p_range;
+  begin
+    _p_error('Range check');
+  end;
+
+procedure _p_array;
+  begin
+    _p_error('Array index out of bounds');
+  end;
+procedure _p_congruent;
+  begin
+    _p_error('Array congruency error');
+  end;
+    
+procedure _p_case;
+  begin
+    _p_error('Case expression matches no label');
   end;
 
 procedure _p_liberror(const err: _p_string);
