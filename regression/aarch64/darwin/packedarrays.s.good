@@ -49,9 +49,9 @@
 	.byte	0x65,0x63,0x74,0x20,0x00
 	.text
 	.align 2
-//
-//	foo
-//
+#
+##	foo
+#
 .P2:
 	sub	sp,sp,16
 # Line: 23, Stmt: 1
@@ -172,9 +172,9 @@
 	ret
 	.text
 	.align 2
-//
-//	bar
-//
+#
+##	bar
+#
 .P1:
 	sub	sp,sp,96
 	stp	x30,x29,[sp,48]
@@ -467,9 +467,9 @@
 	ret
 	.text
 	.align 2
-//
-//	foo
-//
+#
+##	foo
+#
 .P3:
 	sub	sp,sp,16
 # Line: 66, Stmt: 1
@@ -578,9 +578,9 @@
 	ret
 	.text
 	.align 2
-//
-//	 (main)
-//
+#
+##	 (main)
+#
 	.global _main
 _main:
 	sub	sp,sp,64

@@ -12,9 +12,9 @@
 	.byte	0x00
 	.text
 	.align 2
-//
-//	f
-//
+#
+##	f
+#
 .P2:
 	sub	sp,sp,16
 # Line: 4, Stmt: 1
@@ -29,9 +29,9 @@
 	ret
 	.text
 	.align 2
-//
-//	ext
-//
+#
+##	ext
+#
 	.global ext
 ext:
 	sub	sp,sp,32
@@ -55,9 +55,9 @@ ext:
 	ret
 	.text
 	.align 2
-//
-//	funcparam
-//
+#
+##	funcparam
+#
 .P3:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -87,9 +87,9 @@ ext:
 	ret
 	.text
 	.align 2
-//
-//	procparam
-//
+#
+##	procparam
+#
 .P4:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -119,9 +119,9 @@ ext:
 	ret
 	.text
 	.align 2
-//
-//	deadsimple
-//
+#
+##	deadsimple
+#
 .P5:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
@@ -138,9 +138,9 @@ ext:
 	ret
 	.text
 	.align 2
-//
-//	upref
-//
+#
+##	upref
+#
 .P8:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -171,9 +171,9 @@ ext:
 	ret
 	.text
 	.align 2
-//
-//	p1
-//
+#
+##	p1
+#
 .P7:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -211,9 +211,9 @@ ext:
 	ret
 	.text
 	.align 2
-//
-//	p0
-//
+#
+##	p0
+#
 .P6:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -236,9 +236,9 @@ ext:
 	ret
 	.text
 	.align 2
-//
-//	 (main)
-//
+#
+##	 (main)
+#
 	.global _main
 _main:
 	sub	sp,sp,32

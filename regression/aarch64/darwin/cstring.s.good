@@ -8,9 +8,9 @@
 	.byte	0x62,0x63,0x64,0x65,0x66,0x00
 	.text
 	.align 2
-//
-//	toshortstring
-//
+#
+##	toshortstring
+#
 .P1:
 	sub	sp,sp,48
 # Line: 30, Stmt: 1
@@ -44,9 +44,9 @@
 	ret
 	.text
 	.align 2
-//
-//	cstring
-//
+#
+##	cstring
+#
 .P2:
 	sub	sp,sp,16
 # Line: 44, Stmt: 1
@@ -64,9 +64,9 @@
 	ret
 	.text
 	.align 2
-//
-//	writecstring
-//
+#
+##	writecstring
+#
 .P3:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,32]
@@ -100,9 +100,9 @@
 	ret
 	.text
 	.align 2
-//
-//	 (main)
-//
+#
+##	 (main)
+#
 	.global _main
 _main:
 	sub	sp,sp,48

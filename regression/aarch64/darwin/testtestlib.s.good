@@ -33,9 +33,9 @@
 	.byte	0x73,0x65,0x20,0x65,0x72,0x72,0x6F,0x72,0x00
 	.text
 	.align 2
-//
-//	putln
-//
+#
+##	putln
+#
 	.global putln
 putln:
 	stp	x30,x29,[sp,-16]!
@@ -49,9 +49,9 @@ putln:
 	ret
 	.text
 	.align 2
-//
-//	putstring
-//
+#
+##	putstring
+#
 	.global putstring
 putstring:
 	sub	sp,sp,64
@@ -84,9 +84,9 @@ putstring:
 	ret
 	.text
 	.align 2
-//
-//	putstringln
-//
+#
+##	putstringln
+#
 	.global putstringln
 putstringln:
 	sub	sp,sp,64
@@ -121,9 +121,9 @@ putstringln:
 	ret
 	.text
 	.align 2
-//
-//	puthex
-//
+#
+##	puthex
+#
 	.global puthex
 puthex:
 	sub	sp,sp,64
@@ -177,9 +177,9 @@ puthex:
 	ret
 	.text
 	.align 2
-//
-//	puthexln
-//
+#
+##	puthexln
+#
 	.global puthexln
 puthexln:
 	sub	sp,sp,32
@@ -196,9 +196,9 @@ puthexln:
 	ret
 	.text
 	.align 2
-//
-//	putint
-//
+#
+##	putint
+#
 	.global putint
 putint:
 	sub	sp,sp,64
@@ -252,9 +252,9 @@ putint:
 	ret
 	.text
 	.align 2
-//
-//	putintln
-//
+#
+##	putintln
+#
 	.global putintln
 putintln:
 	sub	sp,sp,32
@@ -271,9 +271,9 @@ putintln:
 	ret
 	.text
 	.align 2
-//
-//	putbool
-//
+#
+##	putbool
+#
 	.global putbool
 putbool:
 	sub	sp,sp,32
@@ -304,9 +304,9 @@ putbool:
 	ret
 	.text
 	.align 2
-//
-//	putboolln
-//
+#
+##	putboolln
+#
 	.global putboolln
 putboolln:
 	sub	sp,sp,32
@@ -324,9 +324,9 @@ putboolln:
 	ret
 	.text
 	.align 2
-//
-//	putcharln
-//
+#
+##	putcharln
+#
 	.global putcharln
 putcharln:
 	sub	sp,sp,32
@@ -343,9 +343,9 @@ putcharln:
 	ret
 	.text
 	.align 2
-//
-//	p
-//
+#
+##	p
+#
 .P12:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -545,9 +545,9 @@ putcharln:
 	ret
 	.text
 	.align 2
-//
-//	p1
-//
+#
+##	p1
+#
 .P13:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -758,9 +758,9 @@ putcharln:
 	ret
 	.text
 	.align 2
-//
-//	 (main)
-//
+#
+##	 (main)
+#
 	.global _main
 _main:
 	stp	x30,x29,[sp,-16]!

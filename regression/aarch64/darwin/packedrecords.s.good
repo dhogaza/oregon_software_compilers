@@ -23,9 +23,9 @@
 	.byte	0x20,0x2D,0x32,0x20,0x00
 	.text
 	.align 2
-//
-//	p
-//
+#
+##	p
+#
 .P1:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -207,9 +207,9 @@
 	ret
 	.text
 	.align 2
-//
-//	 (main)
-//
+#
+##	 (main)
+#
 	.global _main
 _main:
 	stp	x30,x29,[sp,-16]!

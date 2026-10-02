@@ -19,9 +19,9 @@
 	.byte	0x20,0x2D,0x31,0x30,0x30,0x30,0x30,0x30,0x00
 	.text
 	.align 2
-//
-//	down3
-//
+#
+##	down3
+#
 .P1:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -66,9 +66,9 @@
 	ret
 	.text
 	.align 2
-//
-//	downminus1
-//
+#
+##	downminus1
+#
 .P2:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -113,9 +113,9 @@
 	ret
 	.text
 	.align 2
-//
-//	downminus100000
-//
+#
+##	downminus100000
+#
 .P3:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -162,9 +162,9 @@
 	ret
 	.text
 	.align 2
-//
-//	down100000
-//
+#
+##	down100000
+#
 .P4:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -211,9 +211,9 @@
 	ret
 	.text
 	.align 2
-//
-//	up10
-//
+#
+##	up10
+#
 .P5:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -258,9 +258,9 @@
 	ret
 	.text
 	.align 2
-//
-//	upminus3
-//
+#
+##	upminus3
+#
 .P6:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -305,9 +305,9 @@
 	ret
 	.text
 	.align 2
-//
-//	up100000
-//
+#
+##	up100000
+#
 .P7:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -354,9 +354,9 @@
 	ret
 	.text
 	.align 2
-//
-//	upminus100000
-//
+#
+##	upminus100000
+#
 .P8:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -403,9 +403,9 @@
 	ret
 	.text
 	.align 2
-//
-//	 (main)
-//
+#
+##	 (main)
+#
 	.global _main
 _main:
 	stp	x30,x29,[sp,-16]!

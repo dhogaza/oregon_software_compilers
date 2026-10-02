@@ -96,9 +96,9 @@
 	.byte	0x63,0x65,0x73,0x00
 	.text
 	.align 2
-//
-//	csi
-//
+#
+##	csi
+#
 .P2:
 	stp	x30,x29,[sp,-16]!
 	add	x29,sp,xzr
@@ -118,9 +118,9 @@
 	ret
 	.text
 	.align 2
-//
-//	initialize
-//
+#
+##	initialize
+#
 .P3:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,24]
@@ -770,9 +770,9 @@
 	ret
 	.text
 	.align 2
-//
-//	new_line
-//
+#
+##	new_line
+#
 .P4:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -812,9 +812,9 @@
 	ret
 	.text
 	.align 2
-//
-//	sget
-//
+#
+##	sget
+#
 .P5:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -905,9 +905,9 @@
 	ret
 	.text
 	.align 2
-//
-//	copy_char
-//
+#
+##	copy_char
+#
 .P6:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -941,9 +941,9 @@
 	ret
 	.text
 	.align 2
-//
-//	reserved_wrd
-//
+#
+##	reserved_wrd
+#
 .P7:
 	sub	sp,sp,48
 # Line: 273, Stmt: 1
@@ -1060,9 +1060,9 @@
 	ret
 	.text
 	.align 2
-//
-//	cross_ref
-//
+#
+##	cross_ref
+#
 .P8:
 	sub	sp,sp,128
 	stp	x30,x29,[sp,80]
@@ -1264,9 +1264,9 @@
 	ret
 	.text
 	.align 2
-//
-//	identifier
-//
+#
+##	identifier
+#
 .P9:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,48]
@@ -1422,9 +1422,9 @@
 	ret
 	.text
 	.align 2
-//
-//	number
-//
+#
+##	number
+#
 .P10:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -1464,9 +1464,9 @@
 	ret
 	.text
 	.align 2
-//
-//	stringconst
-//
+#
+##	stringconst
+#
 .P11:
 	sub	sp,sp,48
 	stp	x30,x29,[sp,32]
@@ -1511,9 +1511,9 @@
 	ret
 	.text
 	.align 2
-//
-//	comment
-//
+#
+##	comment
+#
 .P12:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
@@ -1559,9 +1559,9 @@
 	ret
 	.text
 	.align 2
-//
-//	comment1
-//
+#
+##	comment1
+#
 .P13:
 	sub	sp,sp,64
 	stp	x30,x29,[sp,48]
@@ -1643,9 +1643,9 @@
 	ret
 	.text
 	.align 2
-//
-//	special_char
-//
+#
+##	special_char
+#
 .P14:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,56]
@@ -1794,9 +1794,9 @@
 	ret
 	.text
 	.align 2
-//
-//	scan_input
-//
+#
+##	scan_input
+#
 .P15:
 	sub	sp,sp,80
 	stp	x30,x29,[sp,64]
@@ -1925,9 +1925,9 @@
 	ret
 	.text
 	.align 2
-//
-//	print_entri
-//
+#
+##	print_entri
+#
 .P16:
 	sub	sp,sp,112
 	stp	x30,x29,[sp,56]
@@ -2063,9 +2063,9 @@
 	ret
 	.text
 	.align 2
-//
-//	print_cross_ref
-//
+#
+##	print_cross_ref
+#
 .P17:
 	sub	sp,sp,128
 	stp	x30,x29,[sp,96]
@@ -2254,9 +2254,9 @@
 	ret
 	.text
 	.align 2
-//
-//	 (main)
-//
+#
+##	 (main)
+#
 	.global _main
 _main:
 	sub	sp,sp,96
