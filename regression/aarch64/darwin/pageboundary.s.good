@@ -1,0 +1,108 @@
+#
+#  Constants
+#
+	.section	__TEXT,__const
+	.align 12
+.L32766:
+	.byte	0x14,0x65,0x78,0x70,0x65,0x63,0x74,0x20,0x66,0x61,0x6C,0x73
+	.byte	0x65,0x20,0x66,0x61,0x6C,0x73,0x65,0x3A,0x20,0x00,0x14,0x65
+	.byte	0x78,0x70,0x65,0x63,0x74,0x20,0x66,0x61,0x6C,0x73,0x65,0x20
+	.byte	0x66,0x61,0x6C,0x73,0x65,0x3A,0x20,0x00,0x14,0x65,0x78,0x70
+	.byte	0x65,0x63,0x74,0x20,0x66,0x61,0x6C,0x73,0x65,0x20,0x66,0x61
+	.byte	0x6C,0x73,0x65,0x3A,0x20,0x00
+	.text
+	.align 2
+#
+##	foo
+#
+.P1:
+	stp	x30,x29,[sp,-16]!
+	add	x29,sp,xzr
+# Line: 8, Stmt: 1
+# Line: 9, Stmt: 2
+	adrp	x15,packed@PAGE
+	adrp	x15,packed+4096@PAGE
+	ldrb	w0,[x15,packed+4096@PAGEOFF]
+	ubfx	x0,x0,0,1
+	mov	x1,5
+	bl	_p_wtb_o 
+	adrp	x15,packed+4096@PAGE
+	ldrb	w0,[x15,packed+4096@PAGEOFF]
+	ubfx	x0,x0,1,1
+	mov	x1,7
+	bl	_p_wtb_o 
+	bl	_p_wtln_o 
+.L2:
+	ldp	x30,x29,[sp],16
+	ret
+	.text
+	.align 2
+#
+##	 (main)
+#
+	.global _main
+_main:
+	sub	sp,sp,32
+	stp	x30,x29,[sp,16]
+	add	x29,sp,16
+	str	x28,[x29,-8]
+	bl	_p_initio 
+# Line: 12, Stmt: 1
+	adrp	x15,packed@PAGE
+# Line: 13, Stmt: 0
+	mov	x28,xzr
+.L5:
+# Line: 13, Stmt: 0
+	mov	x14,x28
+	add	x12,x15,packed+4088@PAGEOFF
+	ror	x13,x14,3
+	lsr	x13,x13,61
+	ubfx	x14,x14,3,48
+	add	x12,x12,x14
+	ldrb	w14,[x12]
+	mov	x16,1
+	lsl	w16,w16,w13
+	bic	w14,w14,w16
+	strb	w14,[x12]
+	add	w28,w28,1
+	cmp	w28,255
+	b.ls	.L5
+.L6:
+# Line: 14, Stmt: 0
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+1@PAGEOFF
+	mov	x1,20
+	mov	x2,x1
+	bl	_p_wts_o 
+# Line: 15, Stmt: 0
+	bl	.P1  // foo
+# Line: 16, Stmt: 0
+	adrp	x15,packed@PAGE
+	mov	w16,255
+	strb	w16,[x15,packed@PAGEOFF]
+# Line: 17, Stmt: 0
+	adrp	x14,.L32766@PAGE
+	add	x0,x14,.L32766+23@PAGEOFF
+	mov	x1,20
+	mov	x2,x1
+	bl	_p_wts_o 
+# Line: 18, Stmt: 0
+	bl	.P1  // foo
+# Line: 19, Stmt: 0
+	adrp	x15,packed@PAGE
+	strb	wzr,[x15,packed@PAGEOFF]
+# Line: 20, Stmt: 0
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+45@PAGEOFF
+	mov	x1,20
+	mov	x2,x1
+	bl	_p_wts_o 
+# Line: 21, Stmt: 0
+	bl	.P1  // foo
+.L3:
+	ldr	x28,[x29,-8]
+	ldp	x30,x29,[sp,16]
+	add	sp,sp,32
+	ret
+	.comm	.L32767,32,12
+	.comm	packed,4120,12
