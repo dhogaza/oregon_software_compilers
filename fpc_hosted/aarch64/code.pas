@@ -8330,6 +8330,42 @@ procedure checkconstbounds(checkrange: boolean; liberror: libroutines);
     unlock(key);
   end {checkconstbounds};
 
+procedure checkvariablebounds;
+
+  var
+    lower, upper: keyindex;
+    faillabel: labelindex;
+    signed: boolean;
+
+  begin {checkvariablebounds}
+    if (keytable[right].oprnd.mode = intconst) and
+       (keytable[target].oprnd.mode = intconst) then
+      checkconstbounds(false, libsubscripttrap)
+    else {let the fun begin}
+      begin
+      lower := right;
+      upper := target;
+      signed := keytable[lower].signed and keytable[upper].signed;
+      unpack(left, 0);
+      loadreg(left, right);
+      setallfields(left);
+      unpack(upper, 0);
+      loadreg(upper, key);
+      faillabel := newlabel;
+      gen2(lastnode, buildinst(cmp, len = long, false), key, upper);
+      if signed then genbcond(lastnode, gt, faillabel)
+      else genbcond(lastnode, hi, faillabel);
+      unpack(lower, 0);
+      loadreg(lower, key);
+      gen2(lastnode, buildinst(cmp, len = long, false), key, lower);
+      if signed then genbcond(lastnode, ge, lastlabel)
+      else genbcond(lastnode, hs, lastlabel);
+      definelabel(faillabel);
+      callsupport(libsubscripttrap, false);
+      definelastlabel;
+    end;
+end {checkvariablebounds};
+
 procedure codeone;
 
 { Routine called by directly by travrs to generate code for one
@@ -8526,7 +8562,7 @@ procedure codeone;
       restoreloop: restoreloopx;
 
       rangechk: checkconstbounds(true, librangetrap);
-      indxchk: checkconstbounds(false, libsubscripttrap);
+      indxchk, congruchk: checkvariablebounds;
 
 {
       cvtrd: cvtrdx;
@@ -8553,7 +8589,6 @@ procedure codeone;
       dummyarg2: dummyarg2x;
 
   Runtime error checks
-      congruchk: checkx(true, index_error);
       forupchk: forcheckx(true);
       fordnchk: forcheckx(false);
       forerrchk: forerrchkx;
