@@ -8272,6 +8272,173 @@ procedure pascalgotox;
       jumpx(pseudoinst.oprnds[1] - 1);
       end;
   end {pascalgotox} ;
+{
+procedure checkx(checkingrange: boolean; {true if range, not index check}
+                 error: integer {error number} );
+
+{Generate code for subrange and array bounds checking.  Value to be checked
+ is in keytable[left], right and target contain the lower and upper
+ bounds.  Rangechecking leaves the value unchanged, while indexchecking
+ must leave the value with the lower bounds subtracted.
+}
+
+  var
+    lower, upper: keyindex; {bounds}
+    literalops: boolean; {literal operands}
+    signedop: boolean; {set if operands are signed}
+    upperoffset: integer; {upper range limit if literal}
+
+  begin {checkx}
+    len := max(len, word);
+    keytable[key].len := len;
+    if (keytable[left].oprnd.m = dreg) and (checkingrange or
+       literalops and (keytable[lower].oprnd.offset = 0) and
+       ((len = long) or (keytable[upper].oprnd.offset <= 32767))) then
+      setkeyvalue(left)
+    else loaddreg(left, 0, true);
+    keytable[key].knowneven := keytable[left].knowneven;
+    if literalops then
+      begin
+      dereference(lower);
+      dereference(upper);
+      upperoffset := keytable[upper].oprnd.offset -
+                     keytable[lower].oprnd.offset;
+
+      if (upperoffset > 32767) and mc68020 then extend(key, long);
+
+      gendouble(sub, lower, key);
+
+      if (upperoffset > 32767) and mc68020 then
+        begin
+        settempimmediate(long, upperoffset);
+        gendouble(chk, tempkey, key);
+        end
+      else if (upperoffset > 0) and (upperoffset <= 32767) and (len = word)
+          then
+        begin
+        settempimmediate(word, upperoffset);
+        gendouble(chk, tempkey, key)
+        end
+      else
+        begin
+        settempimmediate(len, upperoffset);
+        gendouble(cmp, tempkey, key);
+        genrelbr(bls, ord(switcheverplus[sharecode]) + 1);
+
+        case targetopsys of
+          unix, apollo:
+            begin
+            if checkingrange then callsupport(librangetrap)  { range error }
+            else callsupport(libsubscripttrap);  { subscript error }
+            end;
+          vdos:
+            begin
+            settempimmediate(word, rangetrap);
+            gensingle(trap, tempkey);
+            end;
+          end;
+        labelnextnode := true;
+        end;
+      generror(error);
+      if checkingrange then gendouble(add, lower, key);
+      end
+    else if (language = modula2) and (keytable[lower].oprnd.m = immediate) then
+      begin { literal lower bound and a non-literal upper bound }
+      lock(key);
+      unpack(upper, len);
+      gendouble(cmp, upper, key);
+      genbr(bls, lastlabel);
+
+      case targetopsys of
+        unix, apollo:
+          begin
+          if checkingrange then callsupport(librangetrap)  { range error }
+          else callsupport(libsubscripttrap);  { subscript error }
+          end;
+        vdos:
+          begin
+          settempimmediate(word, rangetrap);
+          gensingle(trap, tempkey);
+          end;
+        end;
+
+      definelastlabel;
+      unlock(key);
+      generror(index_error);
+      labelnextnode := true;
+      end
+    else
+      begin {non-literal bounds, do a direct check}
+      lock(key);
+      unpack(upper, len);
+      gendouble(cmp, upper, key);
+      if signedop then genbr(bgt, lastlabel)
+      else genbr(bhi, lastlabel);
+      unpack(lower, len);
+      if checkingrange then gendouble(cmp, lower, key)
+      else gendouble(sub, lower, key);
+      if signedop then genrelbr(bge, ord(switcheverplus[sharecode]) + 1)
+      else genrelbr(bhs, ord(switcheverplus[sharecode]) + 1);
+      definelastlabel;
+
+      case targetopsys of
+        unix, apollo:
+          begin
+          if checkingrange then callsupport(librangetrap)  { range error }
+          else callsupport(libsubscripttrap);  { subscript error }
+          end;
+        vdos:
+          begin
+          settempimmediate(word, rangetrap);
+          gensingle(trap, tempkey);
+          end;
+        end;
+
+      unlock(key);
+      if checkingrange then generror(range_error)
+      else generror(index_error);
+      labelnextnode := true;
+      end;
+  end {checkx} ;
+}
+
+procedure checkrange;
+
+  var
+    upperoffset: unsigned; {upper range limit if literal}
+    lower, upper, checkkey, checkvaluekey: keyindex;
+    checkvalue: unsigned;
+
+  begin {checkrange}
+    lower := right;
+    upper := target;
+    dereference(lower);
+    dereference(upper);
+    target := 0;
+    unpack(left, 0);
+    loadreg(left, right);
+    setallfields(left);
+    lock(key);
+    checkvalue := keytable[upper].oprnd.int_value - keytable[lower].oprnd.int_value;
+    if keytable[lower].oprnd.int_value = 0 then checkkey := key
+    else
+      begin
+      checkkey := regkeys[ip0];
+      gen3(lastnode, buildinst(sub, len = long, false), checkkey, key, lower);
+      end;
+    if checkvalue = 0 then
+      gen2(lastnode, buildinst(cbz, false, false), checkkey, lastlabel)
+    else
+      begin
+      checkvaluekey := settemp(len, intconst_oprnd(checkvalue));
+      handle_intconst12(lastnode, checkvaluekey);
+      gen2(lastnode, buildinst(cmp, len = long, false), checkkey, checkvaluekey);
+      genbcond(lastnode, le, lastlabel);
+      end;
+    callsupport(librangetrap, false);
+    definelastlabel;
+    unlock(key);
+  end {checkrange};
 
 procedure codeone;
 
@@ -8391,9 +8558,6 @@ procedure codeone;
       sysfnstring: sysfnstringx;
 {
       sysfnreal: sysfnrealx;
-      castreal: castrealx;
-      castrealint: castrealintx;
-      castint, castptr: castintx;
 }
       loopholefn, castptrint, castintptr, castfptrint, castintfptr:
 	loopholefnx;
@@ -8470,12 +8634,18 @@ procedure codeone;
       leqset: cmpsetinclusion(right, left);
 
       restoreloop: restoreloopx;
+
+      rangechk: checkrange;
+
 {
       cvtrd: cvtrdx;
       cvtdr: cvtdrx; { SNGL function }
 }
       saveactkeys: saveactivekeys;
 { C only
+      castreal: castrealx;
+      castrealint: castrealintx;
+      castint, castptr: castintx;
       postint: postintptrx(false);
       postptr: postintptrx(true);
       postreal: postrealx;
@@ -8493,7 +8663,6 @@ procedure codeone;
 
   Runtime error checks
       indxchk: checkx(false, index_error);
-      rangechk: checkx(true, range_error);
       congruchk: checkx(true, index_error);
       forupchk: forcheckx(true);
       fordnchk: forcheckx(false);
