@@ -384,7 +384,7 @@ procedure _p_error;
 
 procedure _p_range;
   begin
-    _p_error('Range check');
+    _p_error('Assignment value out of range');
   end;
 
 procedure _p_array;
