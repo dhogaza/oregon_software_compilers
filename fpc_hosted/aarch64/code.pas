@@ -8357,9 +8357,8 @@ procedure checkvariablebounds;
       else genbcond(lastnode, hi, faillabel);
       unpack(lower, 0);
       loadreg(lower, key);
-      gen2(lastnode, buildinst(cmp, len = long, false), key, lower);
-      if signed then genbcond(lastnode, ge, lastlabel)
-      else genbcond(lastnode, hs, lastlabel);
+      gen3(lastnode, buildinst(sub, len = long, true), key, key, lower);
+      genbcond(lastnode, hs, lastlabel);
       definelabel(faillabel);
       callsupport(libsubscripttrap, false);
       definelastlabel;
