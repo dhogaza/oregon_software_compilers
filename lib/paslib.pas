@@ -118,7 +118,7 @@ function tmpfile: _p_streamptr; nonpascal;
 procedure _p_error(errmsg: _p_string); external;
 procedure _p_case; external;
 procedure _p_range; external;
-procedure _p_array; external;
+procedure _p_subscr; external;
 procedure _p_congruent; external;
 
 { library routines that weren't made standard and predefined for whatever
@@ -387,10 +387,11 @@ procedure _p_range;
     _p_error('Assignment value out of range');
   end;
 
-procedure _p_array;
+procedure _p_subscr;
   begin
-    _p_error('Array index out of bounds');
+    _p_error('Array subscript out of bounds');
   end;
+
 procedure _p_congruent;
   begin
     _p_error('Array congruency error');
