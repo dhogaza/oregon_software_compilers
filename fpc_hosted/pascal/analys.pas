@@ -3135,9 +3135,12 @@ procedure block;
         end
       else
         begin
-        proctable[blockref].fileindex := thistoken.fileindex;
-        proctable[blockref].baseline := thistoken.baseline;
-        proctable[blockref].line := thistoken.line;
+        with display[level] do
+          begin
+          proctable[blockref].fileindex := thistoken.fileindex;
+          proctable[blockref].baseline := thistoken.baseline;
+          proctable[blockref].line := thistoken.line;
+          end;
         end;
       body.body;
       verifytoken(endsym, noenderr);
