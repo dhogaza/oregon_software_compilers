@@ -14,7 +14,7 @@ if [[ "$type" == "pas" || "$type" == "nolib" || "$type" == "check" ]]; then
   fi
   if [ $? == 0 ]; then
     if [[ "$type" == "pas" || "$type" == "check" ]]; then
-      gcc $libdir/stdfiles.o $libdir/paslib.o $base.s
+      gcc $libdir/libpaslib.a $base.s
     else
       gcc $libdir/stdfiles.o $base.s
     fi
