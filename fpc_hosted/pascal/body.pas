@@ -5306,10 +5306,11 @@ varkey := regparamkey;
 
         begin {succpred}
           beginparams;
-          pushint(1);
+          if resultform = ptrs then pushint(defaultptrsize)
+          else pushint(1);
           if procid = succid then genbinary(plusop, ints)
           else genbinary(minusop, ints);
-          finishparams([none, scalars, ints, chars, bools], resulttype);
+          finishparams([none, ptrs, scalars, ints, chars, bools], resulttype);
         end {succpred} ;
 
 
