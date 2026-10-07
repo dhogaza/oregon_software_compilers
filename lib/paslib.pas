@@ -114,6 +114,25 @@ function tmpfile: _p_streamptr; nonpascal;
 
 { pascal-2 lib declarations }
 
+{ Since the compiler doesn't support 64 bit arithmetic the library uses
+  a couple of C helpers for new and dispose.  We end up with allocated
+  memory looking like:
+
+        <location of p>
+  p:    <address of pointer seen by the Pascal source code.
+
+  Then a simple
+        cmp Xp, [Xp, -8]
+
+  tells us if the pointer appears to be perfect.
+
+  _p_free then zeroes out [Xp, -8] then adjusts Xp and calls standard free()
+
+}
+
+function _p_malloc(const size: integer): _p_charptr; nonpascal;
+procedure _p_free(const p: _p_charptr); nonpascal;
+
 { errors }
 procedure _p_error(errmsg: _p_string); external;
 procedure _p_case; external;
@@ -590,7 +609,7 @@ begin
       _p_libfileerror(filep, nil, 0, 'fclose failed');
     filep^.filevar^ := loophole(_p_address, nil);
     if (not (_p_text in filep^.status)) and (filep^.bufferp <> nil) then
-      dispose(filep^.bufferp);
+      free(filep^.bufferp);
     end;
 end;
 
@@ -1375,14 +1394,14 @@ end;
 
 procedure _p_new;
 begin
-  p := malloc(size);
+  p := _p_malloc(size);
   if p = nil then
     _p_liberror('New failed.');
 end;
 
 procedure _p_dispos;
 begin
-  free(p);
+  _p_free(p);
   p := nil;
 end;
 
