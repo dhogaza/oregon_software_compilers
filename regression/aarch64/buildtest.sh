@@ -16,7 +16,7 @@ if [[ "$type" == "pas" || "$type" == "nolib" || "$type" == "check" ]]; then
     if [[ "$type" == "pas" || "$type" == "check" ]]; then
       gcc $libdir/libpaslib.a $base.s
     else
-      gcc $libdir/stdfiles.o $base.s
+      gcc $libdir/stdfiles.o $libdir/heapalloc.o $base.s
     fi
     mv $1.s $1.s.good
     stdbuf -o0 ./a.out &> $1.out.good

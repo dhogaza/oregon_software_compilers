@@ -18,7 +18,7 @@ for f in $src/*.pas; do
     if [[ "$type" == "pas" || "$type" == "check" ]]; then
       gcc $libdir/libpaslib.a $base.s
     else
-      gcc $libdir/stdfiles.o $base.s
+      gcc $libdir/stdfiles.o $libdir/heapalloc.o $base.s
     fi
     stdbuf -o0 ./a.out &> $base.out
     diff $base.out $base.out.good >$base.out.diff
