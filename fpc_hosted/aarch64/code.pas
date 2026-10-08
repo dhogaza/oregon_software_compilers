@@ -7990,6 +7990,7 @@ procedure casebranchx;
   var
     tablelabel: unsigned; { label of the branch table}
     baselabel: unsigned; { label of the first instruction after the case branch }
+    skiplabel: unsigned; { label to skip to if not case error }
     p: nodeptr;
     scratchreg: regindex;
     scratch, t1, t2: keyindex; { for arithmetic on case expression }
@@ -8004,6 +8005,16 @@ begin {casebranchx}
   keytable[key].refcount := 0; {so we can loadreg etc }
   default := len;
 
+  { label order is important so the caseelt pseudoop can calculate
+    the baselabel for the jump table from lastlabel.
+  }
+  skiplabel := newlabel;
+  tablelabel := newlabel;
+  baselabel := newlabel;
+
+  { baselabel must be defined before the case error.  }
+  definelabel(baselabel);
+
   unpack(target, 0);
   scratchreg := getreg(false);
   scratch := settemp(word, reg_oprnd(scratchreg));
@@ -8013,16 +8024,16 @@ begin {casebranchx}
   gen3(lastnode, buildinst(sub, false, false), scratch, scratch, t1);
   t1 := preparelitint(pseudoinst.oprnds[2] - pseudoinst.oprnds[1]);
   gen2(lastnode, buildinst(cmp, false, false), scratch, t1);
+
   if errordefault then
     begin
-    genbcond(lastnode, ls, newlabel);
+    genbcond(lastnode, ls, skiplabel);
     definelabel(default);
     caseerrx;
-    definelabel(lastlabel + 1);
+    definelabel(skiplabel);
     end
   else genbcond(lastnode, hi, default);;
 
-  tablelabel := newlabel;
   addressreg := getreg(false);
   addresskey := settemp(long, reg_oprnd(addressreg));
   t1 := settemp(long, dataref_oprnd(tablelabel, false, 0, false, 0));
@@ -8030,7 +8041,6 @@ begin {casebranchx}
   keytable[t1].oprnd.lowbits := true;
   gen3(lastnode, buildinst(add, true, false), addresskey, addresskey, t1);
 
-  baselabel := newlabel; {must be last temp label for caseeltx}
   gen2(lastnode, buildinst(ldr, false, false), scratch,
        settemp(word, reg_offset_oprnd(addressreg, scratchreg, 2, xtw, false)));
   gen2(lastnode, buildinst(adr, true, false), addresskey,
@@ -8038,7 +8048,6 @@ begin {casebranchx}
   gen3(lastnode, buildinst(add, true, false), scratch, addresskey,
        settemp(long, extend_reg_oprnd(scratchreg, xtw, 0, false)));
   gen1(lastnode, buildinst(br, true, false), scratch);
-  definelabel(baselabel);
   unlock(scratch);
 
   { now initiate the case element table }
