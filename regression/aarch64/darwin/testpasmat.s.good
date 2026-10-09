@@ -2798,72 +2798,72 @@
 	mov	x28,x29
 	bl	.P27  // copyachar
 # Line: 1024, Stmt: 0
+.L32713:
 	mov	x15,x27
 	sub	w15,w15,65
 	cmp	w15,52
 	b.hi	.L210
-	adrp	x14,.L32715@PAGE
-	add	x14,x14,.L32715@PAGEOFF
+	adrp	x14,.L32714@PAGE
+	add	x14,x14,.L32714@PAGEOFF
 	ldr	w15,[x14, w15, uxtw 2]
-	adr	x14,.L32714
+	adr	x14,.L32713
 	add	x15,x14,w15, uxtw 0
 	br	x15
-.L32714:
 	.data_region jt32
-.L32715:
-	.long	.L196-.L32714
-	.long	.L197-.L32714
-	.long	.L198-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L199-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L200-.L32714
-	.long	.L201-.L32714
-	.long	.L202-.L32714
-	.long	.L203-.L32714
-	.long	.L204-.L32714
-	.long	.L205-.L32714
-	.long	.L210-.L32714
-	.long	.L206-.L32714
-	.long	.L207-.L32714
-	.long	.L208-.L32714
-	.long	.L209-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L196-.L32714
-	.long	.L197-.L32714
-	.long	.L198-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L199-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L210-.L32714
-	.long	.L200-.L32714
-	.long	.L201-.L32714
-	.long	.L202-.L32714
-	.long	.L203-.L32714
-	.long	.L204-.L32714
-	.long	.L205-.L32714
-	.long	.L210-.L32714
-	.long	.L206-.L32714
-	.long	.L207-.L32714
-	.long	.L208-.L32714
-	.long	.L209-.L32714
+.L32714:
+	.long	.L196-.L32713
+	.long	.L197-.L32713
+	.long	.L198-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L199-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L200-.L32713
+	.long	.L201-.L32713
+	.long	.L202-.L32713
+	.long	.L203-.L32713
+	.long	.L204-.L32713
+	.long	.L205-.L32713
+	.long	.L210-.L32713
+	.long	.L206-.L32713
+	.long	.L207-.L32713
+	.long	.L208-.L32713
+	.long	.L209-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L196-.L32713
+	.long	.L197-.L32713
+	.long	.L198-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L199-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L210-.L32713
+	.long	.L200-.L32713
+	.long	.L201-.L32713
+	.long	.L202-.L32713
+	.long	.L203-.L32713
+	.long	.L204-.L32713
+	.long	.L205-.L32713
+	.long	.L210-.L32713
+	.long	.L206-.L32713
+	.long	.L207-.L32713
+	.long	.L208-.L32713
+	.long	.L209-.L32713
 	.end_data_region
 	.text
 	.align 2
@@ -4146,14 +4146,14 @@
 	add	x11,x12,63
 	add	x12,sp,24
 	mov	x16,9
-.L32712:
+.L32711:
 	ldrb	w17,[x11],1
 	ldrb	w10,[x12],1
 	cmp	w17,w10
-	b.ne	.L32713
+	b.ne	.L32712
 	sub	w16,w16,1
-	cbnz	w16,.L32712
-.L32713:
+	cbnz	w16,.L32711
+.L32712:
 	b.eq	.L390
 	ldrsw	x12,[x13,524]
 	cmp	w15,w12
@@ -4172,14 +4172,14 @@
 	add	x12,x13,63
 	add	x13,sp,24
 	mov	x16,9
-.L32710:
+.L32709:
 	ldrb	w17,[x12],1
 	ldrb	w11,[x13],1
 	cmp	w17,w11
-	b.ne	.L32711
+	b.ne	.L32710
 	sub	w16,w16,1
-	cbnz	w16,.L32710
-.L32711:
+	cbnz	w16,.L32709
+.L32710:
 	b.ne	.L393
 .L394:
 # Line: 1505, Stmt: 0
@@ -5028,30 +5028,10 @@
 	ldrb	w27,[x28,.L32767+1937@PAGEOFF]
 	cmp	w27,91
 	b.lo	.L534
+.L32706:
 	mov	x15,x27
 	sub	w15,w15,91
 	cmp	w15,3
-	b.hi	.L533
-	adrp	x14,.L32709@PAGE
-	add	x14,x14,.L32709@PAGEOFF
-	ldr	w15,[x14, w15, uxtw 2]
-	adr	x14,.L32708
-	add	x15,x14,w15, uxtw 0
-	br	x15
-.L32708:
-	.data_region jt32
-.L32709:
-	.long	.L529-.L32708
-	.long	.L533-.L32708
-	.long	.L530-.L32708
-	.long	.L526-.L32708
-	.end_data_region
-	.text
-	.align 2
-.L534:
-	mov	x15,x27
-	sub	w15,w15,35
-	cmp	w15,29
 	b.hi	.L533
 	adrp	x14,.L32707@PAGE
 	add	x14,x14,.L32707@PAGEOFF
@@ -5059,39 +5039,59 @@
 	adr	x14,.L32706
 	add	x15,x14,w15, uxtw 0
 	br	x15
-.L32706:
 	.data_region jt32
 .L32707:
-	.long	.L531-.L32706
+	.long	.L529-.L32706
 	.long	.L533-.L32706
-	.long	.L533-.L32706
-	.long	.L533-.L32706
-	.long	.L527-.L32706
-	.long	.L533-.L32706
-	.long	.L528-.L32706
-	.long	.L518-.L32706
-	.long	.L516-.L32706
-	.long	.L520-.L32706
-	.long	.L517-.L32706
-	.long	.L519-.L32706
-	.long	.L533-.L32706
-	.long	.L533-.L32706
-	.long	.L533-.L32706
-	.long	.L533-.L32706
-	.long	.L533-.L32706
-	.long	.L533-.L32706
-	.long	.L533-.L32706
-	.long	.L533-.L32706
-	.long	.L533-.L32706
-	.long	.L533-.L32706
-	.long	.L533-.L32706
-	.long	.L522-.L32706
-	.long	.L521-.L32706
-	.long	.L524-.L32706
-	.long	.L523-.L32706
-	.long	.L525-.L32706
-	.long	.L533-.L32706
+	.long	.L530-.L32706
 	.long	.L526-.L32706
+	.end_data_region
+	.text
+	.align 2
+.L534:
+.L32703:
+	mov	x15,x27
+	sub	w15,w15,35
+	cmp	w15,29
+	b.hi	.L533
+	adrp	x14,.L32704@PAGE
+	add	x14,x14,.L32704@PAGEOFF
+	ldr	w15,[x14, w15, uxtw 2]
+	adr	x14,.L32703
+	add	x15,x14,w15, uxtw 0
+	br	x15
+	.data_region jt32
+.L32704:
+	.long	.L531-.L32703
+	.long	.L533-.L32703
+	.long	.L533-.L32703
+	.long	.L533-.L32703
+	.long	.L527-.L32703
+	.long	.L533-.L32703
+	.long	.L528-.L32703
+	.long	.L518-.L32703
+	.long	.L516-.L32703
+	.long	.L520-.L32703
+	.long	.L517-.L32703
+	.long	.L519-.L32703
+	.long	.L533-.L32703
+	.long	.L533-.L32703
+	.long	.L533-.L32703
+	.long	.L533-.L32703
+	.long	.L533-.L32703
+	.long	.L533-.L32703
+	.long	.L533-.L32703
+	.long	.L533-.L32703
+	.long	.L533-.L32703
+	.long	.L533-.L32703
+	.long	.L533-.L32703
+	.long	.L522-.L32703
+	.long	.L521-.L32703
+	.long	.L524-.L32703
+	.long	.L523-.L32703
+	.long	.L525-.L32703
+	.long	.L533-.L32703
+	.long	.L526-.L32703
 	.end_data_region
 	.text
 	.align 2
@@ -5518,14 +5518,14 @@
 	adrp	x14,.L32766@PAGE
 	add	x15,x14,.L32766+1265@PAGEOFF
 	mov	x16,9
-.L32704:
+.L32701:
 	ldrb	w17,[x27],1
 	ldrb	w14,[x15],1
 	cmp	w17,w14
-	b.ne	.L32705
+	b.ne	.L32702
 	sub	w16,w16,1
-	cbnz	w16,.L32704
-.L32705:
+	cbnz	w16,.L32701
+.L32702:
 	b.ne	.L584
 .L585:
 # Line: 1947, Stmt: 0
@@ -5621,27 +5621,27 @@
 	adrp	x25,.L32766@PAGE
 	add	x26,x25,.L32766+1276@PAGEOFF
 	mov	x16,9
-.L32702:
+.L32699:
 	ldrb	w17,[x27],1
 	ldrb	w25,[x26],1
 	cmp	w17,w25
-	b.ne	.L32703
+	b.ne	.L32700
 	sub	w16,w16,1
-	cbnz	w16,.L32702
-.L32703:
+	cbnz	w16,.L32699
+.L32700:
 	b.eq	.L603
 	add	x27,x29,16
 	adrp	x25,.L32766@PAGE
 	add	x26,x25,.L32766+1287@PAGEOFF
 	mov	x16,9
-.L32700:
+.L32697:
 	ldrb	w17,[x27],1
 	ldrb	w25,[x26],1
 	cmp	w17,w25
-	b.ne	.L32701
+	b.ne	.L32698
 	sub	w16,w16,1
-	cbnz	w16,.L32700
-.L32701:
+	cbnz	w16,.L32697
+.L32698:
 	b.ne	.L602
 .L603:
 # Line: 1966, Stmt: 0
@@ -5727,113 +5727,113 @@
 	b	.L622
 .L623:
 # Line: 1999, Stmt: 0
+.L32694:
 	mov	x15,x27
 	sub	w15,w15,33
 	cmp	w15,93
 	b.hi	.L615
-	adrp	x14,.L32699@PAGE
-	add	x14,x14,.L32699@PAGEOFF
+	adrp	x14,.L32695@PAGE
+	add	x14,x14,.L32695@PAGEOFF
 	ldr	w15,[x14, w15, uxtw 2]
-	adr	x14,.L32698
+	adr	x14,.L32694
 	add	x15,x14,w15, uxtw 0
 	br	x15
-.L32698:
 	.data_region jt32
-.L32699:
-	.long	.L613-.L32698
-	.long	.L613-.L32698
-	.long	.L611-.L32698
-	.long	.L610-.L32698
-	.long	.L614-.L32698
-	.long	.L613-.L32698
-	.long	.L611-.L32698
-	.long	.L612-.L32698
-	.long	.L611-.L32698
-	.long	.L611-.L32698
-	.long	.L611-.L32698
-	.long	.L611-.L32698
-	.long	.L611-.L32698
-	.long	.L611-.L32698
-	.long	.L612-.L32698
-	.long	.L609-.L32698
-	.long	.L609-.L32698
-	.long	.L609-.L32698
-	.long	.L609-.L32698
-	.long	.L609-.L32698
-	.long	.L609-.L32698
-	.long	.L609-.L32698
-	.long	.L609-.L32698
-	.long	.L609-.L32698
-	.long	.L609-.L32698
-	.long	.L611-.L32698
-	.long	.L611-.L32698
-	.long	.L611-.L32698
-	.long	.L611-.L32698
-	.long	.L611-.L32698
-	.long	.L613-.L32698
-	.long	.L611-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L611-.L32698
-	.long	.L613-.L32698
-	.long	.L611-.L32698
-	.long	.L611-.L32698
-	.long	.L610-.L32698
-	.long	.L613-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L610-.L32698
-	.long	.L612-.L32698
-	.long	.L613-.L32698
-	.long	.L613-.L32698
-	.long	.L613-.L32698
+.L32695:
+	.long	.L613-.L32694
+	.long	.L613-.L32694
+	.long	.L611-.L32694
+	.long	.L610-.L32694
+	.long	.L614-.L32694
+	.long	.L613-.L32694
+	.long	.L611-.L32694
+	.long	.L612-.L32694
+	.long	.L611-.L32694
+	.long	.L611-.L32694
+	.long	.L611-.L32694
+	.long	.L611-.L32694
+	.long	.L611-.L32694
+	.long	.L611-.L32694
+	.long	.L612-.L32694
+	.long	.L609-.L32694
+	.long	.L609-.L32694
+	.long	.L609-.L32694
+	.long	.L609-.L32694
+	.long	.L609-.L32694
+	.long	.L609-.L32694
+	.long	.L609-.L32694
+	.long	.L609-.L32694
+	.long	.L609-.L32694
+	.long	.L609-.L32694
+	.long	.L611-.L32694
+	.long	.L611-.L32694
+	.long	.L611-.L32694
+	.long	.L611-.L32694
+	.long	.L611-.L32694
+	.long	.L613-.L32694
+	.long	.L611-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L611-.L32694
+	.long	.L613-.L32694
+	.long	.L611-.L32694
+	.long	.L611-.L32694
+	.long	.L610-.L32694
+	.long	.L613-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L610-.L32694
+	.long	.L612-.L32694
+	.long	.L613-.L32694
+	.long	.L613-.L32694
+	.long	.L613-.L32694
 	.end_data_region
 	.text
 	.align 2
@@ -7794,35 +7794,35 @@
 	b.eq	.L836
 	b	.L844
 .L847:
+.L32691:
 	mov	x15,x27
 	sub	w15,w15,2
 	cmp	w15,15
 	b.hi	.L844
-	adrp	x14,.L32697@PAGE
-	add	x14,x14,.L32697@PAGEOFF
+	adrp	x14,.L32692@PAGE
+	add	x14,x14,.L32692@PAGEOFF
 	ldr	w15,[x14, w15, uxtw 2]
-	adr	x14,.L32696
+	adr	x14,.L32691
 	add	x15,x14,w15, uxtw 0
 	br	x15
-.L32696:
 	.data_region jt32
-.L32697:
-	.long	.L832-.L32696
-	.long	.L833-.L32696
-	.long	.L844-.L32696
-	.long	.L844-.L32696
-	.long	.L844-.L32696
-	.long	.L844-.L32696
-	.long	.L844-.L32696
-	.long	.L844-.L32696
-	.long	.L844-.L32696
-	.long	.L844-.L32696
-	.long	.L834-.L32696
-	.long	.L844-.L32696
-	.long	.L844-.L32696
-	.long	.L844-.L32696
-	.long	.L835-.L32696
-	.long	.L837-.L32696
+.L32692:
+	.long	.L832-.L32691
+	.long	.L833-.L32691
+	.long	.L844-.L32691
+	.long	.L844-.L32691
+	.long	.L844-.L32691
+	.long	.L844-.L32691
+	.long	.L844-.L32691
+	.long	.L844-.L32691
+	.long	.L844-.L32691
+	.long	.L844-.L32691
+	.long	.L834-.L32691
+	.long	.L844-.L32691
+	.long	.L844-.L32691
+	.long	.L844-.L32691
+	.long	.L835-.L32691
+	.long	.L837-.L32691
 	.end_data_region
 	.text
 	.align 2
@@ -8524,52 +8524,52 @@
 	b.eq	.L920
 	b	.L925
 .L929:
+.L32688:
 	mov	x15,x27
 	sub	w15,w15,31
 	cmp	w15,32
 	b.hi	.L925
-	adrp	x14,.L32695@PAGE
-	add	x14,x14,.L32695@PAGEOFF
+	adrp	x14,.L32689@PAGE
+	add	x14,x14,.L32689@PAGEOFF
 	ldr	w15,[x14, w15, uxtw 2]
-	adr	x14,.L32694
+	adr	x14,.L32688
 	add	x15,x14,w15, uxtw 0
 	br	x15
-.L32694:
 	.data_region jt32
-.L32695:
-	.long	.L923-.L32694
-	.long	.L925-.L32694
-	.long	.L920-.L32694
-	.long	.L924-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L921-.L32694
-	.long	.L921-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L922-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L918-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L925-.L32694
-	.long	.L921-.L32694
-	.long	.L921-.L32694
-	.long	.L921-.L32694
+.L32689:
+	.long	.L923-.L32688
+	.long	.L925-.L32688
+	.long	.L920-.L32688
+	.long	.L924-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L921-.L32688
+	.long	.L921-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L922-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L918-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L925-.L32688
+	.long	.L921-.L32688
+	.long	.L921-.L32688
+	.long	.L921-.L32688
 	.end_data_region
 	.text
 	.align 2

@@ -354,45 +354,45 @@ putcharln:
 # Line: 11, Stmt: 2
 	cmp	w0,97
 	b.lo	.L65
+.L32762:
 	mov	x15,x0
 	sub	w15,w15,97
 	cmp	w15,25
 	b.hi	.L64
-	adrp	x14,.L32764@PAGE
-	add	x14,x14,.L32764@PAGEOFF
+	adrp	x14,.L32763@PAGE
+	add	x14,x14,.L32763@PAGEOFF
 	ldr	w15,[x14, w15, uxtw 2]
-	adr	x14,.L32763
+	adr	x14,.L32762
 	add	x15,x14,w15, uxtw 0
 	br	x15
-.L32763:
 	.data_region jt32
-.L32764:
-	.long	.L38-.L32763
-	.long	.L39-.L32763
-	.long	.L40-.L32763
-	.long	.L41-.L32763
-	.long	.L42-.L32763
-	.long	.L43-.L32763
-	.long	.L44-.L32763
-	.long	.L45-.L32763
-	.long	.L46-.L32763
-	.long	.L47-.L32763
-	.long	.L48-.L32763
-	.long	.L49-.L32763
-	.long	.L50-.L32763
-	.long	.L51-.L32763
-	.long	.L52-.L32763
-	.long	.L53-.L32763
-	.long	.L54-.L32763
-	.long	.L55-.L32763
-	.long	.L56-.L32763
-	.long	.L57-.L32763
-	.long	.L58-.L32763
-	.long	.L59-.L32763
-	.long	.L60-.L32763
-	.long	.L61-.L32763
-	.long	.L62-.L32763
-	.long	.L63-.L32763
+.L32763:
+	.long	.L38-.L32762
+	.long	.L39-.L32762
+	.long	.L40-.L32762
+	.long	.L41-.L32762
+	.long	.L42-.L32762
+	.long	.L43-.L32762
+	.long	.L44-.L32762
+	.long	.L45-.L32762
+	.long	.L46-.L32762
+	.long	.L47-.L32762
+	.long	.L48-.L32762
+	.long	.L49-.L32762
+	.long	.L50-.L32762
+	.long	.L51-.L32762
+	.long	.L52-.L32762
+	.long	.L53-.L32762
+	.long	.L54-.L32762
+	.long	.L55-.L32762
+	.long	.L56-.L32762
+	.long	.L57-.L32762
+	.long	.L58-.L32762
+	.long	.L59-.L32762
+	.long	.L60-.L32762
+	.long	.L61-.L32762
+	.long	.L62-.L32762
+	.long	.L63-.L32762
 	.end_data_region
 	.text
 	.align 2
@@ -557,45 +557,45 @@ putcharln:
 	str	x0,[x29,-8]
 	cmp	w0,97
 	b.lo	.L95
+.L32759:
 	mov	x15,x0
 	sub	w15,w15,97
 	cmp	w15,25
 	b.hi	.L94
-	adrp	x14,.L32762@PAGE
-	add	x14,x14,.L32762@PAGEOFF
+	adrp	x14,.L32760@PAGE
+	add	x14,x14,.L32760@PAGEOFF
 	ldr	w15,[x14, w15, uxtw 2]
-	adr	x14,.L32761
+	adr	x14,.L32759
 	add	x15,x14,w15, uxtw 0
 	br	x15
-.L32761:
 	.data_region jt32
-.L32762:
-	.long	.L69-.L32761
-	.long	.L70-.L32761
-	.long	.L94-.L32761
-	.long	.L71-.L32761
-	.long	.L72-.L32761
-	.long	.L73-.L32761
-	.long	.L74-.L32761
-	.long	.L75-.L32761
-	.long	.L76-.L32761
-	.long	.L77-.L32761
-	.long	.L78-.L32761
-	.long	.L79-.L32761
-	.long	.L80-.L32761
-	.long	.L81-.L32761
-	.long	.L82-.L32761
-	.long	.L83-.L32761
-	.long	.L84-.L32761
-	.long	.L85-.L32761
-	.long	.L86-.L32761
-	.long	.L87-.L32761
-	.long	.L88-.L32761
-	.long	.L89-.L32761
-	.long	.L90-.L32761
-	.long	.L91-.L32761
-	.long	.L92-.L32761
-	.long	.L93-.L32761
+.L32760:
+	.long	.L69-.L32759
+	.long	.L70-.L32759
+	.long	.L94-.L32759
+	.long	.L71-.L32759
+	.long	.L72-.L32759
+	.long	.L73-.L32759
+	.long	.L74-.L32759
+	.long	.L75-.L32759
+	.long	.L76-.L32759
+	.long	.L77-.L32759
+	.long	.L78-.L32759
+	.long	.L79-.L32759
+	.long	.L80-.L32759
+	.long	.L81-.L32759
+	.long	.L82-.L32759
+	.long	.L83-.L32759
+	.long	.L84-.L32759
+	.long	.L85-.L32759
+	.long	.L86-.L32759
+	.long	.L87-.L32759
+	.long	.L88-.L32759
+	.long	.L89-.L32759
+	.long	.L90-.L32759
+	.long	.L91-.L32759
+	.long	.L92-.L32759
+	.long	.L93-.L32759
 	.end_data_region
 	.text
 	.align 2
