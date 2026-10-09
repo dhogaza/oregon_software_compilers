@@ -139,6 +139,7 @@ procedure _p_case; external;
 procedure _p_range; external;
 procedure _p_subscr; external;
 procedure _p_congruent; external;
+procedure _p_pointer; external;
 
 { library routines that weren't made standard and predefined for whatever
   reason, decades ago.
@@ -419,6 +420,11 @@ procedure _p_congruent;
 procedure _p_case;
   begin
     _p_error('Case expression matches no label');
+  end;
+
+procedure _p_pointer;
+  begin
+    _p_error('Bad pointer value');
   end;
 
 procedure _p_liberror(const err: _p_string);
