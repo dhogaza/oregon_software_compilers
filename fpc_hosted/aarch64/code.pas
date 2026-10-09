@@ -8384,7 +8384,8 @@ begin {ptrchkx}
   loadreg(left, 0);
   t := settemp(long, index_oprnd(abstract_offset, keytable[left].oprnd.reg, -ptrsize, false));
   loadreg(t, left);
-  gen2(lastnode, buildinst(cmp, true, false), left, t);
+  setallfields(left);
+  gen2(lastnode, buildinst(cmp, true, false), key, t);
   genbcond(lastnode, eq, lastlabel);
   callsupport(libpointertrap, false);
   definelastlabel;
