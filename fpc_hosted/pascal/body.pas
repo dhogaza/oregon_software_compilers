@@ -3605,13 +3605,27 @@ procedure statement(follow: tokenset {legal following symbols} );
             genint(varkey);
             genint(ord(ownvar));
             oprndstk[sp].oprndlen := ptrsize;
-            if switchcounters[nilcheck] > 0 then genunary(ptrchkop, ints);
+
+            {DRB 2026: when the definelazop was added as part of changing file code
+             to pass addresses, rather than value, of file variables to the various
+             library routines dealing with file, definelazyop was added.   The change
+             was made to make it possible to automatically close local files on procedure
+             or program exit.  The original change emitted a ptrchkop which tends to
+             lead to a trap (dereference of an unitialized value), rather than let the
+             implementation of definelazyop give a clean error saying the file has not
+             been opened.  This definitely should work with the aarch64 code generator
+             I've written, the older MC68000 code generator that it is based on, and
+             probably all the other code generators which sadly no longer exist.
+            }
+
             if (typ = files) then
               begin
               if oldlazy or not newflag then
-                genunary(definelazyop, files);
+                genunary(definelazyop, files)
+              else if (switchcounters[nilcheck] > 0) then genunary(ptrchkop, ints);
               genunary(filebufindrop, ints); {can't be a cse}
-              end;
+              end
+            else if (switchcounters[nilcheck] > 0) then genunary(ptrchkop, ints);
             genunary(indrop, ints);
             constpart := 0;
             varlev := 0;

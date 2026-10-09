@@ -8380,12 +8380,8 @@ var
   t: keyindex;
 
 begin {ptrchkx}
-  if pseudobuff.op = definelazy then
-    setallfields(left);
   unpack(left, 0);
   loadreg(left, 0);
-  if pseudobuff.op <> definelazy then
-    setallfields(left);
   t := settemp(long, index_oprnd(abstract_offset, keytable[left].oprnd.reg, -ptrsize, false));
   loadreg(t, left);
   gen2(lastnode, buildinst(cmp, true, false), left, t);
