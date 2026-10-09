@@ -197,7 +197,7 @@ procedure libname(libroutine: libroutines;
       libpack:          s := '_p_pack    ';
       libpage:          s := '_p_page    ';
       libpageo:         s := '_p_page_o  ';
-      libpointertrap:   s := '_p_badptr  ';
+      libpointertrap:   s := '_p_pointer  ';
       libpos:           s := '_p_pos     ';
       libprofilerdump:  s := '_p_prdump  ';
       libprofilerinit:  s := '_p_prinit  ';

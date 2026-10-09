@@ -7967,7 +7967,7 @@ procedure caseerrx;
   {we have one and only one job to do, and we do it well }
 
   begin {caseerrx}
-    gen1(lastnode, buildinst(bl, false, false), settemp(long, libcall_oprnd(libcasetrap)));
+    callsupport(libcasetrap, false);
   end {caseerrx};
 
 procedure casebranchx;
@@ -8374,6 +8374,26 @@ procedure checkvariablebounds;
     end;
 end {checkvariablebounds};
 
+procedure ptrchkx;
+
+var
+  t: keyindex;
+
+begin {ptrchkx}
+  if pseudobuff.op = definelazy then
+    setallfields(left);
+  unpack(left, 0);
+  loadreg(left, 0);
+  if pseudobuff.op <> definelazy then
+    setallfields(left);
+  t := settemp(long, index_oprnd(abstract_offset, keytable[left].oprnd.reg, -ptrsize, false));
+  loadreg(t, left);
+  gen2(lastnode, buildinst(cmp, true, false), left, t);
+  genbcond(lastnode, eq, lastlabel);
+  callsupport(libpointertrap, false);
+  definelastlabel;
+end {ptrchkx};
+
 procedure codeone;
 
 { Routine called by directly by travrs to generate code for one
@@ -8571,6 +8591,7 @@ procedure codeone;
 
       rangechk: checkconstbounds(true, librangetrap);
       indxchk, congruchk: checkvariablebounds;
+      ptrchk: ptrchkx;
 
 {
       cvtrd: cvtrdx;
@@ -8600,7 +8621,6 @@ procedure codeone;
       forupchk: forcheckx(true);
       fordnchk: forcheckx(false);
       forerrchk: forerrchkx;
-      ptrchk: ptrchkx;
 
   Reals
 }
