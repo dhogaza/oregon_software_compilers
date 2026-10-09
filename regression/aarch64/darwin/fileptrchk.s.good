@@ -8,7 +8,10 @@
 	.byte	0x76,0x61,0x72,0x69,0x61,0x62,0x6C,0x65,0x20,0x66,0x00,0x05
 	.byte	0x61,0x2E,0x6F,0x75,0x74,0x00,0x1B,0x64,0x65,0x72,0x65,0x66
 	.byte	0x65,0x72,0x65,0x6E,0x63,0x65,0x20,0x66,0x69,0x6C,0x65,0x20
-	.byte	0x76,0x61,0x72,0x69,0x61,0x62,0x6C,0x65,0x20,0x66,0x00
+	.byte	0x76,0x61,0x72,0x69,0x61,0x62,0x6C,0x65,0x20,0x66,0x00,0x1D
+	.byte	0x74,0x68,0x72,0x6F,0x77,0x20,0x70,0x6F,0x69,0x6E,0x74,0x65
+	.byte	0x72,0x20,0x72,0x65,0x66,0x65,0x72,0x65,0x6E,0x63,0x65,0x20
+	.byte	0x65,0x72,0x72,0x6F,0x72,0x00
 	.text
 	.align 2
 #
@@ -20,15 +23,15 @@ _main:
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
 	bl	_p_initio 
-# Line: 11, Stmt: 1
-# Line: 12, Stmt: 2
+# Line: 13, Stmt: 1
+# Line: 14, Stmt: 2
 	adrp	x15,.L32766@PAGE
 	add	x0,x15,.L32766+1@PAGEOFF
 	mov	x1,21
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
-# Line: 13, Stmt: 0
+# Line: 15, Stmt: 0
 	adrp	x15,.L32767@PAGE
 	add	x0,x15,.L32767+24@PAGEOFF
 	mov	x1,1
@@ -37,34 +40,48 @@ _main:
 	mov	x3,xzr
 	mov	x4,xzr
 	bl	_p_reset 
-# Line: 14, Stmt: 0
+# Line: 16, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	add	x0,x15,.L32766+31@PAGEOFF
 	mov	x1,27
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
-# Line: 15, Stmt: 0
+# Line: 17, Stmt: 0
 	adrp	x15,.L32767@PAGE
 	ldr	x14,[x15,.L32767+24@PAGEOFF]
-	ldr	x13,[x14,-8]
-	cmp	x14,x13
-	b.eq	.L32764
-	bl	_p_pointer 
-.L32764:
-	adrp	x14,.L32767@PAGE
-	ldr	x13,[x14,.L32767+24@PAGEOFF]
-	str	x13,[x29,-8]
-	ldr	x12,[x13,8]
-	tbnz	x12,0,.L32763
-	add	x0,x14,.L32767+24@PAGEOFF
+	str	x14,[x29,-8]
+	ldr	x13,[x14,8]
+	tbnz	x13,0,.L32764
+	add	x0,x15,.L32767+24@PAGEOFF
 	bl	_p_define 
-.L32763:
+.L32764:
 	ldr	x15,[x29,-8]
 	ldr	x15,[x15]
-	adrp	x13,.L32767@PAGE
+	adrp	x14,.L32767@PAGE
 	ldrb	w16,[x15]
-	strb	w16,[x13,.L32767+40@PAGEOFF]
+	strb	w16,[x14,.L32767+32@PAGEOFF]
+# Line: 18, Stmt: 0
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+60@PAGEOFF
+	mov	x1,29
+	mov	x2,x1
+	bl	_p_wts_o 
+	bl	_p_wtln_o 
+# Line: 19, Stmt: 0
+	adrp	x15,.L32767@PAGE
+	add	x14,x15,.L32767+32@PAGEOFF
+	str	x14,[x15,.L32767+40@PAGEOFF]
+# Line: 20, Stmt: 0
+	ldr	x15,[x15,.L32767+40@PAGEOFF]
+	ldr	x14,[x15,-8]
+	cmp	x15,x14
+	b.eq	.L32763
+	bl	_p_pointer 
+.L32763:
+	ldr	x15,[x15]
+	mov	w16,97
+	strb	w16,[x15]
 .L2:
 	bl	_p_clsall 
 	ldp	x30,x29,[sp,16]

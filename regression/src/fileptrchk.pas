@@ -1,16 +1,21 @@
 {$check}
 
-{ It is almost impossible to generate a file variable that doesn't
-  point to the heap, so this just verifies that simple dereference
-  works when pointer checking is enabled.
-}
+type charptr = ^char;
 
-var f,f1: file of char;
+var f: file of char;
     ch: char;
+    r: record
+         case boolean of
+         false:(f1: text);
+         true:(ptr: charptr);
+       end;
 
 begin
   writeln('reset file variable f');
   reset(f, 'a.out');
   writeln('dereference file variable f');
   ch := f^;
+  writeln('throw pointer reference error');
+  r.ptr := ref(ch);
+  r.f1^ := 'a';
 end.

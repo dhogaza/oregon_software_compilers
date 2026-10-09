@@ -1,2 +1,4 @@
 reset file variable f
 dereference file variable f
+throw pointer reference error
+Pascal-2 runtime error: Bad pointer value
