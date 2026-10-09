@@ -424,7 +424,7 @@ procedure _p_case;
 
 procedure _p_pointer;
   begin
-    _p_error('Bad pointer value');
+    _p_error('Pointer was not allocated by the Pascal-2 library');
   end;
 
 procedure _p_liberror(const err: _p_string);
