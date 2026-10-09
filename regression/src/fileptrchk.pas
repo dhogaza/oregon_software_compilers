@@ -13,9 +13,11 @@ var f: file of char;
 begin
   writeln('reset file variable f');
   reset(f, 'a.out');
-  writeln('dereference file variable f');
+  writeln('Reference file variable f''s value');
   ch := f^;
-  writeln('throw pointer reference error');
+  writeln('Set file variable f''s value');
+  f^ := 'a';
+  writeln('Throw reference error setting file variable r.f1''s value');
   r.ptr := ref(ch);
   r.f1^ := 'a';
 end.
