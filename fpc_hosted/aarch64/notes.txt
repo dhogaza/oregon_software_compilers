@@ -25,6 +25,13 @@
 
 -- random stuff
 
+Made ptrchk unique to better catch dangling pointers, a real weakness in the original
+implementation.  Better would be to have body mark procedures that call dispose (or
+another procedure that directly or indirectly calls dispose).  Then invalidate ptrchk
+nodes in travrs at the point where dispose or such a proc is called, allowing them to
+be part of CSEs again.  Cost of not being CSEs is very significant.
+
+
 pseudops like eoln/eof/inset and others that in some cases do a single bit test
 followed by a setvalue(cond) can peek ahead for a jumpcond pseudo op, poach
 its label, and to a tb[n]z directly if it has a refcount of one.  First peephole
