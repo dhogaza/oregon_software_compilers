@@ -3480,11 +3480,7 @@ procedure build;
                 context_mark := 0; 
                 litflag := false;
                 i := 0; {clear any previous junk}
-uniqueoprnd := false;
-{
-                relation := relationbuilt;
-}
-                p := insertexpression(n, contextlevel, {unique}false, relationbuilt, l,
+                p := insertexpression(n, contextlevel, unique, relationbuilt, l,
                                       uniqueoprnd);
                 end;
             end {insertnode} ;
@@ -4216,6 +4212,7 @@ uniqueoprnd := false;
               n.oprndlist[1].i := 0;
               n.oprndlist[2].i := 0;
 
+              unique := false;
               insertnode(1);
 
               ptr := @(bignodetable[stack[sp].p]);
@@ -4279,11 +4276,12 @@ uniqueoprnd := false;
                 collectargs(1);
                 end;
               float, negop, indrop, filebufindrop, incop, decop, remop, quoop,
-              ptrchkop, pushcvalue, definelazyop, setbinfileop, copystackop,
+              {ptrchkop, }pushcvalue, definelazyop, setbinfileop, copystackop,
               closerangeop, chrstrop, arraystrop, groupop, compop, float_double,
               real_to_dbl, dbl_to_real, fileparamop:
                 collectargs(1);
-              tempop:
+              { ptrchkop can be treated normally if front end is made smarter }
+              tempop, ptrchkop:
                 begin
                 collectwork(1);
                 unique := true;
