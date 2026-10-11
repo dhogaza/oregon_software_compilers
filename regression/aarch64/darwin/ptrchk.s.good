@@ -1,0 +1,78 @@
+#
+#  Constants
+#
+	.section	__TEXT,__const
+	.align 12
+.L32766:
+	.byte	0x0D,0x70,0x5E,0x20,0x65,0x78,0x70,0x65,0x63,0x74,0x20,0x33
+	.byte	0x3A,0x20,0x00,0x23,0x61,0x66,0x74,0x65,0x72,0x20,0x64,0x69
+	.byte	0x73,0x70,0x6F,0x73,0x65,0x20,0x70,0x2C,0x20,0x70,0x31,0x5E
+	.byte	0x20,0x65,0x78,0x70,0x65,0x63,0x74,0x20,0x65,0x72,0x72,0x6F
+	.byte	0x72,0x3A,0x20,0x00
+	.text
+	.align 2
+#
+##	 (main)
+#
+	.global _main
+_main:
+	stp	x30,x29,[sp,-16]!
+	add	x29,sp,xzr
+	bl	_p_initio 
+# Line: 7, Stmt: 1
+# Line: 8, Stmt: 2
+	adrp	x15,.L32767@PAGE
+	add	x0,x15,.L32767+24@PAGEOFF
+	mov	x1,4
+	bl	_p_new 
+# Line: 9, Stmt: 0
+	adrp	x15,.L32767@PAGE
+	ldr	x14,[x15,.L32767+24@PAGEOFF]
+	ldr	x15,[x14,-8]
+	cmp	x14,x15
+	b.eq	.L32764
+	bl	_p_pointer 
+.L32764:
+	mov	w16,3
+	str	w16,[x14]
+# Line: 10, Stmt: 0
+	adrp	x15,.L32767@PAGE
+	str	x14,[x15,.L32767+32@PAGEOFF]
+# Line: 11, Stmt: 0
+	adrp	x13,.L32766@PAGE
+	add	x0,x13,.L32766+1@PAGEOFF
+	mov	x1,13
+	mov	x2,x1
+	bl	_p_wts_o 
+	adrp	x15,.L32767@PAGE
+	ldr	x14,[x15,.L32767+24@PAGEOFF]
+	ldrsw	x0,[x14]
+	mov	x1,3
+	bl	_p_wti_o 
+	bl	_p_wtln_o 
+# Line: 13, Stmt: 0
+	adrp	x15,.L32767@PAGE
+	add	x0,x15,.L32767+24@PAGEOFF
+	mov	x1,4
+	bl	_p_dispos 
+# Line: 14, Stmt: 0
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+16@PAGEOFF
+	mov	x1,35
+	mov	x2,x1
+	bl	_p_wts_o 
+	bl	_p_wtln_o 
+# Line: 16, Stmt: 0
+	adrp	x15,.L32767@PAGE
+	ldr	x15,[x15,.L32767+32@PAGEOFF]
+	ldr	x14,[x15,-8]
+	cmp	x15,x14
+	b.eq	.L32763
+	bl	_p_pointer 
+.L32763:
+	mov	w16,4
+	str	w16,[x15]
+.L2:
+	ldp	x30,x29,[sp],16
+	ret
+	.comm	.L32767,40,12

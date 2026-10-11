@@ -1,0 +1,3 @@
+p^ expect 3:   3
+after dispose p, p1^ expect error: 
+Pascal-2 runtime error: Pointer was not allocated by the Pascal-2 library
