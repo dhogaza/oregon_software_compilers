@@ -3812,10 +3812,12 @@ procedure callsupport(libroutine: libroutines {support routine to call};
 
   begin {callsupport}
     if killregs then
+      begin
       markscratchregs;
+      firstreg := 0;
+      firstfpreg := 0;
+      end;
     libkey := settemp(long, libcall_oprnd(libroutine));
-    firstreg := 0;
-    firstfpreg := 0;
     gen1(lastnode, buildinst(bl, false, false), libkey);
   end {callsupport} ;
 
@@ -8378,17 +8380,23 @@ procedure ptrchkx;
 
 var
   t: keyindex;
+  errlabel, oklabel: labelindex;
 
 begin {ptrchkx}
   unpack(left, 0);
   loadreg(left, 0);
+  errlabel := newlabel;
+  oklabel := newlabel;
+  gen2(lastnode, buildinst(cbz, true, false), left,
+       settemp(long, labeltarget_oprnd(errlabel)));
   t := settemp(long, index_oprnd(abstract_offset, keytable[left].oprnd.reg, -ptrsize, false));
   loadreg(t, left);
   setallfields(left);
   gen2(lastnode, buildinst(cmp, true, false), key, t);
-  genbcond(lastnode, eq, lastlabel);
+  genbcond(lastnode, eq, oklabel);
+  definelabel(errlabel);
   callsupport(libpointertrap, false);
-  definelastlabel;
+  definelabel(oklabel);
 end {ptrchkx};
 
 procedure codeone;
