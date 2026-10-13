@@ -17,6 +17,13 @@
 
    1b. add runtime checking operators once this is done.
 
+      Made ptrchk unique to better catch dangling pointers, a real weakness in the
+      original implementation.  Better would be to have body mark procedures that call
+      dispose (or another procedure that directly or indirectly calls dispose).  Then
+      invalidate ptrchk nodes in travrs at the point where dispose or such a proc is
+      called, allowing them to be part of CSEs again.  Cost of not being CSEs is very
+      significant.
+
    2. Maybe allow forward/external procedure definitions to redeclare the parameter
       list as long as it is identical which means same param names and congruent types.
 
@@ -24,13 +31,6 @@
       the goal of getting rid of fpc_hosted.
 
 -- random stuff
-
-Made ptrchk unique to better catch dangling pointers, a real weakness in the original
-implementation.  Better would be to have body mark procedures that call dispose (or
-another procedure that directly or indirectly calls dispose).  Then invalidate ptrchk
-nodes in travrs at the point where dispose or such a proc is called, allowing them to
-be part of CSEs again.  Cost of not being CSEs is very significant.
-
 
 pseudops like eoln/eof/inset and others that in some cases do a single bit test
 followed by a setvalue(cond) can peek ahead for a jumpcond pseudo op, poach
