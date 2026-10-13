@@ -4294,8 +4294,6 @@ procedure defforindexx(sgn, { true if signed induction var }
 
     lock(left);
 
-    keytable[key].signed := sgn;
-
     { Allocate a register unless this is a permanently assigned register
       variable.  If target <> 0, we must preserve the running index in
       the actual variable, if not, we'll issue a "savekey" in "fortopx"
@@ -4341,6 +4339,7 @@ procedure defforindexx(sgn, { true if signed induction var }
       { We make it long if it's free, or if it might be used as an index.
       }
       originalreg := oprnd.reg;
+      originalregsigned := sgn;
       litinitial := lit;
       forkey := key;
       firstclear := true;
@@ -4766,9 +4765,10 @@ procedure forerrchkx;
     unpack(left, 0);
     loadreg(left, 0);
     setallfields(left);
+    keytable[key].signed := forstack[forsp].originalregsigned;
     regkey := settemp(len, reg_oprnd(forstack[forsp].originalreg));
     gen2(lastnode, buildinst(cmp, len = long, false), regkey, key);
-    if keytable[left].signed then
+    if keytable[key].signed then
       begin
       if pseudoinst.oprnds[2] = 0 then genbcond(lastnode, gt, lastlabel)
       else genbcond(lastnode, lt, lastlabel)

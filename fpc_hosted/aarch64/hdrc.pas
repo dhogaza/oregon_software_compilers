@@ -649,6 +649,7 @@ var
                                 of the index. Bottom of loop must restore if
                                 intervening code has eaten the original
                                 contents of this register}
+        originalregsigned: boolean; {set by defforindex, used by error checks}
         limitreg: regindex; {the register which contains the limit value.  Must
                              treat like originalreg}
         savedlen: datarange; { original length of index variable }
