@@ -424,7 +424,7 @@ procedure _p_case;
 
 procedure _p_pointer;
   begin
-    _p_error('Pointer is NIL or not assigned by new()');
+    _p_error('Pointer is NIL or not allocated by new()');
   end;
 
 procedure _p_liberror(const err: _p_string);
