@@ -2,4 +2,4 @@ reset file variable f
 Reference file variable f's value
 Set file variable f's value
 Throw reference error setting file variable r.f1's value
-Pascal-2 runtime error: Pointer was not allocated by the Pascal-2 library
+Pascal-2 runtime error: Pointer is NIL or not allocated by new()

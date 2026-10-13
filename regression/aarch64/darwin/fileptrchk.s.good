@@ -76,11 +76,13 @@ _main:
 # Line: 19, Stmt: 0
 	adrp	x15,.L32767@PAGE
 	ldr	x15,[x15,.L32767+24@PAGEOFF]
+	cbz	x15,.L32763
 	ldr	x14,[x15,-8]
 	cmp	x15,x14
-	b.eq	.L32763
-	bl	_p_pointer 
+	b.eq	.L32762
 .L32763:
+	bl	_p_pointer 
+.L32762:
 	ldr	x15,[x15]
 	mov	w16,97
 	strb	w16,[x15]
@@ -97,11 +99,13 @@ _main:
 	str	x14,[x15,.L32767+40@PAGEOFF]
 # Line: 22, Stmt: 0
 	ldr	x15,[x15,.L32767+40@PAGEOFF]
+	cbz	x15,.L32761
 	ldr	x14,[x15,-8]
 	cmp	x15,x14
-	b.eq	.L32762
+	b.eq	.L32760
+.L32761:
 	bl	_p_pointer 
-.L32762:
+.L32760:
 	ldr	x15,[x15]
 	mov	w16,97
 	strb	w16,[x15]
