@@ -97,7 +97,7 @@ function getstringfile: hostfilebyte;
     curfileptr: filerememberptr;  {used to step through input files}
     filecount: integer; {file directives are numbered in DWARF}
 
-  begin {writefiledirectives}
+  begin {filenumber}
     curfileptr := filerememberlist;
     filecount := 1;
     while (curfileptr <> nil) and (curfileptr^.offset <> fileindex) do
@@ -112,7 +112,7 @@ function getstringfile: hostfilebyte;
       filenumber := 1;
       end
     else filenumber := filecount;
-  end {writefiledirectives};
+  end {filenumber};
 
 procedure libname(libroutine: libroutines;
                   var s: string);
