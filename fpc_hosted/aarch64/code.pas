@@ -3418,6 +3418,28 @@ function preparelitint(value: integer): keyindex;
     preparelitint := newkey;
   end;
 
+procedure cmplitint(len: addressrange; {wreg or xreg?}
+                    regkey: keyindex; {the non-literal operand}
+                    value: integer {the literal operand});
+
+  { compare a register with a literal integer. only interesting
+    because of the existence of the cmn instruction.
+  }
+
+  var
+    i: insts;
+
+begin {cmplitint}
+  if value >= 0 then
+    i := cmp
+  else
+    begin
+    i := cmn;
+    value := -value;
+    end;
+  gen2(lastnode, buildinst(i, len = long, false), regkey, preparelitint(value));
+end {cmplitint};
+
 procedure makeoffsetptr(var after: nodeptr; offset: integer; src,dst: regindex);
 
   var
@@ -4339,7 +4361,6 @@ procedure defforindexx(sgn, { true if signed induction var }
       { We make it long if it's free, or if it might be used as an index.
       }
       originalreg := oprnd.reg;
-      originalregsigned := sgn;
       litinitial := lit;
       forkey := key;
       firstclear := true;
@@ -4579,7 +4600,7 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
     joinlabelx;
     context[contextsp].lastbranch := context[contextsp].first;
   end {forbottomx} ;
-{
+
 procedure forcheckx(up: boolean {we are going up} );
 
 { Generate range check operations for entry to a for loop.  This is
@@ -4594,159 +4615,180 @@ procedure forcheckx(up: boolean {we are going up} );
 }
 
   var
-    regkey: keyindex;
+    regkey, litkey: keyindex;
     s: boolean; {signed branches should be generated}
-    finalzero: boolean; {final value is constant zero}
     t: integer; {for swapping limit values}
-    brl: insttype; {blt or blo or bgt or bhi, depending on s and up}
-    brle: insttype; {etc. ad nauseum}
-    brg: insttype;
-    brge: insttype;
+    condlt: conds; {lt or lo or gt or hi, depending on s and up}
+    condle: conds; {etc. ad nauseum}
+    condgt: conds;
+    condge: conds;
+    skiplabel: labelindex;
 
+   procedure conditionalcmp(cond: conds; {compare if cond is met}
+                            nzcv: integer; {set flags to this if cond is not met}
+                            k: keyindex; {needs to be in a register}
+                            value: integer {const value to compare against});
 
-  procedure onepart(brinst: insttype; {branch to generate}
-                    key1, key2: keyindex; {operands to compare}
-                    l: integer {branch target} );
+     var
+       valuekey,nzcvkey, condkey: keyindex;
+       cmpinst: insts;
+
+     begin {conditionalcmp}
+       nzcvkey := settemp(long, imm12_oprnd(nzcv, false));
+       condkey := settemp(0, cond_oprnd(cond));
+       loadreg(k, 0);
+       if (value >= -31) and (value <= 31) then
+        begin
+        valuekey := settemp(long, imm12_oprnd(abs(pseudoinst.oprnds[3]), false));
+        if (value > 0) then cmpinst := ccmp
+        else cmpinst := ccmn;
+        end
+      else
+        begin
+        genlongint(lastnode, value, ip0);
+        valuekey := regkeys[ip0];
+        end; 
+      gen4(lastnode, buildinst(cmpinst, keytable[k].len = long, false), k, valuekey, nzcvkey, condkey)
+    end {conditionalcmp};
+
+  procedure onepart(key1, key2: keyindex {operands to compare});
 
 { Generate compare followed by branch.  Keytable[key1] had better be
-  mode dreg.
+  mode register.
 }
 
 
     begin {onepart}
-
-      if keytable[key1].oprnd.m <> dreg then
+      if keytable[key1].oprnd.mode <> register then
         begin
         write('for check error');
         compilerabort(inconsistent);
         end;
-
-      gendouble(cmp, key2, key1);
-      genbr(brinst, l);
-
+      with keytable[key1], keytable[key2].oprnd do
+        if mode = intconst then
+          cmplitint(len, key1, int_value)
+      else
+        begin
+        loadreg(key2, key1);
+        gen2(lastnode, buildinst(cmp, len = long, false), key1, key2);
+        end;
     end {onepart} ;
 
 
-  procedure fullygrosscheck(br1, br2: insttype);
+  procedure fullygrosscheck(cond1, cond2: conds);
 
 { Generate the long form (no constant limit or initial value) of for
   loop check code.  The name expresses my feelings precisely.
 }
 
+    var
+      oprnd2key, oprnd3key: keyindex;
+      i: insts;
 
     begin {fullygrosscheck}
 
-      settempimmediate(keytable[key].len, pseudoinst.oprnds[2]);
-      settempimmediate(keytable[key].len, pseudoinst.oprnds[3]);
+      oprnd2key := settemp(keytable[key].len, intconst_oprnd(pseudoinst.oprnds[2]));
 
       {bounds a}
-      onepart(br1, regkey, tempkey + 1, lastlabel);
+      onepart(regkey, oprnd2key);
 
       {bounds b}
-      onepart(br2, left, tempkey, lastlabel - 1);
+      conditionalcmp(cond1, 0, left, pseudoinst.oprnds[3]);
+
+      genbcond(lastnode, cond2, skiplabel);
 
     end {fullygrosscheck} ;
 
 
-  begin
+  begin {forcheckx}
 
     with forstack[forsp] do
       begin
-      settempdreg(len, originalreg);
-      regkey := tempkey;
+      regkey := settemp(len, reg_oprnd(originalreg));
       s := keytable[forkey].signed;
-      unpack(left, len);
-      with keytable[left].oprnd do
-        finalzero := (m = immediate) and (offset = 0);
+      end;
 
-      setallfields(left);
+    unpack(left, len);
+    setallfields(left);
 
-      {[s=2] initialize screwy branches}
-      if up then
+    skiplabel := newlabel;
+
+    if up then
+      if s then
         begin
-        if s then
-          begin
-          brl := blt;                       brle := ble;
-          brg := bgt;                       brge := bge;
-          end
-        else {not s}
-          begin
-          brl := blo;                       brle := bls;
-          brg := bhi;                       brge := bhs;
-          end;
+        condlt := lt;
+        condle := le;
+        condgt := gt;
+        condge := ge;
         end
-      else {not up}
+      else {not s}
         begin
-        if s then
-          begin
-          brl := bgt;                       brle := bge;
-          brg := blt;                       brge := ble;
-          end
-        else {not s}
-          begin
-          brl := bhi;                       brle := bhs;
-          brg := blo;                       brge := bls;
-          end;
-        end;
-      {[s=1]}
-
-      {generate zero-trip check}
-      onepart(brg, regkey, left, lastlabel - 1);
-
-      if (keytable[left].oprnd.m <> dreg) and
-         (keytable[left].oprnd.m <> immediate) then
+        condlt := lo;
+        condle := ls;
+        condgt := hi;
+        condge := hs;
+        end
+    else {not up}
+      if s then
         begin
-        lock(regkey);
-        settempdreg(keytable[left].len, getdreg);
-        gensimplemove(left, tempkey);
-        unlock(regkey);
-        left := tempkey;
+        condlt := gt;
+        condle := ge;
+        condgt := lt;
+        condge := le;
+        end
+      else {not s}
+        begin
+        condlt := hi;
+        condle := hs;
+        condgt := lo;
+        condge := ls;
         end;
 
-      if litinitial then
-        begin
-        if up then settempimmediate(len, pseudoinst.oprnds[3])
-        else settempimmediate(len, pseudoinst.oprnds[2]);
-        onepart(brle, tempkey + 1, tempkey, lastlabel - 1)
-        end {if litinitial}
-      else {not litinitial}
-      if keytable[left].oprnd.m = immediate then
-        begin
-        if up then settempimmediate(len, pseudoinst.oprnds[2])
-        else settempimmediate(len, pseudoinst.oprnds[3]);
-        onepart(brge, regkey, tempkey, lastlabel - 1);
-        end {if keytable[left].oprnd...}
-      else {must generate long, gross form: three comparisons!}
+
+    if (keytable[left].oprnd.mode <> register) and
+       (keytable[left].oprnd.mode <> intconst) then
+      begin
+      gensimplemove(lastnode, left, settemp(long, reg_oprnd(ip1)));
+      left := regkeys[ip1];
+      end;
+
+    if forstack[forsp].litinitial then
+      begin
+      onepart(regkey, left);
+      if up then conditionalcmp(condle, 4, left, pseudoinst.oprnds[3])
+      else conditionalcmp(condle, 4, left, pseudoinst.oprnds[2]);
+      genbcond(lastnode, condle, skiplabel);
+      end
+    else if keytable[left].oprnd.mode = intconst then
+      begin
+      onepart(regkey, left);
+      if up then conditionalcmp(condle, 0, left, pseudoinst.oprnds[2])
+      else conditionalcmp(condle, 0, left, pseudoinst.oprnds[3]);
+      genbcond(lastnode, condle, skiplabel);
+      end
+    else
+{ hmmmm oops }
       if (pseudoinst.oprnds[2] = 0) and not s then
-        onepart(brle, regkey, tempkey, lastlabel - 1)
-      else if up then fullygrosscheck(brl, brle)
+        onepart(litkey, tempkey)
       else
         begin
-        t := pseudoinst.oprnds[2];
-        pseudoinst.oprnds[2] := pseudoinst.oprnds[3];
-        pseudoinst.oprnds[3] := t;
-        fullygrosscheck(brl, brle);
+        onepart(regkey, left);
+        genbcond(lastnode, condgt, skiplabel);
+        if up then fullygrosscheck(condge, condle)
+        else
+          begin
+          t := pseudoinst.oprnds[2];
+          pseudoinst.oprnds[2] := pseudoinst.oprnds[3];
+          pseudoinst.oprnds[3] := t;
+          fullygrosscheck(condge, condle);
+          end;
         end;
-      end;
-
-    definelastlabel;
-
-    case targetopsys of
-      unix, apollo:
-        callsupport(librangetrap);  { range error }
-      vdos:
-        begin
-        settempimmediate(word, rangetrap);
-        gensingle(trap, tempkey);
-        end;
-      end;
-
-    generror(range_error);
-    definelastlabel;
+    callsupport(librangetrap, false);
+    definelabel(skiplabel);
 
   end; {forcheckx}
 
-}
+
 procedure forerrchkx;
 
 { Handle the case where one of the limits is constant, but out of range
@@ -4765,7 +4807,7 @@ procedure forerrchkx;
     unpack(left, 0);
     loadreg(left, 0);
     setallfields(left);
-    keytable[key].signed := forstack[forsp].originalregsigned;
+    keytable[key].signed := keytable[forstack[forsp].forkey].signed;
     regkey := settemp(len, reg_oprnd(forstack[forsp].originalreg));
     gen2(lastnode, buildinst(cmp, len = long, false), regkey, key);
     if keytable[key].signed then
@@ -4987,15 +5029,7 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
       end
     else
       begin
-      if pseudoinst.oprnds[2] >= 0 then
-        i := cmp
-      else
-        begin
-        i := cmn;
-        pseudoinst.oprnds[2]:= -pseudoinst.oprnds[2];
-        end;
-      litkey := preparelitint(pseudoinst.oprnds[2]);
-      gen2(lastnode, buildinst(i, len = long, false), left, litkey);
+      cmplitint(len, left, pseudoinst.oprnds[2]);
       if keytable[left].signed then
         setvalue(cond_oprnd(signedcond))
       else
@@ -8794,6 +8828,8 @@ procedure codeone;
       indxchk, congruchk: checkvariablebounds;
       ptrchk: ptrchkx;
       forerrchk: forerrchkx;
+      forupchk: forcheckx(true);
+      fordnchk: forcheckx(false);
 
 {
       cvtrd: cvtrdx;
@@ -8818,10 +8854,6 @@ procedure codeone;
   MC68K only
       dummyarg: dummyargx;
       dummyarg2: dummyarg2x;
-
-  Runtime error checks
-      forupchk: forcheckx(true);
-      fordnchk: forcheckx(false);
 
   Reals
 }

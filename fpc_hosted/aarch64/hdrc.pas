@@ -279,10 +279,10 @@ type
   insts = (noinst, nop,
 
   {basic arithmetic instructions}
-  first_a, add, sub, mul, madd, msub, sdiv, udiv, cmp, cmn, 
+  first_a, add, sub, mul, madd, msub, sdiv, udiv,
   orinst, orn, andinst, bic, eor, eon, neg, last_a,
 
-  csel, cset, cinv, mvn, cneg,
+  csel, cset, cinv, mvn, cneg, ccmp, ccmn, cmp, cmn,
 
   {move instructions}
 
@@ -649,7 +649,6 @@ var
                                 of the index. Bottom of loop must restore if
                                 intervening code has eaten the original
                                 contents of this register}
-        originalregsigned: boolean; {set by defforindex, used by error checks}
         limitreg: regindex; {the register which contains the limit value.  Must
                              treat like originalreg}
         savedlen: datarange; { original length of index variable }

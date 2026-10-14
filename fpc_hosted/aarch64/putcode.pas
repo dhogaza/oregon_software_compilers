@@ -644,9 +644,11 @@ begin
     br: write(macfile, 'br');
     cbnz: write(macfile, 'cbnz');
     cbz: write(macfile, 'cbz');
+    ccmn: write(macfile, 'ccmn');
+    ccmp: write(macfile, 'ccmp');
     cinv: write(macfile, 'cinv');
-    cmp: write(macfile, 'cmp');
     cmn: write(macfile, 'cmn');
+    cmp: write(macfile, 'cmp');
     cneg: write(macfile, 'cneg');
     csel: write(macfile, 'csel');
     cset: write(macfile, 'cset');

@@ -32,6 +32,10 @@
 
 -- random stuff
 
+forerrchk should deadcode the actual for loop it guards, because if it is executed,
+it is an error if the loop executes.  Of course, if the loop does not execute, we
+don't need the code.
+
 pseudops like eoln/eof/inset and others that in some cases do a single bit test
 followed by a setvalue(cond) can peek ahead for a jumpcond pseudo op, poach
 its label, and to a tb[n]z directly if it has a refcount of one.  First peephole
