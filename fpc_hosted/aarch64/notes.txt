@@ -22,7 +22,9 @@
       dispose (or another procedure that directly or indirectly calls dispose).  Then
       invalidate ptrchk nodes in travrs at the point where dispose or such a proc is
       called, allowing them to be part of CSEs again.  Cost of not being CSEs is very
-      significant.
+      significant.  Can probably expand the meaning of the list kept for variables.
+
+      ccmp and ccmn make conformant array bounds and for checking more efficient.
 
    2. Maybe allow forward/external procedure definitions to redeclare the parameter
       list as long as it is identical which means same param names and congruent types.

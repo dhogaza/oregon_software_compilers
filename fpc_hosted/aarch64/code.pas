@@ -3440,6 +3440,38 @@ begin {cmplitint}
   gen2(lastnode, buildinst(i, len = long, false), regkey, preparelitint(value));
 end {cmplitint};
 
+procedure conditionalcmp(cond: conds; {compare if cond is met}
+                         nzcv: integer; {set flags to this if cond is not met}
+                         tempreg: regindex; {usually ip0 or ip1}
+                         k: keyindex; {needs to be in a register}
+                         k1: keyindex {value to compare against, register or intconst});
+
+  var
+    nzcvkey, condkey: keyindex;
+    cmpinst: insts;
+
+  begin {conditionalcmp}
+    cmpinst := ccmp;
+    nzcvkey := settemp(long, imm12_oprnd(nzcv, false));
+    condkey := settemp(0, cond_oprnd(cond));
+    loadreg(k, 0);
+    with keytable[k1].oprnd do
+      if mode = intconst then
+        begin
+        if (int_value >= -31) and (int_value <= 31) then
+          begin
+          k1 := settemp(long, imm12_oprnd(abs(int_value), false));
+          if (int_value < 0) then cmpinst := ccmn;
+          end
+        else
+          begin
+          genlongint(lastnode, int_value, tempreg);
+          k1 := regkeys[tempreg];
+          end; 
+       end;
+   gen4(lastnode, buildinst(cmpinst, keytable[k].len = long, false), k, k1, nzcvkey, condkey)
+ end {conditionalcmp};
+
 procedure makeoffsetptr(var after: nodeptr; offset: integer; src,dst: regindex);
 
   var
@@ -4301,7 +4333,9 @@ procedure defforindexx(sgn, { true if signed induction var }
     fortarget: keyindex; {from pseudobuff}
 
   begin {defforindexx}
-    fortarget := pseudobuff.oprnds[3];
+    if pseudobuff.op in [foruptop, fordntop] then
+      fortarget := pseudobuff.oprnds[3]
+    else fortarget := 0;
     saveactivekeys;
 {
     address(right);
@@ -4383,7 +4417,7 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
   var
     c: conds;
     regkey: keyindex; {descriptor of for-index register}
-targetregkey: keyindex; {descriptor of saved target value if necessary}
+    targetregkey: keyindex; {descriptor of saved target value if necessary}
     i: insts; 
     lit: integer;
     loopentered: boolean; {set true if non-const target triggers enterloop}
@@ -4615,7 +4649,7 @@ procedure forcheckx(up: boolean {we are going up} );
 }
 
   var
-    regkey, litkey: keyindex;
+    regkey, oprnd2key, oprnd3key: keyindex;
     s: boolean; {signed branches should be generated}
     t: integer; {for swapping limit values}
     condlt: conds; {lt or lo or gt or hi, depending on s and up}
@@ -4623,33 +4657,6 @@ procedure forcheckx(up: boolean {we are going up} );
     condgt: conds;
     condge: conds;
     skiplabel: labelindex;
-
-   procedure conditionalcmp(cond: conds; {compare if cond is met}
-                            nzcv: integer; {set flags to this if cond is not met}
-                            k: keyindex; {needs to be in a register}
-                            value: integer {const value to compare against});
-
-     var
-       valuekey,nzcvkey, condkey: keyindex;
-       cmpinst: insts;
-
-     begin {conditionalcmp}
-       nzcvkey := settemp(long, imm12_oprnd(nzcv, false));
-       condkey := settemp(0, cond_oprnd(cond));
-       loadreg(k, 0);
-       if (value >= -31) and (value <= 31) then
-        begin
-        valuekey := settemp(long, imm12_oprnd(abs(pseudoinst.oprnds[3]), false));
-        if (value > 0) then cmpinst := ccmp
-        else cmpinst := ccmn;
-        end
-      else
-        begin
-        genlongint(lastnode, value, ip0);
-        valuekey := regkeys[ip0];
-        end; 
-      gen4(lastnode, buildinst(cmpinst, keytable[k].len = long, false), k, valuekey, nzcvkey, condkey)
-    end {conditionalcmp};
 
   procedure onepart(key1, key2: keyindex {operands to compare});
 
@@ -4682,18 +4689,15 @@ procedure forcheckx(up: boolean {we are going up} );
 }
 
     var
-      oprnd2key, oprnd3key: keyindex;
       i: insts;
 
     begin {fullygrosscheck}
-
-      oprnd2key := settemp(keytable[key].len, intconst_oprnd(pseudoinst.oprnds[2]));
 
       {bounds a}
       onepart(regkey, oprnd2key);
 
       {bounds b}
-      conditionalcmp(cond1, 0, left, pseudoinst.oprnds[3]);
+      conditionalcmp(cond1, 0, ip0, left, oprnd3key);
 
       genbcond(lastnode, cond2, skiplabel);
 
@@ -4701,6 +4705,10 @@ procedure forcheckx(up: boolean {we are going up} );
 
 
   begin {forcheckx}
+
+    oprnd2key := settemp(long, intconst_oprnd(pseudoinst.oprnds[2]));
+    oprnd3key := settemp(long, intconst_oprnd(pseudoinst.oprnds[3]));
+
 
     with forstack[forsp] do
       begin
@@ -4755,34 +4763,40 @@ procedure forcheckx(up: boolean {we are going up} );
     if forstack[forsp].litinitial then
       begin
       onepart(regkey, left);
-      if up then conditionalcmp(condle, 4, left, pseudoinst.oprnds[3])
-      else conditionalcmp(condle, 4, left, pseudoinst.oprnds[2]);
+      if up then conditionalcmp(condle, 4, ip0, left, oprnd3key)
+      else conditionalcmp(condle, 4, ip0, left, oprnd2key);
       genbcond(lastnode, condle, skiplabel);
       end
     else if keytable[left].oprnd.mode = intconst then
       begin
       onepart(regkey, left);
-      if up then conditionalcmp(condle, 0, left, pseudoinst.oprnds[2])
-      else conditionalcmp(condle, 0, left, pseudoinst.oprnds[3]);
+      if up then conditionalcmp(condle, 0, ip0, left, oprnd2key)
+      else conditionalcmp(condle, 0, ip0, left, oprnd3key);
       genbcond(lastnode, condle, skiplabel);
       end
     else
-{ hmmmm oops }
-      if (pseudoinst.oprnds[2] = 0) and not s then
-        onepart(litkey, tempkey)
+      begin
+
+      { if the loop won't be executed, skip the bounds check and the loop
+        itself.
+      }
+      onepart(regkey, left);
+      if not (pseudobuff.op in [foruptop, fordntop]) then
+        begin
+        write('Expecting foruptop or fordntop pseudoop');
+        compilerabort(inconsistent);
+        end;
+      genbcond(lastnode, condgt, pseudobuff.oprnds[2]);
+
+      if up then fullygrosscheck(condge, condle)
       else
         begin
-        onepart(regkey, left);
-        genbcond(lastnode, condgt, skiplabel);
-        if up then fullygrosscheck(condge, condle)
-        else
-          begin
-          t := pseudoinst.oprnds[2];
-          pseudoinst.oprnds[2] := pseudoinst.oprnds[3];
-          pseudoinst.oprnds[3] := t;
-          fullygrosscheck(condge, condle);
-          end;
+        t := pseudoinst.oprnds[2];
+        pseudoinst.oprnds[2] := pseudoinst.oprnds[3];
+        pseudoinst.oprnds[3] := t;
+        fullygrosscheck(condge, condle);
         end;
+      end;
     callsupport(librangetrap, false);
     definelabel(skiplabel);
 
@@ -4797,13 +4811,22 @@ procedure forerrchkx;
 
   Here "left" is the final value, and "pseudoinst.oprnds[2]"
   is non-zero for a downto loop.
+
+  We'll just skip the entire for loop if it's not an error.
+
+  Someday we might modify travrs to deadcode out the for loop body but
+  this is so rare it's not really necessary.  Would look a bit mysterious
+  though to anyone reading the generated code!  If this is done this
+  would have to be rewritten.
 }
 
   var
     regkey: keyindex; {descriptor of induction register}
+    skiplabel: labelindex;
 
 
   begin {forerrchkx}
+    skiplabel := pseudobuff.oprnds[2];
     unpack(left, 0);
     loadreg(left, 0);
     setallfields(left);
@@ -4812,16 +4835,15 @@ procedure forerrchkx;
     gen2(lastnode, buildinst(cmp, len = long, false), regkey, key);
     if keytable[key].signed then
       begin
-      if pseudoinst.oprnds[2] = 0 then genbcond(lastnode, gt, lastlabel)
-      else genbcond(lastnode, lt, lastlabel)
+      if pseudoinst.oprnds[2] = 0 then genbcond(lastnode, gt, skiplabel)
+      else genbcond(lastnode, lt, skiplabel)
       end
     else
       begin
-      if pseudoinst.oprnds[2] = 0 then genbcond(lastnode, hi, lastlabel)
-      else genbcond(lastnode, lo, lastlabel)
+      if pseudoinst.oprnds[2] = 0 then genbcond(lastnode, hi, skiplabel)
+      else genbcond(lastnode, lo, skiplabel)
       end;
     callsupport(librangetrap, false);
-    definelastlabel;
   end {forerrchkx} ;
 
 procedure shiftintx(backwards: boolean);
@@ -8571,14 +8593,14 @@ procedure checkconstbounds(checkrange: boolean; liberror: libroutines);
     unlock(key);
   end {checkconstbounds};
 
-procedure checkvariablebounds;
+procedure checkarraybounds;
 
   var
     lower, upper: keyindex;
     faillabel: labelindex;
     signed: boolean;
 
-  begin {checkvariablebounds}
+  begin {checkarraybounds}
     if (keytable[right].oprnd.mode = intconst) and
        (keytable[target].oprnd.mode = intconst) then
       checkconstbounds(false, libsubscripttrap)
@@ -8604,7 +8626,7 @@ procedure checkvariablebounds;
       callsupport(libsubscripttrap, false);
       definelastlabel;
     end;
-end {checkvariablebounds};
+end {checkarraybounds};
 
 procedure ptrchkx;
 
@@ -8825,7 +8847,7 @@ procedure codeone;
       restoreloop: restoreloopx;
 
       rangechk: checkconstbounds(true, librangetrap);
-      indxchk, congruchk: checkvariablebounds;
+      indxchk, congruchk: checkarraybounds;
       ptrchk: ptrchkx;
       forerrchk: forerrchkx;
       forupchk: forcheckx(true);
