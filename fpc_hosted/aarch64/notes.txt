@@ -24,7 +24,7 @@
       called, allowing them to be part of CSEs again.  Cost of not being CSEs is very
       significant.  Can probably expand the meaning of the list kept for variables.
 
-      ccmp and ccmn make conformant array bounds and for checking more efficient.
+      Can walk be taught to pass the fortop target in defforindex as well?
 
    2. Maybe allow forward/external procedure definitions to redeclare the parameter
       list as long as it is identical which means same param names and congruent types.

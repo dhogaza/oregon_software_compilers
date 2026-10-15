@@ -8606,6 +8606,7 @@ procedure checkarraybounds;
       checkconstbounds(false, libsubscripttrap)
     else {let the fun begin}
       begin
+      {can't use ccmp here because the subtract is necessary for addressing}
       lower := right;
       upper := target;
       signed := keytable[lower].signed and keytable[upper].signed;
