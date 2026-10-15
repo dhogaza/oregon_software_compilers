@@ -30,9 +30,8 @@
 	movz	x28,65535
 	movk	x28,65535,lsl 16
 	cmp	w28,w0
-	b.gt	.L32764
+	b.gt	.L3
 	bl	_p_range 
-.L32764:
 .L4:
 	cmp	w28,w0
 	b.gt	.L3
@@ -62,9 +61,8 @@
 	mov	x28,x0
 	mov	x15,11
 	cmp	w28,w15
-	b.gt	.L32763
+	b.gt	.L6
 	bl	_p_range 
-.L32763:
 	str	x15,[x29,-16]
 .L7:
 	cmp	w28,w15
