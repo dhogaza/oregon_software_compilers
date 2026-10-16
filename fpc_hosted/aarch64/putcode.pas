@@ -109,7 +109,7 @@ function getstringfile: hostfilebyte;
       begin
       write('Can''t find source file.  Offset: ', fileindex:1);
       compilerabort(inconsistent);
-      filenumber := 1;
+      filenumber := -1;
       end
     else filenumber := filecount;
   end {filenumber};
@@ -597,7 +597,7 @@ procedure writeproclabel(procn: proctableindex);
       if switcheverplus[walkback] then
         begin
         currentfilenumber := filenumber(proctable[blockref].fileindex);
-        writeln(macfile,chr(9),'.loc ', currentfilenumber:1, ' ',
+        writeln(macfile,chr(9),'.loc ', currentfilenumber:2, ' ',
                 proctable[blockref].line - lineoffset:1, ' ', 0);
         end;
 
