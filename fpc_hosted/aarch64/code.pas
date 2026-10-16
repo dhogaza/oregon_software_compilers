@@ -4383,13 +4383,11 @@ procedure defforindexx(sgn, { true if signed induction var }
         ((keytable[fortarget].oprnd.mode <> register) or
          not volatilereg(keytable[fortarget].oprnd.reg)) then
         begin
-        allowmodify(fortarget, false);
-        adjustregcount(fortarget, -keytable[fortarget].refcount);
-        limitreg := getreg(false);
+        { gambling that the loop will execute }
+        limitreg := getreg(true);
         limitregkey := settemp(keytable[fortarget].len, reg_oprnd(limitreg));
         gensimplemove(lastnode, fortarget, limitregkey);
-        keytable[fortarget].oprnd.reg := limitreg;
-        adjustregcount(fortarget, keytable[fortarget].refcount);
+        changevalue(fortarget, limitregkey);
         end;
       if globalreg then
         setkeyvalue(right)
