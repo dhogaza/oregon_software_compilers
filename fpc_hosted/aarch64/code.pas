@@ -1314,13 +1314,19 @@ procedure genbr(var after: nodeptr; inst: insts; labelno: integer);
     context[contextsp].lastbranch := lastnode;
   end {genbr};
 
-procedure genbcond(var after: nodeptr; c: conds; labelno: integer);
+procedure genbcond(var after: nodeptr; c: conds; labelno: integer; setlastbranch: boolean);
+
+  { setlastbranch is normally true, but if the codegen knows that the branch won't affect
+    the validity of changing the value of a key, it can be passed as false.
+
+    So far only exists for error checks.
+  }
 
   begin {genbcond}
     gen2(after, buildinst(bcond, false, false),
          settemp(0, cond_oprnd(c)),
          settemp(long, labeltarget_oprnd(labelno)));
-    context[contextsp].lastbranch := lastnode;
+    if setlastbranch then context[contextsp].lastbranch := lastnode;
   end {genbcond};
 
 procedure gencomment(var after: nodeptr; comment: string);
@@ -4331,15 +4337,19 @@ procedure defforindexx(sgn, { true if signed induction var }
 
   var
     fortarget: keyindex; {from pseudobuff}
+    limitregkey: keyindex;
 
   begin {defforindexx}
     if pseudobuff.op in [foruptop, fordntop] then
       fortarget := pseudobuff.oprnds[3]
-    else fortarget := 0;
+    else if pseudobuff.op in [forupchk, fordnchk, forerrchk] then
+      fortarget := pseudobuff.oprnds[1]
+    else
+      begin
+      write('for operator must follow defforindex');
+      compilerabort(inconsistent);
+      end;;
     saveactivekeys;
-{
-    address(right);
-}
     dereference(right);
 
     lock(right);
@@ -4356,6 +4366,10 @@ procedure defforindexx(sgn, { true if signed induction var }
       to save the running index on the stack.  Often, this can later be
       deleted as with any other stack temp, making register-only loops
       quite common.
+
+      If the limit is not a constant and is either in a globally assigned
+      register or memory location, we must move it, otherwise an assignment
+      to the limit variable will change the number of times the loop executes.
     }
 
     forsp := forsp + 1;
@@ -4365,20 +4379,20 @@ procedure defforindexx(sgn, { true if signed induction var }
       nonvolatile := target <> 0;
       globalreg := (keytable[right].oprnd.mode = register) and
                    not volatilereg(keytable[right].oprnd.reg);
-      if globalreg then
+      if (fortarget <> 0) and (keytable[fortarget].oprnd.mode <> intconst) and
+        ((keytable[fortarget].oprnd.mode <> register) or
+         not volatilereg(keytable[fortarget].oprnd.reg)) then
         begin
-        setkeyvalue(right);
-        if equivaddr(right, fortarget) then
-          begin
-          allowmodify(fortarget, false);
-          adjustregcount(fortarget, -keytable[fortarget].refcount);
-          limitreg := getreg(false);
-          keytable[fortarget].oprnd.reg := limitreg;
-          adjustregcount(fortarget, keytable[fortarget].refcount);
-          gensimplemove(lastnode, right, fortarget);
-          savekey(fortarget, false);
-          end
-        end
+        allowmodify(fortarget, false);
+        adjustregcount(fortarget, -keytable[fortarget].refcount);
+        limitreg := getreg(false);
+        limitregkey := settemp(keytable[fortarget].len, reg_oprnd(limitreg));
+        gensimplemove(lastnode, fortarget, limitregkey);
+        keytable[fortarget].oprnd.reg := limitreg;
+        adjustregcount(fortarget, keytable[fortarget].refcount);
+        end;
+      if globalreg then
+        setkeyvalue(right)
       else
         begin
         setkeyvalue(settemp(long, reg_oprnd(getreg(false))));
@@ -4450,33 +4464,16 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
           end
         else
           begin
+          if limitreg <> noreg then savekey(target, false);
           i := cmp;
           makeaddressable(target, 0);
           unpackwork(target, 0);
-          { This is essentially loadreg except it will copy a limit if it is
-            in a globally assigned register, as Pascal semantics compute the loop
-            start and limit values at the top of the loop, and a globally assigned
-            variable might be modified inside the loop.
-          }
-          if (keytable[target].oprnd.mode <> register) or
-             not volatilereg(keytable[target].oprnd.reg) then
-            begin
-            lock(regkey);
-            allowmodify(target, dontchangevalue > 0);
-            targetregkey := settemp(keytable[target].len, reg_oprnd(getreg(true)));
-            keytable[targetregkey].signed := keytable[target].signed;
-            gensimplemove(lastnode, target, targetregkey);
-            unlock(regkey);
-            changevalue(target, targetregkey);
-            end;
-          limitreg := keytable[target].oprnd.reg;
-          adjustregcount(target, 1);
           enterloop;
           loopentered := true;
           pseudolabelx;
           end;
         gen2(lastnode, buildinst(i, savedlen = long, false), regkey, target);
-        genbcond(lastnode, c, pseudoinst.oprnds[2]);
+        genbcond(lastnode, c, pseudoinst.oprnds[2], true);
         end;
 
       if nonvolatile and not globalreg then
@@ -4498,10 +4495,6 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
           if target <> 0 then regstate[limitreg].used := true;
           end;
 
-      { see defforindexx for an explaination of this }
-{
-        dereference(keytable[forkey].properreg);
-}
       end;
 
   end {fortopx} ;
@@ -4620,12 +4613,12 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
 
         gen2(lastnode, buildinst(cmp, keytable[forkey].len = long, false), forkey,
              preparelitint(finalvalue));
-        genbcond(lastnode, c, pseudoinst.oprnds[1]);
+        genbcond(lastnode, c, pseudoinst.oprnds[1], true);
         end {if needcompare}
-      else if sgn then genbcond(lastnode, vc, pseudoinst.oprnds[1])
+      else if sgn then genbcond(lastnode, vc, pseudoinst.oprnds[1], true)
       else if incinst = sub then
-        genbcond(lastnode, cs, pseudoinst.oprnds[1]) 
-        else genbcond(lastnode, cc, pseudoinst.oprnds[1]);
+        genbcond(lastnode, cs, pseudoinst.oprnds[1], true) 
+        else genbcond(lastnode, cc, pseudoinst.oprnds[1], true);
       end; {with forstack[forsp]}
 
     dereference(target);
@@ -4699,7 +4692,7 @@ procedure forcheckx(up: boolean {we are going up} );
       {bounds b}
       conditionalcmp(cond1, 0, ip0, left, oprnd3key);
 
-      genbcond(lastnode, cond2, skiplabel);
+      genbcond(lastnode, cond2, skiplabel, false);
 
     end {fullygrosscheck} ;
 
@@ -4765,14 +4758,14 @@ procedure forcheckx(up: boolean {we are going up} );
       onepart(regkey, left);
       if up then conditionalcmp(condle, 4, ip0, left, oprnd3key)
       else conditionalcmp(condle, 4, ip0, left, oprnd2key);
-      genbcond(lastnode, condle, skiplabel);
+      genbcond(lastnode, condle, skiplabel, false);
       end
     else if keytable[left].oprnd.mode = intconst then
       begin
       onepart(regkey, left);
       if up then conditionalcmp(condle, 0, ip0, left, oprnd2key)
       else conditionalcmp(condle, 0, ip0, left, oprnd3key);
-      genbcond(lastnode, condle, skiplabel);
+      genbcond(lastnode, condle, skiplabel, false);
       end
     else
       begin
@@ -4786,7 +4779,7 @@ procedure forcheckx(up: boolean {we are going up} );
         write('Expecting foruptop or fordntop pseudoop');
         compilerabort(inconsistent);
         end;
-      genbcond(lastnode, condgt, pseudobuff.oprnds[2]);
+      genbcond(lastnode, condgt, pseudobuff.oprnds[2], false);
 
       if up then fullygrosscheck(condge, condle)
       else
@@ -4835,13 +4828,13 @@ procedure forerrchkx;
     gen2(lastnode, buildinst(cmp, len = long, false), regkey, key);
     if keytable[key].signed then
       begin
-      if pseudoinst.oprnds[2] = 0 then genbcond(lastnode, gt, skiplabel)
-      else genbcond(lastnode, lt, skiplabel)
+      if pseudoinst.oprnds[2] = 0 then genbcond(lastnode, gt, skiplabel, false)
+      else genbcond(lastnode, lt, skiplabel, false)
       end
     else
       begin
-      if pseudoinst.oprnds[2] = 0 then genbcond(lastnode, hi, skiplabel)
-      else genbcond(lastnode, lo, skiplabel)
+      if pseudoinst.oprnds[2] = 0 then genbcond(lastnode, hi, skiplabel, false)
+      else genbcond(lastnode, lo, skiplabel, false)
       end;
     callsupport(librangetrap, false);
   end {forerrchkx} ;
@@ -5106,7 +5099,7 @@ begin {cmpstructx}
   genldr(lastnode, byte, false, tempregkey, leftregkey);
   genldr(lastnode, byte, false, tempreg2key, rightregkey);
   gen2(lastnode, buildinst(cmp, false, false), tempregkey, tempreg2key);
-  genbcond(lastnode, ne, skiplabel);
+  genbcond(lastnode, ne, skiplabel, true);
   gen3(lastnode, buildinst(sub, false, false), countkey, countkey, onekey);
   gen2(lastnode, buildinst(cbnz, false, false), countkey, looplabelkey);
   definelabel(skiplabel);
@@ -5664,7 +5657,7 @@ procedure setinsertx;
       definelastlabel;
       gen2(lastnode, buildinst(cmp, keytable[left].len = long, false),
            insertkey, limitkey);
-      genbcond(lastnode, hi, lastlabel);
+      genbcond(lastnode, hi, lastlabel, true);
       end;
     gensimplemove(lastnode, settemp(long, intconst_oprnd(1)), bitkey);
     if setlen <= long then
@@ -5854,11 +5847,11 @@ begin {cmpsetx}
       gen3(lastnode, buildinst(ldp, true, false), tempregkey, tempreg2key, leftregkey);
       gen3(lastnode, buildinst(ldp, true, false), tempreg3key, tempreg4key, rightregkey);
       gen2(lastnode, buildinst(cmp, true, false), tempregkey, tempreg3key);
-      genbcond(lastnode, ne, skiplabel);
+      genbcond(lastnode, ne, skiplabel, true);
       gen2(lastnode, buildinst(cmp, true, false), tempreg2key, tempreg4key);
       len := len - quad;
       if len <> 0 then
-        genbcond(lastnode, ne, skiplabel);
+        genbcond(lastnode, ne, skiplabel, true);
       end;
     if len = long then
       begin
@@ -5932,11 +5925,11 @@ begin {cmpsetinclusion}
       gen3(lastnode, buildinst(ldp, true, false), tempregkey, tempreg2key, operand1regkey);
       gen3(lastnode, buildinst(ldp, true, false), tempreg3key, tempreg4key, operand2regkey);
       gen3(lastnode, buildinst(bic, true, true), regkeys[zero], tempreg3key, tempregkey);
-      genbcond(lastnode, ne, skiplabel);
+      genbcond(lastnode, ne, skiplabel, true);
       gen3(lastnode, buildinst(bic, true, true), tempreg2key, tempreg4key, tempreg2key);
       len := len - quad;
       if len <> 0 then
-        genbcond(lastnode, ne, skiplabel);
+        genbcond(lastnode, ne, skiplabel, true);
       end;
     if len = long then
       begin
@@ -7631,7 +7624,7 @@ begin {cmpstrx}
   genldr(lastnode, byte, false, tempreg3key, leftregkey);
   genldr(lastnode, byte, false, tempreg4key, rightregkey);
   gen2(lastnode, buildinst(cmp, false, false), tempreg3key, tempreg4key);
-  genbcond(lastnode, ne, skiplabel);
+  genbcond(lastnode, ne, skiplabel, true);
   gen3(lastnode, buildinst(sub, false, false), countkey, countkey, onekey);
   gen2(lastnode, buildinst(cbnz, false, false), countkey, looplabelkey);
 
@@ -8281,12 +8274,12 @@ begin {casebranchx}
 
   if errordefault then
     begin
-    genbcond(lastnode, ls, skiplabel);
+    genbcond(lastnode, ls, skiplabel, false);
     definelabel(default);
     caseerrx;
     definelabel(skiplabel);
     end
-  else genbcond(lastnode, hi, default);;
+  else genbcond(lastnode, hi, default, true);
 
   addressreg := getreg(false);
   addresskey := settemp(long, reg_oprnd(addressreg));
@@ -8410,7 +8403,7 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
       else
         gen2(lastnode, buildinst(cbnz, keytable[right].len = long, false), regkey, labeltarget)
       end
-    else genbcond(lastnode, c, pseudoinst.oprnds[1]);
+    else genbcond(lastnode, c, pseudoinst.oprnds[1], true);
     context[contextsp].lastbranch := lastnode;
   end {jumpcond} ;
 
@@ -8555,13 +8548,15 @@ procedure checkconstbounds(checkrange: boolean; liberror: libroutines);
     target := 0;
     unpack(left, 0);
     loadreg(left, right);
-    setallfields(left);
-    checkkey := key;
+    if checkrange or (keytable[lower].oprnd.int_value = 0) then
+      setallfields(left)
+    else setvalue(reg_oprnd(getreg(false)));
     lock(key);
+    checkkey := key;
     checkvalue := keytable[upper].oprnd.int_value - keytable[lower].oprnd.int_value;
     if keytable[lower].oprnd.int_value <> 0 then
       begin
-      if checkrange then checkkey := regkeys[ip1];
+      if checkrange then checkkey := regkeys[ip0];
       with keytable[lower] do
         if oprnd.int_value >= 0 then
           i := sub
@@ -8571,7 +8566,7 @@ procedure checkconstbounds(checkrange: boolean; liberror: libroutines);
           i := add;
           end;
       handle_intconst12(lastnode, lower);
-      gen3(lastnode, buildinst(i, len = long, false), checkkey, key, lower);
+      gen3(lastnode, buildinst(i, len = long, false), checkkey, left, lower);
       end;
     if checkvalue = 0 then
       gen2(lastnode, buildinst(cbz, false, false), checkkey,
@@ -8586,7 +8581,7 @@ procedure checkconstbounds(checkrange: boolean; liberror: libroutines);
         end;
       checkvaluekey := preparelitint(checkvalue);
       gen2(lastnode, buildinst(i, len = long, false), checkkey, checkvaluekey);
-      genbcond(lastnode, ls, lastlabel);
+      genbcond(lastnode, ls, lastlabel, false);
       end;
     callsupport(liberror, false);
     definelastlabel;
@@ -8617,12 +8612,12 @@ procedure checkarraybounds;
       loadreg(upper, key);
       faillabel := newlabel;
       gen2(lastnode, buildinst(cmp, len = long, false), key, upper);
-      if signed then genbcond(lastnode, gt, faillabel)
-      else genbcond(lastnode, hi, faillabel);
+      if signed then genbcond(lastnode, gt, faillabel, false)
+      else genbcond(lastnode, hi, faillabel, false);
       unpack(lower, 0);
       loadreg(lower, key);
       gen3(lastnode, buildinst(sub, len = long, true), key, key, lower);
-      genbcond(lastnode, hs, lastlabel);
+      genbcond(lastnode, hs, lastlabel, false);
       definelabel(faillabel);
       callsupport(libsubscripttrap, false);
       definelastlabel;
@@ -8646,7 +8641,7 @@ begin {ptrchkx}
   loadreg(t, left);
   setallfields(left);
   gen2(lastnode, buildinst(cmp, true, false), key, t);
-  genbcond(lastnode, eq, oklabel);
+  genbcond(lastnode, eq, oklabel, false);
   definelabel(errlabel);
   callsupport(libpointertrap, false);
   definelabel(oklabel);

@@ -641,7 +641,7 @@ var
       record
         forkey: keyindex; {keytable entry of index}
         nonvolatile: boolean; {must save index in "real" var}
-        globalreg: boolean; {non-volatile and was not a global dreg}
+        globalreg: boolean; {non-volatile and was not a global reg}
         firstclear: boolean; {set if next clear operation is first one (used
                               for special register handling done to optimize
                               for loop code template)}
