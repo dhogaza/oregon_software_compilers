@@ -4395,7 +4395,9 @@ procedure defforindexx(sgn, { true if signed induction var }
         setkeyvalue(right)
       else
         begin
+        lock(fortarget);
         setkeyvalue(settemp(long, reg_oprnd(getreg(false))));
+        unlock(fortarget);
         keytable[key].regsaved := true;
         if nonvolatile then
             keytable[key].properreg := right;
@@ -4525,7 +4527,9 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
 
     with forstack[forsp] do
       begin
+{
       adjustregcount(settemp(long, reg_oprnd(limitreg)), -1);
+}
       sgn := keytable[forkey].signed;
       dereference(forkey);
       l := keytable[forkey].len;
@@ -8556,7 +8560,7 @@ procedure checkconstbounds(checkrange: boolean; liberror: libroutines);
     checkvalue := keytable[upper].oprnd.int_value - keytable[lower].oprnd.int_value;
     if keytable[lower].oprnd.int_value <> 0 then
       begin
-      if checkrange then checkkey := regkeys[ip0];
+      if checkrange then checkkey := regkeys[ip1];
       with keytable[lower] do
         if oprnd.int_value >= 0 then
           i := sub
