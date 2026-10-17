@@ -4387,15 +4387,19 @@ procedure defforindexx(sgn, { true if signed induction var }
       nonvolatile := target <> 0;
       globalreg := (keytable[right].oprnd.mode = register) and
                    not volatilereg(keytable[right].oprnd.reg);
-      if (fortarget <> 0) and (keytable[fortarget].oprnd.mode <> intconst) and
-        ((keytable[fortarget].oprnd.mode <> register) or
-         not volatilereg(keytable[fortarget].oprnd.reg)) then
+      if (fortarget <> 0) then
         begin
-        { gambling that the loop will execute }
-        limitreg := getreg(true);
-        limitregkey := settemp(keytable[fortarget].len, reg_oprnd(limitreg));
-        gensimplemove(lastnode, fortarget, limitregkey);
-        changevalue(fortarget, limitregkey);
+        unpackwork(fortarget, 0);
+        if (keytable[fortarget].oprnd.mode <> intconst) and
+          ((keytable[fortarget].oprnd.mode <> register) or
+          not volatilereg(keytable[fortarget].oprnd.reg)) then
+          begin
+          { gambling that the loop will execute }
+          limitreg := getreg(true);
+          limitregkey := settemp(keytable[fortarget].len, reg_oprnd(limitreg));
+          gensimplemove(lastnode, fortarget, limitregkey);
+          changevalue(fortarget, limitregkey);
+          end;
         end;
       if globalreg then
         setkeyvalue(right)
