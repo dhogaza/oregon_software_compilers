@@ -12,7 +12,7 @@ fi
 pushd $os >/dev/null
 echo "--- benchmarking $1 ---"
 $pasdir/pas2arm64 $src/$1 --include=$lib --noch --mac=$1
-gcc $libdir/libpaslib.a $1.s
+gcc -L$libdir $1.s -lpaslib
 echo "timing pascal2 version..."
 time ./a.out
 fpc $src/$1 -FU./ -o./a.out -O3 -Mdelphi

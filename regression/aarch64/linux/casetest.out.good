@@ -1,0 +1,15 @@
+test single label compare, label range compare, jump table
+
+otherwise...
+
+single label compare: three
+range of labels compare: 20..30
+jump table: jump table
+trigger otherwise: otherwise 41
+
+error...
+
+single label compare: three
+range of labels compare: 20..30
+jump table: jump table
+trigger error: 

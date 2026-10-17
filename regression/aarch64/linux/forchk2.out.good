@@ -1,0 +1,7 @@
+test for check where start is const, end is variable
+var i:1..10
+for 1 to -1 is not an error, never executes
+for 1 to 10 is not an error
+1 2 3 4 5 6 7 8 9 10 
+for 1 to 11 is a range error
+Pascal-2 runtime error: Assignment value out of range
