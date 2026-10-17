@@ -379,8 +379,8 @@ _p_trim:
 	sub	w12,w14,w15
 	add	w12,w12,1
 # Line: 349, Stmt: 0
-	mov	x13,1
 	mov	x11,x12
+	mov	x13,1
 .L47:
 	cmp	w13,w11
 	b.gt	.L46
@@ -444,8 +444,8 @@ _p_trimleft:
 # Line: 370, Stmt: 0
 	strb	w13,[sp,40]
 # Line: 371, Stmt: 0
-	mov	x14,1
 	mov	x12,x13
+	mov	x14,1
 .L55:
 	cmp	w14,w12
 	b.gt	.L54
@@ -502,8 +502,8 @@ _p_trimright:
 # Line: 389, Stmt: 0
 	strb	w15,[sp,40]
 # Line: 390, Stmt: 0
-	mov	x14,1
 	mov	x13,x15
+	mov	x14,1
 .L63:
 	cmp	w14,w13
 	b.gt	.L62
@@ -2924,8 +2924,8 @@ _p_wtb:
 	strb	wzr,[x14],1
 .L260:
 # Line: 1105, Stmt: 0
-	mov	x28,1
 	ldrb	w26,[x29,32]
+	mov	x28,1
 	str	x26,[x29,-32]
 .L262:
 	cmp	w28,w26

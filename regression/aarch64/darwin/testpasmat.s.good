@@ -1561,8 +1561,8 @@
 	adrp	x25,.L32767@PAGE
 	add	x24,x25,.L32767@PAGEOFF
 # Line: 616, Stmt: 0
-	mov	x28,1
 	ldrsw	x25,[x27,2100]
+	mov	x28,1
 .L55:
 	cmp	w28,w25
 	b.gt	.L54
@@ -1834,8 +1834,8 @@
 .L83:
 # Line: 707, Stmt: 0
 	adrp	x15,.L32767@PAGE
-	mov	x28,1
 	ldrsw	x27,[x15,.L32767+2088@PAGEOFF]
+	mov	x28,1
 .L85:
 	cmp	w28,w27
 	b.gt	.L84
@@ -2581,8 +2581,8 @@
 .L170:
 # Line: 941, Stmt: 0
 	adrp	x24,.L32767@PAGE
-	mov	x28,1
 	ldrsw	x23,[x24,.L32767+2088@PAGEOFF]
+	mov	x28,1
 .L172:
 	cmp	w28,w23
 	b.gt	.L171
@@ -4216,8 +4216,8 @@
 	mov	x15,xzr
 # Line: 1536, Stmt: 0
 	adrp	x13,.L32767@PAGE
-	mov	x14,1
 	ldrsw	x12,[x13,.L32767+2088@PAGEOFF]
+	mov	x14,1
 .L399:
 	cmp	w14,w12
 	b.gt	.L398
@@ -4468,8 +4468,8 @@
 	adrp	x24,.L32767+16384@PAGE
 # Line: 1611, Stmt: 0
 	adrp	x23,.L32767@PAGE
-	mov	x26,1
 	ldrsw	x22,[x23,.L32767+2088@PAGEOFF]
+	mov	x26,1
 .L433:
 	cmp	w26,w22
 	b.gt	.L432
@@ -4526,8 +4526,8 @@
 	ldrb	w16,[x15,12]
 	str	w16,[x24,.L32767+2088@PAGEOFF]
 # Line: 1630, Stmt: 0
-	mov	x26,1
 	ldrb	w24,[x15,12]
+	mov	x26,1
 .L439:
 	cmp	w26,w24
 	b.gt	.L438
@@ -4594,8 +4594,8 @@
 	mov	x26,1
 # Line: 1658, Stmt: 0
 	adrp	x25,.L32767@PAGE
-	mov	x28,1
 	ldrsw	x24,[x25,.L32767+2088@PAGEOFF]
+	mov	x28,1
 .L450:
 	cmp	w28,w24
 	b.gt	.L449
@@ -4645,17 +4645,17 @@
 # Line: 1671, Stmt: 0
 	add	w25,w27,1
 	adrp	x24,.L32767@PAGE
+	ldrsw	x23,[x24,.L32767+2088@PAGEOFF]
 	mov	x28,x25
-	ldrsw	x25,[x24,.L32767+2088@PAGEOFF]
 .L457:
-	cmp	w28,w25
+	cmp	w28,w23
 	b.gt	.L456
 # Line: 1671, Stmt: 0
-	adrp	x23,.L32767@PAGE
-	add	x24,x23,.L32767@PAGEOFF
-	add	x24,x24,w28, sxtw 0
+	adrp	x24,.L32767@PAGE
+	add	x25,x24,.L32767@PAGEOFF
+	add	x25,x25,w28, sxtw 0
 	mov	w16,32
-	strb	w16,[x24,1952]
+	strb	w16,[x25,1952]
 	adds	w28,w28,1
 	b.vc	.L457
 .L456:
@@ -4686,8 +4686,8 @@
 .L464:
 # Line: 1677, Stmt: 0
 	adrp	x25,.L32767@PAGE
-	mov	x28,1
 	ldrsw	x24,[x25,.L32767+2088@PAGEOFF]
+	mov	x28,1
 .L466:
 	cmp	w28,w24
 	b.gt	.L465
@@ -4708,8 +4708,8 @@
 .L463:
 # Line: 1679, Stmt: 0
 	adrp	x25,.L32767@PAGE
-	mov	x28,1
 	ldrsw	x24,[x25,.L32767+2088@PAGEOFF]
+	mov	x28,1
 .L468:
 	cmp	w28,w24
 	b.gt	.L467
@@ -4743,8 +4743,8 @@
 .L472:
 # Line: 1685, Stmt: 0
 	adrp	x25,.L32767@PAGE
-	mov	x28,1
 	ldrsw	x24,[x25,.L32767+2088@PAGEOFF]
+	mov	x28,1
 .L474:
 	cmp	w28,w24
 	b.gt	.L473
@@ -4765,8 +4765,8 @@
 .L471:
 # Line: 1686, Stmt: 0
 	adrp	x25,.L32767@PAGE
-	mov	x28,1
 	ldrsw	x24,[x25,.L32767+2088@PAGEOFF]
+	mov	x28,1
 .L476:
 	cmp	w28,w24
 	b.gt	.L475
