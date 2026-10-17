@@ -8628,21 +8628,31 @@ end {checkarraybounds};
 
 procedure ptrchkx;
 
+{ This includes a special kludge for the definelazy op, which needs the
+  actual memory location of the file variable.
+
+  Unfortunately we need the double branch test (rather than cmp/ccmp) because
+  we want a clean nil error, not a trap.
+}
+
 var
   t: keyindex;
-  errlabel, oklabel: labelindex;
+  oklabel, errlabel: labelindex;
 
 begin {ptrchkx}
-  unpack(left, 0);
+  address(left, 0);
+  if pseudobuff.op = definelazy then
+    setallfields(left);
   loadreg(left, 0);
+  if pseudobuff.op <> definelazy then
+    setallfields(left);
   errlabel := newlabel;
   oklabel := newlabel;
   gen2(lastnode, buildinst(cbz, true, false), left,
        settemp(long, labeltarget_oprnd(errlabel)));
   t := settemp(long, index_oprnd(abstract_offset, keytable[left].oprnd.reg, -ptrsize, false));
   loadreg(t, left);
-  setallfields(left);
-  gen2(lastnode, buildinst(cmp, true, false), key, t);
+  gen2(lastnode, buildinst(cmp, true, false), left, t);
   genbcond(lastnode, eq, oklabel, false);
   definelabel(errlabel);
   callsupport(libpointertrap, false);
