@@ -9,6 +9,7 @@ procedure rangechecks;
     v1: 0..10;
     v2: 1..1;
     v3: -256..255;
+    v4: -10..maxint;
 
 
   procedure pv1(i: integer);
@@ -29,6 +30,12 @@ procedure rangechecks;
       v3 := i;
     end;
 
+  procedure pv4(i: integer);
+    begin
+      writeln(i);
+      v4 := i;
+    end;
+
   begin
     writeln('variable assignments');
     writeln('0..10');
@@ -41,6 +48,8 @@ procedure rangechecks;
     writeln('-256..255');
     pv3(-256);
     pv3(255);
+    pv4(-10);
+    pv4(maxint);
   end;
 
 procedure subscriptchecks;

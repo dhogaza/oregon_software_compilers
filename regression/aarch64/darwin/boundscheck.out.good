@@ -9,6 +9,8 @@ variable assignments
 -256..255
         -256
          255
+         -10
+  2147483647
 static arrays
 1..10
            1
