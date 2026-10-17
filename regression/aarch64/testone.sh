@@ -15,7 +15,7 @@ if [[ "$type" == "pas" || "$type" == "nolib" || "$type" == "check" ]]; then
       echo "$1.s is different than $1.s.good"
   fi
   if [[ "$type" == "pas" || "$type" == "check" ]]; then
-    gcc $libdir/stdfiles.o $libdir/heapalloc.o $libdir/paslib.o $base.s
+    gcc -L$libdir $base.s -lpaslib
   else
     gcc $libdir/stdfiles.o $libdir/heapalloc.o $base.s
   fi
