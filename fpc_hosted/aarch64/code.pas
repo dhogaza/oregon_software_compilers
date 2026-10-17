@@ -8122,8 +8122,6 @@ procedure callroutinex(s: boolean {signed function value} );
 
     paramlist_started := false; {reset the switch}
 
-    markscratchregs;
-
     firstreg := 0;
     firstfpreg := 0;
 
@@ -8176,6 +8174,9 @@ procedure callroutinex(s: boolean {signed function value} );
       gen1(lastnode, buildinst(blr, true, false), regkeys[ip0]);
       end;
 
+    firstreg := 0;
+    markscratchregs;
+
     context[contextsp].lastbranch := lastnode;
 
     if linkreg and ((pseudoinst.oprnds[3] > 0) or (level > 2) and
@@ -8206,8 +8207,6 @@ procedure callroutinex(s: boolean {signed function value} );
       end;
 
     removeparamtemps(pseudoinst.oprnds[2]);
-
-    firstreg := 0;
 
   end {callroutinex} ;
 
