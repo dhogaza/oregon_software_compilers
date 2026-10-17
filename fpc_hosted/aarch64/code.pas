@@ -3261,6 +3261,8 @@ procedure handle_intconst12(var after:  nodeptr; var k: keyindex);
   { This is straightforward unless the integer constant won't fit in 12 bits, in
     which case we must generate some code.  We will do so after the node pointer
     passed to us as a parameter.
+
+    Currently limited to 32 bits.
   }
 
   var
@@ -3273,7 +3275,8 @@ procedure handle_intconst12(var after:  nodeptr; var k: keyindex);
           k := settemp(len, reg_oprnd(zero))
         else if (int_value >= 0) and (int_value <= $FFF) then
           k := settemp(len, imm12_oprnd(int_value, false))
-        else if ((int_value and $FFF) = 0) and (int_value <= $FFF000) then
+        else if (int_value >= 0) and ((int_value and $FFF) = 0) and
+          (int_value <= $FFF000) then
           k := settemp(len, imm12_oprnd(int_value div $1000, true))
         else
           begin
@@ -3428,8 +3431,13 @@ procedure cmplitint(len: addressrange; {wreg or xreg?}
                     regkey: keyindex; {the non-literal operand}
                     value: integer {the literal operand});
 
-  { compare a register with a literal integer. only interesting
+  { Compare a register with a literal integer. only interesting
     because of the existence of the cmn instruction.
+
+    If value is negative, we negate it in hopes that the new value will
+    fit in 12 bits, and use cmn for the comparison.  This may actually
+    generate a pair of movz/movk where keeping it positive might only
+    take one movz instruction but we'll not worry about it now.
   }
 
   var
