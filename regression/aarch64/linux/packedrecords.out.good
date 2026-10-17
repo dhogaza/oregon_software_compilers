@@ -1,0 +1,11 @@
+r1.a expect false false
+r1.b expect true  true
+r1.ch expect a a
+r1.i expect -3           -3
+r1.j expect 4            4
+r1.r.d expect  true  true
+r1.r.c expect false false
+with r1.r
+c expect false false
+d expect  true  true
+r1.i + r1.i + r1.j expect -2           -2

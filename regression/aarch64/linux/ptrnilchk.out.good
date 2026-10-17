@@ -1,0 +1,4 @@
+p^ expect 3:   3
+p correctly set to NIL by dispose(p)
+after dispose p, p^ expect error: 
+Pascal-2 runtime error: Pointer is NIL or not allocated by new()

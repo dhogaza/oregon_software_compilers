@@ -31,8 +31,8 @@
 	mov	x2,x1
 	bl	_p_wts_o 
 # Line: 11, Stmt: 0
-	mov	x28,x27
 	mov	x23,x24
+	mov	x28,x27
 .L7:
 	cmp	w28,w23
 	b.gt	.L6
@@ -53,8 +53,8 @@
 	mov	x2,x1
 	bl	_p_wts_o 
 # Line: 14, Stmt: 0
-	mov	x28,x27
 	mov	x23,x24
+	mov	x28,x27
 .L9:
 	cmp	w28,w23
 	b.gt	.L8
@@ -86,8 +86,8 @@
 	mov	x2,x1
 	bl	_p_wts_o 
 # Line: 18, Stmt: 0
-	mov	x28,x27
 	mov	x23,x24
+	mov	x28,x27
 .L11:
 	cmp	w28,w23
 	b.gt	.L10

@@ -1,0 +1,40 @@
+test 10 downto 3
+ 10  9  8  7  6  5  4  3
+test 2 downto 3
+
+test -1 downto 3
+
+test 10 downto -1
+ 10  9  8  7  6  5  4  3  2  1  0 -1
+test -1 downto -1
+ -1
+test -2 downto -1
+
+test 100001 downto 100000
+ 100001 100000
+test 1 downto 100000
+
+test -100001 downto 100000
+
+test -99999 downto -100000
+  -99999 -100000
+test 1 to 10
+  1  2  3  4  5  6  7  8  9 10
+test 11 to 10
+
+test -1 to 10
+ -1  0  1  2  3  4  5  6  7  8  9 10
+test -10 to -3
+-10 -9 -8 -7 -6 -5 -4 -3
+test -2 to -3
+
+test 1 to -3
+
+test 99999 to 100000
+  99999 100000
+test 100001 to 100000
+
+test -100005 to -100000
+ -100005 -100004 -100003 -100002 -100001 -100000
+test -99999 to -100000
+

@@ -16,7 +16,7 @@ for f in $src/*.pas; do
       echo "$base.s is different than $base.s.good"
     fi
     if [[ "$type" == "pas" || "$type" == "check" ]]; then
-      gcc $libdir/libpaslib.a $base.s
+      gcc $libdir/stdfiles.o $libdir/heapalloc.o $libdir/paslib.o $base.s
     else
       gcc $libdir/stdfiles.o $libdir/heapalloc.o $base.s
     fi

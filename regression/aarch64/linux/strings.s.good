@@ -233,8 +233,8 @@
 	mov	x1,1
 	bl	_p_wtc_o 
 # Line: 29, Stmt: 0
-	mov	x28,1
 	ldrb	w26,[x27]
+	mov	x28,1
 .L7:
 	cmp	w28,w26
 	b.gt	.L6
@@ -306,8 +306,8 @@
 	mov	x1,1
 	bl	_p_wtc_o 
 # Line: 53, Stmt: 0
-	mov	x28,1
 	ldrb	w26,[x27]
+	mov	x28,1
 .L12:
 	cmp	w28,w26
 	b.gt	.L11

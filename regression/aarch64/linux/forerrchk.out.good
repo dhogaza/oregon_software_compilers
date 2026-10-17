@@ -1,0 +1,5 @@
+i: 1..10
+for i := -1 to -2 is not an error
+for i := 12 to 11 is not an error
+for i := -1 to -1 is an error!
+Pascal-2 runtime error: Assignment value out of range
