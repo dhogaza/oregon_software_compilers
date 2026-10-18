@@ -2519,7 +2519,10 @@ procedure allowmodify(var k: keyindex; {operand to be modified}
     if k > 0 then
       begin
       if not keytable[k].modifiable or forcecopy or
+{
          (k <= context[contextsp].keymark) or precedeslastbranch(k) then
+}
+(k < context[contextsp].keymark) or precedeslastbranch(k) then
         begin
         if tempkey = lowesttemp then compilerabort(interntemp);
         tempkey := tempkey - 1;
@@ -3770,7 +3773,7 @@ procedure enterloop;
                 { Using regenoprnd for limit reg could break semantics as change to that
                   location would change the limit calculation mid-loop.
                 }
-                stackcopy := savereg(i, (forsp > 0) and (i <> forstack[forsp].limitreg));
+                stackcopy := savereg(i, (forsp > 0){ and (i <> forstack[forsp].limitreg)});
                 if keytable[stackcopy].validtemp then
                   keytable[stackcopy].refcount := keytable[stackcopy].refcount + 1;
                 end;
@@ -4356,7 +4359,7 @@ procedure defforindexx(sgn, { true if signed induction var }
       begin
       write('for operator must follow defforindex');
       compilerabort(inconsistent);
-      end;;
+      end;
     saveactivekeys;
     dereference(right);
 
@@ -4367,6 +4370,11 @@ procedure defforindexx(sgn, { true if signed induction var }
       unpack(left, 0);
 
     lock(left);
+    if fortarget <> 0 then
+      begin
+      makeaddressable(fortarget, 0);
+      unpackwork(fortarget, 0);
+      end;
 
     { Allocate a register unless this is a permanently assigned register
       variable.  If target <> 0, we must preserve the running index in
@@ -4375,9 +4383,9 @@ procedure defforindexx(sgn, { true if signed induction var }
       deleted as with any other stack temp, making register-only loops
       quite common.
 
-      If the limit is not a constant and is either in a globally assigned
-      register or memory location, we must move it, otherwise an assignment
-      to the limit variable will change the number of times the loop executes.
+      If the limit is not a constant we load it into a register. Otherwise an
+      assignment to the limit variable will change the number of times the loop
+      executes.
     }
 
     forsp := forsp + 1;
@@ -4387,19 +4395,24 @@ procedure defforindexx(sgn, { true if signed induction var }
       nonvolatile := target <> 0;
       globalreg := (keytable[right].oprnd.mode = register) and
                    not volatilereg(keytable[right].oprnd.reg);
-      if (fortarget <> 0) then
+      if (fortarget <> 0) and (keytable[fortarget].oprnd.mode <> intconst) then
         begin
         unpackwork(fortarget, 0);
-        if (keytable[fortarget].oprnd.mode <> intconst) and
-          ((keytable[fortarget].oprnd.mode <> register) or
-          not volatilereg(keytable[fortarget].oprnd.reg)) then
+        if ((keytable[fortarget].oprnd.mode = register) and
+           volatilereg(keytable[fortarget].oprnd.reg)) then
           begin
-          { gambling that the loop will execute }
-          limitreg := getreg(true);
-          limitregkey := settemp(keytable[fortarget].len, reg_oprnd(limitreg));
+          limitreg := keytable[fortarget].oprnd.reg;
+          limitregkey := settemp(keytable[forkey].len, reg_oprnd(limitreg));
+          end
+        else
+          begin
+          limitreg := getreg(false);
+          limitregkey := settemp(keytable[forkey].len, reg_oprnd(limitreg));
           gensimplemove(lastnode, fortarget, limitregkey);
-          changevalue(fortarget, limitregkey);
+          if keytable[fortarget].oprnd.mode <> register then
+            changevalue(fortarget, limitregkey);
           end;
+        adjustregcount(limitregkey, 1);
         end;
       if globalreg then
         setkeyvalue(right)
@@ -4442,8 +4455,7 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
 
   var
     c: conds;
-    regkey: keyindex; {descriptor of for-index register}
-    targetregkey: keyindex; {descriptor of saved target value if necessary}
+    regkey, limitregkey: keyindex; {descriptori of for induction and limit registers}
     i: insts; 
     lit: integer;
     loopentered: boolean; {set true if non-const target triggers enterloop}
@@ -4476,13 +4488,13 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
           end
         else
           begin
-          if limitreg <> noreg then savekey(target, false);
+          limitregkey := settemp(keytable[forkey].len, reg_oprnd(limitreg));
           i := cmp;
-          makeaddressable(target, 0);
-          unpackwork(target, 0);
           enterloop;
+          adjustregcount(limitregkey, -1);
           loopentered := true;
           pseudolabelx;
+          dereference(target);
           end;
         gen2(lastnode, buildinst(i, savedlen = long, false), regkey, target);
         genbcond(lastnode, c, pseudoinst.oprnds[2], true);
@@ -4635,7 +4647,6 @@ procedure forbottomx(improved: boolean; { true if cmp at bottom }
         else genbcond(lastnode, cc, pseudoinst.oprnds[1], true);
       end; {with forstack[forsp]}
 
-    dereference(target);
     forsp := forsp - 1;
     pseudoinst.oprnds[1] := pseudoinst.oprnds[2];
     joinlabelx;
@@ -4723,7 +4734,7 @@ procedure forcheckx(up: boolean {we are going up} );
       s := keytable[forkey].signed;
       end;
 
-    unpack(left, len);
+    unpack(left, 0);
     setallfields(left);
 
     skiplabel := newlabel;
