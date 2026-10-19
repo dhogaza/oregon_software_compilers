@@ -3773,7 +3773,7 @@ procedure enterloop;
                 { Using regenoprnd for limit reg could break semantics as change to that
                   location would change the limit calculation mid-loop.
                 }
-                stackcopy := savereg(i, (forsp > 0){ and (i <> forstack[forsp].limitreg)});
+                stackcopy := savereg(i, (forsp > 0) and (i <> forstack[forsp].limitreg));
                 if keytable[stackcopy].validtemp then
                   keytable[stackcopy].refcount := keytable[stackcopy].refcount + 1;
                 end;
@@ -4395,6 +4395,7 @@ procedure defforindexx(sgn, { true if signed induction var }
       nonvolatile := target <> 0;
       globalreg := (keytable[right].oprnd.mode = register) and
                    not volatilereg(keytable[right].oprnd.reg);
+      
       if (fortarget <> 0) and (keytable[fortarget].oprnd.mode <> intconst) then
         begin
         unpackwork(fortarget, 0);
@@ -4406,7 +4407,10 @@ procedure defforindexx(sgn, { true if signed induction var }
           end
         else
           begin
-          limitreg := getreg(false);
+          { We're going to bet on the loop being executed rather than a nop,
+            making the use of a callee-saved register worthwhile.
+          }
+          limitreg := getreg(true);
           limitregkey := settemp(keytable[forkey].len, reg_oprnd(limitreg));
           gensimplemove(lastnode, fortarget, limitregkey);
           if keytable[fortarget].oprnd.mode <> register then
@@ -4455,7 +4459,8 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
 
   var
     c: conds;
-    regkey, limitregkey: keyindex; {descriptori of for induction and limit registers}
+    regkey: keyindex; {key of for induction register}
+    limitkey: keyindex; {key of for limit, intconst or register}
     i: insts; 
     lit: integer;
     loopentered: boolean; {set true if non-const target triggers enterloop}
@@ -4484,19 +4489,19 @@ procedure fortopx(signedcond, unsignedcond: conds { proper exit condition });
             i := cmn;
             lit := -lit;
             end;
-          target := preparelitint(lit);
+          limitkey := preparelitint(lit);
           end
         else
           begin
-          limitregkey := settemp(keytable[forkey].len, reg_oprnd(limitreg));
+          limitkey := settemp(keytable[forkey].len, reg_oprnd(limitreg));
           i := cmp;
           enterloop;
-          adjustregcount(limitregkey, -1);
+          adjustregcount(limitkey, -1);
           loopentered := true;
           pseudolabelx;
           dereference(target);
           end;
-        gen2(lastnode, buildinst(i, savedlen = long, false), regkey, target);
+        gen2(lastnode, buildinst(i, savedlen = long, false), regkey, limitkey);
         genbcond(lastnode, c, pseudoinst.oprnds[2], true);
         end;
 
@@ -4836,6 +4841,9 @@ procedure forerrchkx;
   this is so rare it's not really necessary.  Would look a bit mysterious
   though to anyone reading the generated code!  If this is done this
   would have to be rewritten.
+
+  Meanwhile, we need to give fortopx a dummy limitreg operand for its top
+  compare, which is never executed, of course.
 }
 
   var
@@ -4862,6 +4870,7 @@ procedure forerrchkx;
       else genbcond(lastnode, lo, skiplabel, false)
       end;
     callsupport(librangetrap, false);
+    forstack[forsp].limitreg := ip0;
   end {forerrchkx} ;
 
 procedure shiftintx(backwards: boolean);
