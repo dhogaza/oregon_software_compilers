@@ -28,15 +28,15 @@
 	bl	_putchar
 # Line: 9, Stmt: 0
 	ldr	x15,[x29,-24]
+	ldr	x14,[x29,-16]
 	mov	x28,x15
-	ldr	x15,[x29,-16]
 .L6:
-	cmp	w28,w15
+	cmp	w28,w14
 	b.lo	.L5
 # Line: 9, Stmt: 0
 	mov	x0,x28
 	bl	_putchar
-	ldr	x15,[x29,-16]
+	ldr	x14,[x29,-16]
 	subs	w28,w28,1
 	b.cs	.L6
 .L5:
@@ -120,15 +120,15 @@
 	bl	_putchar
 # Line: 30, Stmt: 0
 	ldr	x15,[x29,-24]
+	ldr	x14,[x29,-16]
 	mov	x28,x15
-	ldr	x15,[x29,-16]
 .L16:
-	cmp	w28,w15
+	cmp	w28,w14
 	b.lt	.L15
 # Line: 30, Stmt: 0
 	add	w0,w28,48
 	bl	_putchar
-	ldr	x15,[x29,-16]
+	ldr	x14,[x29,-16]
 	subs	w28,w28,1
 	b.vc	.L16
 .L15:

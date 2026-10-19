@@ -26,18 +26,16 @@
 	str	x28,[x29,-8]
 # Line: 6, Stmt: 1
 # Line: 7, Stmt: 2
-	str	x0,[x29,-16]
 	movz	x28,65535
 	movk	x28,65535,lsl 16
 	cmp	w28,w0
 	b.gt	.L3
 	bl	_p_range 
 .L4:
-	cmp	w28,w0
+	cmp	w28,w16
 	b.gt	.L3
 # Line: 7, Stmt: 0
 	bl	_p_wtln_o 
-	ldr	x0,[x29,-16]
 	adds	w28,w28,1
 	b.vc	.L4
 .L3:
@@ -63,13 +61,11 @@
 	cmp	w28,w15
 	b.gt	.L6
 	bl	_p_range 
-	str	x15,[x29,-16]
 .L7:
-	cmp	w28,w15
+	cmp	w28,w16
 	b.gt	.L6
 # Line: 14, Stmt: 0
 	bl	_p_wtln_o 
-	ldr	x15,[x29,-16]
 	adds	w28,w28,1
 	b.vc	.L7
 .L6:

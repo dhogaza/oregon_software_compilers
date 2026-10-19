@@ -2009,7 +2009,6 @@ _p_clsall:
 .L184:
 # Line: 803, Stmt: 0
 	ldr	x15,[x29,-72]
-	str	x15,[x29,-72]
 	mov	w16,48
 	strh	w16,[x15,8]
 # Line: 804, Stmt: 0
@@ -2045,7 +2044,6 @@ _p_clsall:
 .L189:
 # Line: 812, Stmt: 0
 	ldr	x15,[x29,-72]
-	str	x15,[x29,-72]
 	ldrh	w13,[x15,8]
 	orr	w14,w13,8
 	strh	w14,[x15,8]
@@ -2849,8 +2847,8 @@ _p_wtc:
 	bl	.P93  // _p_checkio
 	mov	x27,x0
 # Line: 1084, Stmt: 0
-	mov	x28,2
 	ldr	x15,[x29,-40]
+	mov	x28,2
 .L252:
 	cmp	w28,w15
 	b.gt	.L251
@@ -2898,16 +2896,16 @@ _p_wtb:
 	mov	x14,5
 	add	w15,w14,w15
 	str	x15,[x29,-40]
+	ldr	x14,[x29,-48]
 	mov	x28,x15
-	ldr	x15,[x29,-48]
 .L257:
-	cmp	w28,w15
+	cmp	w28,w14
 	b.gt	.L256
 # Line: 1100, Stmt: 0
 	mov	x0,x27
 	mov	x1,32
 	bl	.P94  // wrchar
-	ldr	x15,[x29,-48]
+	ldr	x14,[x29,-48]
 	adds	w28,w28,1
 	b.vc	.L257
 .L256:
@@ -3032,16 +3030,16 @@ _p_wti:
 .L271:
 # Line: 1136, Stmt: 0
 	add	w15,w27,1
+	ldr	x14,[x29,-48]
 	mov	x27,x15
-	ldr	x15,[x29,-48]
 .L273:
-	cmp	w27,w15
+	cmp	w27,w14
 	b.gt	.L272
 # Line: 1137, Stmt: 0
 	mov	x0,x25
 	mov	x1,32
 	bl	.P94  // wrchar
-	ldr	x15,[x29,-48]
+	ldr	x14,[x29,-48]
 	adds	w27,w27,1
 	b.vc	.L273
 .L272:
