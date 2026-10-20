@@ -4,12 +4,10 @@
       backtraces executed.
 
       walk file remember list issuing .file directives.  Check include file
-      names.  Will probably be '.file n "<pwd>" "filename"'.  When stmtbrk
-      length file is non-zero, find corresponding file number and save.
-
-      begblk needs srcindex as well as line info so proc definition can
-      start with a .loc directive so setting breakpoint at proc name
-      will show the right line.
+      names.  Will be '.file n "<pwd>" "filename"' for darwin, one long
+      filename for linux unless it is OK to restrict debugging to the directory
+      within which it was compiled.  When stmtbrk length file is non-zero, find
+      corresponding file number and save.
 
       Add cfi info: startproc, endproc, reg save/restore
 
@@ -24,7 +22,8 @@
       called, allowing them to be part of CSEs again.  Cost of not being CSEs is very
       significant.  Can probably expand the meaning of the list kept for variables.
 
-      Can walk be taught to pass the fortop target in defforindex as well?
+      Conditional branches over error calls no longer set the lastbranch field, need
+      to do this for cb[n/z] as well.
 
    2. Maybe allow forward/external procedure definitions to redeclare the parameter
       list as long as it is identical which means same param names and congruent types.
@@ -40,7 +39,7 @@ don't need the code.
 
 pseudops like eoln/eof/inset and others that in some cases do a single bit test
 followed by a setvalue(cond) can peek ahead for a jumpcond pseudo op, poach
-its label, and to a tb[n]z directly if it has a refcount of one.  First peephole
+its label, and to a tb[n/z] directly if it has a refcount of one.  First peephole
 optimization?
 
 likewise (and related!) for something like "if packedbitarray[n] then " doesn't have

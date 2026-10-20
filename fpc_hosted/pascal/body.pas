@@ -6686,6 +6686,9 @@ varkey := regparamkey;
 { Parse a "new" or "dispose" call.  The optional arguments are used to chain
   down the tree of variants to get the size of the specified variant.  The
   final size result is passed to the routine as a second argument.
+
+  If the variable is a value param that is allocated to a register, we force it to
+  memory.
 }
 
       var
@@ -6707,20 +6710,14 @@ varkey := regparamkey;
         newresulttype(noneindex);
         if token = ident then
           begin
-          if callnew then modifyvariable(true, true)
-          else
+          search(n);
+          if n <> 0 then
             begin
-            search(n);
-            if n <> 0 then
-              begin
-              if bigcompilerversion then p := @(bigtable[n]);
-              if p^.namekind in
-                 [funcname, forwardfunc, externalfunc, funcparam] then
-                factor
-              else modifyvariable(true, true);
-              end
-            else illegalident(n);
+            if bigcompilerversion then p := @(bigtable[n]);
+            if (p^.namekind = param) and (p^.varalloc = regparam) then
+              forcememoryparam(lev, p);
             end;
+          modifyvariable(true, true);
           if not (resultform in [none, ptrs]) then warnbefore(noptrvar);
           genstdparamaddr(ptrs, regparams);
           end
