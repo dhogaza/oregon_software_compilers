@@ -73,11 +73,9 @@ if seeking value, wzr is replaced with a register.
    -- var r: packed record i:0..1023 end; or the like.
 
       r := <some value> seems to pack it.  While <some value> := r seems to
-      know that a full 32 bits it taken up by the variable.
+      know that a full 32 bits is taken up by the variable.
 
       sorttable in mc68000 code.pas.
-
-   -- alignment issues with mov struct (or the code just ignores alignment).
 
    -- movlitint keeps reference to doint around after folding, probably
       because of how I changed where stuff is inserted into the tree in
@@ -89,13 +87,6 @@ if seeking value, wzr is replaced with a register.
 
    -- assignment to a regparam is, as the procedure's comments say, what
       triggers addtempsaves to do so.
-
-   -- dispose of a non-ref param assigned to a register generates a bad
-      operand in genmove address.  Needs to be forced to copy to a memory
-      (forcememory command).  See _p_removefile() and the dispose call
-      in there, and remove the "var" qualifier on the file pointer parameter.
-      While it must be allowed, it's not what is wanted (it needs to be
-      a var param).
 
    -- for i := var [down]to const (unimproved) should cmp with the const
       rather than load it into a register as it does now.  Scavenge code
@@ -170,11 +161,6 @@ Needs more thinking.  Nodes probably need numbering.
      --dynlib or the like switch we would, too.  GOT operands shouldn't be used
      as a regenoprnd because generation requires an ldr, which is what
      regenoprnd is meant to avoid in the first place.
-`
-  -- error calls
-
-     don't mark param regs when loading them.  don't mark scratch registers when
-     calling them.  they do not return. 
 
   -- FILES
 
@@ -253,5 +239,5 @@ FAILS (for now at least)
 -- minor optimization reminders
 
 1. var +/- intconst +/- intconst doesn't fold, though the documentation in
-   improve claims it does so.  Blaim Steve from Eclipse? :)
+   improve claims it does so.  Blaim Steve from Encore? :)
 
