@@ -1432,8 +1432,10 @@ Update release version for PU-VV0-GS0 at 2.3.0.1
 
 
     begin {processUnit}
+writeln('processunit');
       if programid and (symbol <> sprogram) then
         begin
+writeln('special program handling');
         at := makeentry(true, true);
         at^.procname := fakeprog;
         at^.procuppers := lowers;

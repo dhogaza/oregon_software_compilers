@@ -380,6 +380,7 @@ type
       isprocparam: boolean; {true if proc is used as a parametric procedure}
       bodydefined: boolean; {true if this proc has a body}
       intlevelrefs: boolean; {true if proc needs static link}
+      invalidateptrchks: boolean; {true if proc calls dispose() or free() etc}
       leaf: boolean; {true if this is a leaf procedure that makes no calls, weird
                       pseudoop requiring library support, etc}
       externallinkage: boolean; {true if proc was defined external}

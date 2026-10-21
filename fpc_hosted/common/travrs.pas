@@ -1798,8 +1798,8 @@ procedure build;
                 i1, i2: integer {operand nodes} ): maphashindex;
 
 { Generate a hash function to speed search for identical nodes.
-  It is set up so that all variables hash to the same value (0), so
-  they can be searched easily for context changes.  For instance,
+  It is set up so that all variables and ptrchkops hash to the same value (0),
+  so they can be searched easily for context changes.  For instance,
   all variables must be marked invalid when a label is encountered.
 
   This ignores the fact that the rval field overlays the operand fields.
@@ -1810,7 +1810,7 @@ procedure build;
 
 
     begin
-      if op in [varop, unsvarop] then hash := 0
+      if op in [varop, unsvarop, ptrchkop] then hash := 0
       else
         begin
         if modworks then hash := (ord(op) + i1 + i2) mod nodehashsize + 1
@@ -2055,6 +2055,42 @@ procedure build;
           end;
     end {addopmap} ;
 
+  procedure killptrchks;
+
+{ Scan all visible contexts and kill any ptrchk nodes that are found by
+  setting "valid" false if they are at the current context level, or
+  "mustinvalidate" true if they're at an outer context.
+}
+
+    var
+      i: contextindex;
+      n: nodeindex;
+      p: nodeptr; {used for access to nodes}
+
+
+    begin {killptrchks}
+      for i := context[contextsp].searchlevel to contextsp do
+        begin
+        n := context[i].opmap[0];
+        while n <> 0 do
+          begin
+          if bigcompilerversion then p := @(bignodetable[n]);
+          with p^ do
+            begin
+            if op = ptrchkop then
+              if i = contextsp then
+                begin
+                valid := false;
+                mustinvalidate := false;
+                if deepestvalid > i then deepestvalid := contextsp;
+                end
+             else mustinvalidate := true;
+            n := slink;
+            end;
+          end;
+        end;
+    end {killptrchks} ;
+
 
   procedure savecontext;
 
@@ -2067,10 +2103,9 @@ procedure build;
   a new level of the context stack is allocated with an initially clear
   opmap.  Each still valid expression has its "deepestvalid" field set
   to the new level, which allows the expressions to be reset to valid
-  if they are invalidated at an inner level.  Since expressions are
-  built bottom up (starting with the terminals), only variables need be
-  marked.  This is simple to do because the hash function places all
-  variables in opmap[0].
+  if they are invalidated at an inner level.  Only nodes that are
+  linked to opmap[0], currently variables and ptrchkops, need to be
+  marked.
 }
 
     var
@@ -2182,7 +2217,7 @@ procedure build;
 { Used as a replacement for "restorecontext" when the restored
   values are no longer valid.  This is necessary because "break"
   can invalidate values from within a loop.  We pop the stack and
-  leave variables invalidated rather than resetting them.
+  leave nodes invalidated rather than resetting them.
   we have to go through and reset deepestvalid, so we don't get
   to skip the scan.
 }
@@ -2462,8 +2497,8 @@ procedure build;
               if bigcompilerversion then p := @(bignodetable[n]);
               with p^ do
                 begin
-                if not regcandidate and (oprnds[1] >= low) and
-                   (oprnds[1] <= high) then
+                if not regcandidate and (op in [varop, unsvarop]) and
+                   (oprnds[1] >= low) and (oprnds[1] <= high) then
                   begin
                   valid := false;
                   if deepestvalid > contextsp then deepestvalid := contextsp;
@@ -3679,8 +3714,8 @@ procedure build;
                   if bigcompilerversion then ptr := @(bignodetable[nindex]);
                   with ptr^ do
                     begin
-{ DRB: regparams??? }
-                    if (oprnds[1] >= l) and (oprnds[1] <= u) and
+                    if (op in [varop, unsvarop]) and
+                       (oprnds[1] >= l) and (oprnds[1] <= u) and
                        ((oprnds[1] > 1) or (language = c) or
                        (oprnds[2] >= cseregiontable[cr, ownvar].low) and
                        (oprnds[2] <= cseregiontable[cr, ownvar].high)) then
@@ -3771,7 +3806,6 @@ procedure build;
               reserve: nodeindex; { index of reserve node on parm list }
               reverseparms: boolean; { true if we should reverse param list}
 
-
             function reverse(current, previous: nodeindex): nodeindex;
 {
     Purpose:
@@ -3819,29 +3853,13 @@ procedure build;
               updatenewvars(stack[sp - 1].p);
               reverseparms := false;
               with stack[sp - 2] do
+                begin
+                if not litflag or (proctable[i].invalidateptrchks) then killptrchks;
                 if litflag and (language <> c) then
-                { reverse parameters if aarch64 or calling c on some machines }
-                  if newtravrsinterface then
+                { reverse parameters if calling c on some machines }
+                  with proctable[i] do
                     begin
-                    with new_proctable[i div (pts + 1)]^[i mod (pts + 1)] do
                       if (stack[sp].i > 1) and
-                         {(targetmachine = aarch64) or}
-                         (calllinkage = nonpascalcall) and
-                         ((targetmachine = iAPX86) or
-                         (targetmachine = i80386) or
-                         (targetmachine = mc68000) or (targetopsys = vms) or
-                         (targetmachine = ns32k) and (unixtarget = umax)) then
-                        begin
-                        reverseparms := true;
-                        { remember where reserveop is while it's cheap }
-                        reserve := stack[sp - 1].p;
-                        end
-                    end
-                  else
-                    begin
-                    with proctable[i] do
-                      if (stack[sp].i > 1) and
-                         {(targetmachine = aarch64) or}
                          (calllinkage = nonpascalcall) and
                          ((targetmachine = iAPX86) or
                          (targetmachine = i80386) or
@@ -3853,6 +3871,7 @@ procedure build;
                         reserve := stack[sp - 1].p;
                         end;
                     end;
+                  end;
               killaffectedvars(sp - 2);
               collectargs(3);
                 { now that all the refcounts are set reverse parameter list
@@ -3982,7 +4001,8 @@ procedure build;
                   if bigcompilerversion then ptr := @(bignodetable[n1]);
                   with ptr^ do
                     begin
-                    if valid and (oprnds[1] = n.oprndlist[1].i) and
+                    if valid and (op in [varop, unsvarop]) and
+                       (oprnds[1] = n.oprndlist[1].i) and
                        (oprnds[2] = n.oprndlist[2].i) then
                       begin
                       if not bigcompilerversion then
@@ -4276,12 +4296,11 @@ procedure build;
                 collectargs(1);
                 end;
               float, negop, indrop, filebufindrop, incop, decop, remop, quoop,
-              {ptrchkop, }pushcvalue, definelazyop, setbinfileop, copystackop,
+              ptrchkop, pushcvalue, definelazyop, setbinfileop, copystackop,
               closerangeop, chrstrop, arraystrop, groupop, compop, float_double,
               real_to_dbl, dbl_to_real, fileparamop:
                 collectargs(1);
-              { ptrchkop can be treated normally if front end is made smarter }
-              tempop, ptrchkop:
+              tempop:
                 begin
                 collectwork(1);
                 unique := true;
@@ -6543,7 +6562,7 @@ procedure build;
                 with ptr^ do
                   begin
                   if (oprnds[1] = 1) and (oprnds[2] = inputoffset) and
-                     ((op = varop) or (op = unsvarop)) then
+                     (op in [varop, unsvarop]) then
                     begin
                     if not bigcompilerversion then
                       blocksin[1].written := blocksin[1].written or valid or
@@ -6574,9 +6593,10 @@ procedure build;
                        (ptr^.expr2 = ord(readlnid));
           read(tempfiletwo, tempfilebuf);
           temp := buildexpr;
+          if killinput then clobberinput
+          else if ptr^.expr2 = ord(disposeid) then killptrchks;
           if bigcompilerversion then ptr := @(bignodetable[thisstmt]);
           ptr^.expr1 := temp;
-          if killinput then clobberinput;
           proctable[blockref].leaf := false;
         end {buildsyscallstmt} ;
 

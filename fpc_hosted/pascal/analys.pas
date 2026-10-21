@@ -339,6 +339,7 @@ function newproc: proctableindex;
       struct_ret := false;
       bodydefined := false;
       intlevelrefs := false;
+      invalidateptrchks := false;
       opensfile := false;
       realfunction := false;
       isprocparam := false;
@@ -2890,6 +2891,7 @@ procedure procdefinition;
     with procptr^ do
       begin
       proctable[procref].globaldeath := false;
+      proctable[procref].invalidateptrchks := false;
       proctable[procref].charindex := charindex;
       proctable[procref].charlen := min(maxprocnamelen, charlen);
       if bigcompilerversion then f := @(bigtable[returntype]);
@@ -2961,6 +2963,7 @@ procedure procdefinition;
             anyexternals := true;
             proctable[procref].externallinkage := true;
             proctable[procref].globaldeath := true;
+            proctable[procref].invalidateptrchks := true;
             if level <> 1 then warn(badxdef);
             if targetmachine = iAPX86 then
               begin
@@ -3119,8 +3122,8 @@ procedure block;
 
     { DRB changed this in 2026 to store proc location info in the proctable because
       not all of the above information was passed to the code generator and I'm no
-      longer concerned about the space of the global tables as we are token in terms
-      of gigabytes, not mega- or even kilobytes nowadays.
+      longer concerned about the space of the global tables as we are talking in terms
+      of gigabytes, not megabytes or, worse, kilobytes nowadays.
     }
     if (level > 1) or (switchcounters[mainbody] > 0) or (token <> eofsym) then
       begin

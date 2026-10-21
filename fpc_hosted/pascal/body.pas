@@ -4867,6 +4867,7 @@ varkey := regparamkey;
         if (l - lev > levelspread) and (lev <> 1) then levelspread := l - lev;
         if (lev > 1) and (not bodydefined or intlevelrefs) and (l > 1) then
           proctable[bref].intlevelrefs := true;
+        if invalidateptrchks then proctable[bref].invalidateptrchks := true;
         if globaldeath or not bodydefined then
           begin
           proctable[bref].globaldeath := true;
@@ -4936,6 +4937,7 @@ varkey := regparamkey;
       with proctable[display[level].blockref] do
         begin
         globaldeath := true;
+        invalidateptrchks := true;
         intlevelrefs := true;
         if display[level].blockref <= cseregions then
           begin
@@ -6722,6 +6724,7 @@ varkey := regparamkey;
           genstdparamaddr(ptrs, regparams);
           end
         else warnbetween(novarerr);
+        if procid = disposeid then proctable[blockref].invalidateptrchks := true;
         currentrecord := noneindex;
         with resultptr^ do
           if typ = ptrs then
