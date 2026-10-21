@@ -85,6 +85,8 @@ if seeking value, wzr is replaced with a register.
 
    -- in comma why is the adp register wiped out for each movset?
 
+   -- needless extra adp in strings test case.
+
    -- assignment to a regparam is, as the procedure's comments say, what
       triggers addtempsaves to do so.
 

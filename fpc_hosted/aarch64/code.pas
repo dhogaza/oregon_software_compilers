@@ -1329,6 +1329,44 @@ procedure genbcond(var after: nodeptr; c: conds; labelno: integer; setlastbranch
     if setlastbranch then context[contextsp].lastbranch := lastnode;
   end {genbcond};
 
+procedure gencbnzcond(var after: nodeptr; c: conds; sf: boolean; regkey: keyindex;
+                     labelno: integer; setlastbranch: boolean);
+
+{ gen either cnz or cbnz depending on c.
+}
+
+  var
+    labelkey: keyindex;
+
+  begin {gencbnzcond}
+    labelkey := settemp(0, labeltarget_oprnd(labelno));
+    if c = eq then
+      gen2(lastnode, buildinst(cbz, sf, false), regkey, labelkey)
+    else
+      gen2(lastnode, buildinst(cbnz, sf, false), regkey, labelkey);
+    if setlastbranch then context[contextsp].lastbranch := lastnode;
+  end {gencbnzcond};
+
+procedure gentbnzcond(var after: nodeptr; c: conds; sf: boolean; regkey: keyindex;
+                      bit: bitrange; labelno: integer; setlastbranch: boolean);
+
+{ gen either tbz or tbnz for the given bit depending on c.
+}
+
+  var
+    labelkey: keyindex;
+    bitkey: keyindex;
+
+  begin {gentbnzcond}
+    bitkey := settemp(long, imm12_oprnd(bit, false));
+    labelkey := settemp(0, labeltarget_oprnd(labelno));
+    if c = eq then
+      gen3(lastnode, buildinst(tbz, sf, false), regkey, bitkey, labelkey)
+    else
+      gen3(lastnode, buildinst(tbnz, sf, false), regkey, bitkey, labelkey);
+    if setlastbranch then context[contextsp].lastbranch := lastnode;
+  end {gentbnzcond};
+
 procedure gencomment(var after: nodeptr; comment: string);
 
   var
@@ -5053,28 +5091,43 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
 
   (DRB: also packingmod from the 68K is interesting because we should be able
    to do similar if a packed field is on a byte, word, or long boundary)
+
+  If the following pseudoop is a jumpf or jumpt, we can use cbz or cbnz for an
+  eq/ne comparison against zero, and a tbz or tbnz on bit 31 or 63 for lt or
+  ge zero. If we issue one of these specialized branch instructions, we set the
+  key value to nomode.
+
 }
 
   var
     packingmod: shortint;
     i: insts;
     litkey: keyindex;
+    bitcheck: boolean;
 
   begin
     unpack(left, 0);
     loadreg(left, 0);
 
-    { a kludge to allow the use of cbz/cbnz which depends on it following
-      the compare directly, which means the register won't be trashed.  Given
-      that the non-zero case requires that the flags not be modified before
-      the result of this compare is used, it seems like a fair assumption.
+    { Do a compbined compare/branch if the following pseudoop is a jumpf or
+      jumpt.
     }
 
-    if (pseudoinst.oprnds[2] = 0) and (signedcond in [eq, ne]) and
+    if (pseudoinst.oprnds[2] = 0) and (signedcond in [eq, ne, lt, ge]) and
        (pseudobuff.op in [jumpt, jumpf]) then
       begin
-      setvalue(cond_oprnd(signedcond));
-      keytable[key].oprnd.reg := keytable[left].oprnd.reg;
+      bitcheck := signedcond in [lt, ge];
+      if signedcond = lt then signedcond := ne
+      else if signedcond = ge then signedcond := ge;
+      if pseudobuff.op = jumpf then signedcond := invertcond[signedcond];
+      with keytable[left] do
+        if bitcheck then
+          gentbnzcond(lastnode, signedcond, len = long, left, len * bitsperunit - 1,
+                      pseudobuff.oprnds[1], true)
+        else
+          gencbnzcond(lastnode, signedcond, len = long, left,
+                      pseudobuff.oprnds[1], true);
+      keytable[key].oprnd.mode := nomode;
       end
     else
       begin
@@ -5090,8 +5143,8 @@ procedure cmpstructx(cond: conds);
 
 var
   leftregkey, rightregkey, dstregkey, onekey, countkey,
-  tempregkey, tempreg2key, looplabelkey, skiplabelkey: keyindex;
-  skiplabel: labelindex;
+  tempregkey, tempreg2key: keyindex;
+  skiplabel, looplabel: labelindex;
 
 begin {cmpstructx}
 
@@ -5125,17 +5178,15 @@ begin {cmpstructx}
   unlock(rightregkey);
 
   gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), countkey);
-  skiplabel := lastlabel;
-  skiplabelkey := settemp(0, labeltarget_oprnd(skiplabel));
-  lastlabel := lastlabel - 1;
-  looplabelkey := settemp(0, labeltarget_oprnd(lastlabel));
-  definelastlabel;
+  skiplabel := newlabel;
+  looplabel := newlabel;
+  definelabel(looplabel);;
   genldr(lastnode, byte, false, tempregkey, leftregkey);
   genldr(lastnode, byte, false, tempreg2key, rightregkey);
   gen2(lastnode, buildinst(cmp, false, false), tempregkey, tempreg2key);
   genbcond(lastnode, ne, skiplabel, true);
   gen3(lastnode, buildinst(sub, false, false), countkey, countkey, onekey);
-  gen2(lastnode, buildinst(cbnz, false, false), countkey, looplabelkey);
+  gencbnzcond(lastnode, ne, false, countkey, looplabel, true);
   definelabel(skiplabel);
   setvalue(cond_oprnd(cond));
 end {cmpstructx};
@@ -7076,10 +7127,11 @@ procedure movemultiple(src, dst: keyindex);
 }
 
 var
-  srcregkey, dstregkey, extraregkey, labelkey: keyindex;
+  srcregkey, dstregkey, extraregkey: keyindex;
   srcalign, dstalign, lenalign, align: alignmentrange;
   pieces: addressrange;
   l: addressrange;
+  looplabel: labelindex;
 
   begin {movemultiple}
     srcalign := alignmentof(keytable[src].alignment);
@@ -7132,8 +7184,8 @@ var
     else
       begin
       gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), regkeys[ip0]);
-      labelkey := settemp(long, labeltarget_oprnd(lastlabel));
-      definelastlabel;
+      looplabel := newlabel;
+      definelabel(looplabel);
       if align = quad then
         begin
         gen3(lastnode, buildinst(ldp, true, false), extraregkey, regkeys[ip1], srcregkey);
@@ -7146,7 +7198,7 @@ var
        end;
       gen3(lastnode, buildinst(sub, true, true), regkeys[ip0], regkeys[ip0],
                      settemp(long, imm12_oprnd(align, false)));
-      gen2(lastnode, buildinst(cbnz, true, false), regkeys[ip0], labelkey);
+      gencbnzcond(lastnode, ne, true, regkeys[ip0], looplabel, true);
       end
   end {movemultiple};
 
@@ -7170,7 +7222,8 @@ procedure movcstructx;
 }
 
   var
-    count, incrkey, leftregkey, rightregkey, labelkey: keyindex;
+    count, incrkey, leftregkey, rightregkey: keyindex;
+    looplabel: labelindex;
 
   begin
     count := target;
@@ -7201,12 +7254,12 @@ procedure movcstructx;
     keytable[left].oprnd.index := keytable[count].alignment;
     keytable[right].oprnd.mode := post_index;
     keytable[right].oprnd.index := keytable[count].alignment;
-    labelkey := settemp(long, labeltarget_oprnd(lastlabel));
-    definelastlabel;
+    looplabel := newlabel;
+    definelabel(looplabel);
     genldr(lastnode, keytable[count].alignment, false, regkeys[ip0], right);
     genstr(lastnode, keytable[count].alignment, regkeys[ip0], left);
     gen3(lastnode, buildinst(sub, true, false), count, count, incrkey);
-    gen2(lastnode, buildinst(cbnz, true, false), count, labelkey);
+    gencbnzcond(lastnode, ne, true, count, looplabel, true);
   end; {movcstructx}
 
 procedure movestring(src, dst: keyindex);
@@ -7224,8 +7277,8 @@ procedure movestring(src, dst: keyindex);
 }
 
 var
-  dstregkey, srcregkey, onekey, labelkey, skiplabelkey: keyindex;
-  skiplabel: labelindex;
+  dstregkey, srcregkey, onekey: keyindex;
+  skiplabel, looplabel: labelindex;
 
 begin {movestring}
   onekey := settemp(word, imm12_oprnd(1, false));
@@ -7274,17 +7327,15 @@ begin {movestring}
     for the destination string.
   }
 
-  skiplabel := lastlabel;
-  skiplabelkey := settemp(long, labeltarget_oprnd(skiplabel));
-  lastlabel := lastlabel - 1;
-  labelkey := settemp(long, labeltarget_oprnd(lastlabel));
+  skiplabel := newlabel;
+  looplabel := newlabel;
 
-  gen2(lastnode, buildinst(cbz, true, false), regkeys[ip0], skiplabelkey);
-  definelastlabel;
+  gencbnzcond(lastnode, eq, true,regkeys[ip0], skiplabel, true);
+  definelabel(looplabel);
   genldr(lastnode, byte, false, regkeys[ip1], srcregkey);
   genstr(lastnode, byte, regkeys[ip1], dstregkey);
   gen3(lastnode, buildinst(sub, true, true), regkeys[ip0], regkeys[ip0], onekey);
-  gen2(lastnode, buildinst(cbnz, true, false), regkeys[ip0], labelkey);
+  gencbnzcond(lastnode, ne, true, regkeys[ip0], looplabel, true);
 
   { done moving data bytes, add a null
   }
@@ -7347,7 +7398,8 @@ procedure arraystrx;
   }
 
   var
-    ip0indexkey, ip1indexkey, countkey, tempregkey, labelkey: keyindex;
+    ip0indexkey, ip1indexkey, countkey, tempregkey: keyindex;
+    looplabel: labelindex;
 
 
 begin {arraystrx}
@@ -7369,13 +7421,13 @@ begin {arraystrx}
 
   { Move the data bytes.
   }
-  labelkey := settemp(long, labeltarget_oprnd(lastlabel));
-  definelastlabel;
+  looplabel := newlabel;
+  definelabel(looplabel);
   genldr(lastnode, byte, false, tempregkey, ip1indexkey);
   genstr(lastnode, byte, tempregkey, ip0indexkey);
   gen3(lastnode, buildinst(sub, true, true), countkey, countkey,
                  settemp(long, imm12_oprnd(1, false)));
-  gen2(lastnode, buildinst(cbnz, true, false), countkey, labelkey);
+  gencbnzcond(lastnode, ne, true, countkey, looplabel, true);
 
   { Append null byte.
   }
@@ -7416,11 +7468,10 @@ procedure addstrx;
 
 var
   leftregkey, rightregkey, dstregkey, countkey, maxsizekey, onekey,
-  tempregkey, tempreg2key, tempreg3key,looplabelkey, skiplabelkey,
-  skiplabel1key, skiplabel2key: keyindex;
+  tempregkey, tempreg2key, tempreg3key: keyindex;
   maxsize: addressrange;
   appendtarget: boolean;
-  skiplabel, skiplabel1: labelindex;
+  skiplabel, skiplabel1, looplabel: labelindex;
 
 begin {addstrx}
 
@@ -7516,7 +7567,7 @@ begin {addstrx}
 
   skiplabel := lastlabel;
   lastlabel := lastlabel - 1;
-  skiplabelkey := settemp(0, labeltarget_oprnd(skiplabel));
+  looplabel := lastlabel;
 
   { Now we can move or skip the data bytes.
   }
@@ -7532,14 +7583,13 @@ begin {addstrx}
     begin
     skiplabel1 := lastlabel;
     lastlabel := lastlabel - 1;
-    skiplabel1key := settemp(0, labeltarget_oprnd(skiplabel1));
-    gen2(lastnode, buildinst(cbz, false, false), countkey, skiplabel1key);
-    looplabelkey := settemp(0, labeltarget_oprnd(lastlabel));
+    looplabel := lastlabel;
+    gencbnzcond(lastnode, eq, false, countkey, skiplabel1, true);
     definelastlabel;
     genldr(lastnode, byte, false, tempregkey, leftregkey);
     genstr(lastnode, byte, tempregkey, dstregkey);
     gen3(lastnode, buildinst(sub, false, false), countkey, countkey, onekey);
-    gen2(lastnode, buildinst(cbnz, false, false), countkey, looplabelkey);
+    gencbnzcond(lastnode, ne, false, countkey, looplabel, true);
     definelabel(skiplabel1);
     end;
 
@@ -7552,17 +7602,17 @@ begin {addstrx}
 
   { Stop if we can't move any of the right operand's data bytes!
   }
-  gen2(lastnode, buildinst(cbz, false, false), countkey, skiplabelkey);
+  gencbnzcond(lastnode, eq, false, countkey, skiplabel, true);
 
   { Now move the right operand's data bytes.
   }
 
-  looplabelkey := settemp(0, labeltarget_oprnd(lastlabel));
+  looplabel := lastlabel;
   definelastlabel;
   genldr(lastnode, byte, false, tempregkey, rightregkey);
   genstr(lastnode, byte, tempregkey, dstregkey);
   gen3(lastnode, buildinst(sub, false, false), countkey, countkey, onekey);
-  gen2(lastnode, buildinst(cbnz, false, false), countkey, looplabelkey);
+  gencbnzcond(lastnode, ne, false, countkey, looplabel, true);
 
   { Done.  Append null.
   }
@@ -7576,11 +7626,10 @@ procedure cmpstrx(cond: conds);
 
 var
   leftregkey, rightregkey, dstregkey, countkey, maxsizekey, onekey,
-  tempregkey, tempreg2key, tempreg3key, tempreg4key, looplabelkey,
-  skiplabelkey, skiplabel1key: keyindex;
+  tempregkey, tempreg2key, tempreg3key, tempreg4key: keyindex;
   maxsize: addressrange;
   appendtarget: boolean;
-  skiplabel, skiplabel1: labelindex;
+  skiplabel, skiplabel1, looplabel: labelindex;
 
 begin {cmpstrx}
 
@@ -7645,23 +7694,19 @@ begin {cmpstrx}
     gen4(lastnode, buildinst(csel, false, false), countkey, countkey, maxsizekey,
          settemp(0, cond_oprnd(lo)));
     end;
-  skiplabel1 := lastlabel;
-  lastlabel := lastlabel - 1;
-  skiplabel1key := settemp(0, labeltarget_oprnd(skiplabel1));
-  skiplabel := lastlabel;
-  skiplabelkey := settemp(0, labeltarget_oprnd(skiplabel));
-  lastlabel := lastlabel - 1;
-  looplabelkey := settemp(0, labeltarget_oprnd(lastlabel));
+  skiplabel1 := newlabel;
+  skiplabel := newlabel;
+  looplabel := newlabel;
 
-  gen2(lastnode, buildinst(cbz, false, false), countkey, skiplabel1key);
-  definelastlabel;
+  gencbnzcond(lastnode, eq, false, countkey, skiplabel1, true);
+  definelabel(looplabel);
 
   genldr(lastnode, byte, false, tempreg3key, leftregkey);
   genldr(lastnode, byte, false, tempreg4key, rightregkey);
   gen2(lastnode, buildinst(cmp, false, false), tempreg3key, tempreg4key);
   genbcond(lastnode, ne, skiplabel, true);
   gen3(lastnode, buildinst(sub, false, false), countkey, countkey, onekey);
-  gen2(lastnode, buildinst(cbnz, false, false), countkey, looplabelkey);
+  gencbnzcond(lastnode, ne, false, countkey, looplabel, true);
 
   { All of the chars we compared are the same or one string was empty.  Set
     result depending on the length of the two operands.  If we exited the loop
@@ -8404,41 +8449,37 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
 }
 
   var
-    labeltarget: keyindex;
     c: conds;
     regkey: keyindex;
 
   begin {jumpcond}
-    labeltarget := settemp(long, labeltarget_oprnd(pseudoinst.oprnds[1]));
-    if keytable[right].oprnd.mode = cond then
-      begin
-      dereference(right);
-      c := keytable[right].oprnd.condition
-      end
-    else
-      begin
-      unpack(right, 0);
-      c := ne;
-      loadreg(right, 0);
-      end;
-    if inv then c := invertcond[c];
-
-    {Here's the followon to the big kludge in cmplitintx to a constant zero.
-     The register value for the oprnd was set to the register compared to,
-     while the above loadreg will make sure a boolean variable is loaded
-     to a register.  So in either case the oprnds reg field is correctly set.
-    }
-
-    if keytable[right].oprnd.reg <> noreg then
-      begin
-      regkey := settemp(keytable[right].len, reg_oprnd(keytable[right].oprnd.reg));
-      if c = eq then
-        gen2(lastnode, buildinst(cbz, keytable[right].len = long, false), regkey, labeltarget)
+    with keytable[right].oprnd do
+      if mode = nomode then dereference(right)
       else
-        gen2(lastnode, buildinst(cbnz, keytable[right].len = long, false), regkey, labeltarget)
-      end
-    else genbcond(lastnode, c, pseudoinst.oprnds[1], true);
-    context[contextsp].lastbranch := lastnode;
+        begin
+        if mode = cond then
+          begin
+          dereference(right);
+          c := keytable[right].oprnd.condition
+          end
+        else if mode = nomode then dereference(right)
+        else
+          begin
+          unpack(right, 0);
+          c := ne;
+          loadreg(right, 0);
+          end;
+      if inv then c := invertcond[c];
+      end;
+
+    with keytable[right].oprnd do
+      if mode = register then
+        begin
+        regkey := settemp(keytable[right].len, reg_oprnd(keytable[right].oprnd.reg));
+        gencbnzcond(lastnode, c, keytable[right].len = long, regkey, pseudoinst.oprnds[1], true);
+        end
+      else
+        if mode = cond then genbcond(lastnode, c, pseudoinst.oprnds[1], true);
   end {jumpcond} ;
 
 procedure condvalue(inv: boolean);
@@ -8603,8 +8644,7 @@ procedure checkconstbounds(checkrange: boolean; liberror: libroutines);
       gen3(lastnode, buildinst(i, len = long, false), checkkey, left, lower);
       end;
     if checkvalue = 0 then
-      gen2(lastnode, buildinst(cbz, false, false), checkkey,
-           settemp(0, labeltarget_oprnd(lastlabel)))
+      gencbnzcond(lastnode, eq, false, checkkey, lastlabel, true)
     else
       begin
       if checkvalue >= 0 then i := cmp
@@ -8680,8 +8720,7 @@ begin {ptrchkx}
     setallfields(left);
   errlabel := newlabel;
   oklabel := newlabel;
-  gen2(lastnode, buildinst(cbz, true, false), left,
-       settemp(long, labeltarget_oprnd(errlabel)));
+  gencbnzcond(lastnode, eq, true, left, errlabel, false);
   t := settemp(long, index_oprnd(abstract_offset, keytable[left].oprnd.reg, -ptrsize, false));
   loadreg(t, left);
   gen2(lastnode, buildinst(cmp, true, false), left, t);

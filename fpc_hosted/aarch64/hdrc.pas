@@ -332,6 +332,7 @@ type
   bits6 = 0..63;
   bits12 = integer;
   bits16 = integer;
+  bitrange = 0..63;
 
   oprndtype = packed record
     reg: regindex;
