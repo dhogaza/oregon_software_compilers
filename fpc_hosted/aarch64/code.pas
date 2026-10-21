@@ -7069,10 +7069,10 @@ procedure pshprocx;
 
 procedure movemultiple(src, dst: keyindex);
 
-{ There's a lot of improvement to be had here for moving
-  if we're unrolling, i.e. adding to index fields directly
-  when possible, a generalization of the code that moves sets.
-  Needs alignment data ...
+{ This could be improved by moving as many large chunks as possible, either unrolled
+  or in a loop, then by moving the smaller pieces inline afterwards.
+
+  The current code isn't altogether awful, though.
 }
 
 var
@@ -7165,7 +7165,8 @@ end {movstructx};
 procedure movcstructx;
 
 { Generate code to move a structure whose size isn't known until
-  runtime.  The size is specified by "target".
+  runtime.  The size is specified by "target". This is very rarely seen
+  so there's no effort to optimize the code.
 }
 
   var
