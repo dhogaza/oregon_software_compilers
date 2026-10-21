@@ -15,24 +15,6 @@
 
    1b. add runtime checking operators once this is done.
 
-      Made ptrchk unique to better catch dangling pointers, a real weakness in the
-      original implementation.  Better would be to have body mark procedures that call
-      dispose (or another procedure that directly or indirectly calls dispose).  Then
-      invalidate ptrchk nodes in travrs at the point where dispose or such a proc is
-      called, allowing them to be part of CSEs again.  Cost of not being CSEs is very
-      significant.  Can probably expand the meaning of the list kept for variables.
-
-      To make ptrchkop eligiable for cse elimination ...
-
-      a. map ptrchkop to map[0] like vars
-
-      b. on call to despose or a proc that calls or might call (unknown) dispose,
-         invalidate ptrchkop nodes at current context level (like newvar) and 
-         mustinvalidate for lower contexts.
-
-      c. start by making various clobber routines to explicilty check for var ops
-         and verify it still works properly.
-
       Conditional branches over error calls no longer set the lastbranch field, need
       to do this for cb[n/z] as well.
 
