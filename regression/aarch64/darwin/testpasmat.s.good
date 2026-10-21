@@ -1762,8 +1762,7 @@
 	mov	w16,1
 	strb	w16,[x27,2096]
 # Line: 680, Stmt: 0
-	cmp	w28,wzr
-	b.lt	.L75
+	tbnz	w28,31,.L75
 .L76:
 # Line: 680, Stmt: 0
 	str	w28,[x27,2100]
@@ -2220,8 +2219,7 @@
 	b	.L122
 .L120:
 # Line: 830, Stmt: 0
-	cmp	w28,wzr
-	b.ge	.L122
+	tbz	w28,31,.L122
 .L123:
 # Line: 830, Stmt: 0
 	str	wzr,[x14,.L32767+1256@PAGEOFF]
@@ -2492,8 +2490,7 @@
 	b	.L156
 .L154:
 # Line: 921, Stmt: 0
-	cmp	w25,wzr
-	b.ge	.L156
+	tbz	w25,31,.L156
 .L157:
 # Line: 923, Stmt: 0
 	mov	x25,xzr
@@ -3126,8 +3123,7 @@
 	ldrsw	x24,[x24,.L32767+1884@PAGEOFF]
 	sub	w27,w24,w26
 # Line: 1133, Stmt: 0
-	cmp	w27,wzr
-	b.ge	.L238
+	tbz	w27,31,.L238
 .L239:
 # Line: 1133, Stmt: 0
 	mov	x27,xzr
@@ -3308,8 +3304,7 @@
 	ldrsw	x25,[x25,.L32767+1884@PAGEOFF]
 	sub	w27,w25,w26
 # Line: 1217, Stmt: 0
-	cmp	w27,wzr
-	b.ge	.L264
+	tbz	w27,31,.L264
 .L265:
 # Line: 1217, Stmt: 0
 	mov	x27,xzr
@@ -6078,8 +6073,7 @@
 	bl	.P23  // formatline
 # Line: 2107, Stmt: 0
 	sub	w28,w28,1
-	cmp	w28,wzr
-	b.ge	.L651
+	tbz	w28,31,.L651
 .L656:
 # Line: 2109, Stmt: 0
 	ldr	x0,[x29,-24]

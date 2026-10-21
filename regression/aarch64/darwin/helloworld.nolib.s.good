@@ -286,8 +286,7 @@ _p_copy:
 .L29:
 # Line: 321, Stmt: 0
 	ldr	x14,[sp]
-	cmp	w14,wzr
-	b.lt	.L32
+	tbnz	w14,31,.L32
 	cmp	w1,1
 	b.ge	.L31
 .L32:
@@ -1604,6 +1603,7 @@ _p_clsall:
 	cbz	x15,.L158
 .L160:
 # Line: 768, Stmt: 0
+	ldr	x15,[x29,-64]
 	add	x0,x15,xzr
 	sub	x8,x29,576
 	bl	_p_trimright
@@ -2010,8 +2010,7 @@ _p_clsall:
 	strh	w16,[x15,8]
 .L185:
 # Line: 811, Stmt: 0
-	cmp	w28,wzr
-	b.ge	.L141
+	tbz	w28,31,.L141
 .L189:
 # Line: 812, Stmt: 0
 	ldr	x15,[x29,-72]
@@ -2386,8 +2385,7 @@ _p_define:
 	bl	_fgetc
 	mov	x27,x0
 # Line: 943, Stmt: 0
-	cmp	w27,wzr
-	b.ge	.L214
+	tbz	w27,31,.L214
 .L215:
 # Line: 944, Stmt: 0
 	ldrh	w14,[x28,8]
@@ -2782,8 +2780,7 @@ _p_rename:
 	ldr	x15,[x29,-8]
 	ldr	x1,[x15,40]
 	bl	_fputc
-	cmp	w0,wzr
-	b.ge	.L247
+	tbz	w0,31,.L247
 .L248:
 # Line: 1072, Stmt: 0
 	ldr	x0,[x29,-8]

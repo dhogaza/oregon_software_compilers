@@ -124,24 +124,24 @@ _main:
 	bl	_p_wts_o 
 	adrp	x15,.L32767@PAGE
 	add	x14,x15,.L32767+32@PAGEOFF
-	adrp	x11,.L32766@PAGE
-	add	x13,x11,.L32766+81@PAGEOFF
-	ldrb	w11,[x14],1
-	ldrb	w10,[x13],1
-	cmp	w11,w10
-	csel	w16,w11,w10,lo
+	adrp	x15,.L32766@PAGE
+	add	x13,x15,.L32766+81@PAGEOFF
+	ldrb	w15,[x14],1
+	ldrb	w11,[x13],1
+	cmp	w15,w11
+	csel	w16,w15,w11,lo
 	mov	x17,3
 	csel	w16,w16,w17,lo
 	cbz	w16,.L32762
 .L32760:
-	ldrb	w9,[x14],1
-	ldrb	w8,[x13],1
-	cmp	w9,w8
+	ldrb	w10,[x14],1
+	ldrb	w9,[x13],1
+	cmp	w10,w9
 	b.ne	.L32761
 	sub	w16,w16,1
 	cbnz	w16,.L32760
 .L32762:
-	cmp	w11,w10
+	cmp	w15,w11
 .L32761:
 	cset	w0,eq
 	mov	x1,5

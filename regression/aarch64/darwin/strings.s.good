@@ -535,8 +535,8 @@ _main:
 	add	x14,x15,.L32767+24@PAGEOFF
 	add	x13,x27,.L32767+552@PAGEOFF
 	ldrb	w27,[x14],1
-	ldrb	w11,[x13],1
-	add	w16,w11,w27
+	ldrb	w15,[x13],1
+	add	w16,w15,w27
 	mov	x17,255
 	cmp	w16,w17
 	csel	w17,w16,w17,lo
@@ -551,8 +551,8 @@ _main:
 	sub	w16,w16,1
 	cbnz	w16,.L32751
 .L32752:
-	cmp	w11,w17
-	csel	w16,w11,w17,lo
+	cmp	w15,w17
+	csel	w16,w15,w17,lo
 	cbz	w16,.L32753
 .L32750:
 	ldrb	w27,[x13],1
@@ -581,12 +581,13 @@ _main:
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
 # Line: 94, Stmt: 0
-	adrp	x15,.L32766@PAGE
-	add	x0,x15,.L32766+397@PAGEOFF
+	adrp	x27,.L32766@PAGE
+	add	x0,x27,.L32766+397@PAGEOFF
 	mov	x1,49
 	mov	x2,x1
 	bl	_p_wts_o 
 # Line: 95, Stmt: 0
+	adrp	x27,.L32767@PAGE
 	add	x0,x27,.L32767+24@PAGEOFF
 	bl	.P3  // tests255
 # Line: 96, Stmt: 0
