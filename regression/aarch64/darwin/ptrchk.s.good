@@ -23,7 +23,7 @@ _main:
 	sub	sp,sp,32
 	stp	x30,x29,[sp,16]
 	add	x29,sp,16
-	stp	x27,x28,[x29,-16]
+	str	x28,[x29,-8]
 	bl	_p_initio 
 # Line: 9, Stmt: 1
 # Line: 10, Stmt: 2
@@ -33,88 +33,84 @@ _main:
 	bl	_p_new 
 # Line: 11, Stmt: 0
 	adrp	x15,.L32767@PAGE
-	ldr	x27,[x15,.L32767+24@PAGEOFF]
-	cbz	x27,.L32764
-	ldr	x15,[x27,-8]
-	cmp	x27,x15
+	ldr	x14,[x15,.L32767+24@PAGEOFF]
+	cbz	x14,.L32764
+	ldr	x15,[x14,-8]
+	cmp	x14,x15
 	b.eq	.L32763
 .L32764:
 	bl	_p_pointer 
 .L32763:
 	mov	w16,3
-	str	w16,[x27]
+	str	w16,[x14]
 # Line: 12, Stmt: 0
-	mov	x28,x27
+	mov	x28,x14
 # Line: 13, Stmt: 0
 	adrp	x15,.L32766@PAGE
 	add	x0,x15,.L32766+1@PAGEOFF
 	mov	x1,13
 	mov	x2,x1
 	bl	_p_wts_o 
-	cbz	x27,.L32762
-	ldr	x15,[x27,-8]
-	cmp	x27,x15
-	b.eq	.L32761
-.L32762:
-	bl	_p_pointer 
-.L32761:
-	ldrsw	x0,[x27]
+	adrp	x15,.L32767@PAGE
+	ldr	x14,[x15,.L32767+24@PAGEOFF]
+	ldrsw	x0,[x14]
 	mov	x1,3
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 # Line: 14, Stmt: 0
-	adrp	x27,.L32766@PAGE
-	add	x0,x27,.L32766+16@PAGEOFF
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+16@PAGEOFF
 	mov	x1,14
 	mov	x2,x1
 	bl	_p_wts_o 
-	cbz	x28,.L32760
-	ldr	x27,[x28,-8]
-	cmp	x28,x27
-	b.eq	.L32759
-.L32760:
+	cbz	x28,.L32762
+	ldr	x15,[x28,-8]
+	cmp	x28,x15
+	b.eq	.L32761
+.L32762:
 	bl	_p_pointer 
-.L32759:
+.L32761:
 	ldrsw	x0,[x28]
 	mov	x1,3
 	bl	_p_wti_o 
 	bl	_p_wtln_o 
 # Line: 15, Stmt: 0
-	adrp	x27,.L32767@PAGE
-	add	x0,x27,.L32767+24@PAGEOFF
+	adrp	x15,.L32767@PAGE
+	add	x0,x15,.L32767+24@PAGEOFF
 	mov	x1,4
 	bl	_p_dispos 
 # Line: 16, Stmt: 0
-	ldr	x27,[x27,.L32767+24@PAGEOFF]
-	cbnz	x27,.L3
+	adrp	x15,.L32767@PAGE
+	ldr	x15,[x15,.L32767+24@PAGEOFF]
+	cbnz	x15,.L3
 .L4:
 # Line: 16, Stmt: 0
-	adrp	x27,.L32766@PAGE
-	add	x0,x27,.L32766+32@PAGEOFF
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+32@PAGEOFF
 	mov	x1,36
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
 .L3:
 # Line: 17, Stmt: 0
-	adrp	x27,.L32766@PAGE
-	add	x0,x27,.L32766+70@PAGEOFF
+	adrp	x15,.L32766@PAGE
+	add	x0,x15,.L32766+70@PAGEOFF
 	mov	x1,35
 	mov	x2,x1
 	bl	_p_wts_o 
 	bl	_p_wtln_o 
 # Line: 18, Stmt: 0
-	cbz	x28,.L32758
-	ldr	x27,[x28,-8]
-	cmp	x28,x27
-	b.eq	.L32757
-.L32758:
+	cbz	x28,.L32760
+	ldr	x15,[x28,-8]
+	cmp	x28,x15
+	b.eq	.L32759
+.L32760:
 	bl	_p_pointer 
-.L32757:
+.L32759:
 	mov	w16,4
 	str	w16,[x28]
 .L2:
-	ldp	x27,x28,[x29,-16]
+	ldr	x28,[x29,-8]
 	ldp	x30,x29,[sp,16]
 	add	sp,sp,32
 	ret
