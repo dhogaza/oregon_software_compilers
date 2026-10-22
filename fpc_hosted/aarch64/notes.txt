@@ -13,11 +13,6 @@
 
    1a. Figure out how to make it work under darwin.  Plugin for P2?
 
-   1b. add runtime checking operators once this is done.
-
-      Conditional branches over error calls no longer set the lastbranch field, need
-      to do this for cb[n/z] as well.
-
    2. Maybe allow forward/external procedure definitions to redeclare the parameter
       list as long as it is identical which means same param names and congruent types.
 
@@ -30,10 +25,9 @@ forerrchk should deadcode the actual for loop it guards, because if it is execut
 it is an error if the loop executes.  Of course, if the loop does not execute, we
 don't need the code.
 
-pseudops like eoln/eof/inset and others that in some cases do a single bit test
+pseudops like inset and others that in some cases do a single bit test
 followed by a setvalue(cond) can peek ahead for a jumpcond pseudo op, poach
-its label, and to a tb[n/z] directly if it has a refcount of one.  First peephole
-optimization?
+its label, and to a tb[n/z] directly if it has a refcount of one.
 
 likewise (and related!) for something like "if packedbitarray[n] then " doesn't have
 to unpack the bit then compare with zero.  It can load the correct byte and do a test

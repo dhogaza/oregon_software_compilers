@@ -6036,7 +6036,7 @@ procedure definelazyx;
 }
 
 var
-  bitkey, regkey, statuskey: keyindex;
+  regkey, statuskey: keyindex;
 
 
 begin {definelazyx}
@@ -6057,14 +6057,12 @@ begin {definelazyx}
   if scratchreg(keytable[key].oprnd.reg) then savekey(key, true);
   statuskey := settemp(long, index_oprnd(unsigned_offset, keytable[key].oprnd.reg,
                        ptrsize, false));
-  bitkey := settemp(long, imm12_oprnd(lazybit, false));
   lock(key);
   regkey := settemp(long, reg_oprnd(getreg(false)));
   unlock(key);
   gensimplemove(lastnode, statuskey, regkey);
   markscratchregs;
-  gen3(lastnode, buildinst(tbnz, len = long, true), regkey, bitkey,
-       settemp(long, labeltarget_oprnd(lastlabel)));
+  gentbnzcond(lastnode, ne, true, regkey, lazybit, lastlabel, true);
 
   if keytable[left].oprnd.mode = register then gensimplemove(lastnode, left, regkeys[0])
   else genmoveaddress(lastnode, left, regkeys[0]);
@@ -6090,15 +6088,12 @@ begin
   loadreg(left, 0);
   bufferptrkey := settemp(long, index_oprnd(unsigned_offset, keytable[left].oprnd.reg,
                           ptrsize, false));
-{
-  loadreg(bufferptrkey, 0);
-}
-  power2key := settemp(long, intconst_oprnd(power2(whichbit)));
-  handle_bitmask(lastnode, power2key);
-  loadreg(bufferptrkey, regkeys[0]);
-  gen3(lastnode, buildinst(andinst, len = long, true), regkeys[zero],
-                 bufferptrkey, power2key);
-  setvalue(cond_oprnd(ne));
+  loadreg(bufferptrkey, regkeys[zero]);
+  if (pseudobuff.op = jumpt) then
+    gentbnzcond(lastnode, ne, true, bufferptrkey, whichbit, pseudobuff.oprnds[1], true)
+  else
+    gentbnzcond(lastnode, eq, true, bufferptrkey, whichbit, pseudobuff.oprnds[1], true);
+  setvalue(nomode_oprnd);
 end {eolnx} ;
 
 procedure removefileparam;
