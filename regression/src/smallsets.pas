@@ -45,6 +45,8 @@ begin
   write('s1:[one, two, five, func(four)] '); putnumset(s1);
   write('s2:[eight, two..five] '); putnumset(s2);
   writeln('b2:five in s2: ', b2 in s2);
+  write('if b2:five in s2: ');
+  if b2 in s2 then writeln('true') else writeln('false');
   writeln('succ(b2):six in s2: ', succ(b2) in s2);
   writeln('five in s2: ', five in s2);
   writeln('six in s2: ', six in s2);

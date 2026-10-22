@@ -1,6 +1,7 @@
 s1:[one, two, five, func(four)]  true  true false  true  true false false false 
 s2:[eight, two..five] false  true  true  true  true false false  true 
 b2:five in s2:  true
+if b2:five in s2: true
 succ(b2):six in s2: false
 five in s2:  true
 six in s2: false
