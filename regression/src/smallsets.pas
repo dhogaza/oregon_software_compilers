@@ -49,6 +49,8 @@ begin
   if b2 in s2 then writeln('true') else writeln('false');
   writeln('succ(b2):six in s2: ', succ(b2) in s2);
   writeln('five in s2: ', five in s2);
+  write('if five in s2: ');
+  if five in s2 then writeln('true') else writeln('false');
   writeln('six in s2: ', six in s2);
   write('s1 + s2 '); putnumset(s1 + s2);
   write('s1 * s2 '); putnumset(s1 * s2);
