@@ -150,8 +150,7 @@ _main:
 .L32764:
 	ldr	x15,[x29,-48]
 	ldr	x15,[x15,8]
-	ands	wzr,w15,2
-	b.ne	.L16
+	tbnz	x15,1,.L16
 .L17:
 # Line: 19, Stmt: 0
 	mov	x0,34
@@ -168,8 +167,7 @@ _main:
 .L32763:
 	ldr	x15,[x29,-64]
 	ldr	x15,[x15,8]
-	ands	wzr,w15,4
-	b.ne	.L18
+	tbnz	x15,2,.L18
 .L19:
 # Line: 22, Stmt: 0
 	add	x15,x26,.L32767+24@PAGEOFF
@@ -233,8 +231,7 @@ _main:
 	bl	_p_define 
 .L32762:
 	ldr	x25,[x25,8]
-	ands	wzr,w25,2
-	b.ne	.L20
+	tbnz	x25,1,.L20
 .L21:
 # Line: 35, Stmt: 0
 	mov	x0,34
@@ -289,8 +286,7 @@ _main:
 	bl	_p_define 
 .L32761:
 	ldr	x25,[x25,8]
-	ands	wzr,w25,2
-	b.ne	.L22
+	tbnz	x25,1,.L22
 .L23:
 # Line: 45, Stmt: 0
 	ldr	x25,[x26,.L32767+24@PAGEOFF]
@@ -300,8 +296,7 @@ _main:
 	bl	_p_define 
 .L32760:
 	ldr	x15,[x25,8]
-	ands	wzr,w15,4
-	b.ne	.L24
+	tbnz	x15,2,.L24
 .L25:
 # Line: 47, Stmt: 0
 	ldr	x15,[x25]
@@ -349,8 +344,7 @@ _main:
 	bl	_p_define 
 .L32759:
 	ldr	x25,[x25,8]
-	ands	wzr,w25,2
-	b.ne	.L26
+	tbnz	x25,1,.L26
 .L27:
 # Line: 61, Stmt: 0
 	mov	x0,34
@@ -365,8 +359,7 @@ _main:
 	bl	_p_define 
 .L32758:
 	ldr	x25,[x25,8]
-	ands	wzr,w25,4
-	b.ne	.L28
+	tbnz	x25,2,.L28
 .L29:
 # Line: 64, Stmt: 0
 	add	x25,x26,.L32767+24@PAGEOFF
@@ -422,8 +415,7 @@ _main:
 	bl	_p_define 
 .L32757:
 	ldr	x25,[x25,8]
-	ands	wzr,w25,2
-	b.ne	.L30
+	tbnz	x25,1,.L30
 .L31:
 # Line: 77, Stmt: 0
 	mov	x0,34
@@ -477,8 +469,7 @@ _main:
 	bl	_p_define 
 .L32756:
 	ldr	x25,[x25,8]
-	ands	wzr,w25,2
-	b.ne	.L32
+	tbnz	x25,1,.L32
 .L33:
 # Line: 87, Stmt: 0
 	mov	x0,34
@@ -532,8 +523,7 @@ _main:
 	bl	_p_define 
 .L32755:
 	ldr	x25,[x25,8]
-	ands	wzr,w25,2
-	b.ne	.L34
+	tbnz	x25,1,.L34
 .L35:
 # Line: 99, Stmt: 0
 	mov	x0,34
@@ -548,8 +538,7 @@ _main:
 	bl	_p_define 
 .L32754:
 	ldr	x25,[x25,8]
-	ands	wzr,w25,4
-	b.ne	.L36
+	tbnz	x25,2,.L36
 .L37:
 # Line: 102, Stmt: 0
 	add	x25,x26,.L32767+24@PAGEOFF
@@ -640,8 +629,7 @@ _main:
 	bl	_p_define 
 .L32753:
 	ldr	x25,[x25,8]
-	ands	wzr,w25,2
-	b.ne	.L38
+	tbnz	x25,1,.L38
 .L39:
 # Line: 119, Stmt: 0
 	add	x25,x26,.L32767+24@PAGEOFF
@@ -732,8 +720,7 @@ _main:
 	bl	_p_define 
 .L32752:
 	ldr	x25,[x25,8]
-	ands	wzr,w25,2
-	b.ne	.L40
+	tbnz	x25,1,.L40
 .L41:
 # Line: 132, Stmt: 0
 	add	x25,x26,.L32767+24@PAGEOFF
@@ -807,8 +794,7 @@ _main:
 	bl	_p_define 
 .L32751:
 	ldr	x25,[x25,8]
-	ands	wzr,w25,2
-	b.ne	.L42
+	tbnz	x25,1,.L42
 .L43:
 # Line: 147, Stmt: 0
 	add	x25,x26,.L32767+24@PAGEOFF

@@ -90,8 +90,7 @@ _main:
 .L32764:
 	ldr	x15,[x29,-40]
 	ldr	x15,[x15,8]
-	ands	wzr,w15,2
-	b.ne	.L13
+	tbnz	x15,1,.L13
 .L14:
 # Line: 29, Stmt: 0
 	ldr	x15,[x27,.L32767+24@PAGEOFF]
@@ -162,8 +161,7 @@ _main:
 .L32763:
 	ldr	x15,[x29,-40]
 	ldr	x15,[x15,8]
-	ands	wzr,w15,2
-	b.ne	.L17
+	tbnz	x15,1,.L17
 .L18:
 # Line: 49, Stmt: 0
 	ldr	x15,[x27,.L32767+24@PAGEOFF]
@@ -225,8 +223,7 @@ _main:
 .L32762:
 	ldr	x15,[x29,-40]
 	ldr	x15,[x15,8]
-	ands	wzr,w15,2
-	b.ne	.L19
+	tbnz	x15,1,.L19
 .L20:
 # Line: 66, Stmt: 0
 	ldr	x15,[x27,.L32767+24@PAGEOFF]
@@ -269,8 +266,7 @@ _main:
 .L32761:
 	ldr	x15,[x29,-40]
 	ldr	x15,[x15,8]
-	ands	wzr,w15,2
-	b.ne	.L21
+	tbnz	x15,1,.L21
 .L22:
 # Line: 76, Stmt: 0
 	ldr	x15,[x27,.L32767+24@PAGEOFF]
@@ -351,8 +347,7 @@ _main:
 	bl	_p_define 
 .L32759:
 	ldr	x26,[x26,8]
-	ands	wzr,w26,2
-	b.ne	.L25
+	tbnz	x26,1,.L25
 .L26:
 # Line: 93, Stmt: 0
 	add	x26,x27,.L32767+24@PAGEOFF

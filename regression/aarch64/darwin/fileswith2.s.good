@@ -108,8 +108,7 @@ _main:
 	bl	_p_define 
 .L32762:
 	ldr	x26,[x26,8]
-	ands	wzr,w26,2
-	b.ne	.L7
+	tbnz	x26,1,.L7
 .L8:
 # Line: 28, Stmt: 0
 	add	x26,x27,.L32767+24@PAGEOFF
