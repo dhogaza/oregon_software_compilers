@@ -5093,9 +5093,9 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
    to do similar if a packed field is on a byte, word, or long boundary)
 
   If the following pseudoop is a jumpf or jumpt, we can use cbz or cbnz for an
-  eq/ne comparison against zero, and a tbz or tbnz on bit 31 or 63 for lt or
-  ge zero. If we issue one of these specialized branch instructions, we set the
-  key value to nomode.
+  eq/ne comparison against zero, and a tbz or tbnz on bit 31 or 63 for lt/ge zero,
+  using the zero register for the unsigned case.  If we issue one of these specialized
+  branch instructions, we set the key value to nomode.
 
 }
 
@@ -5118,11 +5118,15 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
       begin
       bitcheck := signedcond in [lt, ge];
       if signedcond = lt then signedcond := ne
-      else if signedcond = ge then signedcond := ge;
+      else if signedcond = ge then signedcond := eq;
       if pseudobuff.op = jumpf then signedcond := invertcond[signedcond];
       with keytable[left] do
         if bitcheck then
-          gentbnzcond(lastnode, signedcond, len = long, left, len * bitsperunit - 1,
+          if keytable[left].signed then
+            gentbnzcond(lastnode, signedcond, len = long, left, len * bitsperunit - 1,
+                      pseudobuff.oprnds[1], true)
+          else
+            gentbnzcond(lastnode, signedcond, len = long, regkeys[zero], len * bitsperunit - 1,
                       pseudobuff.oprnds[1], true)
         else
           gencbnzcond(lastnode, signedcond, len = long, left,
