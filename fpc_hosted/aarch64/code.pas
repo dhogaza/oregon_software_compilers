@@ -5796,9 +5796,15 @@ procedure setinsertx;
   var
     rightregkey, maxvaluekey, power2key: keyindex;
     adjustoffset: integer;
+    emitbr: boolean;
+    c: conds;
+    bit: bitrange;
 
   begin {insetx}
     unpackboth(0);
+    if pseudobuff.op = jumpf then c := eq else c := ne;
+    emitbr := pseudobuff.op in [jumpt, jumpf];
+    if emitbr then setvalue(nomode_oprnd) else setvalue(cond_oprnd(ne));
     if len <= long then
       begin
       { kludge until we have 64 bit sets passed as intconsts }
@@ -5816,30 +5822,41 @@ procedure setinsertx;
       if (keytable[left].oprnd.mode = intconst) and
          (keytable[left].oprnd.int_value < 32) then
         begin
-        power2key := settemp(long, intconst_oprnd(power2(keytable[left].oprnd.int_value)));
-        handle_bitmask(lastnode, power2key);
-        gen3(lastnode, buildinst(andinst, len = long, true), regkeys[ip0], right, power2key);
+        if emitbr then
+          gentbnzcond(lastnode, c, len = long, right, keytable[left].oprnd.int_value,
+                      pseudobuff.oprnds[1], true)
+        else
+          begin
+          power2key := settemp(long, intconst_oprnd(power2(keytable[left].oprnd.int_value)));
+          handle_bitmask(lastnode, power2key);
+          gen3(lastnode, buildinst(andinst, len = long, true), regkeys[ip0], right, power2key);
+          end;
         end
       else  
         begin
         loadreg(left, right);
         gen3(lastnode, buildinst(lsrinst, len = long, false), regkeys[ip0], right, left);
-        gen3(lastnode, buildinst(andinst, len = long, true), regkeys[ip0], regkeys[ip0],
-             settemp(long, imm12_oprnd(1, false)));
+        if emitbr then
+          gentbnzcond(lastnode, c, len = long, regkeys[ip0], 0, pseudobuff.oprnds[1], true)
+        else
+          gen3(lastnode, buildinst(andinst, len = long, true), regkeys[zero], regkeys[ip0],
+               settemp(long, imm12_oprnd(1, false)));
         end
       end
     else
       begin
       if (keytable[left].oprnd.mode = intconst) then
         begin
-        power2key :=
-          settemp(long, intconst_oprnd(power2(keytable[left].oprnd.int_value mod 8)));
-        handle_bitmask(lastnode, power2key);
+        if not emitbr then
+          begin
+          power2key :=
+            settemp(long, intconst_oprnd(power2(keytable[left].oprnd.int_value mod 8)));
+          handle_bitmask(lastnode, power2key);
+          end;
         if keytable[right].oprnd.mode in [abstract_offset, label_offset] then
           rightregkey := settemp(word, keytable[right].oprnd)
         else
           begin
-          lock(power2key);
           rightregkey := settemp(long, reg_oprnd(ip1));
           genmoveaddress(lastnode, right, rightregkey);
           keytable[rightregkey].oprnd.mode := abstract_offset;
@@ -5852,7 +5869,11 @@ procedure setinsertx;
         else
           labeloffset := labeloffset + adjustoffset;
         genldr(lastnode, byte, false, regkeys[ip0], rightregkey);
-        gen3(lastnode, buildinst(andinst, false, true), regkeys[ip0], regkeys[ip0], power2key);
+        if emitbr then
+          gentbnzcond(lastnode, c, false, regkeys[ip0], keytable[left].oprnd.int_value mod 8,
+                      pseudobuff.oprnds[1], true)
+        else
+          gen3(lastnode, buildinst(andinst, false, true), regkeys[zero], regkeys[ip0], power2key);
         end
       else
         begin
@@ -5877,11 +5898,13 @@ procedure setinsertx;
           end;
         genldr(lastnode, byte, false, regkeys[ip0], rightregkey);
         gen3(lastnode, buildinst(asrinst, true, false), regkeys[ip0], regkeys[ip0], regkeys[ip1]);
-        gen3(lastnode, buildinst(andinst, true, true), regkeys[ip0], regkeys[ip0],
+        if emitbr then
+          gentbnzcond(lastnode, c, true, regkeys[ip0], 0, pseudobuff.oprnds[1], true)
+        else
+          gen3(lastnode, buildinst(andinst, true, true), regkeys[zero], regkeys[ip0],
              settemp(long, imm12_oprnd(1, false)));
         end;
       end;
-    setvalue(cond_oprnd(ne));
   end {insetx};
 
 procedure cmpsetx(cond: conds);
