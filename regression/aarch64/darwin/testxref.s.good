@@ -1021,8 +1021,7 @@
 	and	x17,x15,7
 	ldrb	w16,[x12, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L34
+	tbz	x16,0,.L34
 .L35:
 # Line: 284, Stmt: 0
 	adrp	x12,.L32767@PAGE
@@ -1309,8 +1308,7 @@
 	and	x17,x15,7
 	ldrb	w16,[x27, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L67
+	tbz	x16,0,.L67
 .L68:
 # Line: 363, Stmt: 0
 	ldrsw	x27,[x28,.L32767+44@PAGEOFF]
@@ -1353,8 +1351,7 @@
 	and	x17,x15,7
 	ldrb	w16,[x27, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.ne	.L63
+	tbnz	x16,0,.L63
 .L69:
 # Line: 368, Stmt: 0
 	adrp	x27,.L32767@PAGE
@@ -1412,8 +1409,7 @@
 	and	x17,x27,7
 	ldrb	w16,[x28, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.ne	.L61
+	tbnz	x16,0,.L61
 .L58:
 .L72:
 	ldp	x27,x28,[x29,-16]
@@ -1455,8 +1451,7 @@
 	and	x17,x15,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.ne	.L76
+	tbnz	x16,0,.L76
 .L74:
 .L77:
 	ldp	x30,x29,[sp,16]
@@ -1848,8 +1843,7 @@
 	and	x17,x14,7
 	ldrb	w16,[x13, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L121
+	tbz	x16,0,.L121
 .L122:
 # Line: 475, Stmt: 0
 	bl	.P9  // identifier
@@ -1863,8 +1857,7 @@
 	and	x17,x14,7
 	ldrb	w16,[x13, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L124
+	tbz	x16,0,.L124
 .L125:
 # Line: 476, Stmt: 0
 	bl	.P10  // number

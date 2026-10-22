@@ -120,12 +120,12 @@
 	str	x16,[x8],16
 # Line: 113, Stmt: 0
 	ldrb	w16,[x13,.L32767+51@PAGEOFF]
-	ands	w16,w16,2
+	ands	wzr,w16,2
 	cset	w12,ne
 	strb	w12,[x13,.L32767+124@PAGEOFF]
 # Line: 114, Stmt: 0
 	ldrb	w16,[x13,.L32767+63@PAGEOFF]
-	ands	w16,w16,128
+	ands	wzr,w16,128
 	cset	w12,ne
 	eor	w12,w12,1
 	strb	w12,[x13,.L32767+125@PAGEOFF]
@@ -144,7 +144,7 @@
 	bic	x16,x16,x17
 	str	x16,[x8],16
 	ldrb	w16,[sp]
-	ands	w16,w16,1
+	ands	wzr,w16,1
 	cset	w12,ne
 	eor	w12,w12,1
 	strb	w12,[x13,.L32767+126@PAGEOFF]

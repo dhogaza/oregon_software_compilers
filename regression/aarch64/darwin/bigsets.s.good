@@ -123,7 +123,7 @@ _main:
 	and	x17,x28,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
+	ands	xzr,x16,1
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -135,7 +135,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	ldrb	w16,[x25,.L32767+24@PAGEOFF]
-	ands	w16,w16,16
+	ands	wzr,w16,16
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -210,7 +210,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	ldrb	w16,[x25,.L32767+51@PAGEOFF]
-	ands	w16,w16,2
+	ands	wzr,w16,2
 	cset	w15,ne
 	mov	x0,x15
 	mov	x1,5
@@ -223,7 +223,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	ldrb	w16,[x25,.L32767+63@PAGEOFF]
-	ands	w16,w16,128
+	ands	wzr,w16,128
 	cset	w15,ne
 	mov	x0,x15
 	mov	x1,5
@@ -240,7 +240,7 @@ _main:
 	and	x17,x26,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
+	ands	xzr,x16,1
 	cset	w15,ne
 	mov	x0,x15
 	mov	x1,5
@@ -267,7 +267,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	ldrb	w16,[x25,.L32767+40@PAGEOFF]
-	ands	w16,w16,32
+	ands	wzr,w16,32
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -279,7 +279,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	ldrb	w16,[x25,.L32767+40@PAGEOFF]
-	ands	w16,w16,1
+	ands	wzr,w16,1
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -304,7 +304,7 @@ _main:
 	bic	x16,x16,x17
 	str	x16,[x11],16
 	ldrb	w16,[x29,-56]
-	ands	w16,w16,1
+	ands	wzr,w16,1
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -320,7 +320,7 @@ _main:
 	and	x17,x28,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
+	ands	xzr,x16,1
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -336,7 +336,7 @@ _main:
 	and	x17,x27,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
+	ands	xzr,x16,1
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -348,7 +348,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	ldrb	w16,[x25,.L32767+40@PAGEOFF]
-	ands	w16,w16,1
+	ands	wzr,w16,1
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -360,7 +360,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	ldrb	w16,[x25,.L32767+63@PAGEOFF]
-	ands	w16,w16,128
+	ands	wzr,w16,128
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -372,7 +372,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	ldrb	w16,[x25,.L32767+51@PAGEOFF]
-	ands	w16,w16,8
+	ands	wzr,w16,8
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -384,7 +384,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	ldrb	w16,[x25,.L32767+40@PAGEOFF]
-	ands	w16,w16,16
+	ands	wzr,w16,16
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -396,7 +396,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	ldrb	w16,[x25,.L32767+40@PAGEOFF]
-	ands	w16,w16,32
+	ands	wzr,w16,32
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -421,7 +421,7 @@ _main:
 	and	x16,x16,x17
 	str	x16,[x10],16
 	ldrb	w16,[x29,-56]
-	ands	w16,w16,32
+	ands	wzr,w16,32
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -446,7 +446,7 @@ _main:
 	bic	x16,x16,x17
 	str	x16,[x10],16
 	ldrb	w16,[x29,-56]
-	ands	w16,w16,32
+	ands	wzr,w16,32
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -458,7 +458,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	ldrb	w16,[x29,-33]
-	ands	w16,w16,128
+	ands	wzr,w16,128
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -470,7 +470,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	ldrb	w16,[x29,-33]
-	ands	w16,w16,128
+	ands	wzr,w16,128
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -482,7 +482,7 @@ _main:
 	mov	x2,x1
 	bl	_p_wts_o 
 	ldrb	w16,[x29,-45]
-	ands	w16,w16,4
+	ands	wzr,w16,4
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 
@@ -521,7 +521,7 @@ _main:
 	bic	x16,x16,x17
 	str	x16,[x11],16
 	ldrb	w16,[x29,-56]
-	ands	w16,w16,16
+	ands	wzr,w16,16
 	cset	w0,ne
 	mov	x1,5
 	bl	_p_wtb_o 

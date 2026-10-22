@@ -96,7 +96,7 @@
 	add	x14,sp,0
 	add	x14,x14,w15, sxtw 0
 	lsr	w16,w0,w15
-	ands	w16,w16,1
+	ands	wzr,w16,1
 	cset	w13,ne
 	strb	w13,[x14,24]
 	add	w15,w15,1
@@ -121,7 +121,7 @@
 	add	x14,sp,-8
 	add	x14,x14,w15, sxtw 0
 	lsr	w16,w0,w15
-	ands	w16,w16,1
+	ands	wzr,w16,1
 	cset	w13,ne
 	strb	w13,[x14,24]
 	add	w15,w15,1

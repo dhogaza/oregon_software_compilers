@@ -887,8 +887,7 @@ _p_dumpfilelist:
 # Line: 509, Stmt: 0
 	ldrh	w26,[x28,8]
 	lsr	w16,w26,w27
-	ands	w16,w16,1
-	b.eq	.L99
+	tbz	w16,0,.L99
 .L100:
 # Line: 510, Stmt: 0
 .L32752:
@@ -1320,8 +1319,7 @@ _p_dumpfilelist:
 	mov	x28,x0
 # Line: 612, Stmt: 2
 	ldrh	w15,[x28,8]
-	ands	w16,w15,256
-	b.ne	.L116
+	tbnz	w15,8,.L116
 .L117:
 # Line: 614, Stmt: 0
 	ldr	x0,[x28,40]
@@ -1341,8 +1339,7 @@ _p_dumpfilelist:
 	str	xzr,[x15]
 # Line: 617, Stmt: 0
 	ldrh	w15,[x28,8]
-	ands	w16,w15,8
-	b.ne	.L116
+	tbnz	w15,3,.L116
 	ldr	x15,[x28]
 	cbz	x15,.L116
 .L120:
@@ -2307,8 +2304,7 @@ _p_rewrite:
 	ldr	x15,[x29,-24]
 	ldrh	w14,[x28,8]
 	lsr	w16,w14,w15
-	ands	w16,w16,1
-	b.ne	.L204
+	tbnz	w16,0,.L204
 .L205:
 # Line: 902, Stmt: 0
 	mov	x0,x28
@@ -2347,8 +2343,7 @@ _p_seek:
 	mov	x28,x0
 # Line: 913, Stmt: 0
 	ldrh	w15,[x28,8]
-	ands	w16,w15,8
-	b.eq	.L207
+	tbz	w15,3,.L207
 .L208:
 # Line: 914, Stmt: 0
 	mov	x0,x28
@@ -2406,8 +2401,7 @@ _p_define:
 	mov	x28,x0
 # Line: 940, Stmt: 0
 	ldrh	w15,[x28,8]
-	ands	w16,w15,8
-	b.eq	.L212
+	tbz	w15,3,.L212
 .L213:
 # Line: 942, Stmt: 0
 	ldr	x0,[x28,40]
@@ -2497,13 +2491,11 @@ _p_get:
 # Line: 980, Stmt: 0
 # Line: 981, Stmt: 0
 	ldrh	w15,[x28,8]
-	ands	w16,w15,1
-	b.eq	.L223
+	tbz	w15,0,.L223
 .L224:
 # Line: 982, Stmt: 0
 	ldrh	w15,[x28,8]
-	ands	w16,w15,2
-	b.eq	.L225
+	tbz	w15,1,.L225
 .L226:
 # Line: 983, Stmt: 0
 	mov	x0,x28
@@ -3328,8 +3320,7 @@ _p_rdc:
 	mov	x28,x0
 # Line: 1235, Stmt: 0
 	ldrh	w15,[x28,8]
-	ands	w16,w15,1
-	b.ne	.L294
+	tbnz	w15,0,.L294
 .L295:
 # Line: 1236, Stmt: 0
 	ldr	x0,[x29,-16]
@@ -3340,8 +3331,7 @@ _p_rdc:
 	strb	w16,[x29,16]
 # Line: 1238, Stmt: 0
 	ldrh	w15,[x28,8]
-	ands	w16,w15,4
-	b.ne	.L296
+	tbnz	w15,2,.L296
 .L297:
 # Line: 1239, Stmt: 0
 	bic	w14,w15,1
@@ -3376,8 +3366,7 @@ _p_rdi:
 	mov	x28,x0
 # Line: 1254, Stmt: 0
 	ldrh	w15,[x28,8]
-	ands	w16,w15,1
-	b.ne	.L301
+	tbnz	w15,0,.L301
 .L302:
 # Line: 1255, Stmt: 0
 	mov	x0,x26
@@ -3492,8 +3481,7 @@ _p_rdxs:
 	mov	x28,xzr
 # Line: 1305, Stmt: 0
 	ldrh	w15,[x27,8]
-	ands	w16,w15,1
-	b.ne	.L319
+	tbnz	w15,0,.L319
 .L320:
 # Line: 1306, Stmt: 0
 	mov	x0,x25
@@ -3557,8 +3545,7 @@ _p_rds:
 	mov	x28,xzr
 # Line: 1346, Stmt: 0
 	ldrh	w15,[x27,8]
-	ands	w16,w15,1
-	b.ne	.L327
+	tbnz	w15,0,.L327
 .L328:
 # Line: 1347, Stmt: 0
 	mov	x0,x25
@@ -3623,8 +3610,7 @@ _p_rdln:
 .L335:
 # Line: 1366, Stmt: 0
 	ldrh	w15,[x27,8]
-	ands	w16,w15,4
-	b.ne	.L336
+	tbnz	w15,2,.L336
 .L337:
 # Line: 1367, Stmt: 0
 	mov	x0,x28

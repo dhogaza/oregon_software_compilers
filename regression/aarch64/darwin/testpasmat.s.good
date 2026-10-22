@@ -2326,15 +2326,13 @@
 	and	x17,x0,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L135
+	tbz	x16,0,.L135
 	add	x15,x15,.L32767+56@PAGEOFF
 	asr	x16,x1,3
 	and	x17,x1,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.ne	.L133
+	tbnz	x16,0,.L133
 .L135:
 	adrp	x15,.L32767@PAGE
 	add	x15,x15,.L32767+24@PAGEOFF
@@ -2342,16 +2340,14 @@
 	and	x17,x0,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.ne	.L133
+	tbnz	x16,0,.L133
 	adrp	x15,.L32767@PAGE
 	add	x15,x15,.L32767+40@PAGEOFF
 	asr	x16,x1,3
 	and	x17,x1,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L132
+	tbz	x16,0,.L132
 .L133:
 # Line: 888, Stmt: 0
 	mov	w16,1
@@ -3536,8 +3532,7 @@
 	and	x17,x26,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.ne	.L300
+	tbnz	x16,0,.L300
 .L301:
 # Line: 1296, Stmt: 0
 	mov	x0,x26
@@ -3572,8 +3567,7 @@
 	and	x17,x27,7
 	ldrb	w16,[x26, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L279
+	tbz	x16,0,.L279
 .L299:
 # Line: 1306, Stmt: 0
 	adrp	x27,.L32767@PAGE
@@ -3767,8 +3761,7 @@
 	and	x17,x26,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.ne	.L337
+	tbnz	x16,0,.L337
 .L338:
 # Line: 1369, Stmt: 0
 	mov	x0,x26
@@ -3803,8 +3796,7 @@
 	and	x17,x27,7
 	ldrb	w16,[x26, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L316
+	tbz	x16,0,.L316
 .L336:
 # Line: 1379, Stmt: 0
 	adrp	x27,.L32767@PAGE
@@ -4811,8 +4803,7 @@
 	and	x17,x15,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L479
+	tbz	x16,0,.L479
 .L480:
 # Line: 1697, Stmt: 0
 	mov	x0,x15
@@ -4982,8 +4973,7 @@
 	and	x17,x26,7
 	ldrb	w16,[x25, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L507
+	tbz	x16,0,.L507
 .L514:
 # Line: 1745, Stmt: 0
 	adrp	x15,.L32767@PAGE
@@ -5991,8 +5981,7 @@
 	and	x17,x15,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.ne	.L643
+	tbnz	x16,0,.L643
 .L644:
 # Line: 2075, Stmt: 0
 	mov	x0,xzr
@@ -6333,8 +6322,7 @@
 	and	x17,x15,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L687
+	tbz	x16,0,.L687
 .L688:
 # Line: 2253, Stmt: 0
 	bl	.P55  // nextsym
@@ -6383,8 +6371,7 @@
 	and	x17,x15,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L693
+	tbz	x16,0,.L693
 .L694:
 # Line: 2276, Stmt: 0
 	bl	.P55  // nextsym
@@ -6430,8 +6417,7 @@
 	and	x17,x14,7
 	ldrb	w16,[x13, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L697
+	tbz	x16,0,.L697
 .L698:
 # Line: 2293, Stmt: 0
 	cmp	w14,59
@@ -6477,8 +6463,7 @@
 	and	x17,x14,7
 	ldrb	w16,[x13, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L704
+	tbz	x16,0,.L704
 .L705:
 # Line: 2315, Stmt: 0
 	bl	.P69  // constant
@@ -6551,8 +6536,7 @@
 	and	x17,x15,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L716
+	tbz	x16,0,.L716
 .L717:
 # Line: 2347, Stmt: 0
 	mov	x0,1
@@ -6644,8 +6628,7 @@
 	and	x17,x15,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L728
+	tbz	x16,0,.L728
 .L729:
 # Line: 2381, Stmt: 0
 	adrp	x13,.L32766@PAGE
@@ -6654,8 +6637,7 @@
 	and	x17,x15,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L730
+	tbz	x16,0,.L730
 .L731:
 # Line: 2381, Stmt: 0
 	bl	.P55  // nextsym
@@ -6670,8 +6652,7 @@
 	and	x17,x27,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L732
+	tbz	x16,0,.L732
 .L733:
 # Line: 2385, Stmt: 0
 	bl	.P55  // nextsym
@@ -6686,8 +6667,7 @@
 	and	x17,x27,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L735
+	tbz	x16,0,.L735
 .L736:
 # Line: 2390, Stmt: 0
 	bl	.P55  // nextsym
@@ -6703,8 +6683,7 @@
 	and	x17,x27,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L734
+	tbz	x16,0,.L734
 .L737:
 # Line: 2395, Stmt: 0
 	bl	.P55  // nextsym
@@ -6751,8 +6730,7 @@
 	and	x17,x14,7
 	ldrb	w16,[x13, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L740
+	tbz	x16,0,.L740
 .L741:
 # Line: 2413, Stmt: 0
 	add	x13,x15,.L32767+1208@PAGEOFF
@@ -6760,8 +6738,7 @@
 	and	x17,x14,7
 	ldrb	w16,[x13, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L742
+	tbz	x16,0,.L742
 .L743:
 # Line: 2413, Stmt: 0
 	bl	.P64  // expression
@@ -6861,8 +6838,7 @@
 	and	x17,x15,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.ne	.L749
+	tbnz	x16,0,.L749
 .L747:
 .L755:
 	ldr	x28,[x29,-8]
@@ -7429,8 +7405,7 @@
 	and	x17,x26,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.ne	.L807
+	tbnz	x16,0,.L807
 .L808:
 # Line: 2680, Stmt: 0
 	add	x15,x25,.L32767+1160@PAGEOFF
@@ -7438,8 +7413,7 @@
 	and	x17,x26,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L809
+	tbz	x16,0,.L809
 .L810:
 # Line: 2682, Stmt: 0
 	ldrsw	x0,[x25,.L32767+1256@PAGEOFF]
@@ -7767,8 +7741,7 @@
 	and	x17,x27,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L844
+	tbz	x16,0,.L844
 .L845:
 # Line: 2791, Stmt: 0
 	cmp	w27,42
@@ -7914,8 +7887,7 @@
 	and	x17,x27,7
 	ldrb	w16,[x26, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L852
+	tbz	x16,0,.L852
 .L853:
 # Line: 2826, Stmt: 0
 	adrp	x15,.L32766@PAGE
@@ -7924,8 +7896,7 @@
 	and	x17,x27,7
 	ldrb	w16,[x26, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L854
+	tbz	x16,0,.L854
 .L855:
 # Line: 2828, Stmt: 0
 	ldrsw	x0,[x28,.L32767+1904@PAGEOFF]
@@ -8206,8 +8177,7 @@
 	and	x17,x15,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.ne	.L892
+	tbnz	x16,0,.L892
 .L893:
 # Line: 2924, Stmt: 0
 	ldrsw	x0,[x25,.L32767+1256@PAGEOFF]
@@ -8220,8 +8190,7 @@
 	and	x17,x14,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.ne	.L870
+	tbnz	x16,0,.L870
 .L894:
 # Line: 2926, Stmt: 0
 	bl	.P21  // undent
@@ -8362,8 +8331,7 @@
 	and	x17,x15,7
 	ldrb	w16,[x14, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L903
+	tbz	x16,0,.L903
 .L904:
 # Line: 2988, Stmt: 0
 	bl	.P69  // constant
@@ -9043,8 +9011,7 @@
 	and	x17,x27,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L975
+	tbz	x16,0,.L975
 .L976:
 # Line: 3270, Stmt: 0
 	adrp	x26,.L32767@PAGE
@@ -9061,8 +9028,7 @@
 	and	x17,x27,7
 	ldrb	w16,[x26, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L978
+	tbz	x16,0,.L978
 .L979:
 # Line: 3273, Stmt: 0
 	bl	.P67  // doblock
@@ -9122,8 +9088,7 @@
 	and	x17,x27,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L991
+	tbz	x16,0,.L991
 .L992:
 # Line: 3299, Stmt: 0
 	cmp	w27,40
@@ -9227,8 +9192,7 @@
 	and	x17,x27,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L1002
+	tbz	x16,0,.L1002
 .L1003:
 # Line: 3333, Stmt: 0
 	bl	.P67  // doblock
@@ -9256,8 +9220,7 @@
 	and	x17,x27,7
 	ldrb	w16,[x15, x16]
 	asr	x16,x16,x17
-	ands	x16,x16,1
-	b.eq	.L1001
+	tbz	x16,0,.L1001
 .L1007:
 # Line: 3337, Stmt: 0
 	bl	.P73  // statlist
