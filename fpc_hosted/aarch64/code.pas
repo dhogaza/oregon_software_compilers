@@ -2847,7 +2847,7 @@ procedure unpackwork(var k: keyindex; {operand to unpack}
                settemp(long, imm12_oprnd(bitoffset mod bitsperunit, false)),
                settemp(long, imm12_oprnd(len, false)));
           end
-           else
+        else
            gen4(lastnode, buildinst(inst, true, false), target, target,
                 settemp(long, imm12_oprnd(bitoffset, false)),
                 settemp(long, imm12_oprnd(len, false)));
@@ -2888,6 +2888,75 @@ procedure unpackboth(target: keyindex {try to unpack one operand here});
     unpack(right, 0);
     unlock(left);
   end {unpackboth} ;
+
+procedure unpackbitinfo(var k: keyindex; {possibly packed operand}
+                        var bit: bitrange {rightmost bit of field});
+
+{ Make a source reference to a possibly packed operand.  If the operand
+  is not packed, do nothing.  If it is packed, move the byte or word
+  containing the field to a register, then return the <bit,bitlen> descriptor
+  of the field.  Then tb[n]z can be used to branch on a one-bit field being
+  0 (false) or 1 (true), or on whether a signed field is less than or greater
+  or equal to 0.
+}
+
+  var
+    inst:insts;
+    basekey, regkey, reg2key, bitindexkey, maskkey: keyindex;
+    l: addressrange;
+
+  begin {unpackbitinfo}
+    address(k, 0);
+    if keytable[k].packedaccess then
+      begin
+      { can't put inside the with statement because of that fucking fpc
+        packed boolean bug.
+      }
+{
+      if keytable[k].signed then inst := sbfx
+      else inst := ubfx;
+}
+      with keytable[k], oprnd do
+        begin
+        regkey := settemp(long, reg_oprnd(getreg(false)));
+        if mode = reg_bitoffset then
+          basekey := settemp(alignment div bitsperunit,
+                            index_oprnd(unsigned_offset, reg, bitoffset div bitsperunit, false))
+        else
+          begin
+          if (mode = reg_offset) then
+            if shift = 3 then l := long
+            else l := word
+          else l := alignment div bitsperunit;
+          basekey := settemp(l, oprnd);
+          end;
+        keytable[basekey].signed := false;
+        gensimplemove(lastnode, basekey, regkey);
+        if mode = reg_bitoffset then
+          begin
+          reg2key := settemp(long, reg_oprnd(reg2));
+	  gen3(lastnode, buildinst(lsrinst,false, false), regkey, regkey, reg2key);
+          bit := bitoffset mod bitsperunit;
+{
+          gen4(lastnode, buildinst(inst, true, false), target, target,
+               settemp(long, imm12_oprnd(bitoffset mod bitsperunit, false)),
+               settemp(long, imm12_oprnd(len, false)));
+}
+          end
+        else
+           bit := bitoffset;   
+{
+           gen4(lastnode, buildinst(inst, true, false), target, target,
+                settemp(long, imm12_oprnd(bitoffset, false)),
+                settemp(long, imm12_oprnd(len, false)));
+}
+        end;
+      changevalue(k, regkey);
+      keytable[k].oprnd.bitoffset := bit;
+      end
+    else bit := 0;
+  end {unpackbitinfo} ;
+
 
 procedure makedstaddressable(var k: keyindex);
 
@@ -5093,9 +5162,9 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
    to do similar if a packed field is on a byte, word, or long boundary)
 
   If the following pseudoop is a jumpf or jumpt, we can use cbz or cbnz for an
-  eq/ne comparison against zero, and a tbz or tbnz on bit 31 or 63 for lt/ge zero,
-  using the zero register for the unsigned case.  If we issue one of these specialized
-  branch instructions, we set the key value to nomode.
+  eq/ne comparison against zero, and a tbz or tbnz on bit 31 or 63 for lt/ge zero.
+  If we issue one of these specialized branch instructions, we set the key value
+  to nomode.
 
 }
 
@@ -5106,35 +5175,46 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
     bitcheck: boolean;
 
   begin
-    unpack(left, 0);
-    loadreg(left, 0);
 
-    { Do a compbined compare/branch if the following pseudoop is a jumpf or
-      jumpt.
+    { Do a compbined compare/branch if the value is zero and the following pseudoop is a
+      jumpf or jumpt.  If the comparison is unsigned, which should be handled by the
+      front end but isn't,  we generate either an unconditional branch or nothing.
     }
 
     if (pseudoinst.oprnds[2] = 0) and (signedcond in [eq, ne, lt, ge]) and
        (pseudobuff.op in [jumpt, jumpf]) then
       begin
+      setvalue(nomode_oprnd);
       bitcheck := signedcond in [lt, ge];
       if signedcond = lt then signedcond := ne
       else if signedcond = ge then signedcond := eq;
       if pseudobuff.op = jumpf then signedcond := invertcond[signedcond];
-      with keytable[left] do
-        if bitcheck then
-          if keytable[left].signed then
+      if bitcheck and not keytable[left].signed then
+        begin
+        dereference(left);
+        if signedcond = eq then genbr(lastnode, b, pseudobuff.oprnds[1]);
+{
+        gentbnzcond(lastnode, signedcond, long, regkeys[zero], 61,
+                   pseudobuff.oprnds[1], true)
+}
+        end
+      else
+        begin
+        unpack(left, 0);
+        loadreg(left, 0);
+        with keytable[left] do
+          if bitcheck then
             gentbnzcond(lastnode, signedcond, len = long, left, len * bitsperunit - 1,
-                      pseudobuff.oprnds[1], true)
+                        pseudobuff.oprnds[1], true)
           else
-            gentbnzcond(lastnode, signedcond, len = long, regkeys[zero], len * bitsperunit - 1,
-                      pseudobuff.oprnds[1], true)
-        else
-          gencbnzcond(lastnode, signedcond, len = long, left,
-                      pseudobuff.oprnds[1], true);
-      keytable[key].oprnd.mode := nomode;
+            gencbnzcond(lastnode, signedcond, len = long, left,
+                        pseudobuff.oprnds[1], true);
+        end;
       end
     else
       begin
+      unpack(left, 0);
+      loadreg(left, 0);
       cmplitint(len, left, pseudoinst.oprnds[2]);
       if keytable[left].signed then
         setvalue(cond_oprnd(signedcond))
@@ -8473,9 +8553,11 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
   var
     c: conds;
     regkey: keyindex;
+    bit: bitrange;
+    usebittest: boolean;
 
   begin {jumpcond}
-    with keytable[right].oprnd do
+    with keytable[right],oprnd do
       if mode = nomode then dereference(right)
       else
         begin
@@ -8484,24 +8566,23 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
           dereference(right);
           c := keytable[right].oprnd.condition
           end
-        else if mode = nomode then dereference(right)
         else
           begin
-          unpack(right, 0);
+          usebittest := packedaccess;
+          unpackbitinfo(right, bit);
           c := ne;
           loadreg(right, 0);
           end;
-      if inv then c := invertcond[c];
-      end;
+        if inv then c := invertcond[c];
+        end;
 
     with keytable[right].oprnd do
-      if mode = register then
-        begin
-        regkey := settemp(keytable[right].len, reg_oprnd(keytable[right].oprnd.reg));
-        gencbnzcond(lastnode, c, keytable[right].len = long, regkey, pseudoinst.oprnds[1], true);
-        end
-      else
-        if mode = cond then genbcond(lastnode, c, pseudoinst.oprnds[1], true);
+      if mode = cond then genbcond(lastnode, c, pseudoinst.oprnds[1], true)
+      else if mode = register then
+        if usebittest then
+          gentbnzcond(lastnode, c, true, right, bit, pseudoinst.oprnds[1], true)
+        else
+          gencbnzcond(lastnode, c, len = long, right, pseudoinst.oprnds[1], true);
   end {jumpcond} ;
 
 procedure condvalue(inv: boolean);
