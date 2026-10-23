@@ -1,4 +1,5 @@
 r1.a expect false false
+if r1.b expect true true
 r1.b expect true  true
 r1.ch expect a a
 r1.i expect -3           -3

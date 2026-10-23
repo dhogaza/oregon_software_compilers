@@ -21,6 +21,8 @@ begin
   r1.r.d := b;
   r1.r.c := false;
   writeln('r1.a expect false ', r1.a);
+  write('if r1.b expect true ');
+  if r1.b then writeln('true') else writeln('false');
   writeln('r1.b expect true ', r1.b);
   writeln('r1.ch expect a ', r1.ch);
   writeln('r1.i expect -3 ', r1.i);
