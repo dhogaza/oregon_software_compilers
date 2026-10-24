@@ -2910,9 +2910,9 @@ procedure unpackbitinfo(var k: keyindex; {possibly packed operand}
     address(k, 0);
     if keytable[k].packedaccess then
       begin
-      bitlen := len;
       with keytable[k], oprnd do
         begin
+        bitlen := len;
         regkey := settemp(long, reg_oprnd(getreg(false)));
         if mode = reg_bitoffset then
           basekey := settemp(alignment div bitsperunit,
@@ -5189,6 +5189,7 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
           begin
           unpackbitinfo(left, bit, bitlen);
           loadreg(left, 0);
+writeln(bit, ' ', bitlen);
           gentbnzcond(lastnode, signedcond, true, left, bit + bitlen - 1,
                       pseudobuff.oprnds[1], true);
           end
