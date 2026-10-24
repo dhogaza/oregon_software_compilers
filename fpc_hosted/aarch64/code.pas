@@ -5189,12 +5189,15 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
           begin
           unpackbitinfo(left, bit, bitlen);
           loadreg(left, 0);
-writeln(bit, ' ', bitlen);
           gentbnzcond(lastnode, signedcond, true, left, bit + bitlen - 1,
                       pseudobuff.oprnds[1], true);
           end
       else
         begin
+        {the check for a one bit comparision with zero is rather lame because
+         Pascal code will almost always declare that a boolean.  Adding this only
+         saved two instructions when compiling the entire M68K compiler!
+        }
         with keytable[left] do
         bitcheck := packedaccess and (len = 1);
         if bitcheck then unpackbitinfo(left, bit, bitlen)
