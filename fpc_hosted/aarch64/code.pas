@@ -2890,7 +2890,8 @@ procedure unpackboth(target: keyindex {try to unpack one operand here});
   end {unpackboth} ;
 
 procedure unpackbitinfo(var k: keyindex; {possibly packed operand}
-                        var bit: bitrange {rightmost bit of field});
+                        var bit: bitrange; {rightmost bit of field}
+                        var bitlen: bitrange {length of bit field});
 
 { Make a source reference to a possibly packed operand.  If the operand
   is not packed, do nothing.  If it is packed, move the byte or word
@@ -2909,13 +2910,7 @@ procedure unpackbitinfo(var k: keyindex; {possibly packed operand}
     address(k, 0);
     if keytable[k].packedaccess then
       begin
-      { can't put inside the with statement because of that fucking fpc
-        packed boolean bug.
-      }
-{
-      if keytable[k].signed then inst := sbfx
-      else inst := ubfx;
-}
+      bitlen := len;
       with keytable[k], oprnd do
         begin
         regkey := settemp(long, reg_oprnd(getreg(false)));
@@ -2937,24 +2932,18 @@ procedure unpackbitinfo(var k: keyindex; {possibly packed operand}
           reg2key := settemp(long, reg_oprnd(reg2));
 	  gen3(lastnode, buildinst(lsrinst,false, false), regkey, regkey, reg2key);
           bit := bitoffset mod bitsperunit;
-{
-          gen4(lastnode, buildinst(inst, true, false), target, target,
-               settemp(long, imm12_oprnd(bitoffset mod bitsperunit, false)),
-               settemp(long, imm12_oprnd(len, false)));
-}
           end
         else
            bit := bitoffset;   
-{
-           gen4(lastnode, buildinst(inst, true, false), target, target,
-                settemp(long, imm12_oprnd(bitoffset, false)),
-                settemp(long, imm12_oprnd(len, false)));
-}
         end;
       changevalue(k, regkey);
       keytable[k].oprnd.bitoffset := bit;
       end
-    else bit := 0;
+    else
+      begin
+      bit := 0;
+      bitlen := len * bitsperunit;
+      end;
   end {unpackbitinfo} ;
 
 
@@ -5173,6 +5162,7 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
     i: insts;
     litkey: keyindex;
     bitcheck: boolean;
+    bit, bitlen: bitrange;
 
   begin
 
@@ -5189,26 +5179,31 @@ procedure cmplitintx(signedcond, unsignedcond: conds {branch instructions});
       if signedcond = lt then signedcond := ne
       else if signedcond = ge then signedcond := eq;
       if pseudobuff.op = jumpf then signedcond := invertcond[signedcond];
-      if bitcheck and not keytable[left].signed then
-        begin
-        dereference(left);
-        if signedcond = eq then genbr(lastnode, b, pseudobuff.oprnds[1]);
-{
-        gentbnzcond(lastnode, signedcond, long, regkeys[zero], 61,
-                   pseudobuff.oprnds[1], true)
-}
-        end
+      if bitcheck then
+        if not keytable[left].signed then
+          begin
+          dereference(left);
+          if signedcond = eq then genbr(lastnode, b, pseudobuff.oprnds[1]);
+          end
+        else
+          begin
+          unpackbitinfo(left, bit, bitlen);
+          loadreg(left, 0);
+          gentbnzcond(lastnode, signedcond, true, left, bit + bitlen - 1,
+                      pseudobuff.oprnds[1], true);
+          end
       else
         begin
-        unpack(left, 0);
-        loadreg(left, 0);
         with keytable[left] do
-          if bitcheck then
-            gentbnzcond(lastnode, signedcond, len = long, left, len * bitsperunit - 1,
-                        pseudobuff.oprnds[1], true)
-          else
-            gencbnzcond(lastnode, signedcond, len = long, left,
-                        pseudobuff.oprnds[1], true);
+        bitcheck := packedaccess and (len = 1);
+        if bitcheck then unpackbitinfo(left, bit, bitlen)
+        else unpack(left, 0);
+        loadreg(left,0);
+        if bitcheck then
+          gentbnzcond(lastnode, signedcond, true, left, bit,
+                      pseudobuff.oprnds[1], true)
+        else
+          gencbnzcond(lastnode, signedcond, len = long, left, pseudobuff.oprnds[1], true);
         end;
       end
     else
@@ -8553,8 +8548,8 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
   var
     c: conds;
     regkey: keyindex;
-    bit: bitrange;
-    usebittest: boolean;
+    bit, bitlen: bitrange;
+    bitcheck: boolean;
 
   begin {jumpcond}
     with keytable[right],oprnd do
@@ -8568,18 +8563,17 @@ procedure jumpcond(inv: boolean {invert the sense of the comparision});
           end
         else
           begin
-          usebittest := packedaccess;
-          unpackbitinfo(right, bit);
+          bitcheck := packedaccess;
+          unpackbitinfo(right, bit, bitlen);
           c := ne;
           loadreg(right, 0);
           end;
         if inv then c := invertcond[c];
         end;
-
     with keytable[right].oprnd do
       if mode = cond then genbcond(lastnode, c, pseudoinst.oprnds[1], true)
       else if mode = register then
-        if usebittest then
+        if bitcheck then
           gentbnzcond(lastnode, c, true, right, bit, pseudoinst.oprnds[1], true)
         else
           gencbnzcond(lastnode, c, len = long, right, pseudoinst.oprnds[1], true);
