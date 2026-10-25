@@ -208,7 +208,7 @@ putint:
 # Line: 76, Stmt: 1
 	mov	x27,x0
 # Line: 77, Stmt: 2
-	tbz	w27,31,.L26
+	tbz	x27,31,.L26
 .L27:
 # Line: 79, Stmt: 0
 	mov	x0,45

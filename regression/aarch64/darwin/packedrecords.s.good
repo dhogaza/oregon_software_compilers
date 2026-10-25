@@ -88,7 +88,7 @@
 	bl	_p_wts_o 
 # Line: 25, Stmt: 0
 	ldrb	w15,[x28,.L32767+24@PAGEOFF]
-	tbz	w15,1,.L3
+	tbz	x15,1,.L3
 .L4:
 # Line: 25, Stmt: 0
 	adrp	x14,.L32766@PAGE

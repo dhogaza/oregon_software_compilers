@@ -2143,12 +2143,14 @@
 	add	x14,x15,w25, sxtw 0
 	add	x14,x14,792
 	sub	x13,x29,80
-	mov	x16,26
-.L32688:
+	ldr	x16,[x14],8
+	str	x16,[x13],8
+	ldr	x16,[x14],8
+	str	x16,[x13],8
+	ldr	x16,[x14],8
+	str	x16,[x13],8
 	ldrh	w17,[x14],2
 	strh	w17,[x13],2
-	subs	x16,x16,2
-	cbnz	x16,.L32688
 	sub	x0,x29,80
 	bl	.P16  // print_entri
 # Line: 566, Stmt: 0
