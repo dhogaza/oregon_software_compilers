@@ -3,11 +3,8 @@
    1. add file and line no information for gcc so breakpoints can be set and
       backtraces executed.
 
-      walk file remember list issuing .file directives.  Check include file
-      names.  Will be '.file n "<pwd>" "filename"' for darwin, one long
-      filename for linux unless it is OK to restrict debugging to the directory
-      within which it was compiled.  When stmtbrk length file is non-zero, find
-      corresponding file number and save.
+      walk file remember list issuing .file directives.  This is done but
+      doesn't handle include names, which is annoying for walkback.
 
       Add cfi info: startproc, endproc, reg save/restore
 
@@ -18,6 +15,9 @@
 
    3. figure out how to organize files.  Probably self_hosted to match fpc_hosted with
       the goal of getting rid of fpc_hosted.
+
+   4. implement simplified units to better share code between fpc and p2 as in the
+      compiler itself?
 
 -- random stuff
 
