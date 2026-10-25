@@ -7221,30 +7221,24 @@ procedure pshprocx;
 
 procedure movemultiple(src, dst: keyindex);
 
-{ This could be improved by moving as many large chunks as possible, either unrolled
-  or in a loop, then by moving the smaller pieces inline afterwards.
-
-  The current code isn't altogether awful, though.
-}
-
 var
   srcregkey, dstregkey, extraregkey: keyindex;
-  srcalign, dstalign, lenalign, align: alignmentrange;
+  srcalign, dstalign, align: alignmentrange;
   pieces: addressrange;
+  leftoverlen: 0.. 3;
   l: addressrange;
   looplabel: labelindex;
 
   begin {movemultiple}
     srcalign := alignmentof(keytable[src].alignment);
     dstalign := alignmentof(keytable[dst].alignment);
-    lenalign := alignmentof(len);
     if srcalign < dstalign then align := srcalign
     else align := dstalign;
 
     { aarch64 allows quad sized moves on a long boundary }
-    if lenalign < align then align := lenalign
-    else if (align = long) and (lenalign = quad) then align := quad;
+    if (align = long) and (alignmentof(len) = quad) then align := quad;
     pieces := len div align;
+    leftoverlen := len mod align;
 
     if align = quad then
       begin
@@ -7267,40 +7261,53 @@ var
     keytable[srcregkey].oprnd.index := align;
     keytable[dstregkey].oprnd.mode := post_index;
     keytable[dstregkey].oprnd.index := align;
-    if pieces <= 4 then
-      while pieces > 0 do
+    if pieces > 0 then
+      if pieces <= maxstructunroll then
+        while pieces > 0 do
+          begin
+          if align = quad then
+            begin
+            gen3(lastnode, buildinst(ldp, true, false), regkeys[ip0], regkeys[ip1], srcregkey);
+            gen3(lastnode, buildinst(stp, true, false), regkeys[ip0], regkeys[ip1], dstregkey);
+           end
+          else
+            begin
+            genldr(lastnode, align, false, regkeys[ip0], srcregkey);
+            genstr(lastnode, align, regkeys[ip0], dstregkey);
+            end;
+          pieces := pieces - 1;
+          end
+      else
         begin
+        gensimplemove(lastnode, settemp(long, intconst_oprnd(pieces)), regkeys[ip0]);
+        looplabel := newlabel;
+        definelabel(looplabel);
         if align = quad then
           begin
-          gen3(lastnode, buildinst(ldp, true, false), regkeys[ip0], regkeys[ip1], srcregkey);
-          gen3(lastnode, buildinst(stp, true, false), regkeys[ip0], regkeys[ip1], dstregkey);
+          gen3(lastnode, buildinst(ldp, true, false), extraregkey, regkeys[ip1], srcregkey);
+          gen3(lastnode, buildinst(stp, true, false), extraregkey, regkeys[ip1], dstregkey);
          end
         else
-          begin
-          genldr(lastnode, align, false, regkeys[ip0], srcregkey);
-          genstr(lastnode, align, regkeys[ip0], dstregkey);
-          end;
-        pieces := pieces - 1;
-        end
-    else
+         begin
+         genldr(lastnode, align, false, regkeys[ip1], srcregkey);
+         genstr(lastnode, align, regkeys[ip1], dstregkey);
+         end;
+        gen3(lastnode, buildinst(sub, true, true), regkeys[ip0], regkeys[ip0],
+                       settemp(long, imm12_oprnd(1, false)));
+        gencbnzcond(lastnode, ne, true, regkeys[ip0], looplabel, true);
+        end;
+    while leftoverlen > 0 do
       begin
-      gensimplemove(lastnode, settemp(long, intconst_oprnd(len)), regkeys[ip0]);
-      looplabel := newlabel;
-      definelabel(looplabel);
-      if align = quad then
+      align := align div 2;
+      if leftoverlen >= align then
         begin
-        gen3(lastnode, buildinst(ldp, true, false), extraregkey, regkeys[ip1], srcregkey);
-        gen3(lastnode, buildinst(stp, true, false), extraregkey, regkeys[ip1], dstregkey);
-       end
-      else
-       begin
-       genldr(lastnode, align, false, regkeys[ip1], srcregkey);
-       genstr(lastnode, align, regkeys[ip1], dstregkey);
-       end;
-      gen3(lastnode, buildinst(sub, true, true), regkeys[ip0], regkeys[ip0],
-                     settemp(long, imm12_oprnd(align, false)));
-      gencbnzcond(lastnode, ne, true, regkeys[ip0], looplabel, true);
-      end
+        keytable[srcregkey].oprnd.index := align;
+        keytable[dstregkey].oprnd.index := align;
+        genldr(lastnode, align, false, regkeys[ip1], srcregkey);
+        genstr(lastnode, align, regkeys[ip1], dstregkey);
+        leftoverlen := leftoverlen - align;
+        end;
+      end;
   end {movemultiple};
 
 procedure movstructx;

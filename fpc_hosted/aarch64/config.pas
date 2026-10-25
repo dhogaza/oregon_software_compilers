@@ -427,6 +427,9 @@ const
 
 { Code parameters }
 
+  maxstructunroll = 4; {structs requiring more than this number of instructions
+                            are not unrolled}
+
   {The following constants size the pass and the max block size for compiling}
 
   labeltablesize = 1000; {max number of labels per block}
@@ -469,8 +472,6 @@ const
   wrdr = 29; {write a double real number to a text file}
   wrstrg = 32; {write a string to a text file}
   wrbo = 110; {write a boolean variable to a text file}
-{ constant definitions to support the PutObj module:
-}
 
   checkmsg = ' consistency checks detected'; { output only if internal errors
                                               }
