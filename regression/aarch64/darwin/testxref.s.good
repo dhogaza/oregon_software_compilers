@@ -1199,12 +1199,10 @@
 # Line: 328, Stmt: 0
 	add	x22,x23,.L32767+24@PAGEOFF
 	add	x14,x15,792
-	ldr	w16,[x22],4
-	str	w16,[x14],4
-	ldr	w16,[x22],4
-	str	w16,[x14],4
-	ldr	w16,[x22],4
-	str	w16,[x14],4
+	ldr	x16,[x22],8
+	str	x16,[x14],8
+	ldr	w17,[x22],4
+	str	w17,[x14],4
 # Line: 329, Stmt: 0
 	ldr	x16,[x29,32]
 	str	x16,[x15,808]
@@ -2166,12 +2164,10 @@
 	add	x11,x12,w13, sxtw 0
 	add	x11,x11,792
 	add	x14,x14,792
-	ldr	w16,[x11],4
-	str	w16,[x14],4
-	ldr	w16,[x11],4
-	str	w16,[x14],4
-	ldr	w16,[x11],4
-	str	w16,[x14],4
+	ldr	x16,[x11],8
+	str	x16,[x14],8
+	ldr	w17,[x11],4
+	str	w17,[x14],4
 # Line: 569, Stmt: 0
 	add	x15,x15,w25, sxtw 0
 	add	x14,x12,w13, sxtw 0

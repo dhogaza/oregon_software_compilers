@@ -144,12 +144,10 @@ _main:
 # Line: 25, Stmt: 0
 	add	x28,x28,.L32767+24@PAGEOFF
 	sub	x15,x29,24
-	ldr	w16,[x28],4
-	str	w16,[x15],4
-	ldr	w16,[x28],4
-	str	w16,[x15],4
-	ldr	w16,[x28],4
-	str	w16,[x15],4
+	ldr	x16,[x28],8
+	str	x16,[x15],8
+	ldr	w17,[x28],4
+	str	w17,[x15],4
 	sub	x0,x29,24
 	adrp	x28,.L32767@PAGE
 	add	x1,x28,.L32767+40@PAGEOFF

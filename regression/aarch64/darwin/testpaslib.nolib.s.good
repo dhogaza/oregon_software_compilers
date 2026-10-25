@@ -3938,12 +3938,10 @@ _main:
 	adrp	x14,.L32766@PAGE
 	add	x15,x14,.L32766+1268@PAGEOFF
 	add	x14,x28,_p_paslib+16@PAGEOFF
-	ldrb	w16,[x15],1
-	strb	w16,[x14],1
-	ldrb	w16,[x15],1
-	strb	w16,[x14],1
-	ldrb	w16,[x15],1
-	strb	w16,[x14],1
+	ldrh	w17,[x15],2
+	strh	w17,[x14],2
+	ldrb	w17,[x15],1
+	strb	w17,[x14],1
 # Line: 24, Stmt: 0
 	sub	x16,x29,16
 	add	x17,x28,_p_paslib+16@PAGEOFF

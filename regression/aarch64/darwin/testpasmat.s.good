@@ -6811,12 +6811,10 @@
 # Line: 2445, Stmt: 0
 	add	x15,x29,32
 	sub	x14,x29,32
-	ldr	w16,[x15],4
-	str	w16,[x14],4
-	ldr	w16,[x15],4
-	str	w16,[x14],4
-	ldr	w16,[x15],4
-	str	w16,[x14],4
+	ldr	x16,[x15],8
+	str	x16,[x14],8
+	ldr	w17,[x15],4
+	str	w17,[x14],4
 	sub	x0,x29,32
 	bl	.P61  // bunchstatement
 .L750:
@@ -7087,12 +7085,10 @@
 # Line: 2565, Stmt: 0
 	add	x28,x29,16
 	sub	x27,x29,32
-	ldr	w16,[x28],4
-	str	w16,[x27],4
-	ldr	w16,[x28],4
-	str	w16,[x27],4
-	ldr	w16,[x28],4
-	str	w16,[x27],4
+	ldr	x16,[x28],8
+	str	x16,[x27],8
+	ldr	w17,[x28],4
+	str	w17,[x27],4
 	sub	x0,x29,32
 	add	x1,x29,36
 	bl	.P60  // bunch
@@ -7178,12 +7174,10 @@
 # Line: 2600, Stmt: 0
 	add	x28,x29,24
 	sub	x27,x29,32
-	ldr	w16,[x28],4
-	str	w16,[x27],4
-	ldr	w16,[x28],4
-	str	w16,[x27],4
-	ldr	w16,[x28],4
-	str	w16,[x27],4
+	ldr	x16,[x28],8
+	str	x16,[x27],8
+	ldr	w17,[x28],4
+	str	w17,[x27],4
 	sub	x0,x29,32
 	add	x1,x29,36
 	bl	.P60  // bunch
@@ -7273,12 +7267,10 @@
 # Line: 2633, Stmt: 0
 	add	x15,x29,16
 	sub	x14,x29,32
-	ldr	w16,[x15],4
-	str	w16,[x14],4
-	ldr	w16,[x15],4
-	str	w16,[x14],4
-	ldr	w16,[x15],4
-	str	w16,[x14],4
+	ldr	x16,[x15],8
+	str	x16,[x14],8
+	ldr	w17,[x15],4
+	str	w17,[x14],4
 	sub	x0,x29,32
 	add	x1,x29,36
 	bl	.P60  // bunch
@@ -7325,12 +7317,10 @@
 # Line: 2646, Stmt: 0
 	add	x15,x29,16
 	sub	x14,x29,32
-	ldr	w16,[x15],4
-	str	w16,[x14],4
-	ldr	w16,[x15],4
-	str	w16,[x14],4
-	ldr	w16,[x15],4
-	str	w16,[x14],4
+	ldr	x16,[x15],8
+	str	x16,[x14],8
+	ldr	w17,[x15],4
+	str	w17,[x14],4
 	sub	x0,x29,32
 	add	x1,x29,36
 	bl	.P60  // bunch
@@ -7444,12 +7434,10 @@
 # Line: 2691, Stmt: 0
 	add	x15,x29,16
 	sub	x14,x29,64
-	ldr	w16,[x15],4
-	str	w16,[x14],4
-	ldr	w16,[x15],4
-	str	w16,[x14],4
-	ldr	w16,[x15],4
-	str	w16,[x14],4
+	ldr	x16,[x15],8
+	str	x16,[x14],8
+	ldr	w17,[x15],4
+	str	w17,[x14],4
 	sub	x0,x29,64
 	add	x1,x29,28
 	bl	.P60  // bunch
@@ -7518,12 +7506,10 @@
 # Line: 2704, Stmt: 0
 	add	x26,x29,16
 	sub	x25,x29,64
-	ldr	w16,[x26],4
-	str	w16,[x25],4
-	ldr	w16,[x26],4
-	str	w16,[x25],4
-	ldr	w16,[x26],4
-	str	w16,[x25],4
+	ldr	x16,[x26],8
+	str	x16,[x25],8
+	ldr	w17,[x26],4
+	str	w17,[x25],4
 	sub	x0,x29,64
 	add	x1,x29,28
 	bl	.P60  // bunch
@@ -7671,12 +7657,10 @@
 # Line: 2767, Stmt: 0
 	add	x28,x29,24
 	sub	x15,x29,24
-	ldr	w16,[x28],4
-	str	w16,[x15],4
-	ldr	w16,[x28],4
-	str	w16,[x15],4
-	ldr	w16,[x28],4
-	str	w16,[x15],4
+	ldr	x16,[x28],8
+	str	x16,[x15],8
+	ldr	w17,[x28],4
+	str	w17,[x15],4
 	sub	x0,x29,24
 	add	x1,x29,36
 	bl	.P60  // bunch
@@ -8159,12 +8143,10 @@
 # Line: 2923, Stmt: 0
 	add	x15,x29,32
 	sub	x14,x29,64
-	ldr	w16,[x15],4
-	str	w16,[x14],4
-	ldr	w16,[x15],4
-	str	w16,[x14],4
-	ldr	w16,[x15],4
-	str	w16,[x14],4
+	ldr	x16,[x15],8
+	str	x16,[x14],8
+	ldr	w17,[x15],4
+	str	w17,[x14],4
 	sub	x0,x29,64
 	add	x1,x29,44
 	bl	.P60  // bunch
@@ -8579,12 +8561,10 @@
 # Line: 3080, Stmt: 0
 	add	x27,x29,16
 	sub	x15,x29,32
-	ldr	w16,[x27],4
-	str	w16,[x15],4
-	ldr	w16,[x27],4
-	str	w16,[x15],4
-	ldr	w16,[x27],4
-	str	w16,[x15],4
+	ldr	x16,[x27],8
+	str	x16,[x15],8
+	ldr	w17,[x27],4
+	str	w17,[x15],4
 	sub	x0,x29,32
 	bl	.P85  // recordtype
 	b	.L925
@@ -8729,12 +8709,10 @@
 # Line: 3145, Stmt: 0
 	add	x15,x29,16
 	sub	x14,x29,40
-	ldr	w16,[x15],4
-	str	w16,[x14],4
-	ldr	w16,[x15],4
-	str	w16,[x14],4
-	ldr	w16,[x15],4
-	str	w16,[x14],4
+	ldr	x16,[x15],8
+	str	x16,[x14],8
+	ldr	w17,[x15],4
+	str	w17,[x14],4
 	sub	x0,x29,40
 	bl	.P61  // bunchstatement
 .L948:
