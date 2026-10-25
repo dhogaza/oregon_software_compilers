@@ -7225,9 +7225,9 @@ var
   srcregkey, dstregkey, extraregkey: keyindex;
   srcalign, dstalign, align: alignmentrange;
   pieces: addressrange;
-  leftoverlen: 0.. 3;
   l: addressrange;
   looplabel: labelindex;
+  leftoverlen: 0..15; {we move up to 16 bytes at a time}
 
   begin {movemultiple}
     srcalign := alignmentof(keytable[src].alignment);
