@@ -979,8 +979,10 @@ var
 
 begin
   filep := _p_checkio(filevar, _p_read);
+{
   with filep^ do
-    if _p_def in status then
+}
+    if _p_def in filep^.status then
       if _p_eof in filep^.status then
         _p_libfileerror(filep, nil, 0, 'Attempt to read past end of file')
       else filep^.status := filep^.status - [_p_def]
