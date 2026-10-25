@@ -5578,14 +5578,10 @@ procedure dostructx;
 
   var
     labelkey, regkey: keyindex;
-    lenalign, addralign: alignmentrange;
 
 begin {dostructx}
   setvalue(dataref_oprnd(rodatalabel, false, 0, false, pseudoinst.oprnds[1]));
-  lenalign := alignmentof(len);
-  addralign := alignmentof(pseudoinst.oprnds[1]);
-  if lenalign < addralign then keytable[key].alignment := lenalign
-  else keytable[key].alignment := addralign;
+  keytable[key].alignment := alignmentof(pseudoinst.oprnds[1]);
 end {dostructx} ;
 
 { set operations }
@@ -7230,8 +7226,8 @@ var
   leftoverlen: 0..15; {we move up to 16 bytes at a time}
 
   begin {movemultiple}
-    srcalign := alignmentof(keytable[src].alignment);
-    dstalign := alignmentof(keytable[dst].alignment);
+    srcalign := keytable[src].alignment;
+    dstalign := keytable[dst].alignment;
     if srcalign < dstalign then align := srcalign
     else align := dstalign;
 
@@ -7948,9 +7944,7 @@ procedure indxx;
                      keytable[labelkey].oprnd.externref,
                      keytable[labelkey].oprnd.labeloffset));
           keytable[key].regsaved := true;
-          if alignmentof(len) < alignmentof(keytable[labelkey].oprnd.labeloffset) then
-            keytable[key].alignment := alignmentof(len)
-          else keytable[key].alignment := alignmentof(keytable[labelkey].oprnd.labeloffset)
+          keytable[key].alignment := alignmentof(keytable[labelkey].oprnd.labeloffset)
           end;
         label_offset:
           {This is simple unless the new labeloffset is greater than 4095.  This can happen
@@ -7987,9 +7981,7 @@ procedure indxx;
           with keytable[key].oprnd do
             begin
             labeloffset := labeloffset + pseudoinst.oprnds[2];
-            if alignmentof(len) < alignmentof(labeloffset) then
-              keytable[key].alignment := alignmentof(len)
-            else  keytable[key].alignment := alignmentof(labeloffset);
+            keytable[key].alignment := alignmentof(labeloffset);
             end;
           end;
         reg_offset:
@@ -8003,9 +7995,7 @@ procedure indxx;
             settemp(long, index_oprnd(abstract_offset,
                     keytable[newkey].oprnd.reg, pseudoinst.oprnds[2], false));
             setallfields(tempkey);
-            if alignmentof(len) < alignmentof(pseudoinst.oprnds[2]) then
-              keytable[key].alignment := alignmentof(len)
-            else keytable[key].alignment := alignmentof(pseudoinst.oprnds[2])
+            keytable[key].alignment := alignmentof(pseudoinst.oprnds[2])
             end;
         abstract_offset:
           begin
@@ -8014,9 +8004,7 @@ procedure indxx;
             keytable[key].oprnd.index + pseudoinst.oprnds[2];
           if keytable[key].oprnd.reg in [sp, sl, fp] then
             keytable[key].regenoprnd := keytable[key].oprnd;
-          if alignmentof(len) < alignmentof(keytable[key].oprnd.index) then
-            keytable[key].alignment := alignmentof(len)
-          else keytable[key].alignment := alignmentof(keytable[key].oprnd.index);
+          keytable[key].alignment := alignmentof(keytable[key].oprnd.index);
           end;
       end
     end
