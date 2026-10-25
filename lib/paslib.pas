@@ -934,20 +934,22 @@ var
   filep: _p_fileinfoptr;
   bytesread: integer;
   ch: integer; {-1 for eof}
+  status: _p_filestatustype;
 
 begin {_p_define}
   filep := _p_checkio(filevar, _p_read);
-  if _p_text in filep^.status then
+  status := filep^.status;
+  if _p_text in status then
     begin
     ch := fgetc(filep^.streamp);
     if ch < 0 then
-      filep^.status := filep^.status + [_p_eof, _p_eoln]
+      status := status + [_p_eof, _p_eoln]
     else
       begin
-      filep^.status := filep^.status - [_p_eof, _p_eoln];
+      status := status - [_p_eof, _p_eoln];
       if ch = 10 then
         begin
-        filep^.status := filep^.status + [_p_eoln];
+        status := status + [_p_eoln];
         filep^.ch := ' '
         end
       else filep^.ch := chr(ch);
@@ -957,11 +959,11 @@ begin {_p_define}
     begin
     bytesread := fread(filep^.bufferp, filep^.size, 1, filep^.streamp);
     if (bytesread < filep^.size) and feof(filep^.streamp) then
-      filep^.status := filep^.status + [_p_eof]
+      status := status + [_p_eof]
     else
-      filep^.status := filep^.status - [_p_eof];
+      status := status - [_p_eof];
     end;
-  filep^.status :=filep^.status + [_p_def];
+  filep^.status := status + [_p_def];
 end {_p_define};
 
 procedure _p_get;
