@@ -37,7 +37,82 @@ begin
     end;
   writeln('r1.i + r1.i + r1.j expect -2 ', r1.i + r1.i + r1.j);
 end;
+
+procedure p1;
+
+var a: packed array[0..511] of packed record r:0..511 end;
+  i: 0..511;
+  b: boolean;
+
+begin
+  for i := 0 to 511 do a[i].r := i;
+  b := true;
+  i := 0;
+  while b and (i < 511) do
+    begin
+    b := b and (a[i].r + 1 = a[i + 1].r);
+    i := i + 1;
+    end;
+  writeln('expect b: true i: 511  b: ', b:1, ' i: ', i:1);
+  write('expect a[i].r <= 511 true: ');
+  if a[i].r <= 511 then writeln('true') else writeln('false');
+  writeln('test optimized tests against 0');
+  write('expect a[i].r < 0 false: ');
+  if a[i].r < 0 then writeln('true') else writeln('false');
+  write('expect a[i].r >= 0 true: ');
+  if a[i].r >= 0 then writeln('true') else writeln('false');
+end;
+
+{$index}
+procedure p2;
+
+var a: packed array[0..511] of packed record r:0..511 end;
+  i: 0..511;
+  b: boolean;
+
+begin
+  for i := 0 to 511 do a[i].r := i;
+  b := true;
+  i := 0;
+  while b and (i < 511) do
+    begin
+    b := b and (a[i].r + 1 = a[i + 1].r);
+    i := i + 1;
+    end;
+  writeln('expect b: true i: 511  b: ', b:1, ' i: ', i:1);
+  write('expect a[i].r <= 511 true: ');
+  if a[i].r <= 511 then writeln('true') else writeln('false');
+  writeln('test optimized tests against 0');
+  write('expect a[i].r < 0 false: ');
+  if a[i].r < 0 then writeln('true') else writeln('false');
+  write('expect a[i].r >= 0 true: ');
+  if a[i].r >= 0 then writeln('true') else writeln('false');
+end;
+
+procedure p3;
+
+var a: packed array[0..511] of packed record r:0..511 end;
+  i: 0..511;
+  b: boolean;
+
+begin
+  for i := 0 to 511 do a[i].r := i;
+  b := true;
+  i := 0;
+  while b and (i <= 511) do
+    begin
+    b := b and (a[i].r + 1 = a[i + 1].r);
+    i := i + 1;
+    end;
+end;
+
 begin
  b := true;
  p;
+ writeln('Checking disabled should pass');
+ p1;
+ writeln('Checking enabled should pass');
+ p2;
+ writeln('attempting to access a[512] should trigger a subscript error');
+ p3;
 end.

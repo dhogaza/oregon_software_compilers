@@ -10,3 +10,17 @@ with r1.r
 c expect false false
 d expect  true  true
 r1.i + r1.i + r1.j expect -2           -2
+Checking disabled should pass
+expect b: true i: 511  b: true i: 511
+expect a[i].r <= 511 true: true
+test optimized tests against 0
+expect a[i].r < 0 false: false
+expect a[i].r >= 0 true: true
+Checking enabled should pass
+expect b: true i: 511  b: true i: 511
+expect a[i].r <= 511 true: true
+test optimized tests against 0
+expect a[i].r < 0 false: false
+expect a[i].r >= 0 true: true
+attempting to access a[512] should trigger a subscript error
+Pascal-2 runtime error: Array subscript out of bounds
