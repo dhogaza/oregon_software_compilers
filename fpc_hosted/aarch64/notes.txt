@@ -10,6 +10,32 @@
 
    1a. Figure out how to make it work under darwin.  Plugin for P2?
 
+      -gline-tables-only or -gline-directives-only in clang.  see what it does!
+
+      It breaks, that's what:
+
+       gcc -gline-directives-only -c structret.c -S
+       clang: error: unable to execute command: Segmentation fault: 11
+       clang: error: clang frontend command failed due to signal (use -v to see invocation)
+       Apple clang version 17.0.0 (clang-1700.0.13.5)
+       Target: arm64-apple-darwin24.6.0
+       Thread model: posix
+       InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+       clang: note: diagnostic msg: 
+       ********************
+
+       PLEASE ATTACH THE FOLLOWING FILES TO THE BUG REPORT:
+       Preprocessed source(s) and associated run script(s) are located at:
+       clang: note: diagnostic msg: /var/folders/w8/v6llrmtd6l9cgx65xgsjdqz80000gn/T/structret-a5a45f.c
+       clang: note: diagnostic msg: /var/folders/w8/v6llrmtd6l9cgx65xgsjdqz80000gn/T/structret-a5a45f.sh
+       clang: note: diagnostic msg: Crash backtrace is located in
+       clang: note: diagnostic msg: /Users/dhogaza/Library/Logs/DiagnosticReports/clang_<YYYY-MM-DD-HHMMSS>_<hostname>.crash
+       clang: note: diagnostic msg: (choose the .crash file that corresponds to your crash)
+       clang: note: diagnostic msg: 
+
+       ********************
+
+
    2. Maybe allow forward/external procedure definitions to redeclare the parameter
       list as long as it is identical which means same param names and congruent types.
 
