@@ -199,7 +199,7 @@ procedure clearkeys;
         done := high < low;
         while not done do
           begin
-          if bigcompilerversion then ptr := @(bignodetable[keytable[high]]);
+          ptr := @(nodetable[keytable[high]]);
           if (keytable[high] = 0) or (ptr^.refcount = 0) then
             begin
             keytable[high] := 0;
@@ -337,7 +337,7 @@ procedure unnestparams(root: nodeindex {tree to visit});
     op: operatortype; {operator for this node}
 
   begin {unnestparams}
-    if bigcompilerversion then ptr := @(bignodetable[root]);
+    ptr := @(nodetable[root]);
     op := ptr^.op;
     if ptr^.action = visit then
       if (op in [call, unscall, callparam, unscallparam, sysfn]) or
@@ -376,7 +376,7 @@ procedure shortvisit(root: nodeindex; {tree to visit}
 
 
   begin
-    if bigcompilerversion then ptr := @(bignodetable[root]);
+    ptr := @(nodetable[root]);
     newroot := root;
     op := ptr^.op;
     if ptr^.action = visit then
@@ -384,7 +384,7 @@ procedure shortvisit(root: nodeindex; {tree to visit}
       if (op in [quoop, remop]) and (ptr^.refcount = 1) then
         begin
         newroot := ptr^.oprnds[1];
-        if bigcompilerversion then ptr := @(bignodetable[ptr^.oprnds[1]]);
+        ptr := @(nodetable[ptr^.oprnds[1]]);
         end;
       if not ptr^.local and ((ptr^.refcount > 1) or (ptr^.op = mulop) and
          (ptr^.form = ints) or
@@ -401,15 +401,14 @@ procedure shortvisit(root: nodeindex; {tree to visit}
           for j := 1 to 3 do
             if ptr^.nodeoprnd[j] then
               begin
-              if bigcompilerversion then
-                oprndptr := @(bignodetable[ptr^.oprnds[j]]);
+              oprndptr := @(nodetable[ptr^.oprnds[j]]);
               if (oprndptr^.op in
                  [originop, call, callparam, unscall, unscallparam]) or
                  ((oprndptr^.form = sets) and (op <> regtargetop)) or
                  (oprndptr^.form = strings) then
                 begin
                 walknode(ptr^.oprnds[j], k, 0, false);
-                if bigcompilerversion then ptr := @(bignodetable[newroot]);
+                ptr := @(nodetable[newroot]);
                 end;
               end;
         if (ptr^.op = rd) and (targetmachine in [iAPX86, i80386, ns32k, aarch64]) then
@@ -423,7 +422,7 @@ procedure shortvisit(root: nodeindex; {tree to visit}
           if ptr^.nodeoprnd[j] then
             begin
             shortvisit(ptr^.oprnds[j], inpushaddr);
-            if bigcompilerversion then ptr := @(bignodetable[newroot]);
+            ptr := @(nodetable[newroot]);
             end;
         if (ptr^.op < intop) and (ptr^.slink <> 0) then
           shortvisit(ptr^.slink, false);
@@ -448,7 +447,7 @@ procedure unnestsets(root: nodeindex {tree to visit} );
 
 
   begin {unnestsets}
-    if bigcompilerversion then ptr := @(bignodetable[root]);
+    ptr := @(nodetable[root]);
     if ptr^.action = visit then
       if ptr^.op = bldset then walknode(root, k, 0, false)
       else
@@ -457,7 +456,7 @@ procedure unnestsets(root: nodeindex {tree to visit} );
           if ptr^.nodeoprnd[j] then
             begin
             unnestsets(ptr^.oprnds[j]);
-            if bigcompilerversion then ptr := @(bignodetable[root]);
+            ptr := @(nodetable[root]);
             end;
         if (ptr^.op < intop) and (ptr^.slink <> 0) then unnestsets(ptr^.slink);
         end;
@@ -479,7 +478,7 @@ function targetpresent(p: nodeindex {node to check} ): boolean;
 
   begin
     found := false;
-    if bigcompilerversion then ptr := @(bignodetable[p]);
+    ptr := @(nodetable[p]);
     if ptr^.action = recopy then found := targetpresent(ptr^.oldlink)
     else
       begin
@@ -618,7 +617,7 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 
 
       begin
-        if bigcompilerversion then ptr := @(bignodetable[p]);
+        ptr := @(nodetable[p]);
         cost := ptr^.cost;
       end {cost} ;
 
@@ -750,7 +749,7 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 
 
       begin
-        if bigcompilerversion then lp := @(bignodetable[l]);
+        lp := @(nodetable[l]);
         third := 0;
         case targetmachine of
           vax:
@@ -897,7 +896,7 @@ with target = 0.
 
       begin
         target := 0;
-        if bigcompilerversion then lp := @(bignodetable[l]);
+        lp := @(nodetable[l]);
         llen := lp^.len;
         lform := types(rootp^.oprnds[3]);
         walknode(l, lkey, 0, true);
@@ -1324,7 +1323,7 @@ with target = 0.
             end;
           piece := piece + 1;
           if nextpiece <> 0 then
-            if bigcompilerversion then nextp := @(bignodetable[nextpiece]);
+            nextp := @(nodetable[nextpiece]);
         until nextpiece = 0;
       end; {realnode}
 
@@ -1417,7 +1416,7 @@ with target = 0.
         if targetmachine = aarch64 then unnestparams(r);
         walknode(r, rkey, 0, true);
         mapkey;
-        if bigcompilerversion then rootp := @(bignodetable[root]);
+        rootp := @(nodetable[root]);
         if op = unscall then
           genpseudo(unscallroutine, len, key, refcount, copycount,
                     rootp^.oprnds[1], rootp^.oprnds[3], - ord(rootp^.form))
@@ -1445,7 +1444,7 @@ with target = 0.
         walknode(r, rkey, 0, true);
 
         mapkey;
-        if bigcompilerversion then rootp := @(bignodetable[root]);
+        rootp := @(nodetable[root]);
         if op = unscallparam then
           genpseudo(unscallroutine, len, key, refcount, copycount, lkey,
                     rootp^.oprnds[3], ord(rootp^.form))
@@ -1604,11 +1603,11 @@ with target = 0.
       }
 
       slink := rootp^.slink; 
-      while (slink <> 0) and (bignodetable[slink].op <> wr) do
+      while (slink <> 0) and (nodetable[slink].op <> wr) do
         begin
-        if (bignodetable[slink].action = visit) and (bignodetable[slink].op = bldfmt) then
-          unnestparams(bignodetable[slink].oprnds[2]);
-       slink := bignodetable[slink].slink;
+        if (nodetable[slink].action = visit) and (nodetable[slink].op = bldfmt) then
+          unnestparams(nodetable[slink].oprnds[2]);
+       slink := nodetable[slink].slink;
        end;
 
         if targetmachine = aarch64 then unnestparams(r);
@@ -1697,7 +1696,7 @@ with target = 0.
 
       begin {pushaddrnode}
         walknode(l, lkey, 0, true);
-        if bigcompilerversion then rptr := @(bignodetable[r]);
+        rptr := @(nodetable[r]);
         walkfirst := (rptr^.op in
                      [copystackop, call, callparam, unscall, unscallparam, fileparamop]) or
                      (form = strings);
@@ -1824,7 +1823,7 @@ with target = 0.
           walknode(l, lkey, 0, true);
           walknode(r, rkey, 0, true);
           mapkey;
-          if bigcompilerversion then rootp := @(bignodetable[root]);
+          rootp := @(nodetable[root]);
           genpseudo(map[rd, rootp^.form], len, key, refcount, copycount, rkey,
                     0, 0);
           end;
@@ -1943,7 +1942,7 @@ with target = 0.
            tanid, coshid, tanhid, log10id, fabsid, labsid, sinhid,
            logid])) then
           begin
-          if bigcompilerversion then rp := @(bignodetable[r]);
+          rp := @(nodetable[r]);
           if form <> rp^.form then targetkey := 0;
           end;
 
@@ -2222,7 +2221,7 @@ with target = 0.
       lkey := 0;
       rkey := 0;
       key := 0;
-      if bigcompilerversion then rootp := @(bignodetable[root]);
+      rootp := @(nodetable[root]);
       with rootp^ do
         begin
         l := oprnds[1];
@@ -2348,7 +2347,7 @@ with target = 0.
 
 
     begin
-      if bigcompilerversion then rootp := @(bignodetable[root]);
+      rootp := @(nodetable[root]);
       { hoisting may have removed all the references. check it out }
       if rootp^.refcount <> 0 then
         begin
@@ -2369,7 +2368,7 @@ with target = 0.
     key := 0;
     while root <> 0 do
       begin
-      if bigcompilerversion then rootp := @(bignodetable[root]);
+      rootp := @(nodetable[root]);
       refcount := rootp^.refcount;
       copycount := rootp^.copycount;
       len := rootp^.len;
@@ -2393,7 +2392,7 @@ with target = 0.
           end;
       if counting then
         begin
-        if bigcompilerversion then rootp := @(bignodetable[root]);
+        rootp := @(nodetable[root]);
         with rootp^ do refcount := refcount - 1;
         end;
       root := nextroot;
@@ -2512,7 +2511,7 @@ procedure walkvalue(root: nodeindex; {root of tree to walk}
 
 
   begin {walkvalue}
-    if bigcompilerversion then rootp := @(bignodetable[root]);
+    rootp := @(nodetable[root]);
     if rootp^.relation then convertrelation
     else walknode(root, key, targetkey, true);
   end {walkvalue} ;
@@ -2534,7 +2533,7 @@ procedure walknodelist(p: nodeindex {start of node chain} );
   begin
     while p <> 0 do
       begin
-      if bigcompilerversion then ptr := @(bignodetable[p]);
+      ptr := @(nodetable[p]);
       p1 := ptr^.prelink;
       walknode(p, key, 0, false);
       p := p1;
@@ -2707,8 +2706,8 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 
 
         begin {genjumptable}
-          if bigcompilerversion then fp := @(bignodetable[firstlab]);
-          if bigcompilerversion then lp := @(bignodetable[lastlab]);
+          fp := @(nodetable[firstlab]);
+          lp := @(nodetable[lastlab]);
 
           if not relationcase and ((fp^.caselabellow = lp^.caselabelhigh) or
              (fp^.caselabellow = fp^.caselabelhigh) and
@@ -2750,8 +2749,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
             thislab := firstlab;
             p := fp;
             repeat
-              if bigcompilerversion then
-                p1 := @(bignodetable[p^.orderedlink]);
+              p1 := @(nodetable[p^.orderedlink]);
               genpseudo(caseelt, 0, 0, 0, 0, p^.stmtlabel,
                         p^.caselabelhigh - p^.caselabellow + 1, 0);
               done := thislab = lastlab;
@@ -2789,17 +2787,17 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
         begin
           middle := (first + last + 1) div 2;
           thisgroup := firstgrouprec;
-          if bigcompilerversion then p := @(bignodetable[thisgroup]);
+          p := @(nodetable[thisgroup]);
           while p^.groupno <> middle do
             begin
             thisgroup := p^.nextstmt;
-            if bigcompilerversion then p := @(bignodetable[thisgroup]);
+            p := @(nodetable[thisgroup]);
             end;
 
           if middle < last then
             begin {there is a right-hand branch}
-            if bigcompilerversion then hp := @(bignodetable[p^.highestlabel]);
-            if bigcompilerversion then hp := @(bignodetable[hp^.orderedlink]);
+            hp := @(nodetable[p^.highestlabel]);
+            hp := @(nodetable[hp^.orderedlink]);
             lastlabel := newlabel;
             genpseudo(geqlitint, targetintsize, reskey, 1, 0, casekey,
                       hp^.caselabelhigh, 0);
@@ -2807,7 +2805,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
             end;
           if middle > first then
             begin {there is a left-hand branch}
-            if bigcompilerversion then lp := @(bignodetable[p^.lowestlabel]);
+            lp := @(nodetable[p^.lowestlabel]);
             firstlabel := newlabel;
             genpseudo(lsslitint, targetintsize, reskey, 1, 0, casekey,
                       lp^.caselabellow, 0);
@@ -2843,7 +2841,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
             genpseudo(caseerr, 0, 0, 0, 0, 0, 0, 0)
           else if elements <> 0 then
             begin
-            if bigcompilerversion then n := @(bignodetable[selector]);
+            n := @(nodetable[selector]);
             relationcase := n^.relation;
             walkvalue(selector, casekey, 0);
             reskey := newkey;
@@ -2896,7 +2894,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
         with currentstmt do
           begin
 
-          if bigcompilerversion then ptr := @(bignodetable[expr1]);
+          ptr := @(nodetable[expr1]);
           if ptr^.op in [forupchkop, fordnchkop, forerrchkop] then
             begin
             checkexists := true;
@@ -2910,7 +2908,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 
           shortvisit(actualexpr1, false);
           checkconst(actualexpr1, constfinal, finalvalue);
-          if bigcompilerversion then ptr := @(bignodetable[expr2]);
+          ptr := @(nodetable[expr2]);
           if (ptr^.op = defforlitindexop) or
              (ptr^.op = defunsforlitindexop) then
             begin
@@ -2924,7 +2922,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
           walknode(expr2, expr2key, 0, false);
           if checkexists then walknode(expr1, expr1key, 0, false);
 
-          if bignodetable[expr1].op <> forerrchkop then
+          if nodetable[expr1].op <> forerrchkop then
             begin
             forsp := forsp + 1;
             with forstack[forsp] do
@@ -2989,8 +2987,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 
 
       begin { walkforbot }
-        if bigcompilerversion then
-          ptr := @(bignodetable[currentstmt.looptop^.beginstmt]);
+        ptr := @(nodetable[currentstmt.looptop^.beginstmt]);
         with ptr^, forstack[forsp] do
           begin
           if improved then
@@ -3109,7 +3106,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 
       begin {walkgoto}
 
-        if bigcompilerversion then ptr := @(bignodetable[root^.beginstmt]);
+        ptr := @(nodetable[root^.beginstmt]);
         p := ptr^.procref;
         branchstmt := currentstmt.labellevel <> proctable[p].level;
         genstmtbrk;
@@ -3146,9 +3143,9 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
           targetflag := 0;
           if (expr2 = ord(valprocid)) or (expr2 = ord(strid)) then
             begin
-            if bigcompilerversion then ptr := @(bignodetable[expr1]);
+            ptr := @(nodetable[expr1]);
             if expr2 = ord(valprocid) then
-              if bigcompilerversion then ptr := @(bignodetable[ptr^.slink]);
+              ptr := @(nodetable[ptr^.slink]);
             if ptr^.form = reals then targetflag := 1
             else if ptr^.form = doubles then targetflag := 2;
             end;
@@ -3223,7 +3220,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
     begin {walkstmt}
 
       inverted := false;
-      if bigcompilerversion then p := @(bignodetable[stmt]);
+      p := @(nodetable[stmt]);
       currentstmt := p^;
       with currentstmt do
         begin
@@ -3278,7 +3275,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
     while firststmt <> 0 do
       begin
       s := firststmt;
-      if bigcompilerversion then p := @(bignodetable[firststmt]);
+      p := @(nodetable[firststmt]);
       firststmt := p^.nextstmt;
       if p^.stmtkind in [rpthdr, whilehdr, foruphdr, fordnhdr, cforhdr] then
         controlstmt := true;
@@ -3311,7 +3308,7 @@ procedure walk;
       low := 1;
       high := 0;
       end;
-    if bigcompilerversion then ptr := @(bignodetable[root^.beginstmt]);
+    ptr := @(nodetable[root^.beginstmt]);
     with ptr^ do
       begin
       if final_block_size = 0 then blocksize := bs
@@ -3375,7 +3372,7 @@ procedure walk;
           if beginstmt <> 0 then
             begin
             walkstmtlist(beginstmt);
-            if bigcompilerversion then ptr := @(bignodetable[beginstmt]);
+            ptr := @(nodetable[beginstmt]);
             needjump := not (ptr^.stmtkind in
                         [forbothdr, whilebothdr, untilhdr, cforbothdr, gotohdr,
                         swbrkhdr, loopbrkhdr, loopconthdr]);

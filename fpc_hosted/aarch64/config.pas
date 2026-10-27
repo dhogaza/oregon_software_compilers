@@ -285,13 +285,11 @@ const
 
 
   analysmaxnodeinblock = 1 {63};
-  travrsmaxnodeinblock = 1 {256};
   codemaxnodeinblock = 1 {259};
 
   {number of static virtual memory blocks for each pass}
 
   lowanalysblocks = 1 {9};
-  lowtravrsblocks = 1 {18};
   lowcodeblocks = 1;
 
   {make these "2" if bigcompiler, calculate otherwise}

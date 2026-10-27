@@ -35,10 +35,6 @@ const
   debugtree = false;
   maxloopdepth = 10;
   maxexprstack = 100;
-  nodesperblock = travrsmaxnodeinblock; {nodes per physical file block - 1}
-  maxblockslow = lowtravrsblocks;           
-                     {min blocks for node file buffers, allocated statically
-                      to use some otherwise unused space in the global area}
   maxoprnd = 3;
 
 type
@@ -209,25 +205,6 @@ type
       willexecute: boolean; { true if loop will execute if flow reaches}
     end;
 
-  nodeblock =
-    record {Kludge to use the same file for all virtual memories}
-      case boolean of
-        false: (physical: doublediskblock {physical disk block} );
-        true:
-          (logical: array [0..nodesperblock] of node {local use of file} );
-    end;
-
-  nodeblockptr = ^nodeblock; {used to access disk block buffers}
-  blockindex = - 1..tmaxblocksin;
-
-  blockmap =
-    record {maps incore buffers to virtual nodes on disk}
-      blkno: blockindex; {virtual block number}
-      written: boolean; {set if block is modified since read}
-      lowblock: boolean; {true if in global core, not disposed of}
-      buffer: nodeblockptr; {actual data buffer}
-    end;
-
   stackrecord =
     record {holds operands as the stack is being built}
       context_mark: nodeindex; {last node in this expression}
@@ -372,8 +349,6 @@ var
   branchstmt: boolean; {statement is non-local goto (debugging)}
   targetstmt: boolean; {statement is target of non-local goto (debugging)}
 
-  fewestblocks, mostblocks: 0..tmaxblocksin; {monitor virtual buffers}
-
   map: packed array [operatortype, types] of pseudoop; {maps analys operators onto
                                                         pseudoops}
 
@@ -409,11 +384,7 @@ var
   maxnodes: integer;
 
   localparamnode: nodeindex; {points to node describing local param levop}
-  thrashing: boolean; {set true when virt mem overflows onto disk}
-  lastblocksin: 1..tmaxblocksin; {actual number of node blocks}
-  blocksin: array [1..tmaxblocksin] of blockmap; {map of node blocks in memory}
-  blockslow: array [1..maxblockslow] of nodeblock; {fixed blocks in store}
-  bignodetable: array [0..bigtnodetablesize] of node;
+  nodetable: array [0..bigtnodetablesize] of node;
   exit_stmtno: integer; {save stmtno of the exit fake statement (VMS)}
  { the following are only a convenience when using pdb (setting watch point
    on a heap based variable, ...)

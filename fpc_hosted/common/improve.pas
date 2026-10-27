@@ -314,7 +314,7 @@ procedure assignregs;
           j: 0..regtablelimit; { var for temp search }
 
         begin {applytoregparamnode}
-          exprp := @(bignodetable[expr]);
+          exprp := @(nodetable[expr]);
           offset := exprp^.oprnds[2];
           j := hashvaroffset(offset);
           while ((regvars[j].offset <> offset) or not regvars[j].parameter) and
@@ -359,9 +359,9 @@ procedure assignregs;
           third: integer; {third operand, zero or temp number}
 
         begin {applytoindexnode}
-          exprp := @(bignodetable[expr]);
+          exprp := @(nodetable[expr]);
           left := exprp^.oprnds[1];
-          leftp := @(bignodetable[left]);
+          leftp := @(nodetable[left]);
           offset := exprp^.oprnds[2];
           third := 0;
           if (leftp^.op = levop) and (leftp^.oprnds[1] = level) then
@@ -387,9 +387,9 @@ procedure assignregs;
     begin {applytoexprnode}
       if expr <> 0 then
         begin
-        if bigcompilerversion then exprp := @(bignodetable[expr]);
+        exprp := @(nodetable[expr]);
         if exprp^.action = copy then
-          exprp := @(bignodetable[exprp^.directlink]);
+          exprp := @(nodetable[exprp^.directlink]);
         if (exprp^.op < intop) and (exprp^.slink <> 0) then
           applytoexprnode(exprp^.slink);
         case exprp^.op of
@@ -422,7 +422,7 @@ procedure assignregs;
 
 
       begin {applytostmt}
-      if bigcompilerversion then p := @(bignodetable[stmt]);
+      p := @(nodetable[stmt]);
       currentstmt := p^;
       with currentstmt do
         begin
@@ -445,7 +445,7 @@ procedure assignregs;
     begin {applytostmtlist}
       while firststmt <> 0 do
         begin
-        if bigcompilerversion then p := @(bignodetable[firststmt]);
+        p := @(nodetable[firststmt]);
         applytostmt(firststmt);
         firststmt := p^.nextstmt;
         end;
@@ -796,7 +796,7 @@ procedure assignregs;
 
         begin {flood}
 
-          if bigcompilerversion then ptr := @(bignodetable[expr]);
+          ptr := @(nodetable[expr]);
           if (ptr^.hoistedby = nil) or forceflood then
             begin
             ptr^.hoistedby := loopblk;
@@ -851,7 +851,7 @@ procedure assignregs;
 
         begin {removecopies}
 
-          if bigcompilerversion then exprptr := @(bignodetable[expr]);
+          exprptr := @(nodetable[expr]);
 
           { should always be a visit node }
 
@@ -863,19 +863,16 @@ procedure assignregs;
               begin
               if nodeoperands[i] then
                 begin
-                if bigcompilerversion then
-                  ptr := @(bignodetable[operands[i]]);
+                ptr := @(nodetable[operands[i]]);
                 if ptr^.action = copy then
                   begin
-                  blocksin[1].written := true;
                   d := depth;
                   repeat
                     d := d - 1;
                     copylink := ptr^.oldlink;
-                    if bigcompilerversion then exprptr^.oprnds[i] := copylink;
+                    exprptr^.oprnds[i] := copylink;
                     ptr^.refcount := ptr^.refcount - 1;
-                    if bigcompilerversion then
-                      ptr := @(bignodetable[copylink]);
+                    ptr := @(nodetable[copylink]);
                     ptr^.copycount := ptr^.copycount - 1;
                   until (d = 0) or (ptr^.action = visit);
                   if d > 0 then removecopies(d, copylink);
@@ -902,7 +899,7 @@ procedure assignregs;
 
         begin {onecopy}
 
-          if bigcompilerversion then ptr := @(bignodetable[c]);
+          ptr := @(nodetable[c]);
           copied^.copycount := refc;
 
           with ptr^ do
@@ -922,7 +919,7 @@ procedure assignregs;
 
 
       begin {hoistit}
-        if bigcompilerversion then ptr := @(bignodetable[expr]);
+        ptr := @(nodetable[expr]);
 
         { first see if it's been hoisted already or not a true invariant }
 
@@ -958,7 +955,7 @@ procedure assignregs;
             lastnode := lastnode + 1;
             newexpr := lastnode;
 
-            if bigcompilerversion then copied := @(bignodetable[newexpr]);
+            copied := @(nodetable[newexpr]);
 
             copied^ := ptr^;
             copied^.prelink := 0;
@@ -978,7 +975,7 @@ procedure assignregs;
           if lasthoist = 0 then loopblk^.precode := expr
           else
             begin
-            if bigcompilerversion then ptr := @(bignodetable[lasthoist]);
+            ptr := @(nodetable[lasthoist]);
             ptr^.prelink := expr;
             end;
           lasthoist := expr;
@@ -987,7 +984,7 @@ procedure assignregs;
 
           if switcheverplus[test] then
             begin
-            if bigcompilerversion then ptr := @(bignodetable[expr]);
+            ptr := @(nodetable[expr]);
             if not anyinvars then
               begin
               anyinvars := true;
@@ -1035,12 +1032,12 @@ procedure assignregs;
 
       begin {simpleinvar}
         simpleinvar := false;
-        if bigcompilerversion then ptr := @(bignodetable[oprnd]);
+        ptr := @(nodetable[oprnd]);
         if ptr^.action = copy then
           begin
           { Point to the real operand }
           oprnd := ptr^.directlink;
-          if bigcompilerversion then ptr := @(bignodetable[oprnd]);
+          ptr := @(nodetable[oprnd]);
           end {copy} ;
         if ((ptr^.op = varop) or (ptr^.op = unsvarop)) and
            not loopblk^.deadlevels[ptr^.oprnds[1]] then
@@ -1049,16 +1046,16 @@ procedure assignregs;
           off := ptr^.oprnds[2];
             { A simple variable points to an indxop, which points
               to a levop}
-          if bigcompilerversion then ptr := @(bignodetable[ptr^.oprnds[3]]);
+          ptr := @(nodetable[ptr^.oprnds[3]]);
           if ptr^.op in [indxop, vindxop] then
             begin
-            if bigcompilerversion then ptr := @(bignodetable[ptr^.oprnds[1]]);
+            ptr := @(nodetable[ptr^.oprnds[1]]);
               { Globalop's and localop's are converted to levop's
                 by buildexpr }
             if (ptr^.op = levop) then
               begin
               { First, check to see if this is the loop variable }
-              if bigcompilerversion then ptr := @(bignodetable[other]);
+              ptr := @(nodetable[other]);
               if (level <> varlev) or (ptr^.oprnds[2] <> off) then
                 begin
                   { It isn't the loop variable, so now check to see
@@ -1067,7 +1064,7 @@ procedure assignregs;
                 written := false;
                 while not written and (p <> 0) and (p <> finalwrite) do
                   begin
-                  if bigcompilerversion then ptr := @(bignodetable[p]);
+                  ptr := @(nodetable[p]);
                   if (ptr^.oprnds[1] = varlev) and (ptr^.oprnds[2] = off) then
                     written := true;
                   p := ptr^.looplink;
@@ -1193,7 +1190,7 @@ procedure assignregs;
           if loopblk^.deadlevels[operands[1]] then
             begin
             varisinvar := false;
-            if bigcompilerversion then ptr := @(bignodetable[oprnd]);
+            ptr := @(nodetable[oprnd]);
             ptr^.invariant := false; { warn others early }
             end
           else
@@ -1208,7 +1205,7 @@ procedure assignregs;
 }
             while (currentvar <> finalwrite) do
               begin
-              if bigcompilerversion then ptr := @(bignodetable[currentvar]);
+              ptr := @(nodetable[currentvar]);
               if (operands[1] = ptr^.oprnds[1]) and
                  (operands[2] = ptr^.oprnds[2]) then
                 found := true;
@@ -1217,7 +1214,7 @@ procedure assignregs;
             if found then
               begin
               varisinvar := false;
-              if bigcompilerversion then ptr := @(bignodetable[oprnd]);
+              ptr := @(nodetable[oprnd]);
               ptr^.invariant := false;
               end
             else varisinvar := true;
@@ -1227,7 +1224,7 @@ procedure assignregs;
 
       begin {invariantoprnd}
 
-        if bigcompilerversion then ptr := @(bignodetable[oprnd]);
+        ptr := @(nodetable[oprnd]);
 
         worthit := false;
         aindxkludge := false;
@@ -1238,7 +1235,7 @@ procedure assignregs;
           begin
           copyfound := true; {a few redundant assignments here won't hurt}
           oprnd := ptr^.oldlink;
-          if bigcompilerversion then ptr := @(bignodetable[oprnd]);
+          ptr := @(nodetable[oprnd]);
           i := i - 1;
           end;
 
@@ -1301,8 +1298,7 @@ procedure assignregs;
                  defunsforlitindexop] then
                 begin
                 { must determine if we are in this for loop or deeper }
-                if bigcompilerversion then
-                  ptr := @(bignodetable[loopblk^.beginstmt]);
+                ptr := @(nodetable[loopblk^.beginstmt]);
                 invar := ptr^.expr2 <> oprnd;
                 end
               else {ordinary operator}
@@ -1315,8 +1311,7 @@ procedure assignregs;
                   if language = c then invar := false
                   else
                     begin
-                    if bigcompilerversion then
-                      ptr := @(bignodetable[ptr^.oprnds[1]]);
+                    ptr := @(nodetable[ptr^.oprnds[1]]);
                     invar := (ptr^.action = visit) and (ptr^.op <> unsvarop);
                     end
                   end
@@ -1372,7 +1367,7 @@ procedure assignregs;
 
       begin {examineexpression}
         repeat
-          if bigcompilerversion then ptr := @(bignodetable[expression]);
+          ptr := @(nodetable[expression]);
 
           if ptr^.action = visit then
             begin
@@ -1438,7 +1433,7 @@ procedure assignregs;
 
       begin {examineinvariantoprnd}
 
-        if bigcompilerversion then ptr := @(bignodetable[expression]);
+        ptr := @(nodetable[expression]);
 
         secondlevel := true;
 
@@ -1450,11 +1445,10 @@ procedure assignregs;
             if previoushoist = 0 then innerloop^.precode := nexthoist
             else
               begin
-              if bigcompilerversion then
-                ptr := @(bignodetable[previoushoist]);
+              ptr := @(nodetable[previoushoist]);
               ptr^.prelink := nexthoist;
               end;
-            if bigcompilerversion then ptr := @(bignodetable[expression]);
+            ptr := @(nodetable[expression]);
             ptr^.prelink := 0;
             hoistit(expression);
             expression := 0;
@@ -1485,7 +1479,7 @@ procedure assignregs;
         while p <> 0 do
           begin
           if loopblk^.looplabel = 0 then loopblk^.looplabel := newlabel;
-          if bigcompilerversion then ptr := @(bignodetable[p]);
+          ptr := @(nodetable[p]);
           lasthoist := p;
           p := ptr^.prelink;
           end;
@@ -1494,8 +1488,7 @@ procedure assignregs;
 
         if loopblk^.lastwrite <> 0 then
           begin
-          if bigcompilerversion then
-            ptr := @(bignodetable[loopblk^.lastwrite]);
+          ptr := @(nodetable[loopblk^.lastwrite]);
           finalwrite := ptr^.looplink;
           end
         else finalwrite := 0;
@@ -1515,7 +1508,7 @@ procedure assignregs;
           if not current^.isdead and (current^.beginstmt <> 0) then
             begin
             stmt := current^.beginstmt;
-            if bigcompilerversion then ptr := @(bignodetable[stmt]);
+            ptr := @(nodetable[stmt]);
 
             { see if we just backed into a new loop }
 
@@ -1540,8 +1533,7 @@ procedure assignregs;
                 previoushoist := 0;
                 currenthoist := innerloop^.precode;
                 repeat
-                  if bigcompilerversion then
-                    ptr := @(bignodetable[currenthoist]);
+                  ptr := @(nodetable[currenthoist]);
                   nexthoist := ptr^.prelink;
                   if ptr^.action = visit then
                     examineinvariant(currenthoist, previoushoist);
@@ -1565,7 +1557,7 @@ procedure assignregs;
               if current = loopblk then dominating := current^.dominates
               else dominating := loopblk^.willexecute and current^.dominates;
               repeat
-                if bigcompilerversion then ptr := @(bignodetable[stmt]);
+                ptr := @(nodetable[stmt]);
                 { get next stmt while it's cheap }
                 stmt := ptr^.nextstmt;
                 secondlevel := false;
@@ -1592,27 +1584,26 @@ procedure assignregs;
         if loopblk^.beginstmt <> 0 then
           begin
           fixnode := loopblk^.beginstmt;
-          if bigcompilerversion then ptr := @(bignodetable[fixnode]);
+          ptr := @(nodetable[fixnode]);
           if (ptr^.stmtkind = foruphdr) or (ptr^.stmtkind = fordnhdr) then
             begin
             finalexpr := ptr^.expr1;
             initexpr := ptr^.expr2;
-            if bigcompilerversion then ptr := @(bignodetable[ptr^.expr2]);
+            ptr := @(nodetable[ptr^.expr2]);
             temp := ptr^.len; {length of index variable}
-            if bigcompilerversion then ptr := @(bignodetable[finalexpr]);
+            ptr := @(nodetable[finalexpr]);
             if ptr^.op in [forupchkop, fordnchkop, forerrchkop] then
               begin
               fixnode := finalexpr;
-              if bigcompilerversion then
-                ptr := @(bignodetable[ptr^.oprnds[1]]);
+              ptr := @(nodetable[ptr^.oprnds[1]]);
               if ptr^.op = pushfinal then
                 begin
                 newoprnd := ptr^.oprnds[1];
-                if bigcompilerversion then ptr := @(bignodetable[newoprnd]);
+                ptr := @(nodetable[newoprnd]);
                 if simpleinvar(newoprnd, initexpr) and (temp = ptr^.len) then
                   begin
                   { delete the pushfinal op }
-                  if bigcompilerversion then ptr2 := @(bignodetable[fixnode]);
+                  ptr2 := @(nodetable[fixnode]);
                   ptr2^.oprnds[1] := newoprnd;
                   end;
                 end;
@@ -1620,11 +1611,11 @@ procedure assignregs;
             else if ptr^.op = pushfinal then
               begin
               newoprnd := ptr^.oprnds[1];
-              if bigcompilerversion then ptr := @(bignodetable[newoprnd]);
+              ptr := @(nodetable[newoprnd]);
               if simpleinvar(newoprnd, initexpr) and (temp = ptr^.len) then
                 begin
                 { delete the pushfinal op }
-                if bigcompilerversion then ptr2 := @(bignodetable[fixnode]);
+                ptr2 := @(nodetable[fixnode]);
                 ptr2^.expr1 := newoprnd;
                 end;
               end;
@@ -1647,7 +1638,7 @@ procedure assignregs;
       { this test will be unneeded when empty basic blocks are removed }
       if not blk^.isdead and (blk^.beginstmt <> 0) then
         begin
-        if bigcompilerversion then ptr := @(bignodetable[blk^.beginstmt]);
+        ptr := @(nodetable[blk^.beginstmt]);
         if (ptr^.nodeform = stmtnode) and
            (ptr^.stmtkind in
            [loopbothdr, whilebothdr, forbothdr, cforbothdr, untilhdr]) then
@@ -1739,9 +1730,9 @@ procedure assignregs;
     begin {improvesetexpr}
       if expr <> 0 then
         begin
-        if bigcompilerversion then exprp := @(bignodetable[expr]);
+        exprp := @(nodetable[expr]);
         if exprp^.action = copy then
-          exprp := @(bignodetable[exprp^.directlink]);
+          exprp := @(nodetable[exprp^.directlink]);
         if (exprp^.op < intop) and (exprp^.slink <> 0) then
           improvesetexpr(exprp^.slink);
         if  (exprp^.form = sets) then
@@ -1752,7 +1743,7 @@ procedure assignregs;
             for i := 1 to maxoprnd do
               if exprp^.nodeoprnd[i] then
                 begin
-                oprndp := @(bignodetable[exprp^.oprnds[i]]);
+                oprndp := @(nodetable[exprp^.oprnds[i]]);
                 if (oprndp^.op = bldset) and (oprndp^.oprnds[1] = 0) and
                    (oprndp^.len > setexprlen) then
                   begin {we know it is the empty set}
@@ -1794,7 +1785,7 @@ procedure assignregs;
 
 
       begin {improvesetstmt}
-      if bigcompilerversion then p := @(bignodetable[stmt]);
+      p := @(nodetable[stmt]);
       currentstmt := p^;
       with currentstmt do
         begin
@@ -1817,7 +1808,7 @@ procedure assignregs;
     begin {improvesettmtlist}
       while firststmt <> 0 do
         begin
-        if bigcompilerversion then p := @(bignodetable[firststmt]);
+        p := @(nodetable[firststmt]);
         improvesetstmt(firststmt);
         firststmt := p^.nextstmt;
         end;
@@ -1929,7 +1920,7 @@ procedure smooth;
 
 
       begin {getsize}
-        if bigcompilerversion then ptr := @(bignodetable[expr]);
+        ptr := @(nodetable[expr]);
         if (ptr^.action = visit) then
           begin
           operands := ptr^.oprnds;
@@ -2029,7 +2020,7 @@ procedure smooth;
 
 
       begin {setsize}
-        if bigcompilerversion then ptr := @(bignodetable[expr]);
+        ptr := @(nodetable[expr]);
         if (ptr^.action = visit) then
           begin
           if (ptr^.op in
@@ -2038,7 +2029,6 @@ procedure smooth;
              (ptr^.form in [ints, subranges, scalars]) then
             begin
             ptr^.len := maxlen;
-            if not bigcompilerversion then blocksin[1].written := true;
             end;
           operands := ptr^.oprnds;
           nodeoperands := ptr^.nodeoprnd;
@@ -2091,7 +2081,7 @@ procedure smooth;
       stmt := blk^.beginstmt;
       while stmt <> 0 do
         begin
-        if bigcompilerversion then ptr := @(bignodetable[stmt]);
+        ptr := @(nodetable[stmt]);
         { get next stmt while it's cheap }
         stmt := ptr^.nextstmt;
         if ptr^.stmtkind in
