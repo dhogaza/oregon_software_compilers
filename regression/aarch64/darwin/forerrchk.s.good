@@ -20,29 +20,20 @@
 ##	p
 #
 .P1:
-	sub	sp,sp,48
-	stp	x30,x29,[sp,24]
-	add	x29,sp,24
-	str	x28,[x29,-8]
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
 # Line: 6, Stmt: 1
 # Line: 7, Stmt: 2
-	movz	x28,65535
-	movk	x28,65535,lsl 16
-	cmp	w28,w0
-	b.gt	.L3
+	movz	x15,65535
+	movk	x15,65535,lsl 16
+	cmp	w15,w0
+	b.gt	.L32764
 	bl	_p_range 
-.L4:
-	cmp	w28,w16
-	b.gt	.L3
-# Line: 7, Stmt: 0
-	bl	_p_wtln_o 
-	adds	w28,w28,1
-	b.vc	.L4
-.L3:
+.L32764:
 .L2:
-	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,24]
-	add	sp,sp,48
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
 	ret
 	.text
 	.align 2
@@ -50,29 +41,20 @@
 ##	p1
 #
 .P2:
-	sub	sp,sp,48
-	stp	x30,x29,[sp,24]
-	add	x29,sp,24
-	str	x28,[x29,-8]
+	sub	sp,sp,32
+	stp	x30,x29,[sp,8]
+	add	x29,sp,8
 # Line: 13, Stmt: 1
 # Line: 14, Stmt: 2
-	mov	x28,x0
-	mov	x15,11
-	cmp	w28,w15
-	b.gt	.L6
+	mov	x15,x0
+	mov	x14,11
+	cmp	w15,w14
+	b.gt	.L32763
 	bl	_p_range 
-.L7:
-	cmp	w28,w16
-	b.gt	.L6
-# Line: 14, Stmt: 0
-	bl	_p_wtln_o 
-	adds	w28,w28,1
-	b.vc	.L7
-.L6:
-.L5:
-	ldr	x28,[x29,-8]
-	ldp	x30,x29,[sp,24]
-	add	sp,sp,48
+.L32763:
+.L3:
+	ldp	x30,x29,[sp,8]
+	add	sp,sp,32
 	ret
 	.text
 	.align 2
@@ -123,7 +105,7 @@ _main:
 	movz	x0,65535
 	movk	x0,65535,lsl 16
 	bl	.P1  // p
-.L8:
+.L4:
 	ldp	x30,x29,[sp],16
 	ret
 	.comm	.L32767,24,12
