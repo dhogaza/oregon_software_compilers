@@ -140,8 +140,7 @@ procedure checkconst(node: nodeindex; {node to check}
 
 
   begin {checkconst}
-    if bigcompilerversion then ptr := @(bignodetable[node]);
-    with ptr^ do
+    with nodetable[node] do
       if (action in [visit, revisit]) and (op = intop) then
         begin
         constflag := true;
@@ -180,39 +179,36 @@ procedure estimateloop(stmt: nodeindex;
 }
 
   var
-    ptr: nodeptr; {used to access index node}
     initialvalue, finalvalue: integer; {initial and final values}
     uinitialvalue, ufinalvalue: unsignedint; {initial and final values unsigned}
-    currentstmt: node; { copy of the stmt node }
     constfinal: boolean; { true if to/downto is constant }
+    expr1, expr2: nodeindex; {from stmt node}
 
 
   begin {estimateloop}
     fixed := false;
     overflow := false;
     runcount := 0; {temp }
-    if bigcompilerversion then ptr := @(bignodetable[stmt]);
-    currentstmt := ptr^;
-    with currentstmt do
-      begin
+    expr1 :=  nodetable[stmt].expr1;
+    expr2 :=  nodetable[stmt].expr2;
+ 
+    with nodetable[expr1] do
+      if op in [forupchkop, fordnchkop, forerrchkop] then
+        checkconst(oprnds[1], constfinal, finalvalue)
+      else checkconst(nodetable[stmt].expr1, constfinal, finalvalue);
 
-      if bigcompilerversion then ptr := @(bignodetable[expr1]);
-      if ptr^.op in [forupchkop, fordnchkop, forerrchkop] then
-        checkconst(ptr^.oprnds[1], constfinal, finalvalue)
-      else checkconst(expr1, constfinal, finalvalue);
-
-      if bigcompilerversion then ptr := @(bignodetable[expr2]);
-      if constfinal and ((ptr^.op = defforlitindexop) or
-         (ptr^.op = defunsforlitindexop)) then
+    with nodetable[expr2] do
+      if constfinal and ((op = defforlitindexop) or
+         (op = defunsforlitindexop)) then
         begin
         fixed := true;
-        initialvalue := ptr^.oprnds[3];
+        initialvalue := oprnds[3];
         uinitialvalue := initialvalue;
         ufinalvalue := finalvalue;
 
-        if stmtkind = foruphdr then
+        if nodetable[stmt].stmtkind = foruphdr then
           begin
-          if ptr^.op = defunsforlitindexop then
+          if op = defunsforlitindexop then
             begin
             if (uinitialvalue = 0) and (ufinalvalue = maxusint) then
               begin
@@ -258,7 +254,7 @@ procedure estimateloop(stmt: nodeindex;
         else
           begin
           { down loop }
-          if ptr^.op = defunsforlitindexop then
+          if op = defunsforlitindexop then
             begin
             if (uinitialvalue = maxusint) and (ufinalvalue = 0) then
               begin
@@ -302,7 +298,6 @@ procedure estimateloop(stmt: nodeindex;
             end;
           end; { down loop }
         end;
-      end; {with}
   end; {estimateloop}
 
 {DRB free pascal version supports travcode mode only}
@@ -375,26 +370,17 @@ procedure genrealop(o: pseudoop; {operator}
   recent node which should be changed.
 }
 
-  var
-    p: nodeptr;
-
-
   begin
     if not (deadcode and (removedeadcode in genset)) and
        (n <> 0) {or (inc < 0)} then
       begin
-      if bigcompilerversion then p := @(bignodetable[n]);
-      if p^.action = visit then
-        if (p^.op < intop) and (p^.op > newunsvarop) then
-          while p^.slink <> 0 do
-            begin
-            n := p^.slink;
-            if bigcompilerversion then p := @(bignodetable[n]);
-            end;
-      if bigcompilerversion then p := @(bignodetable[n]);
-      p^.refcount := p^.refcount + inc;
-      if p^.action = visit then
-        if p^.op = commaop then increfcount(p^.oprnds[2], deadcode, inc);
+      if nodetable[n].action = visit then
+        if (nodetable[n].op < intop) and (nodetable[n].op > newunsvarop) then
+          while nodetable[n].slink <> 0 do
+            n := nodetable[n].slink;
+      nodetable[n].refcount := nodetable[n].refcount + inc;
+      if nodetable[n].action = visit then
+        if nodetable[n].op = commaop then increfcount(nodetable[n].oprnds[2], deadcode, inc);
       end;
   end; {increfcount}
 end.
