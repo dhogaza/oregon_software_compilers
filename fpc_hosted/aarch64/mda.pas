@@ -372,7 +372,6 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
     i: index; {induction var}
     t: index; {last parameter index}
     bn: index; {block name index}
-    p: entryptr; {used for accessing procedure and parameters}
     newoffset: addressrange; {dummy to fix code gen bug on the PDP-11}
     runningparamsize: addressrange;
 
@@ -387,9 +386,7 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
           ownsize := forcealign(ownsize, targetintsize, false);
         end;
 
-      if bigcompilerversion then p := @(bigtable[bn]);
-                              
-      t := p^.paramlist;
+      t := bigtable[bn].paramlist;
 
       { DRB gcc assigns addresses on the stack in left-right order but
         evaluates the parameter list in reverse order.  This makes sense
@@ -398,13 +395,12 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
       i := bn + 1;
       while i <= t do
         begin
-        if bigcompilerversion then p := @(bigtable[i]);
-        if not p^.form then
-          if p^.varalloc = normalalloc then
+        if not bigtable[i].form then
+          if bigtable[i].varalloc = normalalloc then
             begin
-            p^.offset := p^.offset + blocksize;
-            if p^.namekind in [procparam, funcparam] then
-              i := p^.nextparamlink;
+            bigtable[i].offset := bigtable[i].offset + blocksize;
+            if bigtable[i].namekind in [procparam, funcparam] then
+              i := bigtable[i].nextparamlink;
             end;
         i := i + 1;
         end;
