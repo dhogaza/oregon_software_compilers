@@ -404,8 +404,6 @@ type
       line: integer; {first line of proc itself}
     end;
 
-  proctable_block = array [0..proctablespan] of proctableentry;
-
   {The cseregion table stores the lowest and highest addresses at each level
    modified by a particular procedure.  The first entry always records global
    variables modified, the second records own variables modified (if $own
@@ -649,8 +647,7 @@ var
 
   { Table of procedure data -- built up by analys and used by coder }
 
-  proctable: array [0..old_proctablesize] of proctableentry;
-  new_proctable: array [0..procblocksmax] of ^proctable_block;
+  proctable: array [0..proctablesize] of proctableentry;
   proctabletop: proctableindex;
   blockref: proctableindex;
   mainref: proctableindex; {for main entry in C}

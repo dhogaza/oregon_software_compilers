@@ -32,7 +32,6 @@ uses config, hdr, a_t, t_c;
 
 const
 
-  pts = proctablespan; {shorter local name}
   debugtree = false;
   maxloopdepth = 10;
   maxexprstack = 100;

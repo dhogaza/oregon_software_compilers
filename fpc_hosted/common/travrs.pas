@@ -450,9 +450,7 @@ procedure inittravrs;
     hoisttwo := 0;
     maxnodes := 0;
     for p := 1 to proctabletop do
-      if newtravrsinterface then
-        new_proctable[p div (pts + 1)]^[p mod (pts + 1)].referenced := false
-      else proctable[p].referenced := false;
+      proctable[p].referenced := false;
     anynonlocalgotos := false;
     emitpseudo := false;
   end {inittravrs} ;
@@ -805,13 +803,7 @@ procedure take_data_op;
           end;
         end;
       genpseudo(map[this_op, none], len, 0, 0, 0, op1, op2, 0);
-      if newtravrsinterface then
-        begin
-        if this_op = dfaddrop then
-          new_proctable[op1 div (pts + 1)]^[op1 mod (pts +
-           1)].referenced := true
-        end
-      else if this_op = dfaddrop then proctable[op1].referenced := true;
+      if this_op = dfaddrop then proctable[op1].referenced := true;
       end;
   end;
 
@@ -1685,19 +1677,8 @@ procedure build;
                 is to detect them.
               }
               proctable[blockref].leaf := targetmachine = aarch64;
-
-              if newtravrsinterface then
-                begin
-                level := new_proctable[procref div (pts + 1)]^[procref mod
-                         (pts + 1)].level;
-                intlevelrefs := new_proctable[procref div (pts +
-                                1)]^[procref mod (pts + 1)].intlevelrefs;
-                end
-              else
-                begin
-                level := proctable[procref].level;
-                intlevelrefs := proctable[procref].intlevelrefs;
-                end;
+              level := proctable[procref].level;
+              intlevelrefs := proctable[procref].intlevelrefs;
               end;
             casehdr:
               begin
@@ -3737,29 +3718,15 @@ procedure build;
 
             begin {killaffectedvars}
               if stack[s].litflag then
-                begin
-                if newtravrsinterface then
-                  with new_proctable[stack[s].i div (pts + 1)]^[stack[s].i mod
-                       (pts + 1)] do
-                    begin
-                    if stack[s].i <= cseregions then cr := stack[s].i
-                    else cr := 0;
-                    if globaldeath then l := 0
-                    else l := 2;
-                    if intlevelrefs then u := level - 1
-                    else u := 1;
-                    end
-                else
-                  with proctable[stack[s].i] do
-                    begin
-                    if stack[s].i <= cseregions then cr := stack[s].i
-                    else cr := 0;
-                    if globaldeath then l := 0
-                    else l := 2;
-                    if intlevelrefs then u := level - 1
-                    else u := 1;
-                    end
-                end
+                with proctable[stack[s].i] do
+                  begin
+                  if stack[s].i <= cseregions then cr := stack[s].i
+                  else cr := 0;
+                  if globaldeath then l := 0
+                  else l := 2;
+                  if intlevelrefs then u := level - 1
+                  else u := 1;
+                  end
               else
                 begin
                 cr := 0;

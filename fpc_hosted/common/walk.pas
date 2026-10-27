@@ -755,21 +755,11 @@ procedure walknode(root: nodeindex; {root of tree to walk}
         case targetmachine of
           vax:
 {to be verified ... esp. the P2 linkage case}
-            begin
-            if newtravrsinterface then
-              with new_proctable[blockref div (pts + 1)]^
-                                [blockref mod (pts + 1)] do
-                if (lp^.oprnds[2] = 0) and
-                   (calllinkage = nonpascalcall) then
-                  offset := rootp^.oprnds[2] - final_block_size
-                else offset := rootp^.oprnds[2]
-            else
-              with proctable[blockref] do
-                if (lp^.oprnds[2] = 0) and
-                   (calllinkage = nonpascalcall) then
-                  offset := rootp^.oprnds[2] - final_block_size
-                else offset := rootp^.oprnds[2];
-            end;
+            with proctable[blockref] do
+              if (lp^.oprnds[2] = 0) and
+                 (calllinkage = nonpascalcall) then
+                offset := rootp^.oprnds[2] - final_block_size
+              else offset := rootp^.oprnds[2];
           otherwise
             offset := final_block_size - rootp^.oprnds[2];
         end {case};
@@ -1278,10 +1268,7 @@ with target = 0.
           genpseudo(map[op, ints], len, key, refcount, copycount, oprnds[1],
                     oprnds[2], oprnds[3]);
           if op = fptrop then
-            if newtravrsinterface then
-              new_proctable[oprnds[1] div (pts + 1)]^[oprnds[1] mod (pts +
-               1)].referenced := true
-            else proctable[oprnds[1]].referenced := true;
+            proctable[oprnds[1]].referenced := true;
           end;
       end {literalnode} ;
 
@@ -1353,10 +1340,7 @@ with target = 0.
       begin {ownnode}
         mapkey;
         genpseudo(doown, ptrsize, key, refcount, copycount, 0, 0, 0);
-        if newtravrsinterface then
-          new_proctable[blockref div (pts + 1)]^[blockref mod (pts +
-           1)].ownused := true
-        else proctable[blockref].ownused := true;
+        proctable[blockref].ownused := true;
       end {ownnode} ;
 
 
@@ -1441,9 +1425,7 @@ with target = 0.
           genpseudo(callroutine, len, key, refcount, copycount,
                     rootp^.oprnds[1], rootp^.oprnds[3], - ord(rootp^.form));
         p := rootp^.oprnds[1];
-        if newtravrsinterface then
-          new_proctable[p div (pts + 1)]^[p mod (pts + 1)].referenced := true
-        else proctable[p].referenced := true;
+        proctable[p].referenced := true;
         if language <> c then clearkeys;
       end {callnode} ;
 
@@ -1527,10 +1509,7 @@ with target = 0.
         genpseudo(stacktarget, len, key, refcount, copycount, 1, 0, 0);
         walknode(r, rkey, 0, true);
         genpseudo(pshproc, len, key, 0, 0, rkey, third, 0);
-        if newtravrsinterface then
-          new_proctable[third div (pts + 1)]^[third mod (pts +
-           1)].referenced := true
-        else proctable[third].referenced := true;
+        proctable[third].referenced := true;
       end {pushprocnode} ;
 
 
@@ -3131,10 +3110,7 @@ stinks}
 
         if bigcompilerversion then ptr := @(bignodetable[root^.beginstmt]);
         p := ptr^.procref;
-        if newtravrsinterface then
-          branchstmt := currentstmt.labellevel <>
-                        new_proctable[p div (pts + 1)]^[p mod (pts + 1)].level
-        else branchstmt := currentstmt.labellevel <> proctable[p].level;
+        branchstmt := currentstmt.labellevel <> proctable[p].level;
         genstmtbrk;
         with currentstmt do
           genpseudo(pascalgoto, 0, 0, 0, 0, labelno, labellevel, 0);

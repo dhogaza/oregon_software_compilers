@@ -479,12 +479,7 @@ procedure assignregs;
 	      ns32k, aarch64:
 		begin
 		{ static link comes out of general regs }
-		if newtravrsinterface then
-		  if new_proctable[blockref div (pts + 1)]^[blockref mod (pts +
-		     1)].intlevelrefs then
-		    regtemps := 1 { static link gets first register}
-		  else regtemps := 0
-		else if proctable[blockref].intlevelrefs then
+		if proctable[blockref].intlevelrefs then
 		  regtemps := 1 { static link gets first register}
 		else regtemps := 0;
 		allocateregs(assignreg, [reg, ptrreg], regtemps);
@@ -495,23 +490,11 @@ procedure assignregs;
 		end;
 	      vax:
 		begin
-		if newtravrsinterface then
-		  with new_proctable[blockref div (pts + 1)]^[blockref mod (pts + 1)] do
-		    begin
-		    { static link comes out of general regs }
-		    if intlevelrefs then regtemps := 1
-		    else regtemps := 0;
-	 { static link gets first register, or ap if non pascal; check paramsize,
-	   later...
-	 }
-		    end
-		else
-		  with proctable[blockref] do
-		    begin
-		    if intlevelrefs then regtemps := 1
-		    else regtemps := 0;
-		    end;
-
+		with proctable[blockref] do
+		  begin
+		  if intlevelrefs then regtemps := 1
+		  else regtemps := 0;
+		  end;
 		allocateregs(assignreg, [reg], regtemps);
 		{ no specific ptr or real regs on the VAX }
 		ptrtemps := 0;
@@ -522,16 +505,8 @@ procedure assignregs;
 		regtemps := 0;
 		{static link must be register bx}
 		{static link gets the only available register}
-		if newtravrsinterface then
-		  if not new_proctable[blockref div (pts + 1)]^[blockref mod (pts +
-		     1)].intlevelrefs then
-		    begin
-		    allocateregs(assignreg, [reg], regtemps);
-		    end
-		  else if not proctable[blockref].intlevelrefs then
-		    begin
-		    allocateregs(assignreg, [reg], regtemps);
-		    end;
+		if not proctable[blockref].intlevelrefs then
+		  allocateregs(assignreg, [reg], regtemps);
 		{ no specific ptr or real regs on the iAPX-86 }
 		ptrtemps := 0;
 		realtemps := 0;
@@ -540,22 +515,13 @@ procedure assignregs;
 		begin
 		regtemps := 0;
 		{static link must be register ebx}
-		if newtravrsinterface then
-		  with new_proctable[blockref div (pts + 1)]^[blockref mod (pts + 1)] do
-		    begin
-		    if intlevelrefs then
-		      regtemps := 1 { static link gets only register}
-		    else regtemps := 0;
-		    frameneeded := needsframeptr;
-		    end
-		else
-		  with proctable[blockref] do
-		    begin
-		    if intlevelrefs then
-		      regtemps := 1 { static link gets only register}
-		    else regtemps := 0;
-		    frameneeded := needsframeptr;
-		    end;
+		with proctable[blockref] do
+		  begin
+		  if intlevelrefs then
+		    regtemps := 1 { static link gets only register}
+		  else regtemps := 0;
+		  frameneeded := needsframeptr;
+		  end;
 		allocateregs(1 {assignreg} , [reg, bytereg], regtemps);
 
 		{allocate register ebp - the frame pointer - if not used}
@@ -570,24 +536,14 @@ procedure assignregs;
 		  { Static link comes out of general regs.
 		  }
 		ptrtemps := 0;
-		if newtravrsinterface then
-		  with new_proctable[blockref div (pts + 1)]^[blockref mod (pts + 1)] do
-		    begin
-		    if intlevelrefs then ptrtemps := 1;
-		    if (register_return and not switcheverplus[structstatic] and
-		       (struct_calls or struct_ret)) or (language = c) and
-		       (switcheverplus[debugging] or switcheverplus[targdebug]) then
-		      ptrtemps := ptrtemps + 1;
-		    end
-		else
-		  with proctable[blockref] do
-		    begin
-		    if intlevelrefs then ptrtemps := 1;
-		    if (register_return and not switcheverplus[structstatic] and
-		       (struct_calls or struct_ret)) or (language = c) and
-		       (switcheverplus[debugging] or switcheverplus[targdebug]) then
-		      ptrtemps := ptrtemps + 1;
-		    end;
+		with proctable[blockref] do
+		  begin
+		  if intlevelrefs then ptrtemps := 1;
+		  if (register_return and not switcheverplus[structstatic] and
+		     (struct_calls or struct_ret)) or (language = c) and
+		     (switcheverplus[debugging] or switcheverplus[targdebug]) then
+		    ptrtemps := ptrtemps + 1;
+		  end;
 
 		  { For Versados the debugger/profiler uses one dedicated register.
 		    If generating 68000 pic and there is an own section, then a

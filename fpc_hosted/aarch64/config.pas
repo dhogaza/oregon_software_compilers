@@ -83,8 +83,6 @@ const
   newdebugger = false;
   register_return = true;
   newscaninterface = false; {we are using old-style string table and tokens}
-  newtravrsinterface = false; {we are using old-style proctable and
-                               case table interface}
 
   maxlabel = 32767;
   globallabels = 3;
@@ -168,16 +166,11 @@ const
   hashtablesize = 12497; { max number of distinct identifiers }
   hashspan = 255; {hash entries per block - 1 in hash table}
   hashblocksmax = 19; {max blocks - 1 for hash table}
-  proctablespan = 0; {proc entries per block of proctable}
-  procblocksmax = 0; {max blocks in proctable}
 
   { Proctablesize should be set to the max number of procedures,
-    irregardless of new/old-style proctable.  Old_proctablesize
-    should be set 0 if new-style proctable used, proctablesize
-    if old-style.
+    irregardless of new/old-style proctable.
   }
   proctablesize = 1023; { max number of procedures }
-  old_proctablesize = proctablesize; { max number in old-style proctable}
   vartablesize = 4096; {max number of external and static refs}
   cseregions = 0 {proctablesize}; {max number of cse regions saved}
   undeftablesize = proctablesize; { max number of forward procedures/functions }
