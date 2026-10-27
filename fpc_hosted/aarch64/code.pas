@@ -4945,17 +4945,17 @@ procedure forerrchkx;
   var
     regkey: keyindex; {descriptor of induction register}
     skiplabel: labelindex;
+    signed: boolean;
 
 
   begin {forerrchkx}
-    skiplabel := pseudobuff.oprnds[2];
+    skiplabel := newlabel;
     unpack(left, 0);
     loadreg(left, 0);
-    setallfields(left);
-    keytable[key].signed := keytable[forstack[forsp].forkey].signed;
+    signed := keytable[forstack[forsp].forkey].signed;
     regkey := settemp(len, reg_oprnd(forstack[forsp].originalreg));
-    gen2(lastnode, buildinst(cmp, len = long, false), regkey, key);
-    if keytable[key].signed then
+    gen2(lastnode, buildinst(cmp, len = long, false), regkey, {key}left);
+    if signed then
       begin
       if pseudoinst.oprnds[2] = 0 then genbcond(lastnode, gt, skiplabel, false)
       else genbcond(lastnode, lt, skiplabel, false)
@@ -4966,7 +4966,8 @@ procedure forerrchkx;
       else genbcond(lastnode, lo, skiplabel, false)
       end;
     callsupport(librangetrap, false);
-    forstack[forsp].limitreg := ip0;
+    forsp := forsp - 1;
+    definelabel(skiplabel);
   end {forerrchkx} ;
 
 procedure shiftintx(backwards: boolean);

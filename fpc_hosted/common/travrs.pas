@@ -5674,8 +5674,8 @@ procedure build;
         var
           ptr: nodeptr; {Used to access controlled var/stmt nodes}
           fortopblock, { index to forloop top block }
-           forbotblock, { index to forloop bottom block }
-           forstmts: basicblockptr; { index to basic block containing body }
+          forbotblock, { index to forloop bottom block }
+          forstmts: basicblockptr; { index to basic block containing body }
           forhdrstmt: nodeindex; { index to forhdr }
           p: nodeindex; { for acces to bottom stmt }
           saveexpr1, saveexpr2, controlledvar: nodeindex; { copies to
@@ -5720,10 +5720,14 @@ procedure build;
 
           estimateloop(forhdrstmt, fixed, overflow, runcount);
 
-          if fixed and (runcount = 0) and (removedeadcode in genset) then
+          if (bignodetable[saveexpr1].op = forerrchkop)
+             or fixed and (runcount = 0) and (removedeadcode in genset) then
             begin
             if bigcompilerversion then ptr := @(bignodetable[forhdrstmt]);
-            ptr^.stmtkind := nohdr; { kill it!}
+            if bignodetable[saveexpr1].op = forerrchkop then
+              bignodetable[saveexpr1].refcount := 0
+            else
+              ptr^.stmtkind := nohdr; { kill it!}
             incr_deadcount;
             { need a dead block to hang these stmts on }
             newblock(forstmts, currentblock, false);
@@ -6399,6 +6403,7 @@ procedure build;
           setupstmt(s);
           if bigcompilerversion then ptr := @(bignodetable[thisstmt]);
           if ptr^.expr1 <> 0 then increfcount(ptr^.expr1, deadcode, - 1);
+          ptr^.expr2 := 0;
         end {buildsimplestmt} ;
 
 

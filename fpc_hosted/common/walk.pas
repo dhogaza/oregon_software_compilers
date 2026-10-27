@@ -2327,9 +2327,6 @@ with target = 0.
           questop: questnode;
           otherwise
             begin
-{
-            write('travrs walk error ', ord(op): 3);
-}
             write('travrs walk error ', op);
             compilerabort(walkerror);
             end;
@@ -2856,8 +2853,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
           else if language = C then
             begin
             walkvalue(selector, casekey, 0);
-            genpseudo(dovar, 4, newkey, 0, 0, casekey, 0, 0); {this sink
-stinks}
+            genpseudo(dovar, 4, newkey, 0, 0, casekey, 0, 0); {this stinks}
             end;
           end;
       end {walkcase} ;
@@ -2928,53 +2924,56 @@ stinks}
           walknode(expr2, expr2key, 0, false);
           if checkexists then walknode(expr1, expr1key, 0, false);
 
-          forsp := forsp + 1;
-          with forstack[forsp] do
+          if bignodetable[expr1].op <> forerrchkop then
             begin
-            forkey1 := expr1key;
-            forkey2 := expr2key;
-            if currentstmt.stmtkind = foruphdr then
+            forsp := forsp + 1;
+            with forstack[forsp] do
               begin
-              { why does this care about debugging?? }
-              if constfinal and constinitial and not nowdebugging and
-                 ((initialvalue <= finalvalue) and not (unsigned and
-                 (initialvalue < 0) and (finalvalue >= 0)) or unsigned and
-                 (initialvalue >= 0) and (finalvalue < 0)) then
-                begin {no chance of a zero trip loop}
-                genpseudo(foruptop, forstepsize, 0, 0, 0, exitlabel(trueblock),
-                          0, 0);
-                improved := true;
-                downloop := false;
+              forkey1 := expr1key;
+              forkey2 := expr2key;
+              if currentstmt.stmtkind = foruphdr then
+                begin
+                { why does this care about debugging?? }
+                if constfinal and constinitial and not nowdebugging and
+                   ((initialvalue <= finalvalue) and not (unsigned and
+                   (initialvalue < 0) and (finalvalue >= 0)) or unsigned and
+                   (initialvalue >= 0) and (finalvalue < 0)) then
+                  begin {no chance of a zero trip loop}
+                  genpseudo(foruptop, forstepsize, 0, 0, 0, exitlabel(trueblock),
+                            0, 0);
+                  improved := true;
+                  downloop := false;
+                  end
+                else
+                  begin
+                  genpseudo(foruptop, forstepsize, 0, 0, 0, exitlabel(trueblock),
+                            exitlabel(falseblock), expr1key);
+                  improved := false;
+                  downloop := false;
+                  end;
                 end
               else
                 begin
-                genpseudo(foruptop, forstepsize, 0, 0, 0, exitlabel(trueblock),
-                          exitlabel(falseblock), expr1key);
-                improved := false;
-                downloop := false;
-                end;
-              end
-            else
-              begin
-              if constfinal and constinitial and not nowdebugging and
-                 ((initialvalue >= finalvalue) and not (unsigned and
-                 (initialvalue >= 0) and (finalvalue < 0)) or unsigned and
-                 (initialvalue < 0) and (finalvalue >= 0)) then
-                begin {no chance of a zero trip loop}
-                genpseudo(fordntop, forstepsize, 0, 0, 0, exitlabel(trueblock),
-                          0, 0);
-                improved := true;
-                downloop := true;
-                end
-              else
-                begin
-                genpseudo(fordntop, forstepsize, 0, 0, 0, exitlabel(trueblock),
-                          exitlabel(falseblock), expr1key);
-                improved := false;
-                downloop := true;
-                end;
-              end; { down loop }
-            end; {with forstack}
+                if constfinal and constinitial and not nowdebugging and
+                   ((initialvalue >= finalvalue) and not (unsigned and
+                   (initialvalue >= 0) and (finalvalue < 0)) or unsigned and
+                   (initialvalue < 0) and (finalvalue >= 0)) then
+                  begin {no chance of a zero trip loop}
+                  genpseudo(fordntop, forstepsize, 0, 0, 0, exitlabel(trueblock),
+                            0, 0);
+                  improved := true;
+                  downloop := true;
+                  end
+                else
+                  begin
+                  genpseudo(fordntop, forstepsize, 0, 0, 0, exitlabel(trueblock),
+                            exitlabel(falseblock), expr1key);
+                  improved := false;
+                  downloop := true;
+                  end;
+                end; { down loop }
+              end; {with forstack}
+            end {not forerrchkop};
           end; {with currentstmt}
       end {walkfortop} ;
 
@@ -3069,12 +3068,14 @@ stinks}
     procedure walksimple;
 
 { Walk a simple statement (assignment or procedure call).  There is
-  nothing to it.
+  nothing to it, except for the kludge regarding forerrchkop, which
+  has two expressions.
 }
 
 
       begin
         genstmtbrk;
+        walknode(currentstmt.expr2, expr2key, 0, false);
         walknode(currentstmt.expr1, expr1key, 0, false);
         clearkeys;
       end {walksimple} ;

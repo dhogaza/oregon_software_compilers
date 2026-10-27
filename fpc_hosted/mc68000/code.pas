@@ -13526,10 +13526,12 @@ procedure forerrchkx;
 
   begin {forerrchkx}
     unpack(left, len);
+{
     setallfields(left);
+}
     settempdreg(targetintsize, forstack[forsp].originalreg);
     regkey := tempkey;
-    gendouble(cmp, key, regkey);
+    gendouble(cmp, left, regkey);
     if keytable[regkey].signed then
       begin
       if pseudoinst.oprnds[2] = 0 then genbr(bgt, lastlabel)
@@ -13553,6 +13555,7 @@ procedure forerrchkx;
 
     generror(range_error);
     definelastlabel;
+    forsp := forsp - 1;
   end {forerrchkx} ;
 
 
