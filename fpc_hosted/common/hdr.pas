@@ -50,21 +50,11 @@ const
 
 type
 
-  { NEW string table definitions }
 
-  string_len = 0..max_string_len; {for holding string data}
-  string_data = packed array [1..max_string_len] of char;
-  string_buffer =
-    record {contains text of a string}
-      len: string_len; {length of data}
-      data: string_data; {actual data}
-    end;
-
+  stringarray = packed array [0..stringtablesize] of char; {defines string table}
+  stringptr = ^stringarray; {used because stringtable dynamically created}
   stringindex = 0..stringtablesize; {index into string table}
   stringtableindex = stringindex; {a synonym used elsewhere}
-  stringarray = packed array [0..stringspan] of char; {defines string table}
-  stringptr = ^stringarray; {used because stringtable dynamically created}
-  stringbasearray = array [0..stringblocksmax] of stringptr;
 
   double = real; {should be double precision within the compiler}
 
@@ -602,7 +592,6 @@ var
   stringfiledirty: boolean; {true if current string block changed}
 
   stringtable: stringptr; {pointer to old-style string table}
-  new_stringtable: stringbasearray; {block of new-style string table pointers}
   stringtabletop: stringindex; {next avail char in string table}
 
   listing: text; {listing output file}

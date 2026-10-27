@@ -161,7 +161,6 @@ const
     stringspan = 1023.
   }
   stringtablesize = 200000; {max characters in all identifiers}
-  stringblocksmax = 0; {max blocks -1 for string table}
   stringspan = stringtablesize; {bytes per block - 1 in string table}
 
   hashtablesize = 12497; { max number of distinct identifiers }

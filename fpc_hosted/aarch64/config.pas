@@ -154,14 +154,7 @@ const
 
   maxlevel = 15; { Max procedure nesting level }
 
-  { NOTE: these are set up for using the old-style string table.  The
-    new style uses new to create blocks of chars on the heap.  The
-    correct figures would be:  stringblockmax = ???, stringtablesize = 200000,
-    stringspan = 1023.
-  }
   stringtablesize = 200000; {max characters in all identifiers}
-  stringblocksmax = 0; {max blocks -1 for string table}
-  stringspan = stringtablesize; {bytes per block - 1 in string table}
 
   hashtablesize = 12497; { max number of distinct identifiers }
   hashspan = 255; {hash entries per block - 1 in hash table}
