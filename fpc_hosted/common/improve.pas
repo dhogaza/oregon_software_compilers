@@ -740,8 +740,7 @@ procedure loops;
 }
 
       var
-        ptr: nodeptr; { for access to node }
-        copied: nodeptr; { for building copy node }
+        copied: nodeindex; { for building copy node }
         lastcopy: nodeindex; { previous copynode in copy chain }
         refc, copyc: refcountrange; { ref count of hoisted expression }
         newexpr: nodeindex; { the node to hoist if copies needed }
@@ -873,9 +872,9 @@ procedure loops;
         begin {onecopy}
 
           ptr := @(nodetable[c]);
-          copied^.copycount := refc;
+          nodetable[copied].copycount := refc;
 
-          with ptr^ do
+          with nodetable[c] do
             begin
             refcount := refc;
             copycount := copyc;
@@ -887,19 +886,18 @@ procedure loops;
             context[sp].firstblock^.precode := c;
             end;
           lastcopy := c;
-          copied := ptr;
+          copied := c;
         end {onecopy} ;
 
 
       begin {hoistit}
-        ptr := @(nodetable[expr]);
 
         { first see if it's been hoisted already or not a true invariant }
 
-        if not ((ptr^.action = visit) and
-           (ptr^.op in
+        if not ((nodetable[expr].action = visit) and
+           (nodetable[expr].op in
            [defforlitindexop, defforindexop, forindexop, endexpr, defunsforlitindexop,
-           defunsforindexop])) and (secondlevel or (ptr^.hoistedby = nil)) then
+           defunsforindexop])) and (secondlevel or (nodetable[expr].hoistedby = nil)) then
           begin
             { Two complications arise here. First we must walk the expression
               to remove the references to the
@@ -928,13 +926,14 @@ procedure loops;
             lastnode := lastnode + 1;
             newexpr := lastnode;
 
-            copied := @(nodetable[newexpr]);
+            copied := newexpr;
 
-            copied^ := ptr^;
-            copied^.prelink := 0;
+            nodetable[newexpr] := nodetable[expr];
+            nodetable[newexpr].prelink := 0;
+
             lastcopy := newexpr;
-            refc := ptr^.refcount;
-            copyc := ptr^.copycount;
+            refc := nodetable[expr].refcount;
+            copyc := nodetable[expr].copycount;
 
             for sp := 1 to contextsp - 1 do
               begin
@@ -947,17 +946,13 @@ procedure loops;
 
           if lasthoist = 0 then loopblk^.precode := expr
           else
-            begin
-            ptr := @(nodetable[lasthoist]);
-            ptr^.prelink := expr;
-            end;
+            nodetable[lasthoist].prelink := expr;
           lasthoist := expr;
 
           { count the number of hoists that occur }
 
           if switcheverplus[test] then
             begin
-            ptr := @(nodetable[expr]);
             if not anyinvars then
               begin
               anyinvars := true;
