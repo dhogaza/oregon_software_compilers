@@ -871,7 +871,6 @@ procedure loops;
 
         begin {onecopy}
 
-          ptr := @(nodetable[c]);
           nodetable[copied].copycount := refc;
 
           with nodetable[c] do
@@ -992,7 +991,7 @@ procedure loops;
 }
 
       var
-        ptr: nodeptr; { for access to nodes }
+        temp: nodeindex; { for access to nodes }
         varlev: levelindex; { level of var op }
         off: addressrange; { where in frame of var }
         written: boolean; { true if found on write list }
@@ -1000,31 +999,28 @@ procedure loops;
 
       begin {simpleinvar}
         simpleinvar := false;
-        ptr := @(nodetable[oprnd]);
-        if ptr^.action = copy then
+        if nodetable[oprnd].action = copy then
           begin
           { Point to the real operand }
-          oprnd := ptr^.directlink;
-          ptr := @(nodetable[oprnd]);
+          oprnd := nodetable[oprnd].directlink;
           end {copy} ;
-        if ((ptr^.op = varop) or (ptr^.op = unsvarop)) and
-           not loopblk^.deadlevels[ptr^.oprnds[1]] then
+        if ((nodetable[oprnd].op = varop) or (nodetable[oprnd].op = unsvarop)) and
+           not loopblk^.deadlevels[nodetable[oprnd].oprnds[1]] then
           begin
-          varlev := ptr^.oprnds[1];
-          off := ptr^.oprnds[2];
+          varlev := nodetable[oprnd].oprnds[1];
+          off := nodetable[oprnd].oprnds[2];
             { A simple variable points to an indxop, which points
               to a levop}
-          ptr := @(nodetable[ptr^.oprnds[3]]);
-          if ptr^.op in [indxop, vindxop] then
+          temp := nodetable[oprnd].oprnds[3];
+          if nodetable[temp].op in [indxop, vindxop] then
             begin
-            ptr := @(nodetable[ptr^.oprnds[1]]);
+            temp := nodetable[temp].oprnds[1];
               { Globalop's and localop's are converted to levop's
                 by buildexpr }
-            if (ptr^.op = levop) then
+            if (nodetable[temp].op = levop) then
               begin
               { First, check to see if this is the loop variable }
-              ptr := @(nodetable[other]);
-              if (level <> varlev) or (ptr^.oprnds[2] <> off) then
+              if (level <> varlev) or (nodetable[other].oprnds[2] <> off) then
                 begin
                   { It isn't the loop variable, so now check to see
                     if it's written within the loop }
@@ -1032,10 +1028,9 @@ procedure loops;
                 written := false;
                 while not written and (p <> 0) and (p <> finalwrite) do
                   begin
-                  ptr := @(nodetable[p]);
-                  if (ptr^.oprnds[1] = varlev) and (ptr^.oprnds[2] = off) then
+                  if (nodetable[p].oprnds[1] = varlev) and (nodetable[p].oprnds[2] = off) then
                     written := true;
-                  p := ptr^.looplink;
+                  p := nodetable[p].looplink;
                   end {while} ;
                 simpleinvar := not written;
                 end {not loop var} ;
@@ -1112,6 +1107,7 @@ procedure loops;
       var
         i: 0..contextdepth; {induction var }
         ptr: nodeptr; { for node access }
+        temp: nodeindex; { for node access }
         operands: operandarray; { local copy of oprnd field }
         nodeoperands: nodeoperandarray; { local copy of nodeoprnd field }
         copyfound: boolean; {true if this node was a copy node}
@@ -1147,8 +1143,6 @@ procedure loops;
         var
           currentvar: nodeindex; { for walking write chains }
           found: boolean; { true if expression found on write chains }
-          ptr: nodeptr; { for access to expression nodes }
-
 
         begin {varisinvar}
             { Only called on pass 2, when invariant flag is not enough to
@@ -1158,8 +1152,7 @@ procedure loops;
           if loopblk^.deadlevels[operands[1]] then
             begin
             varisinvar := false;
-            ptr := @(nodetable[oprnd]);
-            ptr^.invariant := false; { warn others early }
+            nodetable[oprnd].invariant := false; { warn others early }
             end
           else
             begin
@@ -1168,22 +1161,17 @@ procedure loops;
 
             currentvar := loopblk^.writes;
             found := false;
-{
             while (currentvar <> finalwrite) and not found do
-}
-            while (currentvar <> finalwrite) do
               begin
-              ptr := @(nodetable[currentvar]);
-              if (operands[1] = ptr^.oprnds[1]) and
-                 (operands[2] = ptr^.oprnds[2]) then
+              if (operands[1] = nodetable[currentvar].oprnds[1]) and
+                 (operands[2] = nodetable[currentvar].oprnds[2]) then
                 found := true;
-              currentvar := ptr^.looplink;
+              currentvar := nodetable[currentvar].looplink;
               end;
             if found then
               begin
               varisinvar := false;
-              ptr := @(nodetable[oprnd]);
-              ptr^.invariant := false;
+              nodetable[oprnd].invariant := false;
               end
             else varisinvar := true;
             end;
@@ -1279,8 +1267,9 @@ procedure loops;
                   if language = c then invar := false
                   else
                     begin
+                    temp := ptr^.oprnds[1];
                     ptr := @(nodetable[ptr^.oprnds[1]]);
-                    invar := (ptr^.action = visit) and (ptr^.op <> unsvarop);
+                    invar := (nodetable[temp].action = visit) and (nodetable[temp].op <> unsvarop);
                     end
                   end
                 else invar := true;
