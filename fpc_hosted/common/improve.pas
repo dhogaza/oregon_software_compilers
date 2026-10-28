@@ -283,7 +283,6 @@ procedure assignregs;
     procedure applytoexprnode(expr: nodeindex);
 
     var
-      exprp: nodeptr;
       i: oprndindex;
 
       procedure applytoregparamnode(expr: nodeindex);
@@ -309,21 +308,19 @@ procedure assignregs;
 }
 
         var
-          exprp: nodeptr;
           offset: addressrange;
           j: 0..regtablelimit; { var for temp search }
 
         begin {applytoregparamnode}
-          exprp := @(nodetable[expr]);
-          offset := exprp^.oprnds[2];
+          offset := nodetable[expr].oprnds[2];
           j := hashvaroffset(offset);
           while ((regvars[j].offset <> offset) or not regvars[j].parameter) and
                 (regvars[j].worth >= 0) do
             j := (j + 1) mod (regtablelimit + 1);
           if regvars[j].regid <> 0 then
             begin
-            exprp^.oprnds[1] := -1;
-            exprp^.oprnds[2] := regvars[j].regid;
+            nodetable[expr].oprnds[1] := -1;
+            nodetable[expr].oprnds[2] := regvars[j].regid;
             end;
         end {applytoregparamnode};
      
@@ -351,7 +348,6 @@ procedure assignregs;
 
         var
           left: nodeindex;
-          exprp,leftp: nodeptr;
           possibletemp: boolean; {true if local var or regparam and possible
                                   temp loc}
           offset: addressrange; {variable offset if possibletemp}
@@ -359,12 +355,10 @@ procedure assignregs;
           third: integer; {third operand, zero or temp number}
 
         begin {applytoindexnode}
-          exprp := @(nodetable[expr]);
-          left := exprp^.oprnds[1];
-          leftp := @(nodetable[left]);
-          offset := exprp^.oprnds[2];
+          left := nodetable[expr].oprnds[1];
+          offset := nodetable[expr].oprnds[2];
           third := 0;
-          if (leftp^.op = levop) and (leftp^.oprnds[1] = level) then
+          if (nodetable[left].op = levop) and (nodetable[left].oprnds[1] = level) then
             begin
             j := hashvaroffset(offset);
             while ((regvars[j].offset <> offset) or regvars[j].parameter) and
@@ -373,12 +367,12 @@ procedure assignregs;
             if regvars[j].regid <> 0 then
               begin
               case regvars[j].regkind of
-                reg, bytereg: exprp^.op := regtempop;
-                realreg: exprp^.op := realtempop;
-                ptrreg: exprp^.op := ptrtempop;
+                reg, bytereg: nodetable[expr].op := regtempop;
+                realreg: nodetable[expr].op := realtempop;
+                ptrreg: nodetable[expr].op := ptrtempop;
                 end;
-              exprp^.oprnds[2] := 0;
-              exprp^.oprnds[3] := regvars[j].regid;
+              nodetable[expr].oprnds[2] := 0;
+              nodetable[expr].oprnds[3] := regvars[j].regid;
               end;
             end
           else applytoexprnode(left);
@@ -387,18 +381,17 @@ procedure assignregs;
     begin {applytoexprnode}
       if expr <> 0 then
         begin
-        exprp := @(nodetable[expr]);
-        if exprp^.action = copy then
-          exprp := @(nodetable[exprp^.directlink]);
-        if (exprp^.op < intop) and (exprp^.slink <> 0) then
-          applytoexprnode(exprp^.slink);
-        case exprp^.op of
+        if nodetable[expr].action = copy then
+          expr := nodetable[expr].directlink;
+        if (nodetable[expr].op < intop) and (nodetable[expr].slink <> 0) then
+          applytoexprnode(nodetable[expr].slink);
+        case nodetable[expr].op of
           indxop: applytoindexnode(expr);
           regparamop, ptrregparamop,realregparamop: applytoregparamnode(expr);
           otherwise
             for i := 1 to maxoprnd do
-              if exprp^.nodeoprnd[i] then
-                applytoexprnode(exprp^.oprnds[i]);
+              if nodetable[expr].nodeoprnd[i] then
+                applytoexprnode(nodetable[expr].oprnds[i]);
           end;
         end;
     end {applytoexprnode};
@@ -408,23 +401,14 @@ procedure assignregs;
    { apply register allocations to a list of statements.
    }
 
-    var
-      p: nodeptr; { for access to statement node }
-
     procedure applytostmt(stmt: nodeindex);
 
     { apply register allocations to a list of statements.
     }
 
-    var
-      currentstmt: node; { current stmt node }
-      p: nodeptr;
-
 
       begin {applytostmt}
-      p := @(nodetable[stmt]);
-      currentstmt := p^;
-      with currentstmt do
+      with nodetable[stmt] do
         begin
         case stmtkind of
           blkhdr, labelhdr, gotohdr, nohdr, caseerrhdr, loopbrkhdr, cswbrkhdr,
@@ -445,142 +429,141 @@ procedure assignregs;
     begin {applytostmtlist}
       while firststmt <> 0 do
         begin
-        p := @(nodetable[firststmt]);
         applytostmt(firststmt);
-        firststmt := p^.nextstmt;
+        firststmt := nodetable[firststmt].nextstmt;
         end;
     end {applytostmtlist};
 
     begin {applytotree}
       { now walk the block in dfo }
-	      currentblock := root;
-	      repeat
-		if not currentblock^.isdead then
-		  applytostmtlist(currentblock^.beginstmt);
-		currentblock := currentblock^.dfolist;
-	      until currentblock = nil;
-	    end {applytotree};
+      currentblock := root;
+      repeat
+	if not currentblock^.isdead then
+	  applytostmtlist(currentblock^.beginstmt);
+	currentblock := currentblock^.dfolist;
+      until currentblock = nil;
+    end {applytotree};
 
-	  begin {assignregs}
-	    if switcheverplus[tblock] and (tblocknum = blockref) then
-	      begin
-	      { show register lifetimes }
-	      writeln('  off param  typ worth lmin lmax fmin fmax');
-	      for i := 0 to regtablelimit do
-		if regvars[i].registercandidate then
-		  begin
-		  with regvars[i], varlife do
-		    writeln(offset: 5, parameter:6, ord(regkind): 3, worth: 7, lonmin: 5, lonmax: 5,
-			    fonmin: 5, fonmax: 5);
-		  end;
-	      end;
-	    { assign general registers }
-	    case targetmachine of
-	      ns32k, aarch64:
-		begin
-		{ static link comes out of general regs }
-		if proctable[blockref].intlevelrefs then
-		  regtemps := 1 { static link gets first register}
-		else regtemps := 0;
-		allocateregs(assignreg, [reg, ptrreg], regtemps);
-		{ no specific ptr reg on 32k }
-		ptrtemps := 0;
-		realtemps := 0;
-		allocateregs(assignrealreg, [realreg], realtemps);
-		end;
-	      vax:
-		begin
-		with proctable[blockref] do
-		  begin
-		  if intlevelrefs then regtemps := 1
-		  else regtemps := 0;
-		  end;
-		allocateregs(assignreg, [reg], regtemps);
-		{ no specific ptr or real regs on the VAX }
-		ptrtemps := 0;
-		realtemps := 0;
-		end;
-	      iAPX86:
-		begin
-		regtemps := 0;
-		{static link must be register bx}
-		{static link gets the only available register}
-		if not proctable[blockref].intlevelrefs then
-		  allocateregs(assignreg, [reg], regtemps);
-		{ no specific ptr or real regs on the iAPX-86 }
-		ptrtemps := 0;
-		realtemps := 0;
-		end;
-	      i80386:
-		begin
-		regtemps := 0;
-		{static link must be register ebx}
-		with proctable[blockref] do
-		  begin
-		  if intlevelrefs then
-		    regtemps := 1 { static link gets only register}
-		  else regtemps := 0;
-		  frameneeded := needsframeptr;
-		  end;
-		allocateregs(1 {assignreg} , [reg, bytereg], regtemps);
+  begin {assignregs}
+    if switcheverplus[tblock] and (tblocknum = blockref) then
+      begin
+      { show register lifetimes }
+      writeln('  off param  typ worth lmin lmax fmin fmax');
+      for i := 0 to regtablelimit do
+	if regvars[i].registercandidate then
+	  begin
+	  with regvars[i], varlife do
+	    writeln(offset: 5, parameter:6, ord(regkind): 3, worth: 7, lonmin: 5, lonmax: 5,
+		    fonmin: 5, fonmax: 5);
+	  end;
+      end;
+    { assign general registers }
+    case targetmachine of
+      ns32k, aarch64:
+	begin
+	{ static link comes out of general regs }
+	if proctable[blockref].intlevelrefs then
+	  regtemps := 1 { static link gets first register}
+	else regtemps := 0;
+	allocateregs(assignreg, [reg, ptrreg], regtemps);
+	{ no specific ptr reg on 32k }
+	ptrtemps := 0;
+	realtemps := 0;
+	allocateregs(assignrealreg, [realreg], realtemps);
+	end;
+      vax:
+	begin
+	with proctable[blockref] do
+	  begin
+	  if intlevelrefs then regtemps := 1
+	  else regtemps := 0;
+	  end;
+	allocateregs(assignreg, [reg], regtemps);
+	{ no specific ptr or real regs on the VAX }
+	ptrtemps := 0;
+	realtemps := 0;
+	end;
+      iAPX86:
+	begin
+	regtemps := 0;
+	{static link must be register bx}
+	{static link gets the only available register}
+	if not proctable[blockref].intlevelrefs then
+	  allocateregs(assignreg, [reg], regtemps);
+	{ no specific ptr or real regs on the iAPX-86 }
+	ptrtemps := 0;
+	realtemps := 0;
+	end;
+      i80386:
+	begin
+	regtemps := 0;
+	{static link must be register ebx}
+	with proctable[blockref] do
+	  begin
+	  if intlevelrefs then
+	    regtemps := 1 { static link gets only register}
+	  else regtemps := 0;
+	  frameneeded := needsframeptr;
+	  end;
+	allocateregs(1 {assignreg} , [reg, bytereg], regtemps);
 
-		{allocate register ebp - the frame pointer - if not used}
-		if not switcheverplus[framepointer] and not frameneeded then
-		  allocateregs(2, [reg], regtemps);
-		{ no specific ptr or real regs }
-		ptrtemps := 0;
-		realtemps := 0;
-		end;
-	      mc68000:
-		begin
-		  { Static link comes out of general regs.
-		  }
-		ptrtemps := 0;
-		with proctable[blockref] do
-		  begin
-		  if intlevelrefs then ptrtemps := 1;
-		  if (register_return and not switcheverplus[structstatic] and
-		     (struct_calls or struct_ret)) or (language = c) and
-		     (switcheverplus[debugging] or switcheverplus[targdebug]) then
-		    ptrtemps := ptrtemps + 1;
-		  end;
+	{allocate register ebp - the frame pointer - if not used}
+	if not switcheverplus[framepointer] and not frameneeded then
+	  allocateregs(2, [reg], regtemps);
+	{ no specific ptr or real regs }
+	ptrtemps := 0;
+	realtemps := 0;
+	end;
+      mc68000:
+	begin
+	  { Static link comes out of general regs.
+	  }
+	ptrtemps := 0;
+	with proctable[blockref] do
+	  begin
+	  if intlevelrefs then ptrtemps := 1;
+	  if (register_return and not switcheverplus[structstatic] and
+	     (struct_calls or struct_ret)) or (language = c) and
+	     (switcheverplus[debugging] or switcheverplus[targdebug]) then
+	    ptrtemps := ptrtemps + 1;
+	  end;
 
-		  { For Versados the debugger/profiler uses one dedicated register.
-		    If generating 68000 pic and there is an own section, then a
-		    dedicated register is used here too.  If both are true the
-		    debugger loses and debugger steps are three instructions long.
-		  }
-		if (targetopsys = vdos) and ((switcheverplus[pic] and (ownsize > 0)) or
-		   switcheverplus[debugging] or switcheverplus[profiling]) then
-		  ptrtemps := ptrtemps + 1;
+	  { For Versados the debugger/profiler uses one dedicated register.
+	    If generating 68000 pic and there is an own section, then a
+	    dedicated register is used here too.  If both are true the
+	    debugger loses and debugger steps are three instructions long.
+	  }
+	if (targetopsys = vdos) and ((switcheverplus[pic] and (ownsize > 0)) or
+	   switcheverplus[debugging] or switcheverplus[profiling]) then
+	  ptrtemps := ptrtemps + 1;
 
-		allocateregs(assignptrreg, [ptrreg], ptrtemps);
-		regtemps := 0;
-		allocateregs(assignreg, [reg], regtemps);
-		realtemps := 0;
-		if switcheverplus[fpc68881] then
-		  allocateregs(assignrealreg, [realreg], realtemps);
-		end;
-	      end;
-	    if switcheverplus[tswitch1] and switcheverplus[details] then
-	      begin
-	      writeln('register assignments for block ', blockref: 1);
-	      for i := 0 to regtablelimit do
-		with regvars[i], varlife do
-		  begin
-		  if regid <> 0 then
-		    begin
-		    writeln('id ', regid: 2, ' typ ', ord(regkind): 1, ' param ', parameter: 1,
-			    ' off ', offset: 1, ' lon ', lonmin: 1, ' ', lonmax: 1, ' fon ',
-			    fonmin: 1, ' ', fonmax: 1);
-		    end;
-		  end;
-	      end;
-	    applytotree;
-	  end {assignregs} ;
+	allocateregs(assignptrreg, [ptrreg], ptrtemps);
+	regtemps := 0;
+	allocateregs(assignreg, [reg], regtemps);
+	realtemps := 0;
+	if switcheverplus[fpc68881] then
+	  allocateregs(assignrealreg, [realreg], realtemps);
+	end;
+      end;
+    if switcheverplus[tswitch1] and switcheverplus[details] then
+      begin
+      writeln('register assignments for block ', blockref: 1);
+      for i := 0 to regtablelimit do
+	with regvars[i], varlife do
+	  begin
+	  if regid <> 0 then
+	    begin
+	    writeln('id ', regid: 2, ' typ ', ord(regkind): 1, ' param ', parameter: 1,
+		    ' off ', offset: 1, ' lon ', lonmin: 1, ' ', lonmax: 1, ' fon ',
+		    fonmin: 1, ' ', fonmax: 1);
+	    end;
+	  end;
+      end;
+    applytotree;
+  end {assignregs} ;
 
 
-	procedure loops;
+procedure loops;
 {
     Purpose:
       Hoist invariant expressions out of loops.
@@ -789,29 +772,21 @@ procedure assignregs;
 
         var
           i: 1..3; {induction vars }
-          ptr: nodeptr; { for node access }
-          operands: operandarray; { local copy of oprnd field }
-          nodeoperands: nodeoperandarray; { local copy of nodeoprnd field }
-
 
         begin {flood}
-
-          ptr := @(nodetable[expr]);
-          if (ptr^.hoistedby = nil) or forceflood then
+          with nodetable[expr] do
             begin
-            ptr^.hoistedby := loopblk;
-            if ptr^.action = visit then
+            if (hoistedby = nil) or forceflood then
               begin
-              operands := ptr^.oprnds;
-              nodeoperands := ptr^.nodeoprnd;
-              for i := 1 to 3 do
-                begin
-                if nodeoperands[i] then flood(operands[i], false);
-                end
-              end
-            else flood(ptr^.oldlink, false);
+              hoistedby := loopblk;
+              if action = visit then
+                for i := 1 to 3 do
+                  begin
+                  if nodeoprnd[i] then flood(oprnds[i], false);
+                  end
+              else flood(oldlink, false);
+              end;
             end;
-
         end {flood} ;
 
 
@@ -843,49 +818,47 @@ procedure assignregs;
           i: 1..3; {induction vars }
           d: contextindex; { running depth count along a particular oprnd }
           copylink: nodeindex; { running index to copy node's target }
-          exprptr: nodeptr; { for access to original node }
-          ptr: nodeptr; { for walking copy links }
           operands: operandarray; { local copy of oprnd field }
           nodeoperands: nodeoperandarray; { local copy of nodeoprnd field }
 
 
         begin {removecopies}
 
-          exprptr := @(nodetable[expr]);
-
           { should always be a visit node }
 
-          if exprptr^.action = visit then
+          with nodetable[expr] do
             begin
-            operands := exprptr^.oprnds;
-            nodeoperands := exprptr^.nodeoprnd;
-            for i := 1 to 3 do
+            if action = visit then
               begin
-              if nodeoperands[i] then
+              operands := oprnds;
+              nodeoperands := nodeoprnd;
+              for i := 1 to 3 do
                 begin
-                ptr := @(nodetable[operands[i]]);
-                if ptr^.action = copy then
+                if nodeoperands[i] then
                   begin
-                  d := depth;
-                  repeat
-                    d := d - 1;
-                    copylink := ptr^.oldlink;
-                    exprptr^.oprnds[i] := copylink;
-                    ptr^.refcount := ptr^.refcount - 1;
-                    ptr := @(nodetable[copylink]);
-                    ptr^.copycount := ptr^.copycount - 1;
-                  until (d = 0) or (ptr^.action = visit);
-                  if d > 0 then removecopies(d, copylink);
-                  end
-                else removecopies(depth, operands[i]);
-                end;
-              end; {for}
+                  if nodetable[operands[i]].action = copy then
+                    begin
+                    d := depth;
+                    repeat
+                      d := d - 1;
+                      copylink := nodetable[operands[i]].oldlink;
+                      nodetable[operands[i]].refcount := nodetable[operands[i]].refcount - 1;
+                      nodetable[copylink].copycount := nodetable[copylink].copycount - 1;
+                      operands[i] := copylink;
+                    until (d = 0) or (nodetable[copylink].action = visit);
+                    oprnds[i] := copylink;;
+                    if d > 0 then removecopies(d, copylink);
+                    end
+                  else removecopies(depth, operands[i]);
+                  end;
+                end; {for}
+              end
+            else
+              begin
+              writeln('removecopies bad node found');
+              compilerabort(inconsistent);
+              end;
             end
-          else
-            begin
-            writeln('removecopies bad node found');
-            compilerabort(inconsistent);
-            end;
 
         end {removecopies} ;
 
