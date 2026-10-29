@@ -613,9 +613,9 @@ procedure loops;
 
   var
     blk: basicblockptr; { for walking blocks }
-    ptr: nodeptr; { for access to stmt node }
     nextblk: basicblockptr; { next block to examine }
     anyinvars: boolean; { used for testing purposes }
+    blkbeginstmt: nodeindex; { simplify access to block's beginstmt }
 
 
   procedure examineloop(loopblk, bottomblk: basicblockptr);
@@ -642,7 +642,6 @@ procedure loops;
 
     var
       p: nodeindex; { for walking hoist chains }
-      ptr, ptr2: nodeptr; { for access to nodes }
       stmt: nodeindex; { current stmt in basic block }
       lasthoist: nodeindex; { index of last invariant hoisted in this loop }
       currenthoist: nodeindex; { index of current invariant from inner loop }
@@ -653,7 +652,8 @@ procedure loops;
       secondlevel: boolean; { true if examining expressions that have already
                              been hoisted in some other loop }
       finalwrite: nodeindex; { index of 1st write outside loop's writes }
-      temp: addressrange; { for building write list }
+      templen: addressrange; { for building write list }
+      temp: nodeindex; { general temp for traversing nodes } 
       fixnode: nodeindex; { index of node that points to pushfinal }
       newoprnd: nodeindex; { index of pushfinal oprnd }
       finalexpr: nodeindex; { index of for final expression }
@@ -1106,7 +1106,6 @@ procedure loops;
 
       var
         i: 0..contextdepth; {induction var }
-        ptr: nodeptr; { for node access }
         temp: nodeindex; { for node access }
         operands: operandarray; { local copy of oprnd field }
         nodeoperands: nodeoperandarray; { local copy of nodeoprnd field }
@@ -1180,29 +1179,26 @@ procedure loops;
 
       begin {invariantoprnd}
 
-        ptr := @(nodetable[oprnd]);
-
         worthit := false;
         aindxkludge := false;
         copyfound := false;
 
         i := contextsp;
-        while (i > 0) and (ptr^.action = copy) do
+        while (i > 0) and (nodetable[oprnd].action = copy) do
           begin
           copyfound := true; {a few redundant assignments here won't hurt}
-          oprnd := ptr^.oldlink;
-          ptr := @(nodetable[oprnd]);
+          oprnd := nodetable[oprnd].oldlink;
           i := i - 1;
           end;
 
-        invar := ptr^.action = copy;
-        blockhoist := copyfound and (ptr^.refcount > ptr^.copycount);
+        invar := nodetable[oprnd].action = copy;
+        blockhoist := copyfound and (nodetable[oprnd].refcount > nodetable[oprnd].copycount);
         musthoist := hoistsubtrees and not copyfound and (contextsp > 0) and
-                     (ptr^.hoistedby <> loopblk) and (ptr^.refcount > 1);
+                     (nodetable[oprnd].hoistedby <> loopblk) and (nodetable[oprnd].refcount > 1);
 
-        if ptr^.action = visit then
+        if nodetable[oprnd].action = visit then
           begin
-          if ((ptr^.op = paindxop) or (ptr^.op = aindxop)) and
+          if ((nodetable[oprnd].op = paindxop) or (nodetable[oprnd].op = aindxop)) and
              not dominating and (oprnd <> currenthoist) then
             begin
                 { this is a kludge, it is ok to hoist array indexing as
@@ -1216,15 +1212,15 @@ procedure loops;
 
           { see if this expression is not a hoistable type or unsafe }
 
-          if {was not ptr^.local and -- I don't know what this was supposed to
+          if {was not nodetable[oprnd].local and -- I don't know what this was supposed to
               fix, but I know what it breaks; you really cannot hoist those.
               a.o. no backend propagates correctly a key with a branchaccess
               (see copyaccess); hoisting a call also seems kind of peculiar. }
 {
-           (((ptr^.form = bools) and ptr^.relation) or
+           (((nodetable[oprnd].form = bools) and nodetable[oprnd].relation) or
 }
-           (((ptr^.form = bools) and ptr^.shortevaluation) or
-           (ptr^.op in
+           (((nodetable[oprnd].form = bools) and nodetable[oprnd].shortevaluation) or
+           (nodetable[oprnd].op in
            [forindexop, forupchkop, fordnchkop, forerrchkop, moveop, cmoveop, movelit, lssop, leqop, neqop, eqop, gtrop,
            geqop, lsslit, leqlit, eqlit, neqlit, gtrlit, geqlit, withop,
            setfileop, setfileaddrop, setinput, newset, ptrchkop,
@@ -1237,38 +1233,34 @@ procedure loops;
            copystackop, unscallparam, reserve, pushproc, rd, wr, switchstack,
            closerangeop, definelazyop, filebufindrop, structop,
            setbinfileop, sysfn, dummyargop]) or
-           (ptr^.op in [rangechkop, indxchkop]) and (nowwalking or
+           (nodetable[oprnd].op in [rangechkop, indxchkop]) and (nowwalking or
            nowdebugging) or not dominating and
-           (ptr^.op in
+           (nodetable[oprnd].op in
            [divop, stddivop, remop, quoop, kwoop, modop, stdmodop, rangechkop, indxchkop]) or
            ((targetopsys = vdos) and switcheverplus[pic] and
-           (ptr^.op in [extop]))) then
+           (nodetable[oprnd].op in [extop]))) then
             examineexpression(oprnd, hoistsubtrees and not copyfound)
           else
             begin
-            if (ptr^.hoistedby = loopblk) or (ptr^.hoistedby = root) then
+            if (nodetable[oprnd].hoistedby = loopblk) or (nodetable[oprnd].hoistedby = root) then
               invar := true
             else
               begin {must check}
-              if ptr^.op in [defforindexop, defforlitindexop, defunsforindexop,
+              if nodetable[oprnd].op in [defforindexop, defforlitindexop, defunsforindexop,
                  defunsforlitindexop] then
-                begin
                 { must determine if we are in this for loop or deeper }
-                ptr := @(nodetable[loopblk^.beginstmt]);
-                invar := ptr^.expr2 <> oprnd;
-                end
+                invar := nodetable[loopblk^.beginstmt].expr2 <> oprnd
               else {ordinary operator}
                 begin
-                operands := ptr^.oprnds;
-                nodeoperands := ptr^.nodeoprnd;
-                isvar := (ptr^.op = varop) or (ptr^.op = unsvarop);
-                if not dominating and (ptr^.op = indrop) then
+                operands := nodetable[oprnd].oprnds;
+                nodeoperands := nodetable[oprnd].nodeoprnd;
+                isvar := (nodetable[oprnd].op = varop) or (nodetable[oprnd].op = unsvarop);
+                if not dominating and (nodetable[oprnd].op = indrop) then
                   begin {uservar^ can't be invariant, internal indrs can be}
                   if language = c then invar := false
                   else
                     begin
-                    temp := ptr^.oprnds[1];
-                    ptr := @(nodetable[ptr^.oprnds[1]]);
+                    temp := nodetable[oprnd].oprnds[1];
                     invar := (nodetable[temp].action = visit) and (nodetable[temp].op <> unsvarop);
                     end
                   end
@@ -1316,7 +1308,6 @@ procedure loops;
 
       var
         i: 1..3; {induction var }
-        ptr: nodeptr; { for node access }
         operands: operandarray; { local copy of oprnd field }
         nodeoperands: nodeoperandarray; { local copy of nodeoprnd field }
         valuable: boolean; { true if invariant worth hoisting }
@@ -1324,18 +1315,17 @@ procedure loops;
 
       begin {examineexpression}
         repeat
-          ptr := @(nodetable[expression]);
 
-          if ptr^.action = visit then
+          if nodetable[expression].action = visit then
             begin
 
-            operands := ptr^.oprnds;
-            nodeoperands := ptr^.nodeoprnd;
+            operands := nodetable[expression].oprnds;
+            nodeoperands := nodetable[expression].nodeoprnd;
               {
                 this expression may contain several parallel expressions
                 which should be examined also
               }
-            if ptr^.op < intop then expression := ptr^.slink
+            if nodetable[expression].op < intop then expression := nodetable[expression].slink
             else expression := 0;
             for i := 1 to 3 do
                 {
@@ -1384,29 +1374,21 @@ procedure loops;
 }
 
       var
-        ptr: nodeptr; { for access to node }
         valuable: boolean;
 
 
       begin {examineinvariantoprnd}
 
-        ptr := @(nodetable[expression]);
-
         secondlevel := true;
 
-        if (ptr^.hoistedby = innerloop) and invariantoprnd(expression, valuable,
-                                                           false) then
+        if (nodetable[expression].hoistedby = innerloop) and
+           invariantoprnd(expression, valuable, false) then
           begin
           if valuable then
             begin
             if previoushoist = 0 then innerloop^.precode := nexthoist
-            else
-              begin
-              ptr := @(nodetable[previoushoist]);
-              ptr^.prelink := nexthoist;
-              end;
-            ptr := @(nodetable[expression]);
-            ptr^.prelink := 0;
+            else nodetable[previoushoist].prelink := nexthoist;
+            nodetable[expression].prelink := 0;
             hoistit(expression);
             expression := 0;
             end
@@ -1436,18 +1418,14 @@ procedure loops;
         while p <> 0 do
           begin
           if loopblk^.looplabel = 0 then loopblk^.looplabel := newlabel;
-          ptr := @(nodetable[p]);
           lasthoist := p;
-          p := ptr^.prelink;
+          p := nodetable[p].prelink;
           end;
 
         { find the first write outside of this loop }
 
         if loopblk^.lastwrite <> 0 then
-          begin
-          ptr := @(nodetable[loopblk^.lastwrite]);
-          finalwrite := ptr^.looplink;
-          end
+          finalwrite := nodetable[loopblk^.lastwrite].looplink
         else finalwrite := 0;
 
         current := bottomblk;
@@ -1465,16 +1443,15 @@ procedure loops;
           if not current^.isdead and (current^.beginstmt <> 0) then
             begin
             stmt := current^.beginstmt;
-            ptr := @(nodetable[stmt]);
 
             { see if we just backed into a new loop }
 
             if (current <> bottomblk) and
-               (ptr^.stmtkind in
+               (nodetable[stmt].stmtkind in
                [forbothdr, cforbothdr, whilebothdr, untilhdr, loopbothdr]) then
               begin
-              if ptr^.stmtkind = untilhdr then innerloop := ptr^.falseblock
-              else innerloop := ptr^.looptop;
+              if nodetable[stmt].stmtkind = untilhdr then innerloop := nodetable[stmt].falseblock
+              else innerloop := nodetable[stmt].looptop;
               examineloop(innerloop, current);
 
               { examine the expressions hoisted out of inner loop(s) }
@@ -1490,9 +1467,8 @@ procedure loops;
                 previoushoist := 0;
                 currenthoist := innerloop^.precode;
                 repeat
-                  ptr := @(nodetable[currenthoist]);
-                  nexthoist := ptr^.prelink;
-                  if ptr^.action = visit then
+                  nexthoist := nodetable[currenthoist].prelink;
+                  if nodetable[currenthoist].action = visit then
                     examineinvariant(currenthoist, previoushoist);
 
                   { if entire expression wasn't hoisted make it previous}
@@ -1513,21 +1489,21 @@ procedure loops;
 
               if current = loopblk then dominating := current^.dominates
               else dominating := loopblk^.willexecute and current^.dominates;
-              repeat
-                ptr := @(nodetable[stmt]);
+              while stmt <> 0 do
+                begin
                 { get next stmt while it's cheap }
-                stmt := ptr^.nextstmt;
                 secondlevel := false;
-                if (ptr^.stmtkind in
+                if (nodetable[stmt].stmtkind in
                    [ifhdr, whilehdr, withhdr, simplehdr, untilhdr,
-                   syscallhdr]) and (ptr^.expr1 <> 0) then
-                  examineexpression(ptr^.expr1, true)
+                   syscallhdr]) and (nodetable[stmt].expr1 <> 0) then
+                  examineexpression(nodetable[stmt].expr1, true)
 
-                else if ptr^.stmtkind = casehdr then
+                else if nodetable[stmt].stmtkind = casehdr then
                   begin
-                  examineexpression(ptr^.selector, true);
+                  examineexpression(nodetable[stmt].selector, true);
                   end;
-              until stmt = 0;
+                stmt := nodetable[stmt].nextstmt;
+                end;
               end; {else}
             end; {beginstmt<>0}
 
@@ -1541,39 +1517,32 @@ procedure loops;
         if loopblk^.beginstmt <> 0 then
           begin
           fixnode := loopblk^.beginstmt;
-          ptr := @(nodetable[fixnode]);
-          if (ptr^.stmtkind = foruphdr) or (ptr^.stmtkind = fordnhdr) then
+          if (nodetable[fixnode].stmtkind = foruphdr) or (nodetable[fixnode].stmtkind = fordnhdr) then
             begin
-            finalexpr := ptr^.expr1;
-            initexpr := ptr^.expr2;
-            ptr := @(nodetable[ptr^.expr2]);
-            temp := ptr^.len; {length of index variable}
-            ptr := @(nodetable[finalexpr]);
-            if ptr^.op in [forupchkop, fordnchkop, forerrchkop] then
+            finalexpr := nodetable[fixnode].expr1;
+            initexpr := nodetable[fixnode].expr2;
+            templen := nodetable[initexpr].len; {length of index variable}
+            if nodetable[finalexpr].op in [forupchkop, fordnchkop, forerrchkop] then
               begin
               fixnode := finalexpr;
-              ptr := @(nodetable[ptr^.oprnds[1]]);
-              if ptr^.op = pushfinal then
+              temp := nodetable[finalexpr].oprnds[1];
+              if nodetable[temp].op = pushfinal then
                 begin
-                newoprnd := ptr^.oprnds[1];
-                ptr := @(nodetable[newoprnd]);
-                if simpleinvar(newoprnd, initexpr) and (temp = ptr^.len) then
+                newoprnd := nodetable[temp].oprnds[1];
+                if simpleinvar(newoprnd, initexpr) and (templen = nodetable[newoprnd].len) then
                   begin
                   { delete the pushfinal op }
-                  ptr2 := @(nodetable[fixnode]);
-                  ptr2^.oprnds[1] := newoprnd;
+                  nodetable[fixnode].oprnds[1] := newoprnd;
                   end;
                 end;
               end
-            else if ptr^.op = pushfinal then
+            else if nodetable[finalexpr].op = pushfinal then
               begin
-              newoprnd := ptr^.oprnds[1];
-              ptr := @(nodetable[newoprnd]);
-              if simpleinvar(newoprnd, initexpr) and (temp = ptr^.len) then
+              newoprnd := nodetable[finalexpr].oprnds[1];
+              if simpleinvar(newoprnd, initexpr) and (templen = nodetable[newoprnd].len) then
                 begin
                 { delete the pushfinal op }
-                ptr2 := @(nodetable[fixnode]);
-                ptr2^.expr1 := newoprnd;
+                nodetable[fixnode].expr1 := newoprnd;
                 end;
               end;
             end; { forloop}
@@ -1595,14 +1564,15 @@ procedure loops;
       { this test will be unneeded when empty basic blocks are removed }
       if not blk^.isdead and (blk^.beginstmt <> 0) then
         begin
-        ptr := @(nodetable[blk^.beginstmt]);
-        if (ptr^.nodeform = stmtnode) and
-           (ptr^.stmtkind in
+        blkbeginstmt := blk^.beginstmt;
+        if (nodetable[blkbeginstmt].nodeform = stmtnode) and
+           (nodetable[blkbeginstmt].stmtkind in
            [loopbothdr, whilebothdr, forbothdr, cforbothdr, untilhdr]) then
           begin
           { get next blk now while its cheap }
-          if ptr^.stmtkind = untilhdr then nextblk := ptr^.falseblock^.rdfolist
-          else nextblk := ptr^.looptop^.rdfolist;
+          if nodetable[blkbeginstmt].stmtkind = untilhdr then
+            nextblk := nodetable[blkbeginstmt].falseblock^.rdfolist
+          else nextblk := nodetable[blkbeginstmt].looptop^.rdfolist;
           examineloop(nextblk^.dfolist, blk);
           blk := nextblk;
           end
@@ -1680,46 +1650,45 @@ procedure loops;
 
     var
       setexprlen: addressrange; { size ranges of expression }
-      exprp, oprndp: nodeptr;
       i: oprndindex;
+      oprnd: nodeindex;
 
 
     begin {improvesetexpr}
       if expr <> 0 then
         begin
-        exprp := @(nodetable[expr]);
-        if exprp^.action = copy then
-          exprp := @(nodetable[exprp^.directlink]);
-        if (exprp^.op < intop) and (exprp^.slink <> 0) then
-          improvesetexpr(exprp^.slink);
-        if  (exprp^.form = sets) then
+        if nodetable[expr].action = copy then
+          expr := nodetable[expr].directlink;
+        if (nodetable[expr].op < intop) and (nodetable[expr].slink <> 0) then
+          improvesetexpr(nodetable[expr].slink);
+        if  (nodetable[expr].form = sets) then
           begin
-          if exprp^.op <> bldset then
+          if nodetable[expr].op <> bldset then
             begin
-            setexprlen := exprp^.len;
+            setexprlen := nodetable[expr].len;
             for i := 1 to maxoprnd do
-              if exprp^.nodeoprnd[i] then
+              if nodetable[expr].nodeoprnd[i] then
                 begin
-                oprndp := @(nodetable[exprp^.oprnds[i]]);
-                if (oprndp^.op = bldset) and (oprndp^.oprnds[1] = 0) and
-                   (oprndp^.len > setexprlen) then
+                oprnd := nodetable[expr].oprnds[i];
+                if (nodetable[oprnd].op = bldset) and (nodetable[oprnd].oprnds[1] = 0) and
+                   (nodetable[oprnd].len > setexprlen) then
                   begin {we know it is the empty set}
-                  oprndp^.len := setexprlen;
+                  nodetable[oprnd].len := setexprlen;
                   if setexprlen <= setintbytes then
                     begin
-                    oprndp^.op := intop;
-                    oprndp^.nodeoprnd[1] := false;
-                    oprndp^.oprnds[1] := 0;
-                    oprndp^.nodeoprnd[2] := false;
-                    oprndp^.oprnds[2] := 0;
+                    nodetable[oprnd].op := intop;
+                    nodetable[oprnd].nodeoprnd[1] := false;
+                    nodetable[oprnd].oprnds[1] := 0;
+                    nodetable[oprnd].nodeoprnd[2] := false;
+                    nodetable[oprnd].oprnds[2] := 0;
                     end;
                   end;
                 end;
             end
           end;
         for i := 1 to maxoprnd do
-          if exprp^.nodeoprnd[i] then
-            improvesetexpr(exprp^.oprnds[i]);
+          if nodetable[expr].nodeoprnd[i] then
+            improvesetexpr(nodetable[expr].oprnds[i]);
         end;
     end {improvesetexpr} ;
 
@@ -1728,23 +1697,14 @@ procedure loops;
    { Improve bldset nodes in a list of statements.
    }
 
-    var
-      p: nodeptr; { for access to statement node }
-
     procedure improvesetstmt(stmt: nodeindex);
 
     { Improve bldset nodes in a single statement.
     }
 
-    var
-      currentstmt: node; { current stmt node }
-      p: nodeptr;
-
 
       begin {improvesetstmt}
-      p := @(nodetable[stmt]);
-      currentstmt := p^;
-      with currentstmt do
+      with nodetable[stmt] do
         begin
         case stmtkind of
           blkhdr, labelhdr, gotohdr, nohdr, caseerrhdr, loopbrkhdr, cswbrkhdr,
@@ -1760,14 +1720,13 @@ procedure loops;
           otherwise writeln('statement missing from improvesetstmt ', ord(stmtkind))
           end;
         end;
-      end {applytostmt};
+      end {improvesetstmt};
 
     begin {improvesettmtlist}
       while firststmt <> 0 do
         begin
-        p := @(nodetable[firststmt]);
         improvesetstmt(firststmt);
-        firststmt := p^.nextstmt;
+        firststmt := nodetable[firststmt].nextstmt;
         end;
     end {improvesetstmtlist};
 
@@ -1779,7 +1738,7 @@ procedure loops;
           improvesetstmtlist(currentblock^.beginstmt);
         currentblock := currentblock^.dfolist;
       until currentblock = nil;
-    end {applytotree};
+    end {improvesets};
 
 
 procedure smooth;
@@ -1805,7 +1764,6 @@ procedure smooth;
 }
 
   var
-    ptr: nodeptr; { for access to nodes }
     stmt: nodeindex; { current stmt in basic block }
     blk: basicblockptr; { block being examined }
 
@@ -1873,18 +1831,16 @@ procedure smooth;
         i: 1..3; { induction var }
         operands: operandarray; { local copy of oprnd field }
         nodeoperands: nodeoperandarray; { local copy of nodeoprnd field }
-        ptr: nodeptr; { for access to node }
 
 
       begin {getsize}
-        ptr := @(nodetable[expr]);
-        if (ptr^.action = visit) then
+        if (nodetable[expr].action = visit) then
           begin
-          operands := ptr^.oprnds;
-          nodeoperands := ptr^.nodeoprnd;
-          if (ptr^.op < intop) then
+          operands := nodetable[expr].oprnds;
+          nodeoperands := nodetable[expr].nodeoprnd;
+          if (nodetable[expr].op < intop) then
             begin
-            if ptr^.op = pushvalue then
+            if nodetable[expr].op = pushvalue then
               begin
               { expressions pushed to stack should be computed at stackalign
                 size. At least on 32k it is desirable.
@@ -1892,34 +1848,34 @@ procedure smooth;
               maxlen := stackalign;
               end;
             { must smooth as parallel expression }
-            if ptr^.slink <> 0 then smoothexpr(ptr^.slink, 0);
+            if nodetable[expr].slink <> 0 then smoothexpr(nodetable[expr].slink, 0);
             end
           else
             begin
-            if (ptr^.op in
+            if (nodetable[expr].op in
                [plusop, minusop, mulop, divop, stddivop, remop, quoop, kwoop,
                modop, stdmodop, negop, shiftlop, incop, decop]) and
-               (ptr^.form in [ints, scalars, subranges]) then
+               (nodetable[expr].form in [ints, scalars, subranges]) then
               begin
-              if ptr^.len > maxlen then maxlen := ptr^.len;
-              if ptr^.len < minlen then minlen := ptr^.len;
+              if nodetable[expr].len > maxlen then maxlen := nodetable[expr].len;
+              if nodetable[expr].len < minlen then minlen := nodetable[expr].len;
               end
-            else if (ptr^.op = aindxop) or (ptr^.op = setelt) or
-                    (ptr^.op = paindxop) then
+            else if (nodetable[expr].op = aindxop) or (nodetable[expr].op = setelt) or
+                    (nodetable[expr].op = paindxop) then
               begin
               smoothexpr(operands[2], targetintsize);
               { prevent separate expression from influencing this expression}
               nodeoperands[2] := false;
               end
-            else if ptr^.op = setpair then
+            else if nodetable[expr].op = setpair then
               begin
               smoothexpr(operands[3], 0);
               nodeoperands[3] := false;
               smoothexpr(operands[2], 0);
               nodeoperands[2] := false;
               end
-            else if (not (ptr^.form in [ints, subranges, scalars])) and
-                    (ptr^.op in
+            else if (not (nodetable[expr].form in [ints, subranges, scalars])) and
+                    (nodetable[expr].op in
                     [orop, andop, eqop, neqop, notop, plusop, minusop, mulop,
                     divop, stddivop, remop, quoop, kwoop, modop, stdmodop,
                     negop, shiftlop, incop, decop]) then
@@ -1938,9 +1894,9 @@ procedure smooth;
               end;
             end;
           end { action=visit}
-        else if ptr^.action = copy then
+        else if nodetable[expr].action = copy then
           begin
-          getsize(ptr^.directlink);
+          getsize(nodetable[expr].directlink);
           end;
       end; {getsize}
 
@@ -1973,33 +1929,31 @@ procedure smooth;
         i: 1..3; { induction var }
         operands: operandarray; { local copy of oprnd field }
         nodeoperands: nodeoperandarray; { local copy of nodeoprnd field }
-        ptr: nodeptr; { for access to node }
 
 
       begin {setsize}
-        ptr := @(nodetable[expr]);
-        if (ptr^.action = visit) then
+        if (nodetable[expr].action = visit) then
           begin
-          if (ptr^.op in
+          if (nodetable[expr].op in
              [plusop, minusop, mulop, divop, stddivop, remop, quoop, kwoop,
              modop, stdmodop, negop, shiftlop, incop, decop]) and
-             (ptr^.form in [ints, subranges, scalars]) then
+             (nodetable[expr].form in [ints, subranges, scalars]) then
             begin
-            ptr^.len := maxlen;
+            nodetable[expr].len := maxlen;
             end;
-          operands := ptr^.oprnds;
-          nodeoperands := ptr^.nodeoprnd;
+          operands := nodetable[expr].oprnds;
+          nodeoperands := nodetable[expr].nodeoprnd;
           { don't follow certain expressions }
-          if (ptr^.op = aindxop) or (ptr^.op = setelt) or
-             (ptr^.op = paindxop) then
+          if (nodetable[expr].op = aindxop) or (nodetable[expr].op = setelt) or
+             (nodetable[expr].op = paindxop) then
             nodeoperands[2] := false
-          else if ptr^.op = setpair then
+          else if nodetable[expr].op = setpair then
             begin
             nodeoperands[3] := false;
             nodeoperands[2] := false;
             end
-          else if (not (ptr^.form in [ints, subranges, scalars])) and
-                  (ptr^.op in [orop, andop, eqop, neqop, notop]) then
+          else if (not (nodetable[expr].form in [ints, subranges, scalars])) and
+                  (nodetable[expr].op in [orop, andop, eqop, neqop, notop]) then
             begin
             nodeoperands[1] := false;
             nodeoperands[2] := false;
@@ -2012,9 +1966,9 @@ procedure smooth;
               end;
             end;
           end { action=visit}
-        else if ptr^.action = copy then
+        else if nodetable[expr].action = copy then
           begin
-          setsize(ptr^.directlink);
+          setsize(nodetable[expr].directlink);
           end;
       end; {setsize}
 
@@ -2038,18 +1992,16 @@ procedure smooth;
       stmt := blk^.beginstmt;
       while stmt <> 0 do
         begin
-        ptr := @(nodetable[stmt]);
-        { get next stmt while it's cheap }
-        stmt := ptr^.nextstmt;
-        if ptr^.stmtkind in
+        if nodetable[stmt].stmtkind in
            [ifhdr, whilehdr, withhdr, simplehdr, untilhdr, syscallhdr] then
           begin
-          smoothexpr(ptr^.expr1, 0);
+          smoothexpr(nodetable[stmt].expr1, 0);
           end
-        else if ptr^.stmtkind = casehdr then
+        else if nodetable[stmt].stmtkind = casehdr then
           begin
-          smoothexpr(ptr^.selector, 0);
-          end
+          smoothexpr(nodetable[stmt].selector, 0);
+          end;
+        stmt := nodetable[stmt].nextstmt;
         end;
       blk := blk^.dfolist;
     until blk = tail;
