@@ -135,9 +135,6 @@ procedure checkconst(node: nodeindex; {node to check}
   "i" if it is.  This is used in dead code elimination.
 }
 
-  var
-    ptr: nodeptr; {used to access node}
-
 
   begin {checkconst}
     with nodetable[node] do
