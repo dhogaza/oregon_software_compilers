@@ -1115,28 +1115,27 @@ procedure build;
    { add a new definition of a simple var located at varoffset at local level }
 
     var
-      ptr, ptr1: nodeptr; { for access to bit map nodes }
       varlev: levelindex; { varaible level }
       varoffset: addressrange; { location at varlev }
       varisparam: boolean;
       now, prev: nodeindex; { for walking read chain }
       found: boolean; { loop exit flag }
+      oprnd3: nodeindex;
 
 
     begin {dodefine}
-      ptr := @(nodetable[varp]);
       varlev := ptr^.oprnds[1];
       varoffset := ptr^.oprnds[2];
 
-      ptr1 := @(nodetable[ptr^.oprnds[3]]);
+      oprnd3 := nodetable[varp].oprnds[3];
 
-      if ptr1^.action = copy then
-        ptr1 := @(nodetable[ptr1^.directlink]);
+      if nodetable[oprnd3].action = copy then
+        oprnd3 := nodetable[oprnd3].directlink;
 
-      ptr^.invariant := false;
-      varisparam := (ptr1^.oprnds[1] = localparamnode) or (varlev = level) and
+      nodetable[varp].invariant := false;
+      varisparam := (nodetable[oprnd3].oprnds[1] = localparamnode) or (varlev = level) and
                     (varoffset >= maxlong - maxregparams - maxptrregparams - maxrealregparams);
-      ptr^.regcandidate := bumpvarcount(varlev, varisparam, varoffset);
+      nodetable[varp].regcandidate := bumpvarcount(varlev, varisparam, varoffset);
 
       { if in a loop, add this to the writes for the loop, and kill the reads }
 
@@ -1149,10 +1148,10 @@ procedure build;
           begin
           with loopstack[loopdepth] do
             begin
-            if ptr^.looplink <> 0 then
+            if nodetable[varp].looplink <> 0 then
               writeln('write looplink <> 0 var ', varp: 1, ' block ', blockref:
                       1);
-            ptr^.looplink := writes;
+            nodetable[varp].looplink := writes;
             writes := varp;
             if lastwrite = 0 then lastwrite := varp;
 
@@ -1162,27 +1161,25 @@ procedure build;
             now := reads;
             while (now <> 0) do
               begin
-              ptr := @(nodetable[now]);
-              if varoffset = ptr^.oprnds[2] then
-                found := (varlev = ptr^.oprnds[1])
+              if varoffset = nodetable[now].oprnds[2] then
+                found := (varlev = nodetable[now].oprnds[1])
               else found := false;
               if found then
                 begin
-                ptr^.invariant := false;
+                nodetable[now].invariant := false;
                 if prev <> 0 then
                   begin
-                  ptr1 := @(nodetable[prev]);
-                  ptr1^.looplink := ptr^.looplink;
+                  nodetable[prev].looplink := nodetable[now].looplink;
                   end
-                else reads := ptr^.looplink;
-                now := ptr^.looplink;
+                else reads := nodetable[now].looplink;
+                now := nodetable[now].looplink;
                 { isolate the node }
-                ptr^.looplink := 0;
+                nodetable[now].looplink := 0;
                 end
               else
                 begin
                 prev := now;
-                now := ptr^.looplink;
+                now := nodetable[now].looplink;
                 end;
               end; {while}
             end; {with}
