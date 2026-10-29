@@ -686,7 +686,6 @@ procedure exitloop;
 }
 
   var
-    ptr: nodeptr; { for access to nodes }
     bptr: basicblockptr; { copy of loopblock ptr }
     i: reghashindex; { induction var }
 
@@ -725,10 +724,9 @@ procedure exitloop;
       { now hook inner loops writes to this loop }
       if (loopdepth > 0) and (bptr^.lastwrite <> 0) then
         begin
-        ptr := @(nodetable[bptr^.lastwrite]);
         with loopstack[loopdepth] do
           begin
-          ptr^.looplink := writes;
+          nodetable[bptr^.lastwrite].looplink := writes;
           writes := bptr^.writes;
           if lastwrite = 0 then lastwrite := bptr^.lastwrite;
           end;
