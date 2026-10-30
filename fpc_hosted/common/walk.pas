@@ -532,7 +532,6 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 }
 
   var
-    rootp: nodeptr; {used to access root}
     nextroot: nodeindex; {next node along slink path}
     refcount: refcountrange; {refcount for root node}
     copycount: refcountrange; {copy count for root node}
@@ -582,7 +581,6 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 
     var
       lkey, rkey: keyindex; {keys for left and right operands}
-      rootp: nodeptr; {used to access root node}
       l, r: integer; {left and right operand nodes, or literals}
 
 
@@ -666,10 +664,10 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 
         if lkey = 0 then
           oprnd2 := 0
-        else oprnd2 := rootp^.oprnds[2];
+        else oprnd2 := nodetable[root].oprnds[2];
 
         mapkey;
-        genpseudo(p, len, key, refcount, copycount, lkey, oprnd2, rootp^.oprnds[3]);
+        genpseudo(p, len, key, refcount, copycount, lkey, oprnd2, nodetable[root].oprnds[3]);
       end {regnode} ;
 
 
@@ -690,7 +688,7 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 
 
       begin
-        offset := rootp^.oprnds[2];
+        offset := nodetable[root].oprnds[2];
         walknode(l, lkey, 0, true);
         mapkey;
         genpseudo(p, len, key, refcount, copycount, lkey, offset, 0);
@@ -776,7 +774,7 @@ into newly-opened space in the procedure's stack frame. }
       begin {openarraynode}
 
         genpseudo(openarray, len, 0, 0 {refcount} , 0 {copycount} ,
-                  rootp^.oprnds[1] {offset} , rootp^.oprnds[2], 0);
+                  nodetable[root].oprnds[1] {offset} , nodetable[root].oprnds[2], 0);
 
       end {openarraynode} ;
 
@@ -1182,9 +1180,9 @@ with target = 0.
 
 
       begin
-        exprlimit := rootp^.nodeoprnd[2];
-        low := rootp^.oprnds[2];
-        high := rootp^.oprnds[3];
+        exprlimit := nodetable[root].nodeoprnd[2];
+        low := nodetable[root].oprnds[2];
+        high := nodetable[root].oprnds[3];
         walkvalue(l, lkey, 0);
         if exprlimit then
           begin
@@ -1213,7 +1211,7 @@ with target = 0.
 
 
       begin
-        size := rootp^.oprnds[3];
+        size := nodetable[root].oprnds[3];
         walknode(l, lkey, 0, true);
         walkvalue(r, rkey, lkey);
         if op = cmoveop then walkvalue(size, skey, 0)
@@ -1236,7 +1234,7 @@ with target = 0.
 
       begin
         mapkey;
-        with rootp^ do
+        with nodetable[root] do
           begin
           genpseudo(map[op, ints], len, key, refcount, copycount, oprnds[1],
                     oprnds[2], oprnds[3]);
@@ -1257,7 +1255,7 @@ with target = 0.
 
       begin {crealnode}
         mapkey;
-        with rootp^ do
+        with nodetable[root] do
           genrealop(doreal, len, key, refcount, copycount, realvalue);
       end; {crealnode}
 
@@ -1324,7 +1322,7 @@ with target = 0.
 
 
       begin
-        with rootp^ do
+        with nodetable[root] do
           begin
           mapkey;
           genpseudo(doext, ptrsize, key, refcount, copycount, oprnds[1], 0, 0);
@@ -1340,7 +1338,7 @@ with target = 0.
 
 
       begin {originsegnode}
-        with rootp^ do
+        with nodetable[root] do
           begin
           mapkey;
           genpseudo(o, ptrsize, key, refcount, copycount, oprnds[1], 0, 0);
@@ -1357,7 +1355,7 @@ with target = 0.
 
 
       begin
-        with rootp^ do
+        with nodetable[root] do
           begin
           if (oprnds[1] = 0) or (oprnds[1] = level) then rkey := 0
           else walknode(oprnds[3], rkey, 0, true);
@@ -1471,7 +1469,7 @@ with target = 0.
 
 
       begin
-        third := rootp^.oprnds[3];
+        third := nodetable[root].oprnds[3];
         walknode(l, lkey, 0, true);
         mapkey;
         genpseudo(stacktarget, len, key, refcount, copycount, 1, 0, 0);
@@ -1559,7 +1557,6 @@ with target = 0.
      var
        tk: keyindex;
        slink: nodeindex;
-       slinkp: nodeptr;
 
       begin {regtargetnode}
 
@@ -1571,7 +1568,7 @@ with target = 0.
         officially disappeared at this point.
       }
 
-      slink := rootp^.slink; 
+      slink := nodetable[root].slink; 
       while (slink <> 0) and (nodetable[slink].op <> wr) do
         begin
         if (nodetable[slink].action = visit) and (nodetable[slink].op = bldfmt) then
@@ -1723,7 +1720,7 @@ with target = 0.
       begin
         walknode(l, lkey, targetkey, true);
         walkvalue(r, lkey, 0);
-        walkvalue(rootp^.oprnds[3], rkey, 0);
+        walkvalue(nodetable[root].oprnds[3], rkey, 0);
         genpseudo(setinsert, len, 0, 0, 0, lkey, rkey, targetkey);
         clearkeys;
       end {setpairnode} ;
@@ -1768,7 +1765,7 @@ with target = 0.
         shortvisit(l, false);
         if targetmachine = aarch64 then unnestparams(l);
         refcount := refcount - 1;
-        unarynode(wr, rootp^.form);
+        unarynode(wr, nodetable[root].form);
         clearkeys;
       end {wrnode} ;
 
@@ -1873,7 +1870,7 @@ with target = 0.
 
 
       begin
-        walknode(rootp^.oprnds[3], threekey, 0, true);
+        walknode(nodetable[root].oprnds[3], threekey, 0, true);
         mapkey;
         genpseudo(psop, len, key, refcount, copycount, threekey, 0, 0);
       end {varnode} ;
@@ -1906,7 +1903,7 @@ with target = 0.
         walkvalue(r, rkey, 0);
         mapkey;
         genpseudo(map[op, form], len, key, refcount, copycount, rkey,
-                  rootp^.oprnds[1], targetkey);
+                  nodetable[root].oprnds[1], targetkey);
 
       end {sysfnnode} ;
 
@@ -1923,11 +1920,10 @@ with target = 0.
       var
         initialkey, varkey: keyindex; {initial expr key }
         initialvalue: integer; { first operand for pseudo-op}
-        varp: nodeptr; {point to the defined variable}
 
 
       begin {defforindexnode}
-        with rootp^ do
+        with nodetable[root] do
           begin
 
           walkvalue(oprnds[2], varkey, 0);
@@ -1969,7 +1965,6 @@ with target = 0.
         tk: integer; {temp for searching list of nodes}
         targ: nodeindex; {temp target}
         cond: nodeindex; {the condition expression}
-        p: nodeptr; {for access to left and right nodes}
         form: types; {form for this operation}
         oldclearok: boolean; {old value of oktoclear}
         val_used: boolean; {the value is used}
@@ -1981,9 +1976,9 @@ with target = 0.
         oktoclear := false;
         cond := l; {first get the names right}
         l := r;
-        r := rootp^.oprnds[3];
-        val_used := rootp^.refcount > 0;
-        form := rootp^.form;
+        r := nodetable[root].oprnds[3];
+        val_used := nodetable[root].refcount > 0;
+        form := nodetable[root].form;
 
         if not val_used then
           begin
@@ -2178,8 +2173,7 @@ with target = 0.
       lkey := 0;
       rkey := 0;
       key := 0;
-      rootp := @(nodetable[root]);
-      with rootp^ do
+      with nodetable[root] do
         begin
         l := oprnds[1];
         r := oprnds[2];
@@ -2277,7 +2271,7 @@ with target = 0.
           addeqop, andeqop, muleqop, oreqop, shiftleqop, shiftreqop, subeqop,
           xoreqop:
             reflexivenode(op, form);
-          preincop, postincop: incnode(op, form, rootp^.oprnds[3]);
+          preincop, postincop: incnode(op, form, nodetable[root].oprnds[3]);
           diveqop, modeqop: reflexdivnodes(op, form);
           commaop: commanode;
           questop: questnode;
@@ -2300,15 +2294,13 @@ with target = 0.
 
     var
       oldkey: keyindex; {key for common expression}
-      rootp: nodeptr; {used to access root node}
 
 
     begin
-      rootp := @(nodetable[root]);
       { hoisting may have removed all the references. check it out }
-      if rootp^.refcount <> 0 then
+      if nodetable[root].refcount <> 0 then
         begin
-        walknode(rootp^.oldlink, oldkey, 0, true);
+        walknode(nodetable[root].oldlink, oldkey, 0, true);
         mapkey;
         if not nowdebugging and (key >= context[contextsp].low) then
           context[contextsp].low := key + 1;
@@ -2325,15 +2317,14 @@ with target = 0.
     key := 0;
     while root <> 0 do
       begin
-      rootp := @(nodetable[root]);
-      refcount := rootp^.refcount;
-      copycount := rootp^.copycount;
-      len := rootp^.len;
-      if rootp^.action in [visit, revisit] then
-        if rootp^.op < intop then nextroot := rootp^.slink
+      refcount := nodetable[root].refcount;
+      copycount := nodetable[root].copycount;
+      len := nodetable[root].len;
+      if nodetable[root].action in [visit, revisit] then
+        if nodetable[root].op < intop then nextroot := nodetable[root].slink
         else nextroot := 0
       else nextroot := 0;
-      with rootp^ do
+      with nodetable[root] do
         case action of
           visit:
             begin
@@ -2348,10 +2339,7 @@ with target = 0.
           revisit, recopy: mapkey;
           end;
       if counting then
-        begin
-        rootp := @(nodetable[root]);
-        with rootp^ do refcount := refcount - 1;
-        end;
+        with nodetable[root] do refcount := refcount - 1;
       root := nextroot;
       end;
   end {walknode};
@@ -2393,9 +2381,6 @@ procedure walkvalue(root: nodeindex; {root of tree to walk}
   relation, the shortcircuit boolean evaluation is converted into a
   value on the stack.
 }
-
-  var
-    rootp: nodeptr; {used to access root node}
 
 
   procedure convertrelation;
@@ -2468,8 +2453,7 @@ procedure walkvalue(root: nodeindex; {root of tree to walk}
 
 
   begin {walkvalue}
-    rootp := @(nodetable[root]);
-    if rootp^.relation then convertrelation
+    if nodetable[root].relation then convertrelation
     else walknode(root, key, targetkey, true);
   end {walkvalue} ;
 
@@ -2483,15 +2467,13 @@ procedure walknodelist(p: nodeindex {start of node chain} );
 
   var
     p1: nodeindex; {used to store prelink during node walking}
-    ptr: nodeptr; {used to access a node}
     key: keyindex; {dummy parameter to walknode}
 
 
   begin
     while p <> 0 do
       begin
-      ptr := @(nodetable[p]);
-      p1 := ptr^.prelink;
+      p1 := nodetable[p].prelink;
       walknode(p, key, 0, false);
       p := p1;
       end;
@@ -2515,7 +2497,6 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 }
 
   var
-    p: nodeptr; { for access to statement node }
     newcontrolstmt: boolean; { used to prevent extra readaccess call }
     s: nodeindex; { local copy of firststmt }
 
@@ -2533,7 +2514,6 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
     var
       expr1key, expr2key: keyindex; {keys for expressions in headers}
       currentstmt: node; { current stmt node }
-      p: nodeptr;
 
 
     procedure genstmtbrk;
@@ -2636,11 +2616,9 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
         default: labelrange; {default label or 1 if is an error}
         errordefault: boolean; {true if default gives an error}
         casekey: keyindex; {key for case expression}
-        ptr1, ptr2: nodeptr; { to access nodes }
         currentlabel: labelrange; { current case label for stmt block }
         reskey: keyindex; {result of compare for split cases}
         firstgrouprec: nodeindex; {first split group for the case}
-        n: nodeptr; {for access to expression}
         relationcase: boolean; {case expression is a relation}
 
 
@@ -2654,32 +2632,28 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 }
 
         var
-          fp: nodeptr; {for access to firstlab}
-          lp: nodeptr; {for access to lastlab}
-          p, p1: nodeptr; {for tracing lists}
+          p, p1: nodeindex; {for tracing lists}
           locdefault: labelrange; {label for a local default}
           done: boolean; {loop termination condition}
           thislab: nodeindex; {for tracing the chain of labels}
 
 
         begin {genjumptable}
-          fp := @(nodetable[firstlab]);
-          lp := @(nodetable[lastlab]);
 
-          if not relationcase and ((fp^.caselabellow = lp^.caselabelhigh) or
-             (fp^.caselabellow = fp^.caselabelhigh) and
-             (lp^.caselabellow = lp^.caselabelhigh) and
-             (fp^.orderedlink = lastlab)) then
+          if not relationcase and ((nodetable[firstlab].caselabellow = nodetable[lastlab].caselabelhigh) or
+             (nodetable[firstlab].caselabellow = nodetable[firstlab].caselabelhigh) and
+             (nodetable[lastlab].caselabellow = nodetable[lastlab].caselabelhigh) and
+             (nodetable[firstlab].orderedlink = lastlab)) then
             begin
             genpseudo(eqlitint, targetintsize, reskey, 1, 0, casekey,
-                      fp^.caselabellow, 0);
+                      nodetable[firstlab].caselabellow, 0);
 
-            genpseudo(jumpt, 0, 0, 0, 0, fp^.stmtlabel, reskey, 0);
-            if fp^.caselabellow <> lp^.caselabelhigh then
+            genpseudo(jumpt, 0, 0, 0, 0, nodetable[firstlab].stmtlabel, reskey, 0);
+            if nodetable[firstlab].caselabellow <> nodetable[lastlab].caselabelhigh then
               begin
               genpseudo(eqlitint, targetintsize, reskey, 1, 0, casekey,
-                        lp^.caselabelhigh, 0);
-              genpseudo(jumpt, 0, 0, 0, 0, lp^.stmtlabel, reskey, 0);
+                        nodetable[lastlab].caselabelhigh, 0);
+              genpseudo(jumpt, 0, 0, 0, 0, nodetable[lastlab].stmtlabel, reskey, 0);
               end;
             if errordefault then genpseudo(caseerr, 0, 0, 0, 0, 0, 0, 0)
             else genpseudo(jump, 0, 0, 0, 0, default, 0, 0);
@@ -2688,11 +2662,11 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
             begin
             locdefault := newlabel;
             genpseudo(lsslitint, targetintsize, reskey, 1, 0, casekey,
-                      fp^.caselabellow, 0);
+                      nodetable[firstlab].caselabellow, 0);
             genpseudo(jumpt, 0, 0, 0, 0, locdefault, reskey, 0);
             genpseudo(leqlitint, targetintsize, reskey, 1, 0, casekey,
-                      lp^.caselabelhigh, 0);
-            genpseudo(jumpt, 0, 0, 0, 0, lp^.stmtlabel, reskey, 0);
+                      nodetable[lastlab].caselabelhigh, 0);
+            genpseudo(jumpt, 0, 0, 0, 0, nodetable[lastlab].stmtlabel, reskey, 0);
             definelabel(locdefault);
             if errordefault then genpseudo(caseerr, 0, 0, 0, 0, 0, 0, 0)
             else genpseudo(jump, 0, 0, 0, 0, default, 0, 0);
@@ -2702,19 +2676,19 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
             if errordefault then locdefault := newlabel
             else locdefault := default;
             genpseudo(casebranch, locdefault, 0, ord(errordefault), 0,
-                      fp^.caselabellow, lp^.caselabelhigh, casekey);
+                      nodetable[firstlab].caselabellow, nodetable[lastlab].caselabelhigh, casekey);
             thislab := firstlab;
-            p := fp;
+            p := firstlab;
             repeat
-              p1 := @(nodetable[p^.orderedlink]);
-              genpseudo(caseelt, 0, 0, 0, 0, p^.stmtlabel,
-                        p^.caselabelhigh - p^.caselabellow + 1, 0);
+              p1 := nodetable[p].orderedlink;
+              genpseudo(caseelt, 0, 0, 0, 0, nodetable[p].stmtlabel,
+                        nodetable[p].caselabelhigh - nodetable[p].caselabellow + 1, 0);
               done := thislab = lastlab;
               if not done then
-                if p1^.caselabellow - p^.caselabelhigh > 1 then
+                if nodetable[p1].caselabellow - nodetable[p].caselabelhigh > 1 then
                   genpseudo(caseelt, 0, 0, 0, 0, locdefault,
-                            p1^.caselabellow - p^.caselabelhigh - 1, 0);
-              thislab := p^.orderedlink;
+                            nodetable[p1].caselabellow - nodetable[p].caselabelhigh - 1, 0);
+              thislab := nodetable[p].orderedlink;
               p := p1;
             until done;
             end;
@@ -2738,37 +2712,33 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
           lastlabel: labelrange; {label associated with "last" direction branch}
           firstlabel: labelrange; {label associated with "first" direction
                                    branch}
-          p, lp, hp: nodeptr; {for access to nodes}
+          l, h: nodeindex; {for access to nodes}
 
 
         begin
           middle := (first + last + 1) div 2;
           thisgroup := firstgrouprec;
-          p := @(nodetable[thisgroup]);
-          while p^.groupno <> middle do
-            begin
-            thisgroup := p^.nextstmt;
-            p := @(nodetable[thisgroup]);
-            end;
+          while nodetable[thisgroup].groupno <> middle do
+            thisgroup := nodetable[thisgroup].nextstmt;
 
           if middle < last then
             begin {there is a right-hand branch}
-            hp := @(nodetable[p^.highestlabel]);
-            hp := @(nodetable[hp^.orderedlink]);
+            h := nodetable[thisgroup].highestlabel;
+            h := nodetable[h].orderedlink;
             lastlabel := newlabel;
             genpseudo(geqlitint, targetintsize, reskey, 1, 0, casekey,
-                      hp^.caselabelhigh, 0);
+                      nodetable[h].caselabelhigh, 0);
             genpseudo(jumpt, 0, 0, 0, 0, lastlabel, reskey, 0);
             end;
           if middle > first then
             begin {there is a left-hand branch}
-            lp := @(nodetable[p^.lowestlabel]);
+            l := nodetable[thisgroup].lowestlabel;
             firstlabel := newlabel;
             genpseudo(lsslitint, targetintsize, reskey, 1, 0, casekey,
-                      lp^.caselabellow, 0);
+                      nodetable[l].caselabellow, 0);
             genpseudo(jumpt, 0, 0, 0, 0, firstlabel, reskey, 0);
             end;
-          with p^ do genjumptable(lowestlabel, highestlabel, ordered);
+          with nodetable[thisgroup] do genjumptable(lowestlabel, highestlabel, ordered);
           if middle < last then
             begin
             definelabel(lastlabel);
@@ -2798,14 +2768,13 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
             genpseudo(caseerr, 0, 0, 0, 0, 0, 0, 0)
           else if elements <> 0 then
             begin
-            n := @(nodetable[selector]);
-            relationcase := n^.relation;
+            relationcase := nodetable[selector].relation;
             walkvalue(selector, casekey, 0);
             reskey := newkey;
             firstgrouprec := firstgroup;
             casesplit(1, groupcount);
             end
-          else if language = C then
+          else if language = c then
             begin
             walkvalue(selector, casekey, 0);
             genpseudo(dovar, 4, newkey, 0, 0, casekey, 0, 0); {this stinks}
@@ -2836,7 +2805,6 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 }
 
       var
-        ptr: nodeptr; {used to access index node}
         constinitial, constfinal: boolean; {initial and final const}
         unsigned: boolean; {true if unsigned controlled var}
         initialvalue, finalvalue: integer; {initial and final values}
@@ -2851,11 +2819,10 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
         with currentstmt do
           begin
 
-          ptr := @(nodetable[expr1]);
-          if ptr^.op in [forupchkop, fordnchkop, forerrchkop] then
+          if nodetable[expr1].op in [forupchkop, fordnchkop, forerrchkop] then
             begin
             checkexists := true;
-            actualexpr1 := ptr^.oprnds[1];
+            actualexpr1 := nodetable[expr1].oprnds[1];
             end
           else
             begin
@@ -2865,15 +2832,14 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 
           shortvisit(actualexpr1, false);
           checkconst(actualexpr1, constfinal, finalvalue);
-          ptr := @(nodetable[expr2]);
-          if (ptr^.op = defforlitindexop) or
-             (ptr^.op = defunsforlitindexop) then
+          if (nodetable[expr2].op = defforlitindexop) or
+             (nodetable[expr2].op = defunsforlitindexop) then
             begin
             constinitial := true;
-            initialvalue := ptr^.oprnds[3];
-            unsigned := ptr^.op = defunsforlitindexop;
+            initialvalue := nodetable[expr2].oprnds[3];
+            unsigned := nodetable[expr2].op = defunsforlitindexop;
             end
-          else walkvalue(ptr^.oprnds[3], expr2key, 0);
+          else walkvalue(nodetable[expr2].oprnds[3], expr2key, 0);
           walknode(actualexpr1, expr1key, 0, false);
           if expr1key > expr2key then clearkeys; {reclaim what we can}
           walknode(expr2, expr2key, 0, false);
@@ -2939,13 +2905,9 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
         clean up.
       }
 
-      var
-        ptr: nodeptr; { for access to for loop top }
-
 
       begin { walkforbot }
-        ptr := @(nodetable[currentstmt.looptop^.beginstmt]);
-        with ptr^, forstack[forsp] do
+        with nodetable[currentstmt.looptop^.beginstmt], forstack[forsp] do
           begin
           if improved then
             begin
@@ -3057,14 +3019,11 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 }
 
       var
-        ptr: nodeptr;
         p: proctableindex;
 
 
       begin {walkgoto}
-
-        ptr := @(nodetable[root^.beginstmt]);
-        p := ptr^.procref;
+        p := nodetable[root^.beginstmt].procref;
         branchstmt := currentstmt.labellevel <> proctable[p].level;
         genstmtbrk;
         with currentstmt do
@@ -3081,7 +3040,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 }
 
       var
-        ptr: nodeptr; {used to access expr node for new call}
+        expr: nodeindex; {used to access expr node for new call}
         targetflag: 0..2; {flag to pass the type of number used}
 
       begin
@@ -3100,11 +3059,11 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
           targetflag := 0;
           if (expr2 = ord(valprocid)) or (expr2 = ord(strid)) then
             begin
-            ptr := @(nodetable[expr1]);
+            expr := expr1;
             if expr2 = ord(valprocid) then
-              ptr := @(nodetable[ptr^.slink]);
-            if ptr^.form = reals then targetflag := 1
-            else if ptr^.form = doubles then targetflag := 2;
+              expr := nodetable[expr].slink;
+            if nodetable[expr].form = reals then targetflag := 1
+            else if nodetable[expr].form = doubles then targetflag := 2;
             end;
           walknode(expr1, expr1key, 0, true);
           if expr2 = ord(getid) then
@@ -3177,8 +3136,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
     begin {walkstmt}
 
       inverted := false;
-      p := @(nodetable[stmt]);
-      currentstmt := p^;
+      currentstmt := nodetable[stmt];
       with currentstmt do
         begin
         case stmtkind of
@@ -3232,12 +3190,11 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
     while firststmt <> 0 do
       begin
       s := firststmt;
-      p := @(nodetable[firststmt]);
-      firststmt := p^.nextstmt;
-      if p^.stmtkind in [rpthdr, whilehdr, foruphdr, fordnhdr, cforhdr] then
+      firststmt := nodetable[s].nextstmt;
+      if nodetable[s].stmtkind in [rpthdr, whilehdr, foruphdr, fordnhdr, cforhdr] then
         controlstmt := true;
       { do this now to avoid readaccess call }
-      newcontrolstmt := not (p^.stmtkind in [withhdr, simplehdr, syscallhdr]);
+      newcontrolstmt := not (nodetable[s].stmtkind in [withhdr, simplehdr, syscallhdr]);
       walkstmt(s);
       controlstmt := newcontrolstmt;
       end;
@@ -3265,8 +3222,7 @@ procedure walk;
       low := 1;
       high := 0;
       end;
-    ptr := @(nodetable[root^.beginstmt]);
-    with ptr^ do
+    with nodetable[root^.beginstmt] do
       begin
       if final_block_size = 0 then blocksize := bs
       else blocksize := final_block_size - ps;
@@ -3329,8 +3285,7 @@ procedure walk;
           if beginstmt <> 0 then
             begin
             walkstmtlist(beginstmt);
-            ptr := @(nodetable[beginstmt]);
-            needjump := not (ptr^.stmtkind in
+            needjump := not (nodetable[beginstmt].stmtkind in
                         [forbothdr, whilebothdr, untilhdr, cforbothdr, gotohdr,
                         swbrkhdr, loopbrkhdr, loopconthdr]);
             end
