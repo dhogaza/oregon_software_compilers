@@ -189,8 +189,6 @@ procedure clearkeys;
 
   var
     done: boolean; {true when no more keys reusable}
-    ptr: nodeptr; {used for access to key nodes}
-
 
   begin
     if oktoclear then
@@ -199,8 +197,7 @@ procedure clearkeys;
         done := high < low;
         while not done do
           begin
-          ptr := @(nodetable[keytable[high]]);
-          if (keytable[high] = 0) or (ptr^.refcount = 0) then
+          if (keytable[high] = 0) or (nodetable[keytable[high]].refcount = 0) then
             begin
             keytable[high] := 0;
             high := high - 1
@@ -333,23 +330,21 @@ procedure unnestparams(root: nodeindex {tree to visit});
   var
     j: 1..3; {induction for operand scan}
     k: keyindex; {dummy argument to salknode}
-    ptr: nodeptr; {used for access to root node}
     op: operatortype; {operator for this node}
 
   begin {unnestparams}
-    ptr := @(nodetable[root]);
-    op := ptr^.op;
-    if ptr^.action = visit then
+    op := nodetable[root].op;
+    if nodetable[root].action = visit then
       if (op in [call, unscall, callparam, unscallparam, sysfn]) or
-         ((op = plusop) and (ptr^.form = strings)) then
+         ((op = plusop) and (nodetable[root].form = strings)) then
         walknode(root, k, 0, false)
       else
         begin
         for j := 1 to 3 do
-          if ptr^.nodeoprnd[j] then
-            unnestparams(ptr^.oprnds[j]);
-        if (ptr^.op < intop) and (ptr^.slink <> 0) then
-          unnestparams(ptr^.slink);
+          if nodetable[root].nodeoprnd[j] then
+            unnestparams(nodetable[root].oprnds[j]);
+        if (nodetable[root].op < intop) and (nodetable[root].slink <> 0) then
+          unnestparams(nodetable[root].slink);
         end;
   end {unnestparams} ;
 
@@ -369,29 +364,25 @@ procedure shortvisit(root: nodeindex; {tree to visit}
   var
     j: 1..3; {induction for operand scan}
     k: keyindex; {dummy argument to walknode}
-    ptr: nodeptr; {used for access to root node}
     op: operatortype; {operator for this node}
-    oprndptr: nodeptr; {used for access one level down}
+    oprnd: nodeindex; {used for access one level down}
     newroot: nodeindex; {used in rem/quo hack}
 
 
   begin
-    ptr := @(nodetable[root]);
     newroot := root;
-    op := ptr^.op;
-    if ptr^.action = visit then
+    op := nodetable[newroot].op;
+    if nodetable[newroot].action = visit then
       begin
-      if (op in [quoop, remop]) and (ptr^.refcount = 1) then
-        begin
-        newroot := ptr^.oprnds[1];
-        ptr := @(nodetable[ptr^.oprnds[1]]);
-        end;
-      if not ptr^.local and ((ptr^.refcount > 1) or (ptr^.op = mulop) and
-         (ptr^.form = ints) or
+      if (op in [quoop, remop]) and (nodetable[newroot].refcount = 1) then
+        newroot := nodetable[newroot].oprnds[1];
+      if not nodetable[newroot].local and
+         ((nodetable[newroot].refcount > 1) or (nodetable[newroot].op = mulop) and
+         (nodetable[newroot].form = ints) or
          (op in
          [pushcvalue, divop, quoop, remop, paindxop, chrstrop, arraystrop, commaop]) or
-         switcheverplus[largemodel] and ((ptr^.op = filebufindrop) or
-         (ptr^.op = indrop))) then
+         switcheverplus[largemodel] and ((nodetable[newroot].op = filebufindrop) or
+         (nodetable[newroot].op = indrop))) then
         walknode(root, k, 0, false)
       else
         begin
@@ -399,33 +390,29 @@ procedure shortvisit(root: nodeindex; {tree to visit}
                                     (op = regtargetop);
         if inpushaddr and (language <> c) then
           for j := 1 to 3 do
-            if ptr^.nodeoprnd[j] then
+            if nodetable[newroot].nodeoprnd[j] then
               begin
-              oprndptr := @(nodetable[ptr^.oprnds[j]]);
-              if (oprndptr^.op in
+              oprnd := nodetable[newroot].oprnds[j];
+              if (nodetable[oprnd].op in
                  [originop, call, callparam, unscall, unscallparam]) or
-                 ((oprndptr^.form = sets) and (op <> regtargetop)) or
-                 (oprndptr^.form = strings) then
+                 ((nodetable[oprnd].form = sets) and (op <> regtargetop)) or
+                 (nodetable[oprnd].form = strings) then
                 begin
-                walknode(ptr^.oprnds[j], k, 0, false);
-                ptr := @(nodetable[newroot]);
+                walknode(nodetable[newroot].oprnds[j], k, 0, false);
                 end;
               end;
-        if (ptr^.op = rd) and (targetmachine in [iAPX86, i80386, ns32k, aarch64]) then
+        if (nodetable[newroot].op = rd) and (targetmachine in [iAPX86, i80386, ns32k, aarch64]) then
           begin
 {
             Walk this early since work registers may die
 }
-          walknode(ptr^.oprnds[2], k, 0, false);
+          walknode(nodetable[newroot].oprnds[2], k, 0, false);
           end;
         for j := 1 to 3 do
-          if ptr^.nodeoprnd[j] then
-            begin
-            shortvisit(ptr^.oprnds[j], inpushaddr);
-            ptr := @(nodetable[newroot]);
-            end;
-        if (ptr^.op < intop) and (ptr^.slink <> 0) then
-          shortvisit(ptr^.slink, false);
+          if nodetable[newroot].nodeoprnd[j] then
+            shortvisit(nodetable[newroot].oprnds[j], inpushaddr);
+        if (nodetable[newroot].op < intop) and (nodetable[newroot].slink <> 0) then
+          shortvisit(nodetable[newroot].slink, false);
         end;
       end;
   end {shortvisit} ;
@@ -443,22 +430,18 @@ procedure unnestsets(root: nodeindex {tree to visit} );
   var
     j: 1..3; {induction for operand scan}
     k: keyindex; {dummy argument to walknode}
-    ptr: nodeptr; {used for access to root node}
 
 
   begin {unnestsets}
-    ptr := @(nodetable[root]);
-    if ptr^.action = visit then
-      if ptr^.op = bldset then walknode(root, k, 0, false)
+    if nodetable[root].action = visit then
+      if nodetable[root].op = bldset then walknode(root, k, 0, false)
       else
         begin
         for j := 1 to 3 do
-          if ptr^.nodeoprnd[j] then
-            begin
-            unnestsets(ptr^.oprnds[j]);
-            ptr := @(nodetable[root]);
-            end;
-        if (ptr^.op < intop) and (ptr^.slink <> 0) then unnestsets(ptr^.slink);
+          if nodetable[root].nodeoprnd[j] then
+            unnestsets(nodetable[root].oprnds[j]);
+        if (nodetable[root].op < intop) and (nodetable[root].slink <> 0) then
+          unnestsets(nodetable[root].slink);
         end;
   end {unnestsets} ;
 
@@ -473,27 +456,25 @@ function targetpresent(p: nodeindex {node to check} ): boolean;
   var
     cnt: 0..3; {induction var for checking operands}
     found: boolean; {set if target found}
-    ptr: nodeptr; {used to access nodes}
 
 
   begin
     found := false;
-    ptr := @(nodetable[p]);
-    if ptr^.action = recopy then found := targetpresent(ptr^.oldlink)
+    if nodetable[p].action = recopy then found := targetpresent(nodetable[p].oldlink)
     else
       begin
-      found := ptr^.target;
+      found := nodetable[p].target;
       cnt := 0;
       while (cnt < 3) and not found do
         begin
         cnt := cnt + 1;
-        if ptr^.nodeoprnd[cnt] then
+        if nodetable[p].nodeoprnd[cnt] then
           begin
-          found := targetpresent(ptr^.oprnds[cnt]);
+          found := targetpresent(nodetable[p].oprnds[cnt]);
           end;
         end;
-      if not found and (ptr^.op < intop) and (ptr^.slink <> 0) then
-        found := targetpresent(ptr^.slink);
+      if not found and (nodetable[p].op < intop) and (nodetable[p].slink <> 0) then
+        found := targetpresent(nodetable[p].slink);
       end;
     targetpresent := found;
   end {targetpresent} ;
@@ -612,13 +593,10 @@ procedure walknode(root: nodeindex; {root of tree to walk}
   and all of its sub-trees.
 }
 
-      var
-        ptr: nodeptr; {used to access node}
 
 
       begin
-        ptr := @(nodetable[p]);
-        cost := ptr^.cost;
+        cost := nodetable[p].cost;
       end {cost} ;
 
 
@@ -740,7 +718,6 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 }
 
       var
-        lp: nodeptr; {used to access left operand}
         offset: addressrange; {actual variable offset}
         trav_offset: addressrange; {traverse offset for temp check}
         j: 0..regtablelimit; { var for temp search }
@@ -749,20 +726,19 @@ procedure walknode(root: nodeindex; {root of tree to walk}
 
 
       begin
-        lp := @(nodetable[l]);
         third := 0;
         case targetmachine of
           vax:
 {to be verified ... esp. the P2 linkage case}
             with proctable[blockref] do
-              if (lp^.oprnds[2] = 0) and
+              if (nodetable[l].oprnds[2] = 0) and
                  (calllinkage = nonpascalcall) then
-                offset := rootp^.oprnds[2] - final_block_size
-              else offset := rootp^.oprnds[2];
+                offset := nodetable[root].oprnds[2] - final_block_size
+              else offset := nodetable[root].oprnds[2];
           otherwise
-            offset := final_block_size - rootp^.oprnds[2];
+            offset := final_block_size - nodetable[root].oprnds[2];
         end {case};
-        trav_offset := rootp^.oprnds[3];
+        trav_offset := nodetable[root].oprnds[3];
         p := indx;
 
         walknode(l, lkey, 0, true);
@@ -888,7 +864,6 @@ with target = 0.
         target: keyindex; {dummy target operand}
         tkey: keyindex; {temp for result}
         ckey: keyindex; {cast lvalue key}
-        lp: nodeptr; {for access to the left side}
         lform: types; {type of lvalue}
         llen: addressrange; {length of lvalue}
         use_casts: boolean; {we have to insert casts}
@@ -896,9 +871,8 @@ with target = 0.
 
       begin
         target := 0;
-        lp := @(nodetable[l]);
-        llen := lp^.len;
-        lform := types(rootp^.oprnds[3]);
+        llen := nodetable[l].len;
+        lform := types(nodetable[root].oprnds[3]);
         walknode(l, lkey, 0, true);
         genpseudo(startreflex, 0, 0, 0, 0, 0, 0, 0);
         use_casts := (lform <> form) or (lform = reals) and (llen <> len);
@@ -981,7 +955,7 @@ with target = 0.
 
       begin
         target := 0;
-        deref := rootp^.refcount > 0;
+        deref := nodetable[root].refcount > 0;
         walknode(l, lkey, target, false);
         if deref then walkvalue(r, rkey, targetkey)
         else walknode(r, rkey, targetkey, false);
@@ -1301,29 +1275,26 @@ with target = 0.
         l: addressrange; {length of node}
         refc, copy: refcountrange; {ref and copy counts}
         nextpiece: nodeindex; {next piece being generated}
-        nextp: nodeptr; {access to next piece to generate}
 
 
       begin
         mapkey;
-        with rootp^ do
+        with nodetable[root] do
           begin
           l := len;
           refc := refcount;
           copy := copycount;
           end;
         piece := 1;
-        nextp := rootp;
+        nextpiece := root;
         repeat
-          with nextp^ do
+          with nodetable[nextpiece] do
             begin
             genpseudo(doreal, l, key, refc, copy, oprnds[1], oprnds[2], piece);
             action := revisit;
             nextpiece := oprnds[3];
             end;
           piece := piece + 1;
-          if nextpiece <> 0 then
-            nextp := @(nodetable[nextpiece]);
         until nextpiece = 0;
       end; {realnode}
 
@@ -1416,14 +1387,13 @@ with target = 0.
         if targetmachine = aarch64 then unnestparams(r);
         walknode(r, rkey, 0, true);
         mapkey;
-        rootp := @(nodetable[root]);
         if op = unscall then
           genpseudo(unscallroutine, len, key, refcount, copycount,
-                    rootp^.oprnds[1], rootp^.oprnds[3], - ord(rootp^.form))
+                    nodetable[root].oprnds[1], nodetable[root].oprnds[3], - ord(nodetable[root].form))
         else
           genpseudo(callroutine, len, key, refcount, copycount,
-                    rootp^.oprnds[1], rootp^.oprnds[3], - ord(rootp^.form));
-        p := rootp^.oprnds[1];
+                    nodetable[root].oprnds[1], nodetable[root].oprnds[3], - ord(nodetable[root].form));
+        p := nodetable[root].oprnds[1];
         proctable[p].referenced := true;
         if language <> c then clearkeys;
       end {callnode} ;
@@ -1444,13 +1414,12 @@ with target = 0.
         walknode(r, rkey, 0, true);
 
         mapkey;
-        rootp := @(nodetable[root]);
         if op = unscallparam then
           genpseudo(unscallroutine, len, key, refcount, copycount, lkey,
-                    rootp^.oprnds[3], ord(rootp^.form))
+                    nodetable[root].oprnds[3], ord(nodetable[root].form))
         else
           genpseudo(callroutine, len, key, refcount, copycount, lkey,
-                    rootp^.oprnds[3], ord(rootp^.form));
+                    nodetable[root].oprnds[3], ord(nodetable[root].form));
         if language <> c then clearkeys;
       end {callparamnode} ;
 
@@ -1689,15 +1658,13 @@ with target = 0.
 }
 
       var
-        rptr: nodeptr; {point to right operand}
         walkfirst: boolean; {set true if we must walk operand before emitting
                              stacktarget}
 
 
       begin {pushaddrnode}
         walknode(l, lkey, 0, true);
-        rptr := @(nodetable[r]);
-        walkfirst := (rptr^.op in
+        walkfirst := (nodetable[r].op in
                      [copystackop, call, callparam, unscall, unscallparam, fileparamop]) or
                      (form = strings);
         if walkfirst then walkvalue(r, rkey, key);
@@ -1817,14 +1784,13 @@ with target = 0.
         shortvisit(l, false);
         if targetmachine = aarch64 then unnestparams(l);
         refcount := refcount - 1;
-        if rootp^.form = arrays then unarynode(rd, arrays)
+        if nodetable[root].form = arrays then unarynode(rd, arrays)
         else
           begin
           walknode(l, lkey, 0, true);
           walknode(r, rkey, 0, true);
           mapkey;
-          rootp := @(nodetable[root]);
-          genpseudo(map[rd, rootp^.form], len, key, refcount, copycount, rkey,
+          genpseudo(map[rd, nodetable[root].form], len, key, refcount, copycount, rkey,
                     0, 0);
           end;
         clearkeys;
@@ -1866,7 +1832,7 @@ with target = 0.
 
       begin
         mapkey;
-        with rootp^ do
+        with nodetable[root] do
           genpseudo(makeroom, oprnds[1], key, 0, 0, oprnds[2], oprnds[3], 0);
       end {reservenode} ;
 
@@ -1883,7 +1849,7 @@ with target = 0.
 
       begin
         mapkey;
-        with rootp^ do
+        with nodetable[root] do
           case targetmachine of
             mc68000:
               genpseudo(map[op, form], len, key, refcount, copycount, 0, 0,
@@ -1923,17 +1889,11 @@ with target = 0.
   not applicable.
 }
 
-      var
-        rp: nodeptr; {used to access right operand}
-
 
       begin
         shortvisit(r, false);
-{
-        if targetmachine = aarch64 then unnestparams(r);
-}
 
-        if not (switcheverplus[fpc68881] and (standardids(rootp^.oprnds[1]) in
+        if not (switcheverplus[fpc68881] and (standardids(nodetable[root].oprnds[1]) in
            [facosid, fasinid, fatanid, fatanhid, fcoshid, fetoxm1id, fgetexpid,
            fgetmanid, fintid, flog10id, flog2id, flognp1id, fmodid, fremid,
            fscaleid, fsgldivid, fsglmulid, fsinhid, ftanid, ftanhid, ftentoxid,
@@ -1941,10 +1901,7 @@ with target = 0.
            sqrtid, arctanid, truncid, roundid, snglid, dblid, acosid, asinid,
            tanid, coshid, tanhid, log10id, fabsid, labsid, sinhid,
            logid])) then
-          begin
-          rp := @(nodetable[r]);
-          if form <> rp^.form then targetkey := 0;
-          end;
+          if form <> nodetable[r].form then targetkey := 0;
 
         walkvalue(r, rkey, 0);
         mapkey;
