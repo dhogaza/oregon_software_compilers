@@ -2523,37 +2523,37 @@ procedure build;
         var
           thevar: nodeindex; { index of the var to assign value }
           thevalue: integer; { value to be assigned }
-          ptr: nodeptr; { for access to nodes }
+          thenode: nodeindex; { for meandering around nodes }
 
 
         begin {assignvalue}
 
           { top of stack is a movelit examine left hand side }
 
-          ptr := @(nodetable[movenode]);
-          if ptr^.op = movelit then thevalue := ptr^.oprnds[2]
+          thenode := movenode;
+          if nodetable[thenode].op = movelit then
+            thevalue := nodetable[thenode].oprnds[2]
           else
             begin
-            ptr := @(nodetable[ptr^.oprnds[1]]);
-            thevalue := ptr^.oprnds[1];
+            thenode := nodetable[thenode].oprnds[1];
+            thevalue := nodetable[thenode].oprnds[1];
             end;
-          thevar := ptr^.oprnds[1];
+          thevar := nodetable[thenode].oprnds[1];
           { access the (new)varop }
-          ptr := @(nodetable[thevar]);
           { see if it is simple }
-          ptr := @(nodetable[ptr^.oprnds[3]]);
-          if ptr^.op = indxop then
+          thenode := nodetable[thevar].oprnds[3];
+          if nodetable[thenode].op = indxop then
             begin
-            ptr := @(nodetable[ptr^.oprnds[1]]);
-            if ptr^.op = levop then
+            thenode := nodetable[thenode].oprnds[1];
+            if nodetable[thenode].op = levop then
               begin
-              ptr := @(nodetable[thevar]);
-              ptr^.hasvalue := true;
-              ptr^.value := thevalue;
+              nodetable[thevar].hasvalue := true;
+              nodetable[thevar].value := thevalue;
               end;
             end;
 
         end {assignvalue} ;
+
 
 
       procedure buildproperptr(var oprnd: stackrecord; {opnd referenced}
@@ -2606,25 +2606,25 @@ procedure build;
                     while (n1 <> 0) and not foundcopy do
                       begin
                       n2 := n1;
-                      ptr := @(nodetable[n1]);
-                      foundcopy := (ptr^.oldlink = p);
-                      n1 := ptr^.prelink;
+                      foundcopy := (nodetable[n1].oldlink = p);
+                      n1 := nodetable[n1].prelink;
                       end;
                     if not foundcopy then
                       begin
                       newexprnode(n2);
-                      ptr := @(nodetable[n2]);
-                      ptr^.refcount := 0;
-                      ptr^.copycount := 0;
-                      ptr^.action := copy;
-                      ptr^.prelink := firstblock^.precode;
-                      ptr^.hoistedby := firstblock;
-                      ptr^.oldlink := p;
-                      ptr^.directlink := originallink;
+                      with nodetable[n2] do
+                        begin
+                        refcount := 0;
+                        copycount := 0;
+                        action := copy;
+                        prelink := firstblock^.precode;
+                        hoistedby := firstblock;
+                        oldlink := p;
+                        directlink := originallink;
+                        end;
                       firstblock^.precode := n2;
                       end;
-                    ptr := @(nodetable[p]);
-                    with ptr^ do
+                    with nodetable[p] do
                       begin
                       refcount := refcount + 1;
                       if action = visit then
