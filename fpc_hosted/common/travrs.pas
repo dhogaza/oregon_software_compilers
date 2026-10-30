@@ -1783,7 +1783,6 @@ procedure build;
       n: nodeindex; {dummy argument to newexprnode}
       i: shortint; {induction var for clearing opmap and virt mem}
       localvar: localvartype; { file read temp }
-      ptr: nodeptr; { for access to node }
       j: reghashindex; { unsigned var for quicker mod }
 
 
@@ -2493,8 +2492,6 @@ procedure build;
 
       var
         thisstmt: nodeindex; {statement being built}
-        ptr: nodeptr; { for access to statement node }
-
 
       procedure assignvalue(movenode: nodeindex);
 {
@@ -3232,25 +3229,20 @@ procedure build;
 }
 
           var
-            p: nodeptr; {for access to entry}
-            n: node; {local copy of the node}
             i: 1..3; {for scanning operands}
 
 
           begin
             if expr > mark then
-              begin
-              p := @(nodetable[expr]);
-              p^.valid := false;
-              if p^.action in [visit, revisit] then
+              with nodetable[expr] do
                 begin
-                n := p^;
-                for i := 1 to 3 do
-                  if n.nodeoprnd[i] then clear_expr(n.oprnds[i], mark);
-                if (n.slink <> 0) and (n.op < intop) then
-                  clear_expr(n.slink, mark);
+                valid := false;
+                if action in [visit, revisit] then
+                  for i := 1 to 3 do
+                    if nodeoprnd[i] then clear_expr(oprnds[i], mark);
+                    if (slink <> 0) and (op < intop) then
+                      clear_expr(slink, mark);
                 end;
-              end;
           end; {clear_expr}
 
 
@@ -3279,24 +3271,19 @@ procedure build;
               op: operatortype; {local copy of operator}
               oprnds: operandarray; {local copy of operands}
               nodeoprnd: nodeoperandarray; {says if oprnds are nodes}
-              p: nodeptr; {for access to node}
               i: oprndindex; {induction var}
 
 
             begin {define_target}
               if n <> 0 then
                 begin
-                p := @(nodetable[n]);
 
-                if p^.action = copy then
-                  begin
-                  n := p^.directlink;
-                  p := @(nodetable[n]);
-                  end;
+                if nodetable[n].action = copy then
+                  n := nodetable[n].directlink;
 
-                op := p^.op;
-                oprnds := p^.oprnds;
-                nodeoprnd := p^.nodeoprnd;
+                op := nodetable[n].op;
+                oprnds := nodetable[n].oprnds;
+                nodeoprnd := nodetable[n].nodeoprnd;
                 for i := 1 to 3 do
                   if nodeoprnd[i] then define_target(oprnds[i]);
                 if targfound and
@@ -3304,8 +3291,8 @@ procedure build;
                   begin
                   if (targlev = oprnds[1]) and (targoff = oprnds[2]) then
                     begin
-                    p^.target := true;
-                    p^.mustinvalidate := true;
+                    nodetable[n].target := true;
+                    nodetable[n].mustinvalidate := true;
                     end;
                   end
                 else if (op = newvarop) or (op = newunsvarop) then
@@ -3408,32 +3395,24 @@ procedure build;
 
             var
               newexprnode: nodeindex; {index for this node}
-              newptr: nodeptr; {used to access top element on the stack}
               prevnode: nodeindex; {prior node}
-              prevptr: nodeptr; {used to access previous operator}
 
 
             begin
               insertnormal;
               newexprnode := stack[sp].p;
-              newptr := @(nodetable[newexprnode]);
-              if newptr^.oprnds[1] <> 0 then
+              if nodetable[newexprnode].oprnds[1] <> 0 then
                 begin
-                prevnode := newptr^.oprnds[1];
-                prevptr := @(nodetable[prevnode]);
-                if prevptr^.action = visit then
-                  if (prevptr^.op > newunsvarop) and (prevptr^.op < intop) then
+                prevnode := nodetable[newexprnode].oprnds[1];
+                if nodetable[prevnode].action = visit then
+                  if (nodetable[prevnode].op > newunsvarop) and (nodetable[prevnode].op < intop) then
                     begin
-                    stack[sp].p := newptr^.oprnds[1];
-                    newptr^.oprnds[1] := 0;
-                    newptr^.nodeoprnd[1] := false;
-                    while prevptr^.slink <> 0 do
-                      begin
-                      prevnode := prevptr^.slink;
-                      prevptr := @(nodetable[prevnode]);
-                      end;
-                    prevptr := @(nodetable[prevnode]);
-                    prevptr^.slink := newexprnode;
+                    stack[sp].p := nodetable[newexprnode].oprnds[1];
+                    nodetable[newexprnode].oprnds[1] := 0;
+                    nodetable[newexprnode].nodeoprnd[1] := false;
+                    while nodetable[prevnode].slink <> 0 do
+                      prevnode := nodetable[prevnode].slink;
+                    nodetable[prevnode].slink := newexprnode;
                     end;
                 end;
             end; {insertsequential}
@@ -3566,15 +3545,11 @@ procedure build;
   fall within the deadly bounds of the proper cseregion.
 }
 
-              var
-                ptr: nodeptr; {used for access to nodes}
-
 
               begin
                 while nindex <> 0 do
                   begin
-                  ptr := @(nodetable[nindex]);
-                  with ptr^ do
+                  with nodetable[nindex] do
                     begin
                     if (op in [varop, unsvarop]) and
                        (oprnds[1] >= l) and (oprnds[1] <= u) and
@@ -3673,21 +3648,18 @@ procedure build;
 
 }
 
-              var
-                ptr: nodeptr; { for access to current node }
 
 
               begin {reverse}
-                ptr := @(nodetable[current]);
-                if ptr^.slink = 0 then
+                if nodetable[current].slink = 0 then
                   begin
                   reverse := current;
-                  ptr^.slink := previous;
+                  nodetable[current].slink := previous;
                   end
                 else
                   begin
-                  reverse := reverse(ptr^.slink, current);
-                  ptr^.slink := previous;
+                  reverse := reverse(nodetable[current].slink, current);
+                  nodetable[current].slink := previous;
                   end;
               end {reverse} ;
 
@@ -3722,11 +3694,8 @@ procedure build;
                  if calling "c".
                 }
               if reverseparms then
-                begin
                 { first on list is the reserve }
-                ptr := @(nodetable[reserve]);
-                ptr^.slink := reverse(ptr^.slink, 0);
-                end;
+                nodetable[reserve].slink := reverse(nodetable[reserve].slink, 0);
               proctable[blockref].leaf := false;
             end {callnode} ;
 
@@ -3756,7 +3725,6 @@ procedure build;
 }
 
             var
-              stackp: nodeptr; {used to access top of stack node}
               i: oprndindex; { induction var }
 
 
@@ -3770,18 +3738,17 @@ procedure build;
               n.ownvar := boolean(getintfileint);
               sp := sp - 1;
               insertnormal;
-              stackp := @(nodetable[stack[sp].p]);
               { if the var has a value assigned use that instead }
               {travrs does not yet handle extended range variables...}
-              if stackp^.hasvalue and ((n.op = varop) or
-                 (stackp^.value > 0)) then
+              if nodetable[stack[sp].p].hasvalue and ((n.op = varop) or
+                 (nodetable[stack[sp].p].value > 0)) then
                 begin
                 { should tell some one that operand is now a literal
                   and can be folded. Future plans...
                 }
                 n.op := intop;
                 n.len := targetintsize;
-                n.oprndlist[1].i := stackp^.value;
+                n.oprndlist[1].i := nodetable[stack[sp].p].value;
                 n.oprndlist[2].i := 0;
                 n.oprndlist[3].i := 0;
                 for i := 1 to 3 do
@@ -3831,15 +3798,12 @@ procedure build;
   as soon as all targets are accounted for.
 }
 
-              var
-                ptr: nodeptr; {used for node access}
 
 
               begin
                 while n1 <> 0 do
                   begin
-                  ptr := @(nodetable[n1]);
-                  with ptr^ do
+                  with nodetable[n1] do
                     begin
                     if valid and (op in [varop, unsvarop]) and
                        (oprnds[1] = n.oprndlist[1].i) and
@@ -3847,7 +3811,7 @@ procedure build;
                       begin
                       mustinvalidate := true;
                       end;
-                    n1 := ptr^.slink;
+                    n1 := nodetable[n1].slink;
                     end;
                   end;
               end {clobber} ;
@@ -3887,8 +3851,6 @@ procedure build;
   routine "buildfor"
 }
 
-            var
-              p: nodeptr;
 
 
             begin {builddeffor}
@@ -3901,7 +3863,6 @@ procedure build;
               n.oprndlist[2] := stack[sp];
               sp := sp - 1;
               insertnormal;
-              p := @(nodetable[n.oprndlist[2].p]);
 
               { If we're within a loop, unhook for-loop control variable
                 from the list of writes, as it really belongs within the
@@ -3918,11 +3879,10 @@ procedure build;
               if (loopdepth > 0) and
                  not loopstack[loopdepth].deadlevels[level] then
                 begin
-                p := @(nodetable[n.oprndlist[2].p]);
-                loopstack[loopdepth].writes := p^.looplink;
+                loopstack[loopdepth].writes := nodetable[n.oprndlist[2].p].looplink;
                 if loopstack[loopdepth].writes = 0 then
                   loopstack[loopdepth].lastwrite := 0;
-                p^.looplink := 0;
+                nodetable[n.oprndlist[2].p].looplink := 0;
                 end;
 
               with forstack[forsp], stack[sp] do
@@ -4050,7 +4010,6 @@ procedure build;
 
             var
               savedn: workingnode;
-              ptr: nodeptr;
 
             begin {buildregparam}
 
@@ -4071,15 +4030,13 @@ procedure build;
               unique := false;
               insertnode(1);
 
-              ptr := @(nodetable[stack[sp].p]);
-              ptr^.nodeoprnd[1] := not savedn.oprndlist[1].litflag;
-              ptr^.oprnds[1] := savedn.oprndlist[1].i;
-              ptr^.oprnds[2] := savedn.oprndlist[2].i;
-              if not savedn.oprndlist[1].litflag then
-                begin
-                ptr := @(nodetable[savedn.oprndlist[1].p]);
-                ptr^.refcount := ptr^.refcount + 1;
-                end;
+              nodetable[stack[sp].p].nodeoprnd[1] := not savedn.oprndlist[1].litflag;
+              nodetable[stack[sp].p].oprnds[1] := savedn.oprndlist[1].i;
+              nodetable[stack[sp].p].oprnds[2] := savedn.oprndlist[2].i;
+
+              with savedn.oprndlist[1], nodetable[p] do
+                if not litflag then
+                  refcount := refcount + 1;
 
             end {buildregparam};
 
@@ -4151,12 +4108,12 @@ procedure build;
               pushfinal:
                 begin
                 collectargs(1);
-                ptr := @(nodetable[n.oprndlist[1].p]);
-                if (ptr^.action = visit) and (ptr^.op = intop) then
-                  begin
-                  { just return the integer }
-                  stack[sp].p := n.oprndlist[1].p;
-                  end;
+                with nodetable[n.oprndlist[1].p] do
+                  if (action = visit) and (op = intop) then
+                    begin
+                    { just return the integer }
+                    stack[sp].p := n.oprndlist[1].p;
+                    end;
                 end;
               wr: collectseqargs(1);
               rd:
@@ -4577,15 +4534,13 @@ procedure build;
 
         var
           exprroot: nodeindex;
-          ptr: nodeptr;
 
 
         begin
           newstmt(thisstmt, stmtkind);
           read(tempfiletwo, tempfilebuf);
           exprroot := buildexpr;
-          ptr := @(nodetable[thisstmt]);
-          ptr^.expr1 := exprroot;
+          nodetable[thisstmt].expr1 := exprroot;
         end {setupstmt} ;
 
 
@@ -4604,7 +4559,6 @@ procedure build;
           elseblock: basicblockptr; { id of else block }
           endthenblock: basicblockptr; {the end of the "then" portion}
           ifstmthdr: nodeindex; { index to ifhdr stmt }
-          ptr: nodeptr;
           removing: boolean; { true if we have constant if and eliminating dead
                               code }
           start_deadcount: natural; {starting value of deadcount}
@@ -4622,8 +4576,7 @@ procedure build;
           setupstmt(ifhdr);
           ifstmthdr := thisstmt;
           start_deadcount := deadcount;
-          ptr := @(nodetable[ifstmthdr]);
-          checkconst(ptr^.expr1, removing, constvalue);
+          checkconst(nodetable[ifstmthdr].expr1, removing, constvalue);
           shorteval := false;
           startblock := currentblock;
           removing := removing and (removedeadcode in genset);
@@ -4683,13 +4636,13 @@ procedure build;
             currentblock^.joinop := true;
             end;
 
-          ptr := @(nodetable[ifstmthdr]);
-          if deadthen or deadelse then ptr^.stmtkind := nohdr
-          else
-            begin
-            ptr^.trueblock := thenblock;
-            ptr^.falseblock := elseblock;
-            end;
+          with nodetable[ifstmthdr] do
+            if deadthen or deadelse then stmtkind := nohdr
+            else
+              begin
+              trueblock := thenblock;
+              falseblock := elseblock;
+              end;
 
           foncount := max(savemaxfon, foncount) + 1;
           currentblock^.dominates := context[contextsp].dominates;
@@ -4754,8 +4707,7 @@ procedure build;
             caseexpr := buildexpr;
             checkconst(caseexpr, removing, constvalue);
             removing := removing and (removedeadcode in genset);
-            ptr := @(nodetable[casetopstmt]);
-            ptr^.selector := caseexpr;
+            nodetable[casetopstmt].selector := caseexpr;
             newblock(tailblock, nil, false);
             currentblock := casetopblock;
             {***This is a total hack to avoid having walk explicitly emit
@@ -4904,7 +4856,6 @@ procedure build;
         var
           currentlow, currenthigh: integer; {the current label values}
           p1, p2: nodeindex; {for sorting label into a list}
-          ptr, ptr2: nodeptr; {for access to nodes}
 
 
         begin
@@ -4913,8 +4864,7 @@ procedure build;
             if lastnode = tnodetablesize then compilerabort(manynodes)
             else lastnode := lastnode + 1;
             if lastnode > maxnodes then maxnodes := lastnode;
-            ptr := @(nodetable[lastnode]);
-            with ptr^ do
+            with nodetable[lastnode] do
               begin
               { link all the labels in text order }
               nextstmt := lastlab;
@@ -4947,34 +4897,27 @@ procedure build;
               end
             else if lowlabel >= currentlow then
               begin
-              ptr := @(nodetable[lastnode]);
-              ptr^.orderedlink := firstorder;
+              nodetable[lastnode].orderedlink := firstorder;
               firstorder := lastnode;
               lowlabel := currentlow;
               end
             else if highlabel < currenthigh then
               begin
-              ptr := @(nodetable[lastorder]);
-              ptr^.orderedlink := lastnode;
+              nodetable[lastorder].orderedlink := lastnode;
               lastorder := lastnode;
               highlabel := currenthigh;
               end
             else
               begin
               p1 := firstorder;
-              ptr := @(nodetable[firstorder]);
-              p2 := ptr^.orderedlink;
-              ptr2 := @(nodetable[p2]);
-              while ptr2^.caselabelhigh < currentlow do
+              p2 := nodetable[firstorder].orderedlink;
+              while nodetable[p2].caselabelhigh < currentlow do
                 begin
                 p1 := p2;
-                p2 := ptr2^.orderedlink;
-                ptr2 := @(nodetable[p2]);
+                p2 := nodetable[p2].orderedlink;
                 end;
-              ptr := @(nodetable[lastnode]);
-              ptr^.orderedlink := p2;
-              ptr2 := @(nodetable[p1]);
-              ptr2^.orderedlink := lastnode;
+              nodetable[lastnode].orderedlink := p2;
+              nodetable[p1].orderedlink := lastnode;
               end;
             end;
         end; {insert_caselab}
@@ -4985,15 +4928,12 @@ procedure build;
 { Take a case default label.
 }
 
-        var
-          p: nodeptr; {for access to case top}
 
 
         begin
           with this_case^ do
             begin
-            p := @(nodetable[casetopstmt]);
-            p^.casedefptr := currentblock;
+            nodetable[casetopstmt].casedefptr := currentblock;
             casedef_found := true;
             end;
         end; {insert_casedef}
@@ -5030,15 +4970,13 @@ procedure build;
 
         var
           s: nodeindex; {for break statement}
-          p: nodeptr; {for access to statement}
 
 
         begin
           with this_case^ do
             begin
             newstmt(s, shdr);
-            p := @(nodetable[s]);
-            p^.targblock := tailblock;
+            nodetable[s].targblock := tailblock;
             addpredsuccs(currentblock, tailblock);
             if not swbreak_found then
               begin
@@ -5083,8 +5021,7 @@ procedure build;
           basecost: addressrange; {cost of implementation in bytes}
           this: nodeindex; {used to scan the labels}
           next: nodeindex; {next node in the scan}
-          p: nodeptr; {for access to this}
-          op: nodeptr; {access to orderedlink}
+          orderedlink: nodeindex; {next higher label}
           thisisordered: boolean; {current group is contig ordered.}
           skipdone: boolean; {done skipping labels}
 
@@ -5097,35 +5034,28 @@ procedure build;
 }
 
           var
-            p: nodeptr; {for access to the node}
             first: boolean; {first node encountered}
 
 
           begin
             first := true;
-            p := @(nodetable[n]);
-            while p^.action = copy do
-              with p^ do
+            while nodetable[n].action = copy do
+              with nodetable[n] do
                 begin
                 refcount := refcount + inc;
                 if not first then copycount := copycount + inc;
                 first := false;
-                n := p^.oldlink;
-                p := @(nodetable[n]);
+                n := nodetable[n].oldlink;
                 end;
 
             { We now have a "visit" node with an operation}
-            if (p^.op < intop) and (p^.op > newunsvarop) then
-              while p^.slink <> 0 do
-                begin
-                n := p^.slink;
-                p := @(nodetable[n]);
-                end;
+            if (nodetable[n].op < intop) and (nodetable[n].op > newunsvarop) then
+              while nodetable[n].slink <> 0 do
+                n := nodetable[n].slink;
 
-            p := @(nodetable[n]);
-            p^.refcount := p^.refcount + inc;
-            if not first then p^.copycount := p^.copycount + inc;
-            if p^.op = commaop then incref(p^.oprnds[2], inc);
+            nodetable[n].refcount := nodetable[n].refcount + inc;
+            if not first then nodetable[n].copycount := nodetable[n].copycount + inc;
+            if nodetable[n].op = commaop then incref(nodetable[n].oprnds[2], inc);
           end; {incref}
 
 
@@ -5138,22 +5068,22 @@ procedure build;
           var
             stillordered: boolean; {set as long as ordered so far}
             thislab: nodeindex; {used to trace list}
-            tp, op: nodeptr; {for access to nodes}
+            tn, on: nodeindex; {for access to nodes}
 
 
           begin
-            tp := @(nodetable[first]);
-            op := @(nodetable[tp^.orderedlink]);
+            tn := first;
+            on := nodetable[tn].orderedlink;
 
-            stillordered := (first <> last) and (op^.orderedlink <> last);
+            stillordered := (first <> last) and (nodetable[on].orderedlink <> last);
             thislab := first;
             while stillordered and (thislab <> last) do
               begin
-              tp := @(nodetable[thislab]);
-              op := @(nodetable[tp^.orderedlink]);
-              stillordered := (tp^.caselabelhigh = op^.caselabellow - 1) and
-                              (tp^.stmtlabel = op^.stmtlabel);
-              thislab := tp^.orderedlink;
+              tn := thislab;
+              on := nodetable[tn].orderedlink;
+              stillordered := (nodetable[tn].caselabelhigh = nodetable[on].caselabellow - 1) and
+                              (nodetable[tn].stmtlabel = nodetable[on].stmtlabel);
+              thislab := nodetable[tn].orderedlink;
               end;
             orderedgroup := stillordered;
           end; {orderedgroup}
@@ -5167,32 +5097,32 @@ procedure build;
 }
 
           var
-            fp, lp: nodeptr; {for access to node data}
+            fn, ln: nodeindex; {for access to node data}
             defaultcost: integer; {cost of a default}
 
 
           begin
             if this_case^.casedef_found then defaultcost := casedefaultcost
             else defaultcost := errdefaultcost;
-            fp := @(nodetable[first]);
-            lp := @(nodetable[last]);
-            if fp^.caselabellow = lp^.caselabelhigh then
+            fn := first;
+            ln := last;
+            if nodetable[fn].caselabellow = nodetable[ln].caselabelhigh then
               cost := splitcost + defaultcost
             else
               begin
-              if (fp^.orderedlink = last) and
-                 (fp^.caselabellow = fp^.caselabelhigh) and
-                 (lp^.caselabellow = lp^.caselabelhigh) or orderedgroup(first,
+              if (nodetable[fn].orderedlink = last) and
+                 (nodetable[fn].caselabellow = nodetable[fn].caselabelhigh) and
+                 (nodetable[ln].caselabellow = nodetable[ln].caselabelhigh) or orderedgroup(first,
                  last) then
                 cost := splitcost div 2 + splitcost + defaultcost
               else
                 begin
                 if maxint div caselabcost <=
-                   lp^.caselabelhigh - fp^.caselabellow + 1 then
+                   nodetable[ln].caselabelhigh - nodetable[fn].caselabellow + 1 then
                   cost := maxint { overflow causes humungous case tables !! }
                 else
-                  cost := casetablecost + (lp^.caselabelhigh -
-                          fp^.caselabellow + 1) * caselabcost;
+                  cost := casetablecost + (nodetable[ln].caselabelhigh -
+                          nodetable[fn].caselabellow + 1) * caselabcost;
                 end;
               end;
           end; {cost}
@@ -5205,15 +5135,13 @@ procedure build;
             this := first;
             basecost := cost(first, last);
             thisisordered := false;
-            p := @(nodetable[caseexpr]);
-            if not p^.relation then
+            if not nodetable[caseexpr].relation then
               begin
               while this <> last do
                 begin
-                p := @(nodetable[this]);
-                next := p^.orderedlink;
+                next := nodetable[this].orderedlink;
                 if (basecost = maxint) {humungous case statement} or
-                   (cost(start, this) + cost(p^.orderedlink,
+                   (cost(start, this) + cost(nodetable[this].orderedlink,
                    last) + splitcost < basecost) then
                   begin {a split is an improvement}
                   split(start, this); {split the first part}
@@ -5223,32 +5151,28 @@ procedure build;
                   end;
                 repeat
                   this := next;
-                  p := @(nodetable[this]);
-                  next := p^.orderedlink;
+                  next := nodetable[this].orderedlink;
                   if this = last then skipdone := true
                   else
                     begin
-                    op := @(nodetable[next]);
-                    skipdone := (p^.stmtlabel <> op^.stmtlabel) or
-                                (p^.caselabelhigh <> op^.caselabellow - 1);
+                    skipdone := (nodetable[this].stmtlabel <> nodetable[next].stmtlabel) or
+                                (nodetable[this].caselabelhigh <> nodetable[next].caselabellow - 1);
                     end;
                 until skipdone;
                 end; {while}
-
-              p := @(nodetable[start]);
 
               { Now define the final split found.  Note that treatment of
                 label ranges is imperfect, but shouldn't be far off.
               }
               thisisordered := orderedgroup(start, last) or (start = last) and
-                               (p^.caselabellow <> p^.caselabelhigh) and
+                               (nodetable[start].caselabellow <> nodetable[start].caselabelhigh) and
                                (basecost > splitcost + casedefaultcost);
 
-              op := @(nodetable[p^.orderedlink]);
+              orderedlink := nodetable[start].orderedlink;
 
-              if (p^.orderedlink = last) and
-                 (p^.caselabellow = p^.caselabelhigh) and
-                 (op^.caselabellow = op^.caselabelhigh) or thisisordered then
+              if (orderedlink = last) and
+                 (nodetable[start].caselabellow = nodetable[start].caselabelhigh) and
+                 (nodetable[orderedlink].caselabellow = nodetable[orderedlink].caselabelhigh) or thisisordered then
                 incref(caseexpr, 1);
               end;
 
@@ -5257,8 +5181,7 @@ procedure build;
               begin
               lastnode := lastnode + 1;
               if lastnode > maxnodes then maxnodes := lastnode;
-              p := @(nodetable[lastnode]);
-              with p^ do
+              with nodetable[lastnode] do
                 begin
                 stmtkind := casegroup;
                 ordered := thisisordered;
@@ -5305,22 +5228,21 @@ procedure build;
               restorecontext;
               joincontext;
               end;
-            p := @(nodetable[casetopstmt]);
-            if removing then
-              if (switchcounters[rangecheck] <= 0) or casedef_found or
-                 ever_found then
-                p^.stmtkind := nohdr
-              else p^.stmtkind := caseerrhdr
-            else
+            with nodetable[casetopstmt] do
               begin
-              p^.elements := firstorder;
-              p^.joinblock := tailblock;
-              if firstorder = 0 then increfcount(p^.selector, deadcode,
-                                                 - ord(language <> C))
-              else split(firstorder, lastorder);
-              p := @(nodetable[casetopstmt]);
-              p^.firstgroup := firstsplit;
-              p^.groupcount := splitcount;
+              if removing then
+                if (switchcounters[rangecheck] <= 0) or casedef_found or ever_found then
+                  stmtkind := nohdr
+                else stmtkind := caseerrhdr
+              else
+                begin
+                elements := firstorder;
+                joinblock := tailblock;
+                if firstorder = 0 then increfcount(selector, deadcode, - ord(language <> C))
+                else split(firstorder, lastorder);
+                firstgroup := firstsplit;
+                groupcount := splitcount;
+                end;
               end;
             currentblock := tailblock;
             currentblock^.dominates := context[contextsp].dominates;
@@ -5442,7 +5364,6 @@ procedure build;
           exit_block: basicblockptr; { the exit from the loop }
           start_deadcount: natural; {the starting value of deadcount}
           start_dead: boolean; {dead at the start}
-          ptr: nodeptr; { for access to nodes }
           cforhdrstmt: nodeindex; { index to while hdr }
           removing: boolean; { true if constant whileloop and deadcode goes }
           constvalue: integer; { value of control expression }
@@ -5467,8 +5388,7 @@ procedure build;
           shorteval := true;
           setupstmt(cforhdr);
           cforhdrstmt := thisstmt;
-          ptr := @(nodetable[cforhdrstmt]);
-          checkconst(ptr^.expr1, removing, constvalue);
+          checkconst(nodetable[cforhdrstmt].expr1, removing, constvalue);
           removing := removing and (removedeadcode in genset);
           shorteval := false;
           newblock(controlled, hdrblock, false);
@@ -5477,9 +5397,8 @@ procedure build;
           if removing and (constvalue = 0) then incr_deadcount;
 
           context[contextsp].dominates := true;
-          ptr := @(nodetable[cforhdrstmt]);
-          ptr^.trueblock := controlled;
-          ptr^.falseblock := exit_block;
+          nodetable[cforhdrstmt].trueblock := controlled;
+          nodetable[cforhdrstmt].falseblock := exit_block;
           hdrblock^.loophdr := true;
 
           pushloop(tailblock, exit_block);
@@ -5494,13 +5413,12 @@ procedure build;
           temp := buildexpr;
           increfcount(temp, deadcode, - 1);
 
-          ptr := @(nodetable[p]);
-          ptr^.expr1 := temp;
-          ptr^.trueblock := hdrblock;
-          ptr^.falseblock := exit_block;
+          nodetable[p].expr1 := temp;
+          nodetable[p].trueblock := hdrblock;
+          nodetable[p].falseblock := exit_block;
           { the bottom of the loop needs to know where the top is }
-          ptr^.looptop := hdrblock;
-          ptr^.has_break := this_loop^.break_found;
+          nodetable[p].looptop := hdrblock;
+          nodetable[p].has_break := this_loop^.break_found;
 
           addpredsuccs(currentblock, hdrblock);
           clearcontext;
@@ -5515,11 +5433,9 @@ procedure build;
           addpredsuccs(hdrblock, currentblock);
           currentblock^.dominates := context[contextsp].dominates;
 
-          ptr := @(nodetable[cforhdrstmt]);
-
           if removing then
             begin
-            ptr^.stmtkind := nohdr;
+            nodetable[cforhdrstmt].stmtkind := nohdr;
             if (constvalue = 0) or start_dead then hdrblock^.loophdr := false
             else hdrblock^.willexecute := true;
             end;
@@ -5538,7 +5454,6 @@ procedure build;
 }
 
         var
-          ptr: nodeptr; {Used to access controlled var/stmt nodes}
           fortopblock, { index to forloop top block }
           forbotblock, { index to forloop bottom block }
           forstmts: basicblockptr; { index to basic block containing body }
@@ -5565,35 +5480,29 @@ procedure build;
           setupstmt(foruphdr);
 
           { point hdr to for..indxop}
-          ptr := @(nodetable[thisstmt]);
           forhdrstmt := thisstmt;
-          ptr^.expr2 := stack[sp - 1].p;
-          saveexpr1 := ptr^.expr1;
-          saveexpr2 := ptr^.expr2;
-          increfcount(ptr^.expr2, deadcode, 1);
+          nodetable[forhdrstmt].expr2 := stack[sp - 1].p;
+          saveexpr1 := nodetable[forhdrstmt].expr1;
+          saveexpr2 := nodetable[forhdrstmt].expr2;
+          increfcount(nodetable[forhdrstmt].expr2, deadcode, 1);
           if tempfilebuf.s = fordn then
-            begin
-            ptr := @(nodetable[forhdrstmt]);
-            ptr^.stmtkind := fordnhdr;
-            end;
+            nodetable[forhdrstmt].stmtkind := fordnhdr;
           read(tempfiletwo, tempfilebuf);
 
-          ptr^.forstepsize := getintfileint;
+          nodetable[forhdrstmt].forstepsize := getintfileint;
           read(tempfiletwo, tempfilebuf);
 
-          ptr := @(nodetable[saveexpr2]);
-          controlledvar := ptr^.oprnds[2];
+          controlledvar := nodetable[saveexpr2].oprnds[2];
 
           estimateloop(forhdrstmt, fixed, overflow, runcount);
 
           if (nodetable[saveexpr1].op = forerrchkop)
              or fixed and (runcount = 0) and (removedeadcode in genset) then
             begin
-            ptr := @(nodetable[forhdrstmt]);
             if nodetable[saveexpr1].op = forerrchkop then
               nodetable[saveexpr1].refcount := 0
             else
-              ptr^.stmtkind := nohdr; { kill it!}
+              nodetable[forhdrstmt].stmtkind := nohdr; { kill it!}
             incr_deadcount;
             { need a dead block to hang these stmts on }
             newblock(forstmts, currentblock, false);
@@ -5624,10 +5533,8 @@ procedure build;
             currentblock := forstmts;
             buildstmtlist(endfor, forbotblock);
             if getintfileint <> 0 then {there's a goto out of the loop}
-              begin {clear the "local access only" flag}
-              ptr := @(nodetable[saveexpr2]);
-              ptr^.oprnds[1] := 0;
-              end;
+              {clear the "local access only" flag}
+              nodetable[saveexpr2].oprnds[1] := 0;
             read(tempfiletwo, tempfilebuf);
             clearcontext;
             if (currentblock = forstmts) and false then
@@ -5650,13 +5557,9 @@ procedure build;
 
             { the bottom of the loop needs to know where the top is }
 
-            ptr := @(nodetable[p]);
-            ptr^.looptop := fortopblock;
-
-            ptr := @(nodetable[forhdrstmt]);
-
-            ptr^.falseblock := currentblock;
-            ptr^.trueblock := forstmts;
+            nodetable[p].looptop := fortopblock;
+            nodetable[forhdrstmt].falseblock := currentblock;
+            nodetable[forhdrstmt].trueblock := forstmts;
             exitloop;
             { update for any goto's within the loop }
             with currentblock^ do dominates := context[contextsp].dominates;
@@ -5698,7 +5601,6 @@ procedure build;
           exit_block: basicblockptr; { the exit block }
           start_deadcount: natural; {starting value for deadcount}
           start_dead: boolean; {we started out dead}
-          ptr: nodeptr; { for access to nodes }
           whilehdrstmt: nodeindex; { index to while hdr }
           removing: boolean; { true if constant whileloop and deadcode goes}
           constvalue: integer; { value of control expression }
@@ -5722,8 +5624,7 @@ procedure build;
           shorteval := true;
           setupstmt(whilehdr);
           whilehdrstmt := thisstmt;
-          ptr := @(nodetable[whilehdrstmt]);
-          checkconst(ptr^.expr1, removing, constvalue);
+          checkconst(nodetable[whilehdrstmt].expr1, removing, constvalue);
           removing := removing and (removedeadcode in genset);
           shorteval := false;
 
@@ -5735,9 +5636,8 @@ procedure build;
           if start_dead then controlled^.blocklabel := newlabel;
           hdrblock^.loophdr := true;
 
-          ptr := @(nodetable[whilehdrstmt]);
-          ptr^.trueblock := controlled;
-          ptr^.falseblock := exit_block;
+          nodetable[whilehdrstmt].trueblock := controlled;
+          nodetable[whilehdrstmt].falseblock := exit_block;
 
           pushloop(hdrblock, exit_block);
           buildstmtlist(endwhile, tailblock);
@@ -5750,8 +5650,7 @@ procedure build;
 
           newstmt(p, whilebothdr);
           { tell bottom of loop where top is ( minus precode ) }
-          ptr := @(nodetable[p]);
-          ptr^.looptop := hdrblock;
+          nodetable[p].looptop := hdrblock;
 
           addpredsuccs(currentblock, hdrblock);
           exitloop;
@@ -5760,7 +5659,7 @@ procedure build;
           else restorecontext;
           joincontext;  { popcontext sets join bits FWIW }
 
-          ptr^.has_break := this_loop^.break_found;
+          nodetable[p].has_break := this_loop^.break_found;
 
           currentblock^.restoreop := true;
           currentblock^.joinop := true;
@@ -5771,10 +5670,9 @@ procedure build;
           addpredsuccs(hdrblock, exit_block);
           currentblock^.dominates := context[contextsp].dominates;
 
-          ptr := @(nodetable[whilehdrstmt]);
           if removing then
             begin
-            ptr^.stmtkind := nohdr;
+            nodetable[whilehdrstmt].stmtkind := nohdr;
             if (constvalue = 0) or start_dead then hdrblock^.loophdr := false
             else hdrblock^.willexecute := true;
             end;
@@ -5792,7 +5690,6 @@ procedure build;
 }
 
         var
-          ptr: nodeptr; {to access stmt node}
           p: nodeindex; {hold fn result till usable}
           start_deadcount: natural; {deadcount at top of loop}
           prevblock, {block preceding loop body}
@@ -5834,8 +5731,7 @@ procedure build;
           clearcontext;
           newstmt(p, loopbothdr);
           { tell bottom of loop where top is ( minus precode ) }
-          ptr := @(nodetable[p]);
-          ptr^.looptop := loopbody;
+          nodetable[p].looptop := loopbody;
 
           exitloop;
           dead_exit(start_deadcount);
@@ -5870,7 +5766,6 @@ procedure build;
 }
 
         var
-          ptr: nodeptr; { to access stmt node }
           temp: nodeindex; { hold fn result till usable }
           loopbody: basicblockptr; { block containing loop body }
           control: basicblockptr; { block containing loop control }
@@ -5947,16 +5842,15 @@ procedure build;
 
           if this_loop^.break_found then clearcontext;
 
-          ptr := @(nodetable[untilstmt]);
-          if removing and (constvalue = 1) then ptr^.stmtkind := nohdr
+          if removing and (constvalue = 1) then nodetable[untilstmt].stmtkind := nohdr
           else
             begin
             { kill the expression on an "infinite" loop }
-            if removing then ptr^.expr1 := 0
-            else ptr^.expr1 := temp;
-            ptr^.falseblock := loopbody;
-            ptr^.trueblock := exit_block;
-            ptr^.has_break := this_loop^.break_found;
+            if removing then nodetable[untilstmt].expr1 := 0
+            else nodetable[untilstmt].expr1 := temp;
+            nodetable[untilstmt].falseblock := loopbody;
+            nodetable[untilstmt].trueblock := exit_block;
+            nodetable[untilstmt].has_break := this_loop^.break_found;
             end;
 
           if not this_loop^.cont_found then dead_exit(start_deadcount);
@@ -5974,7 +5868,6 @@ procedure build;
 }
 
         var
-          ptr: nodeptr; {used to access stmt node}
           tempthisstmt: nodeindex; { simulate time machine }
           withvar: nodeindex; { index of the varop being "withed"}
           temp: nodeindex; { hold fn result till usable }
@@ -5994,8 +5887,7 @@ procedure build;
             withfonmin := foncount;
             setupstmt(withhdr);
             withfoncount := foncount;
-            ptr := @(nodetable[thisstmt]);
-            withref := ptr^.expr1;
+            withref := nodetable[thisstmt].expr1;
             increfcount(withref, deadcode, - 1);
             { must remove as register candidate}
             if not deadcode then
@@ -6004,22 +5896,20 @@ procedure build;
                   with is like with p^ then p is ok as register
                   var ( on machines with ptrreg ).
                 }
-              ptr := @(nodetable[withref]);
               { now have the indxop, get the varop }
-              if ptr^.op <> indxop then
+              if nodetable[withref].op <> indxop then
                 begin
-                writeln('in buildwith, expr not a indxop is ', ord(ptr^.op): 1);
+                writeln('in buildwith, expr not a indxop is ', ord(nodetable[withref].op): 1);
                 compilerabort(inconsistent);
                 end;
-              withvar := ptr^.oprnds[1];
-              ptr := @(nodetable[withvar]);
-              if not (ptr^.op in [varop, newvarop, unsvarop, newunsvarop]) then
+              withvar := nodetable[withref].oprnds[1];
+              if not (nodetable[withvar].op in [varop, newvarop, unsvarop, newunsvarop]) then
                 begin
-                writeln('in buildwith, var not a varop is ', ord(ptr^.op): 1);
+                writeln('in buildwith, var not a varop is ', ord(nodetable[withvar].op): 1);
                 compilerabort(inconsistent);
                 end;
               { pointer dereference will have level of zero, which is ok }
-              if ptr^.oprnds[1] = level then killasreg(withvar);
+              if nodetable[withvar].oprnds[1] = level then killasreg(withvar);
               end;
             end;
 
@@ -6078,7 +5968,6 @@ procedure build;
 }
 
         var
-          ptr: nodeptr; { to access stmt node }
           mylabel: integer; { value of this label }
           lptr: locallabelptr; { for walking label chains }
           found: boolean; { true if label found }
@@ -6120,12 +6009,11 @@ procedure build;
           if lblock^.blocklabel = 0 then lblock^.blocklabel := newlabel;
 
           newstmt(thisstmt, labelhdr);
-          ptr := @(nodetable[thisstmt]);
-          ptr^.labelno := mylabel;
+          nodetable[thisstmt].labelno := mylabel;
           read(tempfiletwo, tempfilebuf);
-          ptr^.labellevel := getintfileint;
+          nodetable[thisstmt].labellevel := getintfileint;
           read(tempfiletwo, tempfilebuf);
-          ptr^.nonlocalref := (getintfileint = 1);
+          nodetable[thisstmt].nonlocalref := (getintfileint = 1);
           { using simple minded approach, lifetime analysis is invalid,
             defeat multiple vars to single register assignment
           }
@@ -6165,7 +6053,6 @@ procedure build;
 }
 
         var
-          ptr: nodeptr; { for access to node }
           mylabel: labelrange; { target of goto }
           mylevel: levelindex; { level of goto label }
           lptr: locallabelptr; { for walking label chains }
@@ -6193,12 +6080,11 @@ procedure build;
             for i := 2 to contextsp do context[i].dominates := false;
             newstmt(thisstmt, gotohdr);
             read(tempfiletwo, tempfilebuf);
-            ptr := @(nodetable[thisstmt]);
             mylabel := getintfileint;
-            ptr^.labelno := mylabel;
+            nodetable[thisstmt].labelno := mylabel;
             read(tempfiletwo, tempfilebuf);
             mylevel := getintfileint;
-            ptr^.labellevel := mylevel;
+            nodetable[thisstmt].labellevel := mylevel;
             read(tempfiletwo, tempfilebuf);
             gotoblock := currentblock;
             {this used to be below, not here:}
@@ -6238,11 +6124,6 @@ procedure build;
               end;
 
             currentblock := unreach;
-            { This code used to be here, not above:
-            newblock(unreach, gotoblock, false);
-            addpredsuccs(unreach, unreach);
-            unreach^.isdead := removedeadcode in genset;
-            }
             if deadcount = gotodead then
               begin
               incr_deadcount; {code following is dead}
@@ -6261,15 +6142,10 @@ procedure build;
   expression complete.
 }
 
-        var
-          ptr: nodeptr; {used to access node}
-
 
         begin {buildsimplestmt}
           setupstmt(s);
-          ptr := @(nodetable[thisstmt]);
-          if ptr^.expr1 <> 0 then increfcount(ptr^.expr1, deadcode, - 1);
-          ptr^.expr2 := 0;
+          if nodetable[thisstmt].expr1 <> 0 then increfcount(nodetable[thisstmt].expr1, deadcode, - 1);
         end {buildsimplestmt} ;
 
 
@@ -6280,16 +6156,14 @@ procedure build;
 }
 
         var
-          ptr: nodeptr; {for access to label}
           i: contextindex; {induction var}
           deadblock: basicblockptr;
 
 
         begin
           setupstmt(returnhdr);
-          ptr := @(nodetable[thisstmt]);
-          if ptr^.expr1 <> 0 then increfcount(ptr^.expr1, deadcode, - 1);
-          ptr^.trueblock := retblock;
+          if nodetable[thisstmt].expr1 <> 0 then increfcount(nodetable[thisstmt].expr1, deadcode, - 1);
+          nodetable[thisstmt].trueblock := retblock;
           addpredsuccs(currentblock, retblock);
           if not (deadcode and (removedeadcode in genset)) then
             for i := 2 to contextsp do context[i].dominates := false;
@@ -6374,7 +6248,6 @@ procedure build;
 }
 
         var
-          ptr: nodeptr; {for access to node}
           temp: nodeindex; {hold fn result to usable}
           tempthisstmt: nodeindex; {simulate time machine}
 
@@ -6386,7 +6259,6 @@ procedure build;
 
           var
             nindex: nodeindex; { for walking chains }
-            ptr: nodeptr; {used for access to nodes}
             i: integer; { induction var }
 
 
@@ -6395,22 +6267,17 @@ procedure build;
               begin
               nindex := context[i].opmap[0];
               while nindex <> 0 do
-                begin
-                ptr := @(nodetable[nindex]);
-                with ptr^ do
+                with nodetable[nindex] do
                   begin
                   if (oprnds[1] = 1) and (oprnds[2] = inputoffset) and
                      (op in [varop, unsvarop]) then
                     begin
                     valid := false;
                     if deepestvalid > contextsp then
-                      begin
                       deepestvalid := contextsp;
-                      end;
                     end;
                   nindex := slink;
                   end;
-                end; {while}
               end; {for}
           end {clobberinput} ;
 
@@ -6418,20 +6285,18 @@ procedure build;
         begin {buildsyscallstmt}
           newstmt(thisstmt, syscallhdr);
           read(tempfiletwo, tempfilebuf);
-          ptr := @(nodetable[thisstmt]);
-          ptr^.expr2 := getintfileint;
+          nodetable[thisstmt].expr2 := getintfileint;
 {
             We must produce the effect of doing a newvar on input if read
             or readln were seen without a filevar present.
 }
-          killinput := (ptr^.expr2 = ord(readid)) or
-                       (ptr^.expr2 = ord(readlnid));
+          killinput := (nodetable[thisstmt].expr2 = ord(readid)) or
+                       (nodetable[thisstmt].expr2 = ord(readlnid));
           read(tempfiletwo, tempfilebuf);
           temp := buildexpr;
           if killinput then clobberinput
-          else if ptr^.expr2 = ord(disposeid) then killptrchks;
-          ptr := @(nodetable[thisstmt]);
-          ptr^.expr1 := temp;
+          else if nodetable[thisstmt].expr2 = ord(disposeid) then killptrchks;
+          nodetable[thisstmt].expr1 := temp;
           proctable[blockref].leaf := false;
         end {buildsyscallstmt} ;
 
@@ -6451,18 +6316,16 @@ procedure build;
 }
 
         var
-          p: nodeptr; {for access to a node}
           breakloop: loop_descriptor; {the loop we will actually "break" from}
 
 
         begin
           newstmt(thisstmt, loopbrkhdr);
           read(tempfiletwo, tempfilebuf);
-          p := @(nodetable[thisstmt]);
           breakloop := this_loop;
           while onlyloop and not breakloop^.looploop do
             breakloop := breakloop^.outer;
-          p^.targblock := breakloop^.break_block;
+          nodetable[thisstmt].targblock := breakloop^.break_block;
           with breakloop^.break_block^ do
             if blocklabel = 0 then blocklabel := newlabel;
           breakloop^.break_found := true;
@@ -6483,15 +6346,11 @@ procedure build;
   unchanged.
 }
 
-        var
-          p: nodeptr; {for access to a node}
-
 
         begin
           newstmt(thisstmt, loopconthdr);
           read(tempfiletwo, tempfilebuf);
-          p := @(nodetable[thisstmt]);
-          p^.targblock := this_loop^.cont_block;
+          nodetable[thisstmt].targblock := this_loop^.cont_block;
           with this_loop^.cont_block^ do
             if blocklabel = 0 then blocklabel := newlabel;
           this_loop^.cont_found := true;
