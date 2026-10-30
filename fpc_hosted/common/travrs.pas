@@ -2685,9 +2685,6 @@ procedure build;
   records, so is machine dependent.
 }
 
-          var
-            p: nodeptr; {used for access to candidate}
-
 
           function getclass(i: oprndindex {operand number} ): integer;
 
@@ -2697,27 +2694,21 @@ procedure build;
   and strips off the copies to get the representative for the class.
 }
 
-            var
-              ptr: nodeptr; {used to access node}
-
 
             begin
-              with p^ do
+              with nodetable[nindex] do
                 begin
                 getclass := oprnds[i];
                 if nodeoprnd[i] then
-                  begin
-                  ptr := @(nodetable[oprnds[i]]);
-                  if ptr^.action = copy then getclass := ptr^.directlink;
-                  end;
+                  if nodetable[oprnds[i]].action = copy then
+                    getclass := nodetable[oprnds[i]].directlink;
                 end;
             end {Getclass} ;
 
 
           begin {compare}
-            p := @(nodetable[nindex]);
-            equal := p^.valid and (n.op = p^.op) and (n.form = p^.form) and
-                     (n.len = p^.len);
+            equal := nodetable[nindex].valid and (n.op = nodetable[nindex].op) and (n.form = nodetable[nindex].form) and
+                     (n.len = nodetable[nindex].len);
             if equal then
               case language of
                 pascal, modula2:
@@ -2729,7 +2720,7 @@ procedure build;
                              (n.oprndlist[3].i = getclass(3));
                 c:
                   if n.op = realop then
-                    equal := fpcomp(n.rval, p^.realvalue) = 0
+                    equal := fpcomp(n.rval, nodetable[nindex].realvalue) = 0
                   else
                     equal := (n.oprndlist[2].i = getclass(2)) and
                              (n.oprndlist[1].i = getclass(1)) and
@@ -2751,7 +2742,6 @@ procedure build;
           var
             hashvalue: maphashindex; {node hash value}
             i1: oprndindex; {induction var for operand handling}
-            ptr: nodeptr; {provides access to new node}
             newptr: nodeindex; {resulting node}
 
 
@@ -2766,8 +2756,7 @@ procedure build;
                   end;
             newexprnode(newptr);
             addopmap(newptr, n.op, hashvalue, contextlevel);
-            ptr := @(nodetable[newptr]);
-            with ptr^ do
+            with nodetable[newptr] do
               begin
               refcount := 0;
               copycount := 0;
@@ -2815,7 +2804,6 @@ procedure build;
 
           var
             n1: nodeindex; {Used to trace op map list}
-            ptr: nodeptr; {Used for access to opmap nodes}
             found: boolean; {set if valid match is found}
 
 
@@ -2829,8 +2817,7 @@ procedure build;
                 begin
                 compare(n1, found);
                 nindex := n1;
-                ptr := @(nodetable[n1]);
-                n1 := ptr^.slink;
+                n1 := nodetable[n1].slink;
                 end;
               if not found then nindex := 0;
               end
@@ -2903,7 +2890,6 @@ procedure build;
         var
           nextroot: nodeindex; { for following slink chains }
           current: nodeindex; { sub graph we are working on now }
-          ptr: nodeptr; { for accessing node }
           changes: boolean; { true if any important changes happen in a pass }
           intvalue: integer; { saved value of an integer operand }
           opnum: oprndindex; { operand we want to change }
@@ -2955,19 +2941,19 @@ procedure build;
           var
             overflow: boolean; { true if arithmetic overflow occurs during fold
                                 }
-            leftp, rightp: nodeptr; { for access left and right nodes }
+            left, right: nodeindex; { for access left and right nodes }
             lev: contextindex; { dummy var }
 
 
           begin {binaryfold}
-            leftp := @(nodetable[oldoperands[1]]);
-            rightp := @(nodetable[oldoperands[2]]);
-            if (leftp^.op = intop) and (leftp^.action = visit) then
+            left := oldoperands[1];
+            right := oldoperands[2];
+            if (nodetable[left].op = intop) and (nodetable[left].action = visit) then
               begin
-              if (rightp^.op = intop) and (rightp^.action = visit) then
+              if (nodetable[right].op = intop) and (nodetable[right].action = visit) then
                 begin
                 { fold it return new root }
-                signedop(leftp^.oprnds[1], rightp^.oprnds[1],
+                signedop(nodetable[left].oprnds[1], nodetable[right].oprnds[1],
                          newnode.oprndlist[1].i, overflow);
                 if not overflow then
                   begin
@@ -2999,7 +2985,7 @@ procedure build;
                 { search rest of expression for another intop }
                 end;
               end
-            else if (rightp^.action = visit) and (rightp^.op = intop) and
+            else if (nodetable[right].action = visit) and (nodetable[right].op = intop) and
                     (associate <> endexpr) then
               begin
               { search rest of expression for another intop }
@@ -3034,48 +3020,39 @@ procedure build;
             while current <> 0 do
               begin
               nextroot := 0;
-              ptr := @(nodetable[current]);
-              if (ptr^.action = visit) then
+              if (nodetable[current].action = visit) then
                 begin
-                if (ptr^.op < intop) then nextroot := ptr^.slink;
+                if (nodetable[current].op < intop) then nextroot := nodetable[current].slink;
           { can't simplify any cse's since we would have to find the
             other reference(s) to this node.
           }
-                if (ptr^.form in
+                if (nodetable[current].form in
                    [none, ints, chars, subranges, bools, scalars]) and
-                   (ptr^.refcount <= 1) then
+                   (nodetable[current].refcount <= 1) then
                   begin
-                  op := ptr^.op;
-                  oldoperands := ptr^.oprnds;
+                  op := nodetable[current].op;
+                  oldoperands := nodetable[current].oprnds;
                   newoperands := oldoperands;
-                  nodeoperands := ptr^.nodeoprnd;
+                  nodeoperands := nodetable[current].nodeoprnd;
                   for i := 1 to 3 do
                     begin
                     if nodeoperands[i] then
                       begin
                       if simplify(newoperands[i]) then
                         begin
-                        ptr := @(nodetable[oldoperands[i]]);
-                        if ptr^.action = visit then
-                          if (ptr^.op < intop) and (ptr^.op > newunsvarop) then
-                            while ptr^.slink <> 0 do
-                              begin
-                              oldoperands[i] := ptr^.slink;
-                              ptr := @(nodetable[oldoperands[i]]);
-                              end;
-                        ptr := @(nodetable[oldoperands[i]]);
-                        ptr^.refcount := ptr^.refcount - 1;
-                        ptr^.valid := ptr^.refcount > 0;
+                        if nodetable[oldoperands[i]].action = visit then
+                          if (nodetable[oldoperands[i]].op < intop) and
+                             (nodetable[oldoperands[i]].op > newunsvarop) then
+                            while nodetable[oldoperands[i]].slink <> 0 do
+                              oldoperands[i] := nodetable[oldoperands[i]].slink;
+                        nodetable[oldoperands[i]].refcount := nodetable[oldoperands[i]].refcount - 1;
+                        nodetable[oldoperands[i]].valid := nodetable[oldoperands[i]].refcount > 0;
                         changes := true;
                         end;
                       end;
                     end;
                   { make the changes in this node }
-                  if changes then
-                    begin
-                    ptr := @(nodetable[current]);
-                    ptr^.oprnds := newoperands;
-                    end;
+                  if changes then nodetable[current].oprnds := newoperands;
                   { now can we simplify this node }
                   case op of
                     defforindexop, defunsforindexop, moveop, pushvalue:
@@ -3083,7 +3060,7 @@ procedure build;
               { if previous changes made oprnd[opnum] constant
                 change to lit type.  However don't count as a change
                 since it is harmless }
-                      case ptr^.op of
+                      case nodetable[current].op of
                         defforindexop:
                           begin
                           opnum := 3;
@@ -3106,16 +3083,14 @@ procedure build;
                           end;
                         otherwise
                         end;
-                      ptr := @(nodetable[newoperands[opnum]]);
-                      if (ptr^.op = intop) and (ptr^.action = visit) then
+                      if (nodetable[opnum].op = intop) and (nodetable[opnum].action = visit) then
                         begin
                         { remove ref count from the intop }
-                        intvalue := ptr^.oprnds[1];
-                        ptr^.refcount := ptr^.refcount - 1;
-                        ptr := @(nodetable[current]);
-                        ptr^.op := newop;
-                        ptr^.oprnds[opnum] := intvalue;
-                        ptr^.nodeoprnd[opnum] := false;
+                        intvalue := nodetable[opnum].oprnds[1];
+                        nodetable[opnum].refcount := nodetable[opnum].refcount - 1;
+                        nodetable[opnum].op := newop;
+                        nodetable[opnum].oprnds[opnum] := intvalue;
+                        nodetable[opnum].nodeoprnd[opnum] := false;
                         if (newop = movelit) and (propagation in genset) then
                           assignvalue(current);
                         end;
@@ -3123,43 +3098,41 @@ procedure build;
                     lssop, leqop, neqop, eqop, gtrop, geqop:
                       begin
                       { if foldable do it, or if convertable to lit type do it }
-                      ptr := @(nodetable[newoperands[2]]);
-                      if (ptr^.op = intop) and (ptr^.action = visit) then
+                      if (nodetable[newoperands[2]].op = intop) and
+                         (nodetable[newoperands[2]].action = visit) then
                         begin
                         { at least convert to lit form }
-                        intvalue := ptr^.oprnds[1];
-                        ptr := @(nodetable[newoperands[1]]);
-                        if (ptr^.op = intop) and (ptr^.action = visit) then
+                        intvalue := nodetable[newoperands[2]].oprnds[1];
+                        if (nodetable[newoperands[1]].op = intop) and
+                           (nodetable[newoperands[1]].action = visit) then
                           case op of
-                            lsslit: result := intvalue < ptr^.oprnds[1];
-                            leqlit: result := intvalue <= ptr^.oprnds[1];
-                            gtrlit: result := intvalue > ptr^.oprnds[1];
-                            geqlit: result := intvalue >= ptr^.oprnds[1];
-                            eqlit: result := intvalue = ptr^.oprnds[1];
-                            neqlit: result := intvalue <> ptr^.oprnds[1];
+                            lsslit: result := intvalue < nodetable[newoperands[1]].oprnds[1];
+                            leqlit: result := intvalue <= nodetable[newoperands[1]].oprnds[1];
+                            gtrlit: result := intvalue > nodetable[newoperands[1]].oprnds[1];
+                            geqlit: result := intvalue >= nodetable[newoperands[1]].oprnds[1];
+                            eqlit: result := intvalue = nodetable[newoperands[1]].oprnds[1];
+                            neqlit: result := intvalue <> nodetable[newoperands[1]].oprnds[1];
                             end
                         else
                           begin
-                          ptr := @(nodetable[current]);
-                          ptr^.nodeoprnd[2] := false;
-                          ptr^.oprnds[2] := intvalue;
+                          nodetable[current].nodeoprnd[2] := false;
+                          nodetable[current].oprnds[2] := intvalue;
                           case op of
-                            lssop: ptr^.op := lsslit;
-                            leqop: ptr^.op := leqlit;
-                            neqop: ptr^.op := neqlit;
-                            eqop: ptr^.op := eqlit;
-                            gtrop: ptr^.op := gtrlit;
-                            geqop: ptr^.op := geqlit;
+                            lssop: nodetable[current].op := lsslit;
+                            leqop: nodetable[current].op := leqlit;
+                            neqop: nodetable[current].op := neqlit;
+                            eqop: nodetable[current].op := eqlit;
+                            gtrop: nodetable[current].op := gtrlit;
+                            geqop: nodetable[current].op := geqlit;
                             end;
                           end;
                         end
                       end;
                     lsslit, leqlit, eqlit, neqlit, gtrlit, geqlit:
                       begin
-                      intvalue := ptr^.oprnds[2]; {???}
-                      ptr := @(nodetable[newoperands[1]]);
-                      if false and (ptr^.op = intop) and
-                         (ptr^.action = visit) then
+                      intvalue := oldoperands[2]; {???}
+                      if false and (nodetable[newoperands[1]].op = intop) and
+                         (nodetable[newoperands[1]].action = visit) then
                         begin
                   { can't really do the folding here yet since operands
                     could be unsigned and that will surely give wrong
@@ -3167,12 +3140,12 @@ procedure build;
                   }
                         changes := true;
                         case op of
-                          lsslit: result := intvalue < ptr^.oprnds[1];
-                          leqlit: result := intvalue <= ptr^.oprnds[1];
-                          gtrlit: result := intvalue > ptr^.oprnds[1];
-                          geqlit: result := intvalue >= ptr^.oprnds[1];
-                          eqlit: result := intvalue = ptr^.oprnds[1];
-                          neqlit: result := intvalue <> ptr^.oprnds[1];
+                          lsslit: result := intvalue < nodetable[newoperands[1]].oprnds[1];
+                          leqlit: result := intvalue <= nodetable[newoperands[1]].oprnds[1];
+                          gtrlit: result := intvalue > nodetable[newoperands[1]].oprnds[1];
+                          geqlit: result := intvalue >= nodetable[newoperands[1]].oprnds[1];
+                          eqlit: result := intvalue = nodetable[newoperands[1]].oprnds[1];
+                          neqlit: result := intvalue <> nodetable[newoperands[1]].oprnds[1];
                           end
                         end;
                       end;
