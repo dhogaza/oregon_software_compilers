@@ -62,9 +62,6 @@ type
       snext: linkptr; { ptr to next in successor chain }
     end;
 
-  oprndindex = 1..maxoprnd;
-  operandarray = array [oprndindex] of integer;
-  nodeoperandarray = packed array [oprndindex] of boolean;
   levelarray = packed array [levelindex] of boolean;
 
   stackindex = 0..maxexprstack; {index to operand stack}
@@ -75,6 +72,10 @@ type
   nodeformtype = (exprnode);
   fonrange = shortint; {range for fon's}
   refcountrange = 0..maxrefcount; {range for refcounts}
+
+  oprndindex = 1..maxoprnd;
+  operandarray = array [oprndindex] of integer;
+  nodeoperandarray = packed array [oprndindex] of boolean;
 
   node =
     packed record {describes a node in the expression tree}
