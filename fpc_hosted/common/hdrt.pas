@@ -72,7 +72,7 @@ type
   maphashindex = 0..nodehashsize; {index to node hash table}
   reghashindex = 0..regtablelimit; {index to var hash table}
 
-  nodeformtype = (stmtnode, exprnode);
+  nodeformtype = (exprnode);
   fonrange = shortint; {range for fon's}
   refcountrange = 0..maxrefcount; {range for refcounts}
 
@@ -114,61 +114,13 @@ type
              copy, recopy:
                (oldlink: nodeindex; {link to next outer node being copied}
                 directlink: nodeindex {link to parent node being copied} ));
-        stmtnode:
-          (nextstmt: nodeindex; { Next statement in this basic block }
-           textline: integer; { Textline where this statement starts }
-           stmtno: integer; { statement counter value when encountered }
-           srcfileindx: integer; { codegen access to file name }
-           case stmtkind: stmthdrtype of
-
-             blkhdr:
-               (procref: proctableindex; { Reference into global proc table }
-                bs, ps: addressrange; { Local and param storage }
-                blkbody: nodeindex; { Point to first statement in block }
-                blkexit: basicblockptr; {exit block for return}
-                fileline: integer {line in actual file where block starts} );
-
-             casehdr:
-               (selector: nodeindex; { selector expression }
-                elements: nodeindex; { index to caselabhdrs in numeric order}
-                joinblock: basicblockptr; {ptr to stmtblock that defines tail}
-                firstgroup: nodeindex; {first case group produced by split}
-                groupcount: shortint; {number of groups produced by split}
-                casedefptr: basicblockptr; {default statement blk, if any} );
-
-             caselabhdr:
-               (caselabellow, caselabelhigh: integer; {label values}
-                stmtblock: basicblockptr; { ptr to stmt block for this label }
-                stmtlabel: labelrange; { label of stmt block }
-                orderedlink: nodeindex; {used to link case label table} );
-
-             casegroup:
-               (highestlabel, lowestlabel: nodeindex; {limiting entries}
-                ordered: boolean; {this is a contiguous ordered group}
-                groupno: shortint; {which group this is} );
-
-             forbothdr, whilebothdr, loopbothdr, whilehdr, rpthdr, ifhdr,
-             foruphdr, fordnhdr, withhdr, simplehdr, syscallhdr, untilhdr,
-             cforbothdr, returnhdr, nohdr:
-               (looptop: basicblockptr; { top of for/while }
-                expr1, expr2: nodeindex; {Expressions used by statement}
-                has_break: boolean; {loop body contains a break}
-                trueblock, falseblock: basicblockptr; {blocks for statement}
-                forstepsize: integer; { for step for Modula-2 } );
-
-             loopbrkhdr, loopconthdr, swbrkhdr, cswbrkhdr:
-               (targblock: basicblockptr; {target block for this statement} );
-
-             gotohdr, labelhdr:
-               (labelno: labelrange; {label value or internal label number}
-                nonlocalref: boolean; {true if label ref'd by non-local goto}
-                labellevel: levelindex; {For non-local gotos} ); );
     end;
 
-  stmtptr = ^stmtentry;
-  stmtentry =
+  stmtptr = ^stmtnode;
+  stmtnode =
     packed record {describes a statement}
-      nextstmt: stmtptr; { Next statement in this basic block }
+      prevstmt: stmtptr; { So we can easily dispose of them }
+      nextblkstmt: stmtptr; { Next statement in this basic block }
       textline: integer; { Textline where this statement starts }
       stmtno: integer; { statement counter value when encountered }
       srcfileindx: integer; { codegen access to file name }
@@ -433,6 +385,9 @@ var
   lnk, lnk2: linkptr; { for disposing succ/pred links }
   currentblock: basicblockptr; { basic block we are walking }
   maxnodes: integer;
+
+  stmtlist: stmtptr; { for disposing of statements }
+  stmtcount: integer; { for verifying that we disposed all of them }
 
   localparamnode: nodeindex; {points to node describing local param levop}
   nodetable: array [0..bigtnodetablesize] of node;

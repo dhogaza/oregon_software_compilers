@@ -1537,12 +1537,16 @@ procedure build;
         currentblock^.beginstmt := p;
         end
       else
-        currentlaststmt^.nextstmt := p;
+        currentlaststmt^.nextblkstmt := p;
+
+      p^.prevstmt := stmtlist;
+      stmtlist := p;
+      stmtcount := stmtcount + 1;
 
       with p^ do
         begin
         srcfileindx := 0;
-        nextstmt := nil;
+        nextblkstmt := nil;
         stmtkind := s;
         stmtno := 0;
         if s in
@@ -1962,6 +1966,8 @@ procedure build;
       loopfactor := 1; {every ref equal 1 ref }
       irreducible := false;
       localparamnode := 0;
+      stmtlist := nil;
+      stmtcount := 0;
     end {initbuild} ;
 
 
@@ -2461,7 +2467,7 @@ procedure build;
   the input file.
 
   Statements which are executed sequentially (separated by ";" in the
-  input) are simply linked  with the "nextstmt" field.  Since all
+  input) are simply linked  with the "nextblkstmt" field.  Since all
   structured statements are fully bracketed in the intermediate file,
   it is sufficient simply to build statements until the ending bracket
   specified by "lasts" is read.
@@ -4848,16 +4854,17 @@ procedure build;
         begin
           with this_case^ do
             begin
-            if lastnode = tnodetablesize then compilerabort(manynodes)
-            else lastnode := lastnode + 1;
-            if lastnode > maxnodes then maxnodes := lastnode;
-            { we can't use newstmt here }
+            lastnode := lastnode + 1;
+            laststmtnode := lastnode;
+            stmtcount := stmtcount + 1;
             new(caselabstmt);
             with caselabstmt^ do
               begin
+              prevstmt := stmtlist;
+              stmtlist := caselabstmt;
               stmtkind := caselabhdr;
               { link all the labels in text order }
-              nextstmt := lastlab;
+              nextblkstmt := lastlab;
               lastlab := caselabstmt;
               stmtblock := currentblock;
               stmtlabel := currentblock^.blocklabel;
@@ -5166,12 +5173,17 @@ procedure build;
               end;
 
             { we can't use newstmt here }
+            lastnode := lastnode + 1;
+            laststmtnode := lastnode;
+            stmtcount := stmtcount + 1;
             new(casegroupstmt);
             with casegroupstmt^ do
               begin
+              prevstmt := stmtlist;
+              stmtlist := casegroupstmt;
               stmtkind := casegroup;
               ordered := thisisordered;
-              nextstmt := firstsplit;
+              nextblkstmt := firstsplit;
               firstsplit := casegroupstmt;
               textline := 0;
               lowestlabel := start;
@@ -5259,7 +5271,7 @@ procedure build;
   Each case element is represented by a "caselabhdr", which has
   contains the low and high values of one case range (with these
   values being equal for a simple case label).  Individual
-  case label ranges are linked by the "nextstmt" field, and
+  case label ranges are linked by the "nextblkstmt" field, and
   the selected statement is built in "stmt1".  "Stmt2" is used
   to point to the next case element.
 

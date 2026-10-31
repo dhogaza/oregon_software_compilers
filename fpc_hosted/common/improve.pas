@@ -430,7 +430,7 @@ procedure assignregs;
       while firststmt <> nil do
         begin
         applytostmt(firststmt);
-        firststmt := firststmt^.nextstmt;
+        firststmt := firststmt^.nextblkstmt;
         end;
     end {applytostmtlist};
 
@@ -1502,7 +1502,7 @@ procedure loops;
                   begin
                   examineexpression(stmt^.selector, true);
                   end;
-                stmt := stmt^.nextstmt;
+                stmt := stmt^.nextblkstmt;
                 end;
               end; {else}
             end; {beginstmt<>0}
@@ -1725,7 +1725,7 @@ procedure loops;
       while firststmt <> nil do
         begin
         improvesetstmt(firststmt);
-        firststmt := firststmt^.nextstmt;
+        firststmt := firststmt^.nextblkstmt;
         end;
     end {improvesetstmtlist};
 
@@ -2000,7 +2000,7 @@ procedure smooth;
           begin
           smoothexpr(stmt^.selector, 0);
           end;
-        stmt := stmt^.nextstmt;
+        stmt := stmt^.nextblkstmt;
         end;
       blk := blk^.dfolist;
     until blk = tail;

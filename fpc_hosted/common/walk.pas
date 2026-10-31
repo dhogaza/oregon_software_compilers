@@ -2513,7 +2513,7 @@ procedure walkstmtlist(firststmt: stmtptr {start of statement list} );
 
     var
       expr1key, expr2key: keyindex; {keys for expressions in headers}
-      currentstmt: stmtentry; { current stmt node }
+      currentstmt: stmtnode; { current stmt node }
 
 
     procedure genstmtbrk;
@@ -2719,7 +2719,7 @@ procedure walkstmtlist(firststmt: stmtptr {start of statement list} );
           middle := (first + last + 1) div 2;
           thisgroup := firstgrouprec;
           while thisgroup^.groupno <> middle do
-            thisgroup := thisgroup^.nextstmt;
+            thisgroup := thisgroup^.nextblkstmt;
 
           if middle < last then
             begin {there is a right-hand branch}
@@ -3189,7 +3189,7 @@ procedure walkstmtlist(firststmt: stmtptr {start of statement list} );
     while firststmt <> nil do
       begin
       s := firststmt;
-      firststmt := s^.nextstmt;
+      firststmt := s^.nextblkstmt;
       if s^.stmtkind in [rpthdr, whilehdr, foruphdr, fordnhdr, cforhdr] then
         controlstmt := true;
       { do this now to avoid readaccess call }
@@ -3209,6 +3209,7 @@ procedure walk;
 
   var
     blocksize: addressrange; { C allows each block to declare variables }
+    prevstmt: stmtptr; { for walking and disposing statements }
 
 
   begin {walk}
@@ -3341,6 +3342,19 @@ procedure walk;
     until root = nil;
     if blockblocks <> 0 then
       writeln('warning  ', blockblocks: 1, ' blocks not released in block ',
+              blockref: 1);
+
+    { now get rid of stmtnodes }
+    while stmtlist <> nil do
+      begin
+      prevstmt := stmtlist^.prevstmt;
+      dispose(stmtlist);
+      stmtlist := prevstmt;
+      stmtcount := stmtcount - 1;
+      end;
+
+    if stmtcount <> 0 then
+      writeln('warning  ', stmtcount: 1, ' statements not released in block ',
               blockref: 1);
 
   end {walk} ;
