@@ -54,7 +54,7 @@ procedure checkconst(node: nodeindex; {node to check}
 }
 
 
-procedure estimateloop(stmt: nodeindex;
+procedure estimateloop(stmt: stmtptr;
                        var fixed: boolean;
                        var overflow: boolean;
                        var runcount: unsignedint);
@@ -148,7 +148,7 @@ procedure checkconst(node: nodeindex; {node to check}
 
 
 
-procedure estimateloop(stmt: nodeindex;
+procedure estimateloop(stmt: stmtptr;
                        var fixed: boolean;
                        var overflow: boolean;
                        var runcount: unsignedint);
@@ -186,13 +186,13 @@ procedure estimateloop(stmt: nodeindex;
     fixed := false;
     overflow := false;
     runcount := 0; {temp }
-    expr1 :=  nodetable[stmt].expr1;
-    expr2 :=  nodetable[stmt].expr2;
+    expr1 :=  stmt^.expr1;
+    expr2 :=  stmt^.expr2;
  
     with nodetable[expr1] do
       if op in [forupchkop, fordnchkop, forerrchkop] then
         checkconst(oprnds[1], constfinal, finalvalue)
-      else checkconst(nodetable[stmt].expr1, constfinal, finalvalue);
+      else checkconst(stmt^.expr1, constfinal, finalvalue);
 
     with nodetable[expr2] do
       if constfinal and ((op = defforlitindexop) or
@@ -203,7 +203,7 @@ procedure estimateloop(stmt: nodeindex;
         uinitialvalue := initialvalue;
         ufinalvalue := finalvalue;
 
-        if nodetable[stmt].stmtkind = foruphdr then
+        if stmt^.stmtkind = foruphdr then
           begin
           if op = defunsforlitindexop then
             begin

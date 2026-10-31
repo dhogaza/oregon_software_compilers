@@ -49,7 +49,6 @@ type
                  cforbothdr, returnhdr, loopbrkhdr, loopconthdr, swbrkhdr,
                  cswbrkhdr, loopbothdr, loophdr, caseerrhdr, nohdr);
 
-  nodeptr = ^node; { Pointer to tree element }
   nodeindex = 0..tnodetablesize; {index to tree element}
 
   basicblockptr = ^basicblock;
@@ -166,6 +165,59 @@ type
                 labellevel: levelindex; {For non-local gotos} ); );
     end;
 
+  stmtptr = ^stmtentry;
+  stmtentry =
+    packed record {describes a statement}
+      nextstmt: stmtptr; { Next statement in this basic block }
+      textline: integer; { Textline where this statement starts }
+      stmtno: integer; { statement counter value when encountered }
+      srcfileindx: integer; { codegen access to file name }
+      case stmtkind: stmthdrtype of
+
+        blkhdr:
+          (procref: proctableindex; { Reference into global proc table }
+           bs, ps: addressrange; { Local and param storage }
+           blkbody: stmtptr; { Point to first statement in block }
+           blkexit: basicblockptr; {exit block for return}
+           fileline: integer {line in actual file where block starts} );
+
+        casehdr:
+          (selector: nodeindex; { selector expression }
+           elements: stmtptr; { index to caselabhdrs in numeric order}
+           joinblock: basicblockptr; {ptr to stmtblock that defines tail}
+           firstgroup: stmtptr; {first case group produced by split}
+           groupcount: shortint; {number of groups produced by split}
+           casedefptr: basicblockptr; {default statement blk, if any} );
+
+        caselabhdr:
+          (caselabellow, caselabelhigh: integer; {label values}
+           stmtblock: basicblockptr; { ptr to stmt block for this label }
+           stmtlabel: labelrange; { label of stmt block }
+           orderedlink: stmtptr; {used to link case label table} );
+
+        casegroup:
+          (highestlabel, lowestlabel: stmtptr; {limiting entries}
+           ordered: boolean; {this is a contiguous ordered group}
+           groupno: shortint; {which group this is} );
+
+        forbothdr, whilebothdr, loopbothdr, whilehdr, rpthdr, ifhdr,
+        foruphdr, fordnhdr, withhdr, simplehdr, syscallhdr, untilhdr,
+        cforbothdr, returnhdr, nohdr:
+          (looptop: basicblockptr; { top of for/while }
+           expr1, expr2: nodeindex; {Expressions used by statement}
+           has_break: boolean; {loop body contains a break}
+           trueblock, falseblock: basicblockptr; {blocks for statement}
+           forstepsize: integer; { for step for Modula-2 } );
+
+        loopbrkhdr, loopconthdr, swbrkhdr, cswbrkhdr:
+          (targblock: basicblockptr; {target block for this statement} );
+
+        gotohdr, labelhdr:
+          (labelno: labelrange; {label value or internal label number}
+           nonlocalref: boolean; {true if label ref'd by non-local goto}
+           labellevel: levelindex; {For non-local gotos} );
+    end;
+
 { Note about has_break: when the loop has a break statement, travrs does 
   a clear context at the end of the loop, but does not say anything to
   the back-end; the back end assumes that the loop keeps the active keys
@@ -184,7 +236,7 @@ type
       successor: linkptr; { direct successor of this block }
       predeccessor: linkptr; { direct predeccessor of this block }
       precode: nodeindex; { copy nodes and hoisted code for this block}
-      beginstmt: nodeindex; { link to first statement of this block }
+      beginstmt: stmtptr; { link to first statement of this block }
       defmin: fonrange; { lowest definition number in this block}
       blocklabel: labelrange; { internal label number for this block }
       isdead: boolean; { true if block is unreachable }
@@ -290,7 +342,7 @@ var
   intlevelrefs: boolean; {set if proc makes intermediate level references}
 
   lastnode: - 1..tnodetablesize; {last node allocated}
-  laststmtnode: - 1..tnodetablesize; {last node for stmt}
+  laststmtnode: -1..tnodetablesize; {for lifetime analys}
 
   stack: array [stackindex] of stackrecord; {expression stack for building}
   sp: stackindex; {top of expression stack}
@@ -374,7 +426,6 @@ var
   blockblocks: shortint; { temp for debug }
   hoistone: shortint; { count of 1st level hoists }
   hoisttwo: shortint; { count of 2nd level hoists }
-  ptr: nodeptr; { for access to basic block node }
   needjump: boolean; { true if this block needs a jump to it's successor }
   oktolabel: boolean; { true if current basic block can be labelled }
   oktoclear: boolean; {ok to clear keys (used in walk)}
@@ -386,15 +437,6 @@ var
   localparamnode: nodeindex; {points to node describing local param levop}
   nodetable: array [0..bigtnodetablesize] of node;
   exit_stmtno: integer; {save stmtno of the exit fake statement (VMS)}
- { the following are only a convenience when using pdb (setting watch point
-   on a heap based variable, ...)
- }
-  dbgbasicblockptr: basicblockptr;
-  dbgbasicblockptr1: basicblockptr;
-  dbgnodeptr: nodeptr;
-  dbgnodeptr1: nodeptr;
-  dbglinkptr: linkptr;
-  dbglinkptr1: linkptr;
 
 implementation
 end.

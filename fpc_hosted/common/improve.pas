@@ -396,19 +396,19 @@ procedure assignregs;
         end;
     end {applytoexprnode};
 
-    procedure applytostmtlist(firststmt: nodeindex);
+    procedure applytostmtlist(firststmt: stmtptr);
 
    { apply register allocations to a list of statements.
    }
 
-    procedure applytostmt(stmt: nodeindex);
+    procedure applytostmt(stmt: stmtptr);
 
     { apply register allocations to a list of statements.
     }
 
 
       begin {applytostmt}
-      with nodetable[stmt] do
+      with stmt^ do
         begin
         case stmtkind of
           blkhdr, labelhdr, gotohdr, nohdr, caseerrhdr, loopbrkhdr, cswbrkhdr,
@@ -427,10 +427,10 @@ procedure assignregs;
       end {applytostmt};
 
     begin {applytostmtlist}
-      while firststmt <> 0 do
+      while firststmt <> nil do
         begin
         applytostmt(firststmt);
-        firststmt := nodetable[firststmt].nextstmt;
+        firststmt := firststmt^.nextstmt;
         end;
     end {applytostmtlist};
 
@@ -615,7 +615,7 @@ procedure loops;
     blk: basicblockptr; { for walking blocks }
     nextblk: basicblockptr; { next block to examine }
     anyinvars: boolean; { used for testing purposes }
-    blkbeginstmt: nodeindex; { simplify access to block's beginstmt }
+    blkbeginstmt: stmtptr; { simplify access to block's beginstmt }
 
 
   procedure examineloop(loopblk, bottomblk: basicblockptr);
@@ -642,7 +642,7 @@ procedure loops;
 
     var
       p: nodeindex; { for walking hoist chains }
-      stmt: nodeindex; { current stmt in basic block }
+      stmt: stmtptr; { current stmt in basic block }
       lasthoist: nodeindex; { index of last invariant hoisted in this loop }
       currenthoist: nodeindex; { index of current invariant from inner loop }
       nexthoist: nodeindex; { index of next invariant from inner loop }
@@ -1249,7 +1249,7 @@ procedure loops;
               if nodetable[oprnd].op in [defforindexop, defforlitindexop, defunsforindexop,
                  defunsforlitindexop] then
                 { must determine if we are in this for loop or deeper }
-                invar := nodetable[loopblk^.beginstmt].expr2 <> oprnd
+                invar := loopblk^.beginstmt^.expr2 <> oprnd
               else {ordinary operator}
                 begin
                 operands := nodetable[oprnd].oprnds;
@@ -1440,18 +1440,18 @@ procedure loops;
           definecontext(loopblk, current);
 
           { examine each statement in this block }
-          if not current^.isdead and (current^.beginstmt <> 0) then
+          if not current^.isdead and (current^.beginstmt <> nil) then
             begin
             stmt := current^.beginstmt;
 
             { see if we just backed into a new loop }
 
             if (current <> bottomblk) and
-               (nodetable[stmt].stmtkind in
+               (stmt^.stmtkind in
                [forbothdr, cforbothdr, whilebothdr, untilhdr, loopbothdr]) then
               begin
-              if nodetable[stmt].stmtkind = untilhdr then innerloop := nodetable[stmt].falseblock
-              else innerloop := nodetable[stmt].looptop;
+              if stmt^.stmtkind = untilhdr then innerloop := stmt^.falseblock
+              else innerloop := stmt^.looptop;
               examineloop(innerloop, current);
 
               { examine the expressions hoisted out of inner loop(s) }
@@ -1489,20 +1489,20 @@ procedure loops;
 
               if current = loopblk then dominating := current^.dominates
               else dominating := loopblk^.willexecute and current^.dominates;
-              while stmt <> 0 do
+              while stmt <> nil do
                 begin
                 { get next stmt while it's cheap }
                 secondlevel := false;
-                if (nodetable[stmt].stmtkind in
+                if (stmt^.stmtkind in
                    [ifhdr, whilehdr, withhdr, simplehdr, untilhdr,
-                   syscallhdr]) and (nodetable[stmt].expr1 <> 0) then
-                  examineexpression(nodetable[stmt].expr1, true)
+                   syscallhdr]) and (stmt^.expr1 <> 0) then
+                  examineexpression(stmt^.expr1, true)
 
-                else if nodetable[stmt].stmtkind = casehdr then
+                else if stmt^.stmtkind = casehdr then
                   begin
-                  examineexpression(nodetable[stmt].selector, true);
+                  examineexpression(stmt^.selector, true);
                   end;
-                stmt := nodetable[stmt].nextstmt;
+                stmt := stmt^.nextstmt;
                 end;
               end; {else}
             end; {beginstmt<>0}
@@ -1514,13 +1514,13 @@ procedure loops;
             simple invariant var then no need to "pushfinal" it just
             reference it.
           }
-        if loopblk^.beginstmt <> 0 then
+        if loopblk^.beginstmt <> nil then
           begin
-          fixnode := loopblk^.beginstmt;
-          if (nodetable[fixnode].stmtkind = foruphdr) or (nodetable[fixnode].stmtkind = fordnhdr) then
+          if (loopblk^.beginstmt^.stmtkind = foruphdr) or
+             (loopblk^.beginstmt^.stmtkind = fordnhdr) then
             begin
-            finalexpr := nodetable[fixnode].expr1;
-            initexpr := nodetable[fixnode].expr2;
+            finalexpr := loopblk^.beginstmt^.expr1;
+            initexpr := loopblk^.beginstmt^.expr2;
             templen := nodetable[initexpr].len; {length of index variable}
             if nodetable[finalexpr].op in [forupchkop, fordnchkop, forerrchkop] then
               begin
@@ -1542,7 +1542,7 @@ procedure loops;
               if simpleinvar(newoprnd, initexpr) and (templen = nodetable[newoprnd].len) then
                 begin
                 { delete the pushfinal op }
-                nodetable[fixnode].expr1 := newoprnd;
+                loopblk^.beginstmt^.expr1 := newoprnd;
                 end;
               end;
             end; { forloop}
@@ -1562,17 +1562,16 @@ procedure loops;
     blk := tail;
     repeat
       { this test will be unneeded when empty basic blocks are removed }
-      if not blk^.isdead and (blk^.beginstmt <> 0) then
+      if not blk^.isdead and (blk^.beginstmt <> nil) then
         begin
         blkbeginstmt := blk^.beginstmt;
-        if (nodetable[blkbeginstmt].nodeform = stmtnode) and
-           (nodetable[blkbeginstmt].stmtkind in
+        if (blkbeginstmt^.stmtkind in
            [loopbothdr, whilebothdr, forbothdr, cforbothdr, untilhdr]) then
           begin
           { get next blk now while its cheap }
-          if nodetable[blkbeginstmt].stmtkind = untilhdr then
-            nextblk := nodetable[blkbeginstmt].falseblock^.rdfolist
-          else nextblk := nodetable[blkbeginstmt].looptop^.rdfolist;
+          if blkbeginstmt^.stmtkind = untilhdr then
+            nextblk := blkbeginstmt^.falseblock^.rdfolist
+          else nextblk := blkbeginstmt^.looptop^.rdfolist;
           examineloop(nextblk^.dfolist, blk);
           blk := nextblk;
           end
@@ -1692,19 +1691,19 @@ procedure loops;
         end;
     end {improvesetexpr} ;
 
-    procedure improvesetstmtlist(firststmt: nodeindex);
+    procedure improvesetstmtlist(firststmt: stmtptr);
 
    { Improve bldset nodes in a list of statements.
    }
 
-    procedure improvesetstmt(stmt: nodeindex);
+    procedure improvesetstmt(stmt: stmtptr);
 
     { Improve bldset nodes in a single statement.
     }
 
 
       begin {improvesetstmt}
-      with nodetable[stmt] do
+      with stmt^ do
         begin
         case stmtkind of
           blkhdr, labelhdr, gotohdr, nohdr, caseerrhdr, loopbrkhdr, cswbrkhdr,
@@ -1723,10 +1722,10 @@ procedure loops;
       end {improvesetstmt};
 
     begin {improvesettmtlist}
-      while firststmt <> 0 do
+      while firststmt <> nil do
         begin
         improvesetstmt(firststmt);
-        firststmt := nodetable[firststmt].nextstmt;
+        firststmt := firststmt^.nextstmt;
         end;
     end {improvesetstmtlist};
 
@@ -1764,7 +1763,7 @@ procedure smooth;
 }
 
   var
-    stmt: nodeindex; { current stmt in basic block }
+    stmt: stmtptr; { current stmt in basic block }
     blk: basicblockptr; { block being examined }
 
 
@@ -1990,18 +1989,18 @@ procedure smooth;
     repeat
       { examine each stmts expressions }
       stmt := blk^.beginstmt;
-      while stmt <> 0 do
+      while stmt <> nil do
         begin
-        if nodetable[stmt].stmtkind in
+        if stmt^.stmtkind in
            [ifhdr, whilehdr, withhdr, simplehdr, untilhdr, syscallhdr] then
           begin
-          smoothexpr(nodetable[stmt].expr1, 0);
+          smoothexpr(stmt^.expr1, 0);
           end
-        else if nodetable[stmt].stmtkind = casehdr then
+        else if stmt^.stmtkind = casehdr then
           begin
-          smoothexpr(nodetable[stmt].selector, 0);
+          smoothexpr(stmt^.selector, 0);
           end;
-        stmt := nodetable[stmt].nextstmt;
+        stmt := stmt^.nextstmt;
         end;
       blk := blk^.dfolist;
     until blk = tail;

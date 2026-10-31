@@ -90,7 +90,7 @@ function getlabel(blk: basicblockptr): labelrange;
   begin {getlabel}
     { get the final destination of the jump }
 
-    while not blk^.forcelabel and (blk^.beginstmt = 0) and
+    while not blk^.forcelabel and (blk^.beginstmt = nil) and
           (blk^.successor <> nil) do
       blk := blk^.successor^.suc;
     with blk^ do
@@ -2490,7 +2490,7 @@ procedure walknodelist(p: nodeindex {start of node chain} );
 }
 
 
-procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
+procedure walkstmtlist(firststmt: stmtptr {start of statement list} );
 
 { Walk each statement in a list using "walkstmt", and dispose of the
   statement header afterwards.  All of the real work is done in "walkstmt".
@@ -2498,10 +2498,10 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 
   var
     newcontrolstmt: boolean; { used to prevent extra readaccess call }
-    s: nodeindex; { local copy of firststmt }
+    s: stmtptr; { local copy of firststmt }
 
 
-  procedure walkstmt(stmt: nodeindex {statement to walk} );
+  procedure walkstmt(stmt: stmtptr {statement to walk} );
 
 { Walk a single statement.  The actual walking is done by statement-specific
   routines which are local to this routine.  The statement routines may
@@ -2513,7 +2513,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 
     var
       expr1key, expr2key: keyindex; {keys for expressions in headers}
-      currentstmt: node; { current stmt node }
+      currentstmt: stmtentry; { current stmt node }
 
 
     procedure genstmtbrk;
@@ -2590,7 +2590,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
         with currentstmt do
           walkboolean(expr1, expr1key, getlabel(trueblock),
                       getlabel(falseblock));
-      end {walkwhile} ;
+      end {walkwhileif};
 
 
     procedure walkcase;
@@ -2612,17 +2612,17 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 }
 
       var
-        p, p1: nodeindex; {used to trace and dispose of lists}
+        p, p1: stmtptr; {used to trace lists of case labels}
         default: labelrange; {default label or 1 if is an error}
         errordefault: boolean; {true if default gives an error}
         casekey: keyindex; {key for case expression}
         currentlabel: labelrange; { current case label for stmt block }
         reskey: keyindex; {result of compare for split cases}
-        firstgrouprec: nodeindex; {first split group for the case}
+        firstgrouprec: stmtptr; {first split group for the case}
         relationcase: boolean; {case expression is a relation}
 
 
-      procedure genjumptable(firstlab, lastlab: nodeindex; {lab limits}
+      procedure genjumptable(firstlab, lastlab: stmtptr; {lab limits}
                              ordered: boolean {this is a contig ordered group}
                              );
 
@@ -2632,28 +2632,28 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 }
 
         var
-          p, p1: nodeindex; {for tracing lists}
+          p, p1: stmtptr; {for tracing lists}
           locdefault: labelrange; {label for a local default}
           done: boolean; {loop termination condition}
-          thislab: nodeindex; {for tracing the chain of labels}
+          thislab: stmtptr; {for tracing the chain of labels}
 
 
         begin {genjumptable}
 
-          if not relationcase and ((nodetable[firstlab].caselabellow = nodetable[lastlab].caselabelhigh) or
-             (nodetable[firstlab].caselabellow = nodetable[firstlab].caselabelhigh) and
-             (nodetable[lastlab].caselabellow = nodetable[lastlab].caselabelhigh) and
-             (nodetable[firstlab].orderedlink = lastlab)) then
+          if not relationcase and ((firstlab^.caselabellow = lastlab^.caselabelhigh) or
+             (firstlab^.caselabellow = firstlab^.caselabelhigh) and
+             (lastlab^.caselabellow = lastlab^.caselabelhigh) and
+             (firstlab^.orderedlink = lastlab)) then
             begin
             genpseudo(eqlitint, targetintsize, reskey, 1, 0, casekey,
-                      nodetable[firstlab].caselabellow, 0);
+                      firstlab^.caselabellow, 0);
 
-            genpseudo(jumpt, 0, 0, 0, 0, nodetable[firstlab].stmtlabel, reskey, 0);
-            if nodetable[firstlab].caselabellow <> nodetable[lastlab].caselabelhigh then
+            genpseudo(jumpt, 0, 0, 0, 0, firstlab^.stmtlabel, reskey, 0);
+            if firstlab^.caselabellow <> lastlab^.caselabelhigh then
               begin
               genpseudo(eqlitint, targetintsize, reskey, 1, 0, casekey,
-                        nodetable[lastlab].caselabelhigh, 0);
-              genpseudo(jumpt, 0, 0, 0, 0, nodetable[lastlab].stmtlabel, reskey, 0);
+                        lastlab^.caselabelhigh, 0);
+              genpseudo(jumpt, 0, 0, 0, 0, lastlab^.stmtlabel, reskey, 0);
               end;
             if errordefault then genpseudo(caseerr, 0, 0, 0, 0, 0, 0, 0)
             else genpseudo(jump, 0, 0, 0, 0, default, 0, 0);
@@ -2662,11 +2662,11 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
             begin
             locdefault := newlabel;
             genpseudo(lsslitint, targetintsize, reskey, 1, 0, casekey,
-                      nodetable[firstlab].caselabellow, 0);
+                      firstlab^.caselabellow, 0);
             genpseudo(jumpt, 0, 0, 0, 0, locdefault, reskey, 0);
             genpseudo(leqlitint, targetintsize, reskey, 1, 0, casekey,
-                      nodetable[lastlab].caselabelhigh, 0);
-            genpseudo(jumpt, 0, 0, 0, 0, nodetable[lastlab].stmtlabel, reskey, 0);
+                      lastlab^.caselabelhigh, 0);
+            genpseudo(jumpt, 0, 0, 0, 0, lastlab^.stmtlabel, reskey, 0);
             definelabel(locdefault);
             if errordefault then genpseudo(caseerr, 0, 0, 0, 0, 0, 0, 0)
             else genpseudo(jump, 0, 0, 0, 0, default, 0, 0);
@@ -2676,19 +2676,19 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
             if errordefault then locdefault := newlabel
             else locdefault := default;
             genpseudo(casebranch, locdefault, 0, ord(errordefault), 0,
-                      nodetable[firstlab].caselabellow, nodetable[lastlab].caselabelhigh, casekey);
+                      firstlab^.caselabellow, lastlab^.caselabelhigh, casekey);
             thislab := firstlab;
             p := firstlab;
             repeat
-              p1 := nodetable[p].orderedlink;
-              genpseudo(caseelt, 0, 0, 0, 0, nodetable[p].stmtlabel,
-                        nodetable[p].caselabelhigh - nodetable[p].caselabellow + 1, 0);
+              p1 := p^.orderedlink;
+              genpseudo(caseelt, 0, 0, 0, 0, p^.stmtlabel,
+                        p^.caselabelhigh - p^.caselabellow + 1, 0);
               done := thislab = lastlab;
               if not done then
-                if nodetable[p1].caselabellow - nodetable[p].caselabelhigh > 1 then
+                if p1^.caselabellow - p^.caselabelhigh > 1 then
                   genpseudo(caseelt, 0, 0, 0, 0, locdefault,
-                            nodetable[p1].caselabellow - nodetable[p].caselabelhigh - 1, 0);
-              thislab := nodetable[p].orderedlink;
+                            p1^.caselabellow - p^.caselabelhigh - 1, 0);
+              thislab := p^.orderedlink;
               p := p1;
             until done;
             end;
@@ -2708,37 +2708,36 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 
         var
           middle: integer; {middle of the tree}
-          thisgroup: nodeindex; {middle group}
+          thisgroup: stmtptr; {middle group}
           lastlabel: labelrange; {label associated with "last" direction branch}
           firstlabel: labelrange; {label associated with "first" direction
                                    branch}
-          l, h: nodeindex; {for access to nodes}
+          l, h: stmtptr; {low and high label nodes}
 
 
         begin
           middle := (first + last + 1) div 2;
           thisgroup := firstgrouprec;
-          while nodetable[thisgroup].groupno <> middle do
-            thisgroup := nodetable[thisgroup].nextstmt;
+          while thisgroup^.groupno <> middle do
+            thisgroup := thisgroup^.nextstmt;
 
           if middle < last then
             begin {there is a right-hand branch}
-            h := nodetable[thisgroup].highestlabel;
-            h := nodetable[h].orderedlink;
+            h := thisgroup^.highestlabel^.orderedlink;
             lastlabel := newlabel;
             genpseudo(geqlitint, targetintsize, reskey, 1, 0, casekey,
-                      nodetable[h].caselabelhigh, 0);
+                      h^.caselabelhigh, 0);
             genpseudo(jumpt, 0, 0, 0, 0, lastlabel, reskey, 0);
             end;
           if middle > first then
             begin {there is a left-hand branch}
-            l := nodetable[thisgroup].lowestlabel;
+            l := thisgroup^.lowestlabel;
             firstlabel := newlabel;
             genpseudo(lsslitint, targetintsize, reskey, 1, 0, casekey,
-                      nodetable[l].caselabellow, 0);
+                      l^.caselabellow, 0);
             genpseudo(jumpt, 0, 0, 0, 0, firstlabel, reskey, 0);
             end;
-          with nodetable[thisgroup] do genjumptable(lowestlabel, highestlabel, ordered);
+          with thisgroup^ do genjumptable(lowestlabel, highestlabel, ordered);
           if middle < last then
             begin
             definelabel(lastlabel);
@@ -2764,9 +2763,9 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
           else if casedefptr = nil then default := getlabel(joinblock)
           else default := getlabel(casedefptr);
 
-          if errordefault and (elements = 0) then
+          if errordefault and (elements = nil) then
             genpseudo(caseerr, 0, 0, 0, 0, 0, 0, 0)
-          else if elements <> 0 then
+          else if elements <> nil then
             begin
             relationcase := nodetable[selector].relation;
             walkvalue(selector, casekey, 0);
@@ -2907,7 +2906,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 
 
       begin { walkforbot }
-        with nodetable[currentstmt.looptop^.beginstmt], forstack[forsp] do
+        with currentstmt.looptop^.beginstmt^, forstack[forsp] do
           begin
           if improved then
             begin
@@ -3023,7 +3022,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
 
 
       begin {walkgoto}
-        p := nodetable[root^.beginstmt].procref;
+        p := root^.beginstmt^.procref;
         branchstmt := currentstmt.labellevel <> proctable[p].level;
         genstmtbrk;
         with currentstmt do
@@ -3136,7 +3135,7 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
     begin {walkstmt}
 
       inverted := false;
-      currentstmt := nodetable[stmt];
+      currentstmt := stmt^;
       with currentstmt do
         begin
         case stmtkind of
@@ -3187,14 +3186,14 @@ procedure walkstmtlist(firststmt: nodeindex {start of statement list} );
     controlstmt := true;
     branchstmt := false;
     targetstmt := false;
-    while firststmt <> 0 do
+    while firststmt <> nil do
       begin
       s := firststmt;
-      firststmt := nodetable[s].nextstmt;
-      if nodetable[s].stmtkind in [rpthdr, whilehdr, foruphdr, fordnhdr, cforhdr] then
+      firststmt := s^.nextstmt;
+      if s^.stmtkind in [rpthdr, whilehdr, foruphdr, fordnhdr, cforhdr] then
         controlstmt := true;
       { do this now to avoid readaccess call }
-      newcontrolstmt := not (nodetable[s].stmtkind in [withhdr, simplehdr, syscallhdr]);
+      newcontrolstmt := not (s^.stmtkind in [withhdr, simplehdr, syscallhdr]);
       walkstmt(s);
       controlstmt := newcontrolstmt;
       end;
@@ -3222,7 +3221,7 @@ procedure walk;
       low := 1;
       high := 0;
       end;
-    with nodetable[root^.beginstmt] do
+    with root^.beginstmt^ do
       begin
       if final_block_size = 0 then blocksize := bs
       else blocksize := final_block_size - ps;
@@ -3282,10 +3281,10 @@ procedure walk;
 
         if not isdead then
           begin
-          if beginstmt <> 0 then
+          if beginstmt <> nil then
             begin
             walkstmtlist(beginstmt);
-            needjump := not (nodetable[beginstmt].stmtkind in
+            needjump := not (beginstmt^.stmtkind in
                         [forbothdr, whilebothdr, untilhdr, cforbothdr, gotohdr,
                         swbrkhdr, loopbrkhdr, loopconthdr]);
             end
