@@ -3080,14 +3080,15 @@ procedure build;
                           end;
                         otherwise
                         end;
-                      if (nodetable[opnum].op = intop) and (nodetable[opnum].action = visit) then
+                      if (nodetable[newoperands[opnum]].op = intop) and
+                         (nodetable[newoperands[opnum]].action = visit) then
                         begin
                         { remove ref count from the intop }
-                        intvalue := nodetable[opnum].oprnds[1];
-                        nodetable[opnum].refcount := nodetable[opnum].refcount - 1;
-                        nodetable[opnum].op := newop;
-                        nodetable[opnum].oprnds[opnum] := intvalue;
-                        nodetable[opnum].nodeoprnd[opnum] := false;
+                        intvalue := nodetable[newoperands[opnum]].oprnds[1];
+                        nodetable[newoperands[opnum]].refcount := nodetable[newoperands[opnum]].refcount - 1;
+                        nodetable[current].op := newop;
+                        nodetable[current].oprnds[opnum] := intvalue;
+                        nodetable[current].nodeoprnd[opnum] := false;
                         if (newop = movelit) and (propagation in genset) then
                           assignvalue(current);
                         end;
