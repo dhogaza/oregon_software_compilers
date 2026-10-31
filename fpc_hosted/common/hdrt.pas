@@ -73,6 +73,8 @@ type
   fonrange = shortint; {range for fon's}
   refcountrange = 0..maxrefcount; {range for refcounts}
 
+  exprptr = ^node;
+
   oprndindex = 1..maxoprnd;
   operandarray = array [oprndindex] of integer;
   nodeoperandarray = packed array [oprndindex] of boolean;
@@ -248,6 +250,7 @@ type
       opmap: array [maphashindex] of nodeindex; {for searching nodes}
       low, high: keyindex; {used to assign keys during walk}
     end;
+
   region =
     record
       lonmin: nodeindex; { minimum node that refs var }
