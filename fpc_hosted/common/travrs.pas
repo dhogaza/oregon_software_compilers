@@ -1709,8 +1709,6 @@ procedure build;
         n := lastnode;
         with nodetable[lastnode] do
           begin
-          {nice to use structured constant here }
-          nodeform := exprnode;
           op := endexpr;
           form := none;
           action := visit;
@@ -6524,7 +6522,7 @@ procedure travrs;
       begin
       if hoistone <> 0 then writeln(hoistone: 1, ' invariants hoisted');
       if hoisttwo <> 0 then writeln(hoisttwo: 1, ' second level hoists');
-      writeln((maxnodes * sizeof(node)): 1, ' bytes of node storage used.');
+      writeln((maxnodes * sizeof(exprnode)): 1, ' bytes of node storage used.');
       end
     else if switchcounters[tswitch0] > 0 then
       writeln('travrs, last node was ', maxnodes: 1);

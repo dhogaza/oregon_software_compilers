@@ -69,54 +69,51 @@ type
   maphashindex = 0..nodehashsize; {index to node hash table}
   reghashindex = 0..regtablelimit; {index to var hash table}
 
-  nodeformtype = (exprnode);
   fonrange = shortint; {range for fon's}
   refcountrange = 0..maxrefcount; {range for refcounts}
 
-  exprptr = ^node;
+  exprptr = ^exprnode;
 
   oprndindex = 1..maxoprnd;
   operandarray = array [oprndindex] of integer;
   nodeoperandarray = packed array [oprndindex] of boolean;
 
-  node =
+  exprnode =
     packed record {describes a node in the expression tree}
-      case nodeform: nodeformtype of
-        exprnode:
-          (refcount: refcountrange; {number of active references to this node}
-           copycount: refcountrange; {number of copies mode of this node}
-           valid: boolean; {set if node is valid for cse search}
-           mustinvalidate: boolean; {invalidate node after next statement}
-           join: boolean; {invalidate node at next join}
-           target: boolean; {this node is an assignment target}
-           relation: boolean; {subnodes contain a relational operator}
-           shortevaluation: boolean; {evaluate using short-circuit evaluation}
-           local: boolean; {local to a conditional expression}
-           nodeoprnd: nodeoperandarray; {set if oprnds[i] is a link}
-           looplink: nodeindex; { link to other vars in this loop/ read or
-                                 writes}
-           cost: 0..maxcost; {cost of computing this node}
-           prelink: nodeindex; { link of nodes that must be hoisted }
-           hoistedby: basicblockptr; { this node is hoisted by this block }
-           case action: actions of
-             visit, revisit:
-               (op: operatortype; { Operator from Analys }
-                form: types; {type of operands}
-                hasvalue: boolean; { true if we know the value of expression }
-                invariant: boolean; { true if expression is invariant }
-                ownvar: boolean; {true if expression is own variable}
-                regcandidate: boolean; {true if var is a register candidate}
-                deepestvalid: contextindex; {deepest level where node is valid}
-                slink: nodeindex; { Search link -- next node on hash chain }
-                len: addressrange; {length of operation result}
-                case {isrealnode:} boolean of
-                  true: (realvalue: realarray);
-                  false:
-                    (oprnds: operandarray; {tree nodes or literal integers}
-                     value: integer; { value propogated here } ); );
-             copy, recopy:
-               (oldlink: nodeindex; {link to next outer node being copied}
-                directlink: nodeindex {link to parent node being copied} ));
+      refcount: refcountrange; {number of active references to this node}
+      copycount: refcountrange; {number of copies mode of this node}
+      valid: boolean; {set if node is valid for cse search}
+      mustinvalidate: boolean; {invalidate node after next statement}
+      join: boolean; {invalidate node at next join}
+      target: boolean; {this node is an assignment target}
+      relation: boolean; {subnodes contain a relational operator}
+      shortevaluation: boolean; {evaluate using short-circuit evaluation}
+      local: boolean; {local to a conditional expression}
+      nodeoprnd: nodeoperandarray; {set if oprnds[i] is a link}
+      looplink: nodeindex; { link to other vars in this loop/ read or
+                            writes}
+      cost: 0..maxcost; {cost of computing this node}
+      prelink: nodeindex; { link of nodes that must be hoisted }
+      hoistedby: basicblockptr; { this node is hoisted by this block }
+      case action: actions of
+        visit, revisit:
+          (op: operatortype; { Operator from Analys }
+           form: types; {type of operands}
+           hasvalue: boolean; { true if we know the value of expression }
+           invariant: boolean; { true if expression is invariant }
+           ownvar: boolean; {true if expression is own variable}
+           regcandidate: boolean; {true if var is a register candidate}
+           deepestvalid: contextindex; {deepest level where node is valid}
+           slink: nodeindex; { Search link -- next node on hash chain }
+           len: addressrange; {length of operation result}
+           case {isrealnode:} boolean of
+             true: (realvalue: realarray);
+             false:
+               (oprnds: operandarray; {tree nodes or literal integers}
+                value: integer; { value propogated here } ); );
+        copy, recopy:
+          (oldlink: nodeindex; {link to next outer node being copied}
+           directlink: nodeindex {link to parent node being copied} );
     end;
 
   stmtptr = ^stmtnode;
@@ -394,7 +391,7 @@ var
   stmtcount: integer; { for verifying that we disposed all of them }
 
   localparamnode: nodeindex; {points to node describing local param levop}
-  nodetable: array [0..bigtnodetablesize] of node;
+  nodetable: array [0..bigtnodetablesize] of exprnode;
   exit_stmtno: integer; {save stmtno of the exit fake statement (VMS)}
 
 implementation
