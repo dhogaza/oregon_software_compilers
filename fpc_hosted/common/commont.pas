@@ -45,7 +45,7 @@ function newlabel: labelrange;
 }
 
 
-procedure checkconst(node: nodeindex; {node to check}
+procedure checkconst(node: exprptr; {node to check}
                      var constflag: boolean; {true if node is const}
                      var i: integer {constant value if const} );
 
@@ -84,7 +84,7 @@ procedure genrealop(o: pseudoop; {operator}
 { Generate a pseudo instruction with a real value as an operand
 }
 
-  procedure increfcount(n: nodeindex; {node to increment}
+  procedure increfcount(n: exprptr; {node to increment}
                         deadcode: boolean;
                         inc: shortint {amount to increment} );
 
@@ -127,7 +127,7 @@ function newlabel: labelrange;
 
 
 
-procedure checkconst(node: nodeindex; {node to check}
+procedure checkconst(node: exprptr; {node to check}
                      var constflag: boolean; {true if node is const}
                      var i: integer {constant value if const} );
 
@@ -141,7 +141,7 @@ procedure checkconst(node: nodeindex; {node to check}
       if (action in [visit, revisit]) and (op = intop) then
         begin
         constflag := true;
-        i := oprnds[1];
+        i := oprnds[1].i;
         end
       else constflag := false;
   end {checkconst} ;
@@ -179,7 +179,7 @@ procedure estimateloop(stmt: stmtptr;
     initialvalue, finalvalue: integer; {initial and final values}
     uinitialvalue, ufinalvalue: unsignedint; {initial and final values unsigned}
     constfinal: boolean; { true if to/downto is constant }
-    expr1, expr2: nodeindex; {from stmt node}
+    expr1, expr2: exprptr; {from stmt node}
 
 
   begin {estimateloop}
@@ -191,7 +191,7 @@ procedure estimateloop(stmt: stmtptr;
  
     with nodetable[expr1] do
       if op in [forupchkop, fordnchkop, forerrchkop] then
-        checkconst(oprnds[1], constfinal, finalvalue)
+        checkconst(oprnds[1].p, constfinal, finalvalue)
       else checkconst(stmt^.expr1, constfinal, finalvalue);
 
     with nodetable[expr2] do
@@ -199,7 +199,7 @@ procedure estimateloop(stmt: stmtptr;
          (op = defunsforlitindexop)) then
         begin
         fixed := true;
-        initialvalue := oprnds[3];
+        initialvalue := oprnds[3].i;
         uinitialvalue := initialvalue;
         ufinalvalue := finalvalue;
 
@@ -358,7 +358,7 @@ procedure genrealop(o: pseudoop; {operator}
   end; {genrealop}
 
 
-  procedure increfcount(n: nodeindex; {node to increment}
+  procedure increfcount(n: exprptr; {node to increment}
                         deadcode: boolean;
                         inc: shortint {amount to increment} );
 
@@ -377,7 +377,7 @@ procedure genrealop(o: pseudoop; {operator}
             n := nodetable[n].slink;
       nodetable[n].refcount := nodetable[n].refcount + inc;
       if nodetable[n].action = visit then
-        if nodetable[n].op = commaop then increfcount(nodetable[n].oprnds[2], deadcode, inc);
+        if nodetable[n].op = commaop then increfcount(nodetable[n].oprnds[2].p, deadcode, inc);
       end;
   end; {increfcount}
 end.

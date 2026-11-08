@@ -72,10 +72,20 @@ type
   fonrange = shortint; {range for fon's}
   refcountrange = 0..maxrefcount; {range for refcounts}
 
+{
   exprptr = ^exprnode;
+}
+exprptr = nodeindex;
 
   oprndindex = 1..maxoprnd;
-  operandarray = array [oprndindex] of integer;
+  oprndrecord =
+    record
+      case boolean of
+        false: (i:  integer);
+        true: (p: exprptr);
+      end;
+  operandarray = array [oprndindex] of oprndrecord;
+     
   nodeoperandarray = packed array [oprndindex] of boolean;
 
   exprnode =
@@ -90,10 +100,10 @@ type
       shortevaluation: boolean; {evaluate using short-circuit evaluation}
       local: boolean; {local to a conditional expression}
       nodeoprnd: nodeoperandarray; {set if oprnds[i] is a link}
-      looplink: nodeindex; { link to other vars in this loop/ read or
+      looplink: exprptr; { link to other vars in this loop/ read or
                             writes}
       cost: 0..maxcost; {cost of computing this node}
-      prelink: nodeindex; { link of nodes that must be hoisted }
+      prelink: exprptr; { link of nodes that must be hoisted }
       hoistedby: basicblockptr; { this node is hoisted by this block }
       case action: actions of
         visit, revisit:
@@ -104,7 +114,7 @@ type
            ownvar: boolean; {true if expression is own variable}
            regcandidate: boolean; {true if var is a register candidate}
            deepestvalid: contextindex; {deepest level where node is valid}
-           slink: nodeindex; { Search link -- next node on hash chain }
+           slink: exprptr; { Search link -- next node on hash chain }
            len: addressrange; {length of operation result}
            case {isrealnode:} boolean of
              true: (realvalue: realarray);
@@ -112,8 +122,8 @@ type
                (oprnds: operandarray; {tree nodes or literal integers}
                 value: integer; { value propogated here } ); );
         copy, recopy:
-          (oldlink: nodeindex; {link to next outer node being copied}
-           directlink: nodeindex {link to parent node being copied} );
+          (oldlink: exprptr; {link to next outer node being copied}
+           directlink: exprptr {link to parent node being copied} );
     end;
 
   stmtptr = ^stmtnode;
@@ -134,7 +144,7 @@ type
            fileline: integer {line in actual file where block starts} );
 
         casehdr:
-          (selector: nodeindex; { selector expression }
+          (selector: exprptr; { selector expression }
            elements: stmtptr; { index to caselabhdrs in numeric order}
            joinblock: basicblockptr; {ptr to stmtblock that defines tail}
            firstgroup: stmtptr; {first case group produced by split}
@@ -156,7 +166,7 @@ type
         foruphdr, fordnhdr, withhdr, simplehdr, syscallhdr, untilhdr,
         cforbothdr, returnhdr, nohdr:
           (looptop: basicblockptr; { top of for/while }
-           expr1, expr2: nodeindex; {Expressions used by statement}
+           expr1, expr2: exprptr; {Expressions used by statement}
            has_break: boolean; {loop body contains a break}
            trueblock, falseblock: basicblockptr; {blocks for statement}
            forstepsize: integer; { for step for Modula-2 } );
@@ -187,7 +197,7 @@ type
       rdfolist: basicblockptr; { ptr to next block in reverse dfo }
       successor: linkptr; { direct successor of this block }
       predeccessor: linkptr; { direct predeccessor of this block }
-      precode: nodeindex; { copy nodes and hoisted code for this block}
+      precode: exprptr; { copy nodes and hoisted code for this block}
       beginstmt: stmtptr; { link to first statement of this block }
       defmin: fonrange; { lowest definition number in this block}
       blocklabel: labelrange; { internal label number for this block }
@@ -201,9 +211,9 @@ type
       loophdr: boolean; { true if 1st block of a loop }
       forcelabel: boolean; { true if forced to use this label even if empty }
       looplabel: labelrange; { label of code below any hoisted }
-      reads: nodeindex; { chain of invariant for this loop }
-      writes: nodeindex; { chain of non-invariant for this loop }
-      lastwrite: nodeindex; { tail of chain of non-invariant for this loop }
+      reads: exprptr; { chain of invariant for this loop }
+      writes: exprptr; { chain of non-invariant for this loop }
+      lastwrite: exprptr; { tail of chain of non-invariant for this loop }
       deadlevels: levelarray; { the dead levels }
       deadloop: boolean; {true if loop so deeply nested that we gave up}
       willexecute: boolean; { true if loop will execute if flow reaches}
@@ -211,13 +221,13 @@ type
 
   stackrecord =
     record {holds operands as the stack is being built}
-      context_mark: nodeindex; {last node in this expression}
+      context_mark: exprptr; {last node in this expression}
       relation: boolean; { Node contains a relational op ('=') }
       uniqueoprnd: boolean; { At least one operand is unique -- can't be CSE }
       case litflag: boolean of {literal value?}
         true: (i: integer {actual value} );
         false:
-          (p: integer; {operand node}
+          (p: exprptr; {operand node}
            l: contextindex {operand context level} )
     end;
 
@@ -244,14 +254,14 @@ type
       origlow: keyindex; {dead code kludge to reset low, shouldn't be needed
                           now!}
       firstblock: basicblockptr; { Point to basic block header for this level}
-      opmap: array [maphashindex] of nodeindex; {for searching nodes}
+      opmap: array [maphashindex] of exprptr; {for searching nodes}
       low, high: keyindex; {used to assign keys during walk}
     end;
 
   region =
     record
-      lonmin: nodeindex; { minimum node that refs var }
-      lonmax: nodeindex; { maximum node that refs var }
+      lonmin: exprptr; { minimum node that refs var }
+      lonmax: exprptr; { maximum node that refs var }
       fonmin: fonrange; { flow order minimum value }
       fonmax: fonrange; { flow order maximum value }
     end;
@@ -307,7 +317,7 @@ var
   forstack: array [0..fordepth] of
       record {describes for loop controlled variable}
   { build side }
-        forref: nodeindex; {node with variable}
+        forref: exprptr; {node with variable}
         forlevel: contextindex; {context level of this loop}
         literalvalue: integer; { value of induction var for 1 trip loop }
         { walk side }
@@ -321,14 +331,14 @@ var
 
   withstack: array [1..maxwithdepth] of
       record {describes with variables}
-        withref: nodeindex; {node for withed variable}
+        withref: exprptr; {node for withed variable}
         withlevel: contextindex; {context for this with level}
         withfonmin: fonrange;  {for extending lifetime of with expr vars}
         withfoncount: fonrange; {ditto}
       end;
   withsp: 0..maxwithdepth; {top of with stack}
 
-  keytable: array [keyindex] of nodeindex; {keys for active nodes in walk}
+  keytable: array [keyindex] of exprptr; {keys for active nodes in walk}
 
   context: array [contextindex] of contextrecord; {statement context stack}
   contextsp: contextindex; {top of context stack}
@@ -369,9 +379,9 @@ var
   loopoverflow: shortint; { loopoverflow value }
   loopstack: array [0..maxloopdepth] of
       record
-        reads: nodeindex; { linked chain of vars only read in this loop }
-        writes: nodeindex; { linked chain of vars modified in this loop }
-        lastwrite: nodeindex; { tail of chain of vars modified in this loop }
+        reads: exprptr; { linked chain of vars only read in this loop }
+        writes: exprptr; { linked chain of vars modified in this loop }
+        lastwrite: exprptr; { tail of chain of vars modified in this loop }
         loopblock: basicblockptr; { index of loop header }
         deadlevels: levelarray; { the dead levels }
         fonmin: fonrange; { foncount at start }
@@ -390,7 +400,7 @@ var
   stmtlist: stmtptr; { for disposing of statements }
   stmtcount: integer; { for verifying that we disposed all of them }
 
-  localparamnode: nodeindex; {points to node describing local param levop}
+  localparamnode: exprptr; {points to node describing local param levop}
   nodetable: array [0..bigtnodetablesize] of exprnode;
   exit_stmtno: integer; {save stmtno of the exit fake statement (VMS)}
 

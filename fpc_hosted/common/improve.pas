@@ -44,7 +44,7 @@ procedure improve;
 
 implementation
 
-type visitexprtype = function(n: nodeindex): boolean;
+type visitexprtype = function(n: exprptr): boolean;
 
 procedure assignregs;
 {
@@ -109,7 +109,7 @@ procedure assignregs;
       code1, code2, code3, code4: clipset; { clipping for rectangle's sides }
 
 
-    procedure clipping(lon: nodeindex;
+    procedure clipping(lon: exprptr;
                        fon: fonrange;
                        var clips: clipset);
      { Sutherland's clipping algorithm. See any computer graphics book. }
@@ -280,12 +280,12 @@ procedure assignregs;
 
 }
 
-    procedure applytoexprnode(expr: nodeindex);
+    procedure applytoexprnode(expr: exprptr);
 
     var
       i: oprndindex;
 
-      procedure applytoregparamnode(expr: nodeindex);
+      procedure applytoregparamnode(expr: exprptr);
 
 {
     Purpose:
@@ -312,20 +312,20 @@ procedure assignregs;
           j: 0..regtablelimit; { var for temp search }
 
         begin {applytoregparamnode}
-          offset := nodetable[expr].oprnds[2];
+          offset := nodetable[expr].oprnds[2].i;
           j := hashvaroffset(offset);
           while ((regvars[j].offset <> offset) or not regvars[j].parameter) and
                 (regvars[j].worth >= 0) do
             j := (j + 1) mod (regtablelimit + 1);
           if regvars[j].regid <> 0 then
             begin
-            nodetable[expr].oprnds[1] := -1;
-            nodetable[expr].oprnds[2] := regvars[j].regid;
+            nodetable[expr].oprnds[1].i := -1;
+            nodetable[expr].oprnds[2].i := regvars[j].regid;
             end;
         end {applytoregparamnode};
      
 
-      procedure applytoindexnode(expr: nodeindex);
+      procedure applytoindexnode(expr: exprptr);
 
 {
     Purpose:
@@ -347,7 +347,7 @@ procedure assignregs;
 
 
         var
-          left: nodeindex;
+          left: exprptr;
           possibletemp: boolean; {true if local var or regparam and possible
                                   temp loc}
           offset: addressrange; {variable offset if possibletemp}
@@ -355,10 +355,10 @@ procedure assignregs;
           third: integer; {third operand, zero or temp number}
 
         begin {applytoindexnode}
-          left := nodetable[expr].oprnds[1];
-          offset := nodetable[expr].oprnds[2];
+          left := nodetable[expr].oprnds[1].p;
+          offset := nodetable[expr].oprnds[2].i;
           third := 0;
-          if (nodetable[left].op = levop) and (nodetable[left].oprnds[1] = level) then
+          if (nodetable[left].op = levop) and (nodetable[left].oprnds[1].i = level) then
             begin
             j := hashvaroffset(offset);
             while ((regvars[j].offset <> offset) or regvars[j].parameter) and
@@ -371,8 +371,8 @@ procedure assignregs;
                 realreg: nodetable[expr].op := realtempop;
                 ptrreg: nodetable[expr].op := ptrtempop;
                 end;
-              nodetable[expr].oprnds[2] := 0;
-              nodetable[expr].oprnds[3] := regvars[j].regid;
+              nodetable[expr].oprnds[2].i := 0;
+              nodetable[expr].oprnds[3].i := regvars[j].regid;
               end;
             end
           else applytoexprnode(left);
@@ -391,7 +391,7 @@ procedure assignregs;
           otherwise
             for i := 1 to maxoprnd do
               if nodetable[expr].nodeoprnd[i] then
-                applytoexprnode(nodetable[expr].oprnds[i]);
+                applytoexprnode(nodetable[expr].oprnds[i].p);
           end;
         end;
     end {applytoexprnode};
@@ -641,23 +641,23 @@ procedure loops;
 }
 
     var
-      p: nodeindex; { for walking hoist chains }
+      p: exprptr; { for walking hoist chains }
       stmt: stmtptr; { current stmt in basic block }
-      lasthoist: nodeindex; { index of last invariant hoisted in this loop }
-      currenthoist: nodeindex; { index of current invariant from inner loop }
-      nexthoist: nodeindex; { index of next invariant from inner loop }
-      previoushoist: nodeindex; { index of previous invariant from inner loop }
+      lasthoist: exprptr; { index of last invariant hoisted in this loop }
+      currenthoist: exprptr; { index of current invariant from inner loop }
+      nexthoist: exprptr; { index of next invariant from inner loop }
+      previoushoist: exprptr; { index of previous invariant from inner loop }
       current: basicblockptr; { basic block being examined }
       innerloop: basicblockptr; { basic block containing an innerloop }
       secondlevel: boolean; { true if examining expressions that have already
                              been hoisted in some other loop }
-      finalwrite: nodeindex; { index of 1st write outside loop's writes }
+      finalwrite: exprptr; { index of 1st write outside loop's writes }
       templen: addressrange; { for building write list }
-      temp: nodeindex; { general temp for traversing nodes } 
-      fixnode: nodeindex; { index of node that points to pushfinal }
-      newoprnd: nodeindex; { index of pushfinal oprnd }
-      finalexpr: nodeindex; { index of for final expression }
-      initexpr: nodeindex; { index of for index variable }
+      temp: exprptr; { general temp for traversing nodes } 
+      fixnode: exprptr; { index of node that points to pushfinal }
+      newoprnd: exprptr; { index of pushfinal oprnd }
+      finalexpr: exprptr; { index of for final expression }
+      initexpr: exprptr; { index of for index variable }
       dominating: boolean; { true if current block dominates loopblks exit and
                             loopblk executes }
 
@@ -716,7 +716,7 @@ procedure loops;
       end; {definecontext}
 
 
-    procedure hoistit(expr: nodeindex);
+    procedure hoistit(expr: exprptr);
 {
     Purpose:
       Link expression into the precode chain of loopblk and mark all of
@@ -740,14 +740,14 @@ procedure loops;
 }
 
       var
-        copied: nodeindex; { for building copy node }
-        lastcopy: nodeindex; { previous copynode in copy chain }
+        copied: exprptr; { for building copy node }
+        lastcopy: exprptr; { previous copynode in copy chain }
         refc, copyc: refcountrange; { ref count of hoisted expression }
-        newexpr: nodeindex; { the node to hoist if copies needed }
+        newexpr: exprptr; { the node to hoist if copies needed }
         sp: contextindex; { induction var }
 
 
-      procedure flood(expr: nodeindex;
+      procedure flood(expr: exprptr;
                       forceflood: boolean);
 {
     Purpose:
@@ -781,7 +781,7 @@ procedure loops;
               if action = visit then
                 for i := 1 to 3 do
                   begin
-                  if nodeoprnd[i] then flood(oprnds[i], false);
+                  if nodeoprnd[i] then flood(oprnds[i].p, false);
                   end
               else flood(oldlink, false);
               end;
@@ -790,7 +790,7 @@ procedure loops;
 
 
       procedure removecopies(depth: contextindex; {depth to which we remove 'em}
-                             expr: nodeindex);
+                             expr: exprptr);
 {
     Purpose:
       Remove copies in expr which are at least as deep as the target context
@@ -816,7 +816,7 @@ procedure loops;
         var
           i: 1..3; {induction vars }
           d: contextindex; { running depth count along a particular oprnd }
-          copylink: nodeindex; { running index to copy node's target }
+          copylink: exprptr; { running index to copy node's target }
           operands: operandarray; { local copy of oprnd field }
           nodeoperands: nodeoperandarray; { local copy of nodeoprnd field }
 
@@ -835,20 +835,20 @@ procedure loops;
                 begin
                 if nodeoperands[i] then
                   begin
-                  if nodetable[operands[i]].action = copy then
+                  if nodetable[operands[i].p].action = copy then
                     begin
                     d := depth;
                     repeat
                       d := d - 1;
-                      copylink := nodetable[operands[i]].oldlink;
-                      nodetable[operands[i]].refcount := nodetable[operands[i]].refcount - 1;
+                      copylink := nodetable[operands[i].p].oldlink;
+                      nodetable[operands[i].p].refcount := nodetable[operands[i].p].refcount - 1;
                       nodetable[copylink].copycount := nodetable[copylink].copycount - 1;
-                      operands[i] := copylink;
+                      operands[i].p := copylink;
                     until (d = 0) or (nodetable[copylink].action = visit);
-                    oprnds[i] := copylink;;
+                    oprnds[i].p := copylink;;
                     if d > 0 then removecopies(d, copylink);
                     end
-                  else removecopies(depth, operands[i]);
+                  else removecopies(depth, operands[i].p);
                   end;
                 end; {for}
               end
@@ -863,7 +863,7 @@ procedure loops;
 
 
       procedure onecopy(sp: contextindex; { current context level}
-                        c: nodeindex {where to build copy node} );
+                        c: exprptr {where to build copy node} );
 
         { Build one copy access node in chain leading to hoisted expr
         }
@@ -966,8 +966,8 @@ procedure loops;
       end; {hoistit}
 
 
-    function simpleinvar(oprnd: nodeindex; {pushfinal's oprnd}
-                         other: nodeindex {deffor... op} ): boolean;
+    function simpleinvar(oprnd: exprptr; {pushfinal's oprnd}
+                         other: exprptr {deffor... op} ): boolean;
 
 {   Purpose:
       Examine the expression indexed by oprnd and see if it is a simple
@@ -991,7 +991,7 @@ procedure loops;
 }
 
       var
-        temp: nodeindex; { for access to nodes }
+        temp: exprptr; { for access to nodes }
         varlev: levelindex; { level of var op }
         off: addressrange; { where in frame of var }
         written: boolean; { true if found on write list }
@@ -1005,22 +1005,22 @@ procedure loops;
           oprnd := nodetable[oprnd].directlink;
           end {copy} ;
         if ((nodetable[oprnd].op = varop) or (nodetable[oprnd].op = unsvarop)) and
-           not loopblk^.deadlevels[nodetable[oprnd].oprnds[1]] then
+           not loopblk^.deadlevels[nodetable[oprnd].oprnds[1].i] then
           begin
-          varlev := nodetable[oprnd].oprnds[1];
-          off := nodetable[oprnd].oprnds[2];
+          varlev := nodetable[oprnd].oprnds[1].i;
+          off := nodetable[oprnd].oprnds[2].i;
             { A simple variable points to an indxop, which points
               to a levop}
-          temp := nodetable[oprnd].oprnds[3];
+          temp := nodetable[oprnd].oprnds[3].p;
           if nodetable[temp].op in [indxop, vindxop] then
             begin
-            temp := nodetable[temp].oprnds[1];
+            temp := nodetable[temp].oprnds[1].p;
               { Globalop's and localop's are converted to levop's
                 by buildexpr }
             if (nodetable[temp].op = levop) then
               begin
               { First, check to see if this is the loop variable }
-              if (level <> varlev) or (nodetable[other].oprnds[2] <> off) then
+              if (level <> varlev) or (nodetable[other].oprnds[2].i <> off) then
                 begin
                   { It isn't the loop variable, so now check to see
                     if it's written within the loop }
@@ -1028,7 +1028,7 @@ procedure loops;
                 written := false;
                 while not written and (p <> 0) and (p <> finalwrite) do
                   begin
-                  if (nodetable[p].oprnds[1] = varlev) and (nodetable[p].oprnds[2] = off) then
+                  if (nodetable[p].oprnds[1].i = varlev) and (nodetable[p].oprnds[2].i = off) then
                     written := true;
                   p := nodetable[p].looplink;
                   end {while} ;
@@ -1040,7 +1040,7 @@ procedure loops;
       end {simpleinvar} ;
 
 
-    procedure examineexpression(expression: nodeindex;
+    procedure examineexpression(expression: exprptr;
                                 hoistsubtrees: boolean);
       forward;
 {
@@ -1071,7 +1071,7 @@ procedure loops;
 }
 
 
-    function invariantoprnd(oprnd: nodeindex;
+    function invariantoprnd(oprnd: exprptr;
                             var worthit: boolean;
                             hoistsubtrees: boolean): boolean;
 {
@@ -1106,7 +1106,7 @@ procedure loops;
 
       var
         i: 0..contextdepth; {induction var }
-        temp: nodeindex; { for node access }
+        temp: exprptr; { for node access }
         operands: operandarray; { local copy of oprnd field }
         nodeoperands: nodeoperandarray; { local copy of nodeoprnd field }
         copyfound: boolean; {true if this node was a copy node}
@@ -1140,7 +1140,7 @@ procedure loops;
 }
 
         var
-          currentvar: nodeindex; { for walking write chains }
+          currentvar: exprptr; { for walking write chains }
           found: boolean; { true if expression found on write chains }
 
         begin {varisinvar}
@@ -1148,7 +1148,7 @@ procedure loops;
               determine if invariant in this context or when target flag
               is on and marked invariant.
             }
-          if loopblk^.deadlevels[operands[1]] then
+          if loopblk^.deadlevels[operands[1].i] then
             begin
             varisinvar := false;
             nodetable[oprnd].invariant := false; { warn others early }
@@ -1162,8 +1162,8 @@ procedure loops;
             found := false;
             while (currentvar <> finalwrite) and not found do
               begin
-              if (operands[1] = nodetable[currentvar].oprnds[1]) and
-                 (operands[2] = nodetable[currentvar].oprnds[2]) then
+              if (operands[1].i = nodetable[currentvar].oprnds[1].i) and
+                 (operands[2].i = nodetable[currentvar].oprnds[2].i) then
                 found := true;
               currentvar := nodetable[currentvar].looplink;
               end;
@@ -1260,7 +1260,7 @@ procedure loops;
                   if language = c then invar := false
                   else
                     begin
-                    temp := nodetable[oprnd].oprnds[1];
+                    temp := nodetable[oprnd].oprnds[1].p;
                     invar := (nodetable[temp].action = visit) and (nodetable[temp].op <> unsvarop);
                     end
                   end
@@ -1270,7 +1270,7 @@ procedure loops;
                   hoist[i] := false;
                   if nodeoperands[i] then
                     begin
-                    if not invariantoprnd(operands[i], hoist[i],
+                    if not invariantoprnd(operands[i].p, hoist[i],
                                           hoistsubtrees and not copyfound) then
                       invar := false;
                     end;
@@ -1286,7 +1286,7 @@ procedure loops;
                 if hoistsubtrees and not copyfound then
                   if not invar then
                     begin
-                    for i := 1 to 3 do if hoist[i] then hoistit(operands[i]);
+                    for i := 1 to 3 do if hoist[i] then hoistit(operands[i].p);
                     end
                   else if aindxkludge or musthoist then
                     begin
@@ -1303,7 +1303,7 @@ procedure loops;
       end {invariantoprnd} ;
 
 
-    procedure examineexpression(expression: nodeindex;
+    procedure examineexpression(expression: exprptr;
                                 hoistsubtrees: boolean);
 
       var
@@ -1334,8 +1334,8 @@ procedure loops;
                 }
               if nodeoperands[i] then
                 begin
-                if invariantoprnd(operands[i], valuable, hoistsubtrees) then
-                  if valuable and hoistsubtrees then hoistit(operands[i]);
+                if invariantoprnd(operands[i].p, valuable, hoistsubtrees) then
+                  if valuable and hoistsubtrees then hoistit(operands[i].p);
                 end;
             end
           else expression := 0;
@@ -1343,8 +1343,8 @@ procedure loops;
       end {examineexpression} ;
 
 
-    procedure examineinvariant(var expression: nodeindex;
-                               previous: nodeindex);
+    procedure examineinvariant(var expression: exprptr;
+                               previous: exprptr);
 {
     Purpose:
       Examine an expression found to be invariant in an inner loop and
@@ -1525,20 +1525,20 @@ procedure loops;
             if nodetable[finalexpr].op in [forupchkop, fordnchkop, forerrchkop] then
               begin
               fixnode := finalexpr;
-              temp := nodetable[finalexpr].oprnds[1];
+              temp := nodetable[finalexpr].oprnds[1].p;
               if nodetable[temp].op = pushfinal then
                 begin
-                newoprnd := nodetable[temp].oprnds[1];
+                newoprnd := nodetable[temp].oprnds[1].p;
                 if simpleinvar(newoprnd, initexpr) and (templen = nodetable[newoprnd].len) then
                   begin
                   { delete the pushfinal op }
-                  nodetable[fixnode].oprnds[1] := newoprnd;
+                  nodetable[fixnode].oprnds[1].p := newoprnd;
                   end;
                 end;
               end
             else if nodetable[finalexpr].op = pushfinal then
               begin
-              newoprnd := nodetable[finalexpr].oprnds[1];
+              newoprnd := nodetable[finalexpr].oprnds[1].p;
               if simpleinvar(newoprnd, initexpr) and (templen = nodetable[newoprnd].len) then
                 begin
                 { delete the pushfinal op }
@@ -1552,7 +1552,6 @@ procedure loops;
           loopblk^.looplabel := newlabel;
         end;
     end {examineloop} ;
-
 
   begin {loops}
     anyinvars := false;
@@ -1625,7 +1624,7 @@ procedure loops;
 
 }
 
-  procedure improvesetexpr(expr: nodeindex);
+  procedure improvesetexpr(expr: exprptr);
 {
     Purpose:
       Fixes up bldset nodes that build an empty set.
@@ -1650,7 +1649,7 @@ procedure loops;
     var
       setexprlen: addressrange; { size ranges of expression }
       i: oprndindex;
-      oprnd: nodeindex;
+      oprnd: exprptr;
 
 
     begin {improvesetexpr}
@@ -1668,8 +1667,8 @@ procedure loops;
             for i := 1 to maxoprnd do
               if nodetable[expr].nodeoprnd[i] then
                 begin
-                oprnd := nodetable[expr].oprnds[i];
-                if (nodetable[oprnd].op = bldset) and (nodetable[oprnd].oprnds[1] = 0) and
+                oprnd := nodetable[expr].oprnds[i].p;
+                if (nodetable[oprnd].op = bldset) and (nodetable[oprnd].oprnds[1].p = 0) and
                    (nodetable[oprnd].len > setexprlen) then
                   begin {we know it is the empty set}
                   nodetable[oprnd].len := setexprlen;
@@ -1677,9 +1676,9 @@ procedure loops;
                     begin
                     nodetable[oprnd].op := intop;
                     nodetable[oprnd].nodeoprnd[1] := false;
-                    nodetable[oprnd].oprnds[1] := 0;
+                    nodetable[oprnd].oprnds[1].i := 0;
                     nodetable[oprnd].nodeoprnd[2] := false;
-                    nodetable[oprnd].oprnds[2] := 0;
+                    nodetable[oprnd].oprnds[2].i := 0;
                     end;
                   end;
                 end;
@@ -1687,7 +1686,7 @@ procedure loops;
           end;
         for i := 1 to maxoprnd do
           if nodetable[expr].nodeoprnd[i] then
-            improvesetexpr(nodetable[expr].oprnds[i]);
+            improvesetexpr(nodetable[expr].oprnds[i].p);
         end;
     end {improvesetexpr} ;
 
@@ -1767,7 +1766,7 @@ procedure smooth;
     blk: basicblockptr; { block being examined }
 
 
-  procedure smoothexpr(expression: nodeindex;
+  procedure smoothexpr(expression: exprptr;
                        initial: addressrange);
 {
     Purpose:
@@ -1802,7 +1801,7 @@ procedure smooth;
       maxlen, minlen: addressrange; { size ranges of expression }
 
 
-    procedure getsize(expr: nodeindex);
+    procedure getsize(expr: exprptr);
 {
     Purpose:
       Find the maximum and minimum size of expression rooted in expr
@@ -1862,15 +1861,15 @@ procedure smooth;
             else if (nodetable[expr].op = aindxop) or (nodetable[expr].op = setelt) or
                     (nodetable[expr].op = paindxop) then
               begin
-              smoothexpr(operands[2], targetintsize);
+              smoothexpr(operands[2].p, targetintsize);
               { prevent separate expression from influencing this expression}
               nodeoperands[2] := false;
               end
             else if nodetable[expr].op = setpair then
               begin
-              smoothexpr(operands[3], 0);
+              smoothexpr(operands[3].p, 0);
               nodeoperands[3] := false;
-              smoothexpr(operands[2], 0);
+              smoothexpr(operands[2].p, 0);
               nodeoperands[2] := false;
               end
             else if (not (nodetable[expr].form in [ints, subranges, scalars])) and
@@ -1879,9 +1878,9 @@ procedure smooth;
                     divop, stddivop, remop, quoop, kwoop, modop, stdmodop,
                     negop, shiftlop, incop, decop]) then
               begin
-              smoothexpr(operands[1], 0);
+              smoothexpr(operands[1].p, 0);
               nodeoperands[1] := false;
-              smoothexpr(operands[2], 0);
+              smoothexpr(operands[2].p, 0);
               nodeoperands[2] := false;
               end;
             end;
@@ -1889,7 +1888,7 @@ procedure smooth;
             begin
             if nodeoperands[i] then
               begin
-              getsize(operands[i]);
+              getsize(operands[i].p);
               end;
             end;
           end { action=visit}
@@ -1900,7 +1899,7 @@ procedure smooth;
       end; {getsize}
 
 
-    procedure setsize(expr: nodeindex);
+    procedure setsize(expr: exprptr);
 {
     Purpose:
       Set the size of the expression to maxlen
@@ -1961,7 +1960,7 @@ procedure smooth;
             begin
             if nodeoperands[i] then
               begin
-              setsize(operands[i]);
+              setsize(operands[i].p);
               end;
             end;
           end { action=visit}
