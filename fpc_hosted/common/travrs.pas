@@ -649,9 +649,9 @@ procedure enterloop(blkid: basicblockptr);
       with loopstack[loopdepth] do
         begin
         loopblock := blkid;
-        reads := 0;
-        writes := 0;
-        lastwrite := 0;
+        reads := nil;
+        writes := nil;
+        lastwrite := nil;
         for i := 0 to maxlevel do deadlevels[i] := false;
         fonmin := foncount;
         end;
@@ -722,13 +722,13 @@ procedure exitloop;
         end;
       loopdepth := loopdepth - 1;
       { now hook inner loops writes to this loop }
-      if (loopdepth > 0) and (bptr^.lastwrite <> 0) then
+      if (loopdepth > 0) and (bptr^.lastwrite <> nil) then
         begin
         with loopstack[loopdepth] do
           begin
-          nodetable[bptr^.lastwrite].looplink := writes;
+          bptr^.lastwrite^.looplink := writes;
           writes := bptr^.writes;
-          if lastwrite = 0 then lastwrite := bptr^.lastwrite;
+          if lastwrite = nil then lastwrite := bptr^.lastwrite;
           end;
         end;
       end;
@@ -1124,17 +1124,17 @@ procedure build;
 
 
     begin {dodefine}
-      varlev := nodetable[varp].oprnds[1].i;
-      varoffset := nodetable[varp].oprnds[2].i;
-      oprnd3 := nodetable[varp].oprnds[3].p;
+      varlev := varp^.oprnds[1].i;
+      varoffset := varp^.oprnds[2].i;
+      oprnd3 := varp^.oprnds[3].p;
 
-      if nodetable[oprnd3].action = copy then
-        oprnd3 := nodetable[oprnd3].directlink;
+      if oprnd3^.action = copy then
+        oprnd3 := oprnd3^.directlink;
 
-      nodetable[varp].invariant := false;
-      varisparam := (nodetable[oprnd3].oprnds[1].p = localparamnode) or (varlev = level) and
+      varp^.invariant := false;
+      varisparam := (oprnd3^.oprnds[1].p = localparamnode) or (varlev = level) and
                     (varoffset >= maxlong - maxregparams - maxptrregparams - maxrealregparams);
-      nodetable[varp].regcandidate := bumpvarcount(varlev, varisparam, varoffset);
+      varp^.regcandidate := bumpvarcount(varlev, varisparam, varoffset);
 
       { if in a loop, add this to the writes for the loop, and kill the reads }
 
@@ -1147,38 +1147,38 @@ procedure build;
           begin
           with loopstack[loopdepth] do
             begin
-            if nodetable[varp].looplink <> 0 then
-              writeln('write looplink <> 0 var ', varp: 1, ' block ', blockref:
+            if varp^.looplink <> nil then
+              writeln('write looplink <> nil var ', varp^.nodecount: 1, ' block ', blockref:
                       1);
-            nodetable[varp].looplink := writes;
+            varp^.looplink := writes;
             writes := varp;
-            if lastwrite = 0 then lastwrite := varp;
+            if lastwrite = nil then lastwrite := varp;
 
             { on this level, kill any reads of this var }
 
-            prev := 0;
+            prev := nil;
             now := reads;
-            while (now <> 0) do
+            while (now <> nil) do
               begin
-              if varoffset = nodetable[now].oprnds[2].i then
-                found := (varlev = nodetable[now].oprnds[1].i)
+              if varoffset = now^.oprnds[2].i then
+                found := (varlev = now^.oprnds[1].i)
               else found := false;
               if found then
                 begin
-                nodetable[now].invariant := false;
-                if prev <> 0 then
+                now^.invariant := false;
+                if prev <> nil then
                   begin
-                  nodetable[prev].looplink := nodetable[now].looplink;
+                  prev^.looplink := now^.looplink;
                   end
-                else reads := nodetable[now].looplink;
-                now := nodetable[now].looplink;
+                else reads := now^.looplink;
+                now := now^.looplink;
                 { isolate the node }
-                nodetable[now].looplink := 0;
+                now^.looplink := nil;
                 end
               else
                 begin
                 prev := now;
-                now := nodetable[now].looplink;
+                now := now^.looplink;
                 end;
               end; {while}
             end; {with}
@@ -1225,16 +1225,16 @@ procedure build;
 
     begin {doreference}
 
-      varlev := nodetable[varp].oprnds[1].i;
-      varoffset := nodetable[varp].oprnds[2].i;
+      varlev := varp^.oprnds[1].i;
+      varoffset := varp^.oprnds[2].i;
 
-      oprnd3 := nodetable[varp].oprnds[3].p;
-      if nodetable[oprnd3].action = copy then
-        oprnd3 := nodetable[oprnd3].directlink;
+      oprnd3 := varp^.oprnds[3].p;
+      if oprnd3^.action = copy then
+        oprnd3 := oprnd3^.directlink;
 
-      varisparam := (nodetable[oprnd3].oprnds[1].p = localparamnode) or (varlev = level) and
+      varisparam := (oprnd3^.oprnds[1].p = localparamnode) or (varlev = level) and
                     (varoffset >= maxlong - maxregparams - maxptrregparams - maxrealregparams);
-      nodetable[varp].regcandidate := bumpvarcount(varlev, varisparam, varoffset);
+      varp^.regcandidate := bumpvarcount(varlev, varisparam, varoffset);
 
       { if in a loop, determine if modified in it yet }
       { If we have overflowed loopstack, then since invariant is
@@ -1250,24 +1250,24 @@ procedure build;
       }
       { if already marked invariant, can't be written, is cse }
 
-      if (loopdepth > 0) and (loopoverflow = 0) and not nodetable[varp].invariant then
+      if (loopdepth > 0) and (loopoverflow = 0) and not varp^.invariant then
         begin
 
         { eliminate operands we are sure are written quickly.
-        written := loopstack[loopdepth].deadlevels[varlev] or  nodetable[varp].target;
+        written := loopstack[loopdepth].deadlevels[varlev] or  varp^.target;
         }
 
-        if not (loopstack[loopdepth].deadlevels[varlev] or nodetable[varp].target) then
+        if not (loopstack[loopdepth].deadlevels[varlev] or varp^.target) then
           begin
           { must check the write list }
           j := loopstack[loopdepth].writes;
           found := false;
-          while (j <> 0) and (not found) do
+          while (j <> nil) and (not found) do
             begin
-            if varoffset = nodetable[j].oprnds[2].i then
-              found := (varlev = nodetable[j].oprnds[1].i)
+            if varoffset = j^.oprnds[2].i then
+              found := (varlev = j^.oprnds[1].i)
             else found := false;
-            j := nodetable[j].looplink;
+            j := j^.looplink;
             end;
           if not found then
             begin
@@ -1278,10 +1278,10 @@ procedure build;
               is already linked in.
             }
 
-            if not nodetable[varp].invariant then
+            if not varp^.invariant then
               begin
-              nodetable[varp].invariant := true;
-              nodetable[varp].looplink := loopstack[loopdepth].reads;
+              varp^.invariant := true;
+              varp^.looplink := loopstack[loopdepth].reads;
               loopstack[loopdepth].reads := varp;
               end;
             end;
@@ -1333,28 +1333,28 @@ procedure build;
           that are within bounds.
         }
           { on this level, kill any reads of this var }
-          prev := 0;
+          prev := nil;
           now := reads;
-          while now <> 0 do
+          while now <> nil do
             begin
-            varlev := nodetable[now].oprnds[1].i;
+            varlev := now^.oprnds[1].i;
 
             if (varlev <= upper) and (varlev >= lower) then
               begin
-              nodetable[now].invariant := false;
-              if prev <> 0 then
+              now^.invariant := false;
+              if prev <> nil then
                 begin
-                nodetable[prev].looplink := nodetable[now].looplink;
+                prev^.looplink := now^.looplink;
                 end
-              else reads := nodetable[now].looplink;
-              now := nodetable[now].looplink;
+              else reads := now^.looplink;
+              now := now^.looplink;
               { isolate the node }
-              nodetable[now].looplink := 0;
+              now^.looplink := nil;
               end
             else
               begin
               prev := now;
-              now := nodetable[now].looplink;
+              now := now^.looplink;
               end;
             end;
           end;
@@ -1395,9 +1395,9 @@ procedure build;
 
     begin {killasreg}
 
-      while nodetable[varp].op = commaop do
+      while varp^.op = commaop do
         begin
-        varp := nodetable[varp].oprnds[2].p;
+        varp := varp^.oprnds[2].p;
         end;
 
         { Verify that operand is a variable.  Pushaddr also takes
@@ -1405,17 +1405,17 @@ procedure build;
           etc., which are ok but ignored here.
         }
 
-      if (nodetable[varp].op in [varop, unsvarop, newvarop, newunsvarop]) and
-         (nodetable[varp].oprnds[1].i = level) then
+      if (varp^.op in [varop, unsvarop, newvarop, newunsvarop]) and
+         (varp^.oprnds[1].i = level) then
         begin
-        varlev := nodetable[varp].oprnds[1].i;
-        varoffset := nodetable[varp].oprnds[2].i;
-        oprnd3 := nodetable[varp].oprnds[3].p;
+        varlev := varp^.oprnds[1].i;
+        varoffset := varp^.oprnds[2].i;
+        oprnd3 := varp^.oprnds[3].p;
 
-        if nodetable[oprnd3].action = copy then
-          oprnd3 := nodetable[oprnd3].directlink;
+        if oprnd3^.action = copy then
+          oprnd3 := oprnd3^.directlink;
 
-          varisparam := (nodetable[oprnd3].oprnds[1].p = localparamnode) or (varlev = level) and
+          varisparam := (oprnd3^.oprnds[1].p = localparamnode) or (varlev = level) and
                     (varoffset >= maxlong - maxregparams - maxptrregparams - maxrealregparams);
 
         i := hashvaroffset(varoffset);
@@ -1425,7 +1425,7 @@ procedure build;
           i := (i + 1) mod (regtablelimit + 1);
         if regvars[i].worth >= 0 then
           begin
-          nodetable[varp].regcandidate := false;
+          varp^.regcandidate := false;
           regvars[i].registercandidate := false;
           end;
         end;
@@ -1485,7 +1485,7 @@ procedure build;
         begin
         isdead := deadcode and (removedeadcode in genset);
         visited := visitstate;
-        precode := 0;
+        precode := nil;
         beginstmt := nil;
         forcelabel := false;
         loophdr := false;
@@ -1503,16 +1503,15 @@ procedure build;
           willexecute := false;
           deadloop := false;
           looplabel := 0;
-          reads := 0;
-          writes := 0;
-          lastwrite := 0;
+          reads := nil;
+          writes := nil;
+          lastwrite := nil;
           for l := 0 to maxlevel do deadlevels[l] := false;
           end;
         end; {with}
 
       if (predblock <> nil) then addpredsuccs(predblock, currentblock);
     end {newblock} ;
-
 
   procedure newstmt(var p: stmtptr; {resulting statement node}
                     s: stmthdrtype {type of node to make} );
@@ -1656,7 +1655,7 @@ procedure build;
             end;
           casehdr:
             begin
-            selector := 0;
+            selector := nil;
             casedefptr := nil;
             elements := nil;
             joinblock := nil;
@@ -1674,8 +1673,9 @@ procedure build;
           whilehdr, rpthdr, ifhdr, foruphdr, fordnhdr, withhdr, simplehdr,
           syscallhdr, untilhdr, cforhdr, cforbothdr, forbothdr, nohdr:
             begin
-            expr1 := 0;
-            expr2 := 0;
+            expr1 := nil;
+            expr2 := nil;
+            intvalue := 0;
             has_break := false;
             trueblock := nil;
             falseblock := nil;
@@ -1691,55 +1691,6 @@ procedure build;
           end {case}
       end; {with}
     end {newstmt} ;
-
-
-  procedure newexprnode(var n: exprptr {resulting new node} );
-
-{ Allocates a new expression node in the virtual node space and initializes
-  its fields.
-}
-
-
-    begin
-      if lastnode = tnodetablesize then compilerabort(manynodes)
-      else
-        begin
-        lastnode := lastnode + 1;
-        if lastnode > maxnodes then maxnodes := lastnode;
-        n := lastnode;
-        with nodetable[lastnode] do
-          begin
-          op := endexpr;
-          form := none;
-          action := visit;
-          refcount := 0;
-          copycount := 0;
-          valid := false;
-          mustinvalidate := false;
-          join := false;
-          target := false;
-          relation := false;
-          shortevaluation := false;
-          local := false;
-          invariant := false;
-          nodeoprnd[1] := false;
-          nodeoprnd[2] := false;
-          nodeoprnd[3] := false;
-          cost := 0;
-          prelink := 0;
-          hoistedby := nil;
-          looplink := 0;
-          slink := 0;
-          len := 0;
-          hasvalue := false;
-          ownvar := false;
-          oprnds[1].i := 0;
-          oprnds[2].i := 0;
-          oprnds[3].i := 0;
-          oldlink := 0;
-          end;
-        end;
-    end {newexprnode} ;
 
 
   function hash(op: operatortype; {operator of this node}
@@ -1793,7 +1744,7 @@ procedure build;
       dead_level := nil;
       swbreak_found := false;
       caselab_found := false;
-      newexprnode(n);
+      newexpr(n);
 
       withsp := 0;
       forsp := 0;
@@ -1809,7 +1760,7 @@ procedure build;
 
       with context[2] do
         begin
-        for i := 0 to nodehashsize do opmap[i] := 0;
+        for i := 0 to nodehashsize do opmap[i] := nil;
         searchlevel := 2;
         joinflag := false;
         dominates := true;
@@ -1884,7 +1835,7 @@ procedure build;
       else
         begin
         { no lifetimes set region to encompass entire block }
-        regvars[0].varlife.lonmax := tnodetablesize;
+        regvars[0].varlife.lonmax := tnodecountmax;
         regvars[0].varlife.fonmin := 0;
         regvars[0].varlife.fonmax := shortmaxint;
         end;
@@ -1963,7 +1914,7 @@ procedure build;
       foncount := 0;
       loopfactor := 1; {every ref equal 1 ref }
       irreducible := false;
-      localparamnode := 0;
+      localparamnode := nil;
       stmtlist := nil;
       stmtcount := 0;
     end {initbuild} ;
@@ -1988,12 +1939,12 @@ procedure build;
       if (op >= intop) then
         with context[contextlevel] do
           begin
-          nodetable[n].slink := opmap[hashvalue];
+          n^.slink := opmap[hashvalue];
           { operators at contextlevels zero or one are hoisted for free }
           if contextlevel <= 1 then
             begin
-            nodetable[n].prelink := nodetable[n].slink;
-            nodetable[n].hoistedby := root;
+            n^.prelink := n^.slink;
+            n^.hoistedby := root;
             end;
           opmap[hashvalue] := n;
           end;
@@ -2015,9 +1966,9 @@ procedure build;
       for i := context[contextsp].searchlevel to contextsp do
         begin
         n := context[i].opmap[0];
-        while n <> 0 do
+        while n <> nil do
           begin
-          with nodetable[n] do
+          with n^ do
             begin
             if op = ptrchkop then
               if i = contextsp then
@@ -2065,12 +2016,12 @@ procedure build;
           begin
           firstblock := nil;
           joinflag := false;
-          for i := 0 to nodehashsize do opmap[i] := 0;
+          for i := 0 to nodehashsize do opmap[i] := nil;
           for i := searchlevel to contextsp do
             begin
             n := context[i].opmap[0];
-            while n <> 0 do
-              with nodetable[n] do
+            while n <> nil do
+              with n^ do
                 begin
                 if valid then
                   begin
@@ -2115,7 +2066,7 @@ procedure build;
         overflowdepth := overflowdepth - 1;
         { since we've lost track assume the worst }
         context[contextsp].dominates := false;
-        for i := 0 to nodehashsize do context[contextdepth].opmap[i] := 0;
+        for i := 0 to nodehashsize do context[contextdepth].opmap[i] := nil;
         end
       else
         begin
@@ -2125,9 +2076,9 @@ procedure build;
           for i := searchlevel to contextsp do
             begin
             n := context[i].opmap[0];
-            while n <> 0 do
+            while n <> nil do
               begin
-              with nodetable[n] do
+              with n^ do
                 begin
                 join := join or not valid;
                 if deepestvalid > contextsp then
@@ -2165,7 +2116,7 @@ procedure build;
         overflowdepth := overflowdepth - 1;
         { since we've lost track assume the worst }
         context[contextsp].dominates := false;
-        for i := 0 to nodehashsize do context[contextdepth].opmap[i] := 0;
+        for i := 0 to nodehashsize do context[contextdepth].opmap[i] := nil;
         end
       else
         begin
@@ -2175,8 +2126,8 @@ procedure build;
           for i := searchlevel to contextsp do
             begin
             n := context[i].opmap[0];
-            while n <> 0 do
-              with nodetable[n] do
+            while n <> nil do
+              with n^ do
                 begin
                 join := join or not valid;
                 if deepestvalid > contextsp then deepestvalid := contextsp;
@@ -2212,7 +2163,7 @@ procedure build;
     begin
       with context[contextsp] do
         begin
-        for i := 0 to nodehashsize do opmap[i] := 0;
+        for i := 0 to nodehashsize do opmap[i] := nil;
         if not (deadcode and (removedeadcode in genset)) then
           for i := 2 to contextsp - 1 do context[i].joinflag := true;
         searchlevel := contextsp;
@@ -2248,16 +2199,16 @@ procedure build;
         if joinflag then
           begin
           searchlevel := contextsp;
-          for i := 0 to nodehashsize do opmap[i] := 0;
+          for i := 0 to nodehashsize do opmap[i] := nil;
           end
         else
           begin
           for i := searchlevel to contextsp do
             begin
             n := context[i].opmap[0];
-            while n <> 0 do
+            while n <> nil do
               begin
-              with nodetable[n] do
+              with n^ do
                 begin
                 if deepestvalid > contextsp then deepestvalid := contextsp;
                 if join then valid := false;
@@ -2336,9 +2287,9 @@ procedure build;
 
 
       begin
-        while n <> 0 do
+        while n <> nil do
           begin
-          with nodetable[n] do
+          with n^ do
             begin
             if valid and mustinvalidate then
               begin
@@ -2404,9 +2355,9 @@ procedure build;
           if loopdepth > 0 then loopkill(low, high);
           for i := context[contextsp].searchlevel to contextsp do
             begin
-            while n <> 0 do
+            while n <> nil do
               begin
-              with nodetable[n] do
+              with n^ do
                 begin
                 if not regcandidate and (op in [varop, unsvarop]) and
                    (oprnds[1].i >= low) and (oprnds[1].i <= high) then
@@ -2424,33 +2375,33 @@ procedure build;
 
 
     begin {updatenewvars}
-      while (newvarcount > 0) and (root <> 0) do
-        if nodetable[root].action = visit then
+      while (newvarcount > 0) and (root <> nil) do
+        if root^.action = visit then
           begin
-          if (nodetable[root].op = newvarop) or (nodetable[root].op = newunsvarop) then
+          if (root^.op = newvarop) or (root^.op = newunsvarop) then
             begin
             newvarcount := newvarcount - 1;
-            if nodetable[root].op = newvarop then newop := varop
+            if root^.op = newvarop then newop := varop
             else newop := unsvarop;
-            nodetable[root].op := newop;
+            root^.op := newop;
             if language = c then
               begin
-              if nodetable[root].oprnds[2].i = ptr_any_off then killvars(1, level)
-              else if nodetable[root].oprnds[2].i = ptr_ext_off then killvars(1, 1)
-              else if nodetable[root].oprnds[2].i = ptr_loc_off then killvars(level, level);
+              if root^.oprnds[2].i = ptr_any_off then killvars(1, level)
+              else if root^.oprnds[2].i = ptr_ext_off then killvars(1, 1)
+              else if root^.oprnds[2].i = ptr_loc_off then killvars(level, level);
               end;
             addopmap(root, newop, 0, contextsp);
             end
           else
             begin
             for cnt := 1 to 3 do
-              if nodetable[root].nodeoprnd[cnt] and (newvarcount > 0) then
-                updatenewvars(nodetable[root].oprnds[cnt].p);
-            if nodetable[root].op < intop then root := nodetable[root].slink
-            else root := 0;
+              if root^.nodeoprnd[cnt] and (newvarcount > 0) then
+                updatenewvars(root^.oprnds[cnt].p);
+            if root^.op < intop then root := root^.slink
+            else root := nil;
             end
           end
-        else root := 0;
+        else root := nil;
     end {updatenewvars} ;
 
 
@@ -2525,24 +2476,24 @@ procedure build;
           { top of stack is a movelit examine left hand side }
 
           thenode := movenode;
-          if nodetable[thenode].op = movelit then
-            thevalue := nodetable[thenode].oprnds[2].i
+          if thenode^.op = movelit then
+            thevalue := thenode^.oprnds[2].i
           else
             begin
-            thenode := nodetable[thenode].oprnds[1].p;
-            thevalue := nodetable[thenode].oprnds[1].i;
+            thenode := thenode^.oprnds[1].p;
+            thevalue := thenode^.oprnds[1].i;
             end;
-          thevar := nodetable[thenode].oprnds[1].p;
+          thevar := thenode^.oprnds[1].p;
           { access the (new)varop }
           { see if it is simple }
-          thenode := nodetable[thevar].oprnds[3].p;
-          if nodetable[thenode].op = indxop then
+          thenode := thevar^.oprnds[3].p;
+          if thenode^.op = indxop then
             begin
-            thenode := nodetable[thenode].oprnds[1].p;
-            if nodetable[thenode].op = levop then
+            thenode := thenode^.oprnds[1].p;
+            if thenode^.op = levop then
               begin
-              nodetable[thevar].hasvalue := true;
-              nodetable[thevar].value := thevalue;
+              thevar^.hasvalue := true;
+              thevar^.value := thevalue;
               end;
             end;
 
@@ -2596,16 +2547,16 @@ procedure build;
                     begin
                     n1 := firstblock^.precode;
                     foundcopy := false;
-                    while (n1 <> 0) and not foundcopy do
+                    while (n1 <> nil) and not foundcopy do
                       begin
                       n2 := n1;
-                      foundcopy := (nodetable[n1].oldlink = p);
-                      n1 := nodetable[n1].prelink;
+                      foundcopy := (n1^.oldlink = p);
+                      n1 := n1^.prelink;
                       end;
                     if not foundcopy then
                       begin
-                      newexprnode(n2);
-                      with nodetable[n2] do
+                      newexpr(n2);
+                      with n2^ do
                         begin
                         refcount := 0;
                         copycount := 0;
@@ -2617,7 +2568,7 @@ procedure build;
                         end;
                       firstblock^.precode := n2;
                       end;
-                    with nodetable[p] do
+                    with p^ do
                       begin
                       refcount := refcount + 1;
                       if action = visit then
@@ -2693,20 +2644,20 @@ procedure build;
           }
 
             begin {onecompare}
-              with nodetable[nindex] do
+              with nindex^ do
                 if n.oprndlist[i].litflag = not nodeoprnd[i] then
                   if nodeoprnd[i] then
-                    if nodetable[oprnds[i].p].action = copy then
-                      onecompare := n.oprndlist[i].p = nodetable[oprnds[i].p].directlink
+                    if oprnds[i].p^.action = copy then
+                      onecompare := n.oprndlist[i].p = oprnds[i].p^.directlink
                     else onecompare := n.oprndlist[i].p = oprnds[i].p
                   else onecompare := n.oprndlist[i].i = oprnds[i].i
                 else onecompare := false;
             end {onecompare};
 
           begin {compare}
-            equal := nodetable[nindex].valid and (n.op = nodetable[nindex].op) and
-                     (n.form = nodetable[nindex].form) and
-                     (n.len = nodetable[nindex].len);
+            equal := nindex^.valid and (n.op = nindex^.op) and
+                     (n.form = nindex^.form) and
+                     (n.len = nindex^.len);
             if equal then
               case language of
                 pascal, modula2:
@@ -2715,7 +2666,7 @@ procedure build;
                   else equal := onecompare(1) and onecompare(2) and onecompare(3);
                 c:
                   if n.op = realop then
-                    equal := fpcomp(n.rval, nodetable[nindex].realvalue) = 0
+                    equal := fpcomp(n.rval, nindex^.realvalue) = 0
                   else equal := onecompare(1) and onecompare(2) and onecompare(3);
                 end;
           end {compare} ;
@@ -2746,9 +2697,9 @@ procedure build;
                   buildproperptr(oprndlist[i1], contextlevel);
                   if not litflag then increfcount(p, deadcode, 1);
                   end;
-            newexprnode(newptr);
+            newexpr(newptr);
             addopmap(newptr, n.op, hashvalue, contextlevel);
-            with nodetable[newptr] do
+            with newptr^ do
               begin
               refcount := 0;
               copycount := 0;
@@ -2805,15 +2756,15 @@ procedure build;
               n1 := context[contextlevel].opmap[hash(n.op, n.oprndlist[1].i,
                                                      n.oprndlist[2].i)];
               found := false;
-              while not found and (n1 <> 0) do
+              while not found and (n1 <> nil) do
                 begin
                 compare(n1, found);
                 nindex := n1;
-                n1 := nodetable[n1].slink;
+                n1 := n1^.slink;
                 end;
-              if not found then nindex := 0;
+              if not found then nindex := nil;
               end
-            else nindex := 0;
+            else nindex := nil;
           end {searchcontext} ;
 
 
@@ -2824,7 +2775,7 @@ procedure build;
           if (deadcode and (removedeadcode in genset)) then
             contextlevel := contextsp;
           level := contextlevel + 1;
-          insertindex := 0;
+          insertindex := nil;
           if {not isunique and }(n.op >= intop) and (n.form <> bools) and
              ((n.op <> sysfn) or (n.oprndlist[1].i <> ord(timeid))) and
              ((call_depth = 0) or (cond_depth = 0) or (contextlevel = 1) or
@@ -2833,11 +2784,11 @@ procedure build;
               repeat
                 level := level - 1;
                 searchcontext(level, insertindex);
-              until (level = searchlevel) or (insertindex <> 0);
+              until (level = searchlevel) or (insertindex <> nil);
 
           { if we didn't find it add it into the graph }
 
-          if insertindex <> 0 then
+          if insertindex <> nil then
             begin
             lev := level;
             insertexpression := insertindex;
@@ -2940,12 +2891,12 @@ procedure build;
           begin {binaryfold}
             left := oldoperands[1].p;
             right := oldoperands[2].p;
-            if (nodetable[left].op = intop) and (nodetable[left].action = visit) then
+            if (left^.op = intop) and (left^.action = visit) then
               begin
-              if (nodetable[right].op = intop) and (nodetable[right].action = visit) then
+              if (right^.op = intop) and (right^.action = visit) then
                 begin
                 { fold it return new root }
-                signedop(nodetable[left].oprnds[1].i, nodetable[right].oprnds[1].i,
+                signedop(left^.oprnds[1].i, right^.oprnds[1].i,
                          newnode.oprndlist[1].i, overflow);
                 if not overflow then
                   begin
@@ -2977,7 +2928,7 @@ procedure build;
                 { search rest of expression for another intop }
                 end;
               end
-            else if (nodetable[right].action = visit) and (nodetable[right].op = intop) and
+            else if (right^.action = visit) and (right^.op = intop) and
                     (associate <> endexpr) then
               begin
               { search rest of expression for another intop }
@@ -3009,42 +2960,42 @@ procedure build;
             begin
             changes := false;
             current := root;
-            while current <> 0 do
+            while current <> nil do
               begin
-              nextroot := 0;
-              if (nodetable[current].action = visit) then
+              nextroot := nil;
+              if (current^.action = visit) then
                 begin
-                if (nodetable[current].op < intop) then nextroot := nodetable[current].slink;
+                if (current^.op < intop) then nextroot := current^.slink;
           { can't simplify any cse's since we would have to find the
             other reference(s) to this node.
           }
-                if (nodetable[current].form in
+                if (current^.form in
                    [none, ints, chars, subranges, bools, scalars]) and
-                   (nodetable[current].refcount <= 1) then
+                   (current^.refcount <= 1) then
                   begin
-                  op := nodetable[current].op;
-                  oldoperands := nodetable[current].oprnds;
+                  op := current^.op;
+                  oldoperands := current^.oprnds;
                   newoperands := oldoperands;
-                  nodeoperands := nodetable[current].nodeoprnd;
+                  nodeoperands := current^.nodeoprnd;
                   for i := 1 to 3 do
                     begin
                     if nodeoperands[i] then
                       begin
                       if simplify(newoperands[i].p) then
                         begin
-                        if nodetable[oldoperands[i].p].action = visit then
-                          if (nodetable[oldoperands[i].p].op < intop) and
-                             (nodetable[oldoperands[i].p].op > newunsvarop) then
-                            while nodetable[oldoperands[i].p].slink <> 0 do
-                              oldoperands[i].p := nodetable[oldoperands[i].p].slink;
-                        nodetable[oldoperands[i].p].refcount := nodetable[oldoperands[i].p].refcount - 1;
-                        nodetable[oldoperands[i].p].valid := nodetable[oldoperands[i].p].refcount > 0;
+                        if oldoperands[i].p^.action = visit then
+                          if (oldoperands[i].p^.op < intop) and
+                             (oldoperands[i].p^.op > newunsvarop) then
+                            while oldoperands[i].p^.slink <> nil do
+                              oldoperands[i].p := oldoperands[i].p^.slink;
+                        oldoperands[i].p^.refcount := oldoperands[i].p^.refcount - 1;
+                        oldoperands[i].p^.valid := oldoperands[i].p^.refcount > 0;
                         changes := true;
                         end;
                       end;
                     end;
                   { make the changes in this node }
-                  if changes then nodetable[current].oprnds := newoperands;
+                  if changes then current^.oprnds := newoperands;
                   { now can we simplify this node }
                   case op of
                     defforindexop, defunsforindexop, moveop, pushvalue:
@@ -3052,7 +3003,7 @@ procedure build;
               { if previous changes made oprnd[opnum] constant
                 change to lit type.  However don't count as a change
                 since it is harmless }
-                      case nodetable[current].op of
+                      case current^.op of
                         defforindexop:
                           begin
                           opnum := 3;
@@ -3075,15 +3026,15 @@ procedure build;
                           end;
                         otherwise
                         end;
-                      if (nodetable[newoperands[opnum].p].op = intop) and
-                         (nodetable[newoperands[opnum].p].action = visit) then
+                      if (newoperands[opnum].p^.op = intop) and
+                         (newoperands[opnum].p^.action = visit) then
                         begin
                         { remove ref count from the intop }
-                        intvalue := nodetable[newoperands[opnum].p].oprnds[1].i;
-                        nodetable[newoperands[opnum].p].refcount := nodetable[newoperands[opnum].p].refcount - 1;
-                        nodetable[current].op := newop;
-                        nodetable[current].nodeoprnd[opnum] := false;
-                        nodetable[current].oprnds[opnum].i := intvalue;
+                        intvalue := newoperands[opnum].p^.oprnds[1].i;
+                        newoperands[opnum].p^.refcount := newoperands[opnum].p^.refcount - 1;
+                        current^.op := newop;
+                        current^.nodeoprnd[opnum] := false;
+                        current^.oprnds[opnum].i := intvalue;
                         if (newop = movelit) and (propagation in genset) then
                           assignvalue(current);
                         end;
@@ -3091,32 +3042,32 @@ procedure build;
                     lssop, leqop, neqop, eqop, gtrop, geqop:
                       begin
                       { if foldable do it, or if convertable to lit type do it }
-                      if (nodetable[newoperands[2].p].op = intop) and
-                         (nodetable[newoperands[2].p].action = visit) then
+                      if (newoperands[2].p^.op = intop) and
+                         (newoperands[2].p^.action = visit) then
                         begin
                         { at least convert to lit form }
-                        intvalue := nodetable[newoperands[2].p].oprnds[1].p;
-                        if (nodetable[newoperands[1].p].op = intop) and
-                           (nodetable[newoperands[1].p].action = visit) then
+                        intvalue := newoperands[2].p^.oprnds[1].i;
+                        if (newoperands[1].p^.op = intop) and
+                           (newoperands[1].p^.action = visit) then
                           case op of
-                            lsslit: result := intvalue < nodetable[newoperands[1].p].oprnds[1].i;
-                            leqlit: result := intvalue <= nodetable[newoperands[1].p].oprnds[1].i;
-                            gtrlit: result := intvalue > nodetable[newoperands[1].p].oprnds[1].i;
-                            geqlit: result := intvalue >= nodetable[newoperands[1].p].oprnds[1].i;
-                            eqlit: result := intvalue = nodetable[newoperands[1].p].oprnds[1].i;
-                            neqlit: result := intvalue <> nodetable[newoperands[1].p].oprnds[1].i;
+                            lsslit: result := intvalue < newoperands[1].p^.oprnds[1].i;
+                            leqlit: result := intvalue <= newoperands[1].p^.oprnds[1].i;
+                            gtrlit: result := intvalue > newoperands[1].p^.oprnds[1].i;
+                            geqlit: result := intvalue >= newoperands[1].p^.oprnds[1].i;
+                            eqlit: result := intvalue = newoperands[1].p^.oprnds[1].i;
+                            neqlit: result := intvalue <> newoperands[1].p^.oprnds[1].i;
                             end
                         else
                           begin
-                          nodetable[current].nodeoprnd[2] := false;
-                          nodetable[current].oprnds[2].i := intvalue;
+                          current^.nodeoprnd[2] := false;
+                          current^.oprnds[2].i := intvalue;
                           case op of
-                            lssop: nodetable[current].op := lsslit;
-                            leqop: nodetable[current].op := leqlit;
-                            neqop: nodetable[current].op := neqlit;
-                            eqop: nodetable[current].op := eqlit;
-                            gtrop: nodetable[current].op := gtrlit;
-                            geqop: nodetable[current].op := geqlit;
+                            lssop: current^.op := lsslit;
+                            leqop: current^.op := leqlit;
+                            neqop: current^.op := neqlit;
+                            eqop: current^.op := eqlit;
+                            gtrop: current^.op := gtrlit;
+                            geqop: current^.op := geqlit;
                             end;
                           end;
                         end
@@ -3124,8 +3075,8 @@ procedure build;
                     lsslit, leqlit, eqlit, neqlit, gtrlit, geqlit:
                       begin
                       intvalue := oldoperands[2].i; {???}
-                      if false and (nodetable[newoperands[1].p].op = intop) and
-                         (nodetable[newoperands[1].p].action = visit) then
+                      if false and (newoperands[1].p^.op = intop) and
+                         (newoperands[1].p^.action = visit) then
                         begin
                   { can't really do the folding here yet since operands
                     could be unsigned and that will surely give wrong
@@ -3133,12 +3084,12 @@ procedure build;
                   }
                         changes := true;
                         case op of
-                          lsslit: result := intvalue < nodetable[newoperands[1].p].oprnds[1].i;
-                          leqlit: result := intvalue <= nodetable[newoperands[1].p].oprnds[1].i;
-                          gtrlit: result := intvalue > nodetable[newoperands[1].p].oprnds[1].i;
-                          geqlit: result := intvalue >= nodetable[newoperands[1].p].oprnds[1].i;
-                          eqlit: result := intvalue = nodetable[newoperands[1].p].oprnds[1].i;
-                          neqlit: result := intvalue <> nodetable[newoperands[1].p].oprnds[1].i;
+                          lsslit: result := intvalue < newoperands[1].p^.oprnds[1].i;
+                          leqlit: result := intvalue <= newoperands[1].p^.oprnds[1].i;
+                          gtrlit: result := intvalue > newoperands[1].p^.oprnds[1].i;
+                          geqlit: result := intvalue >= newoperands[1].p^.oprnds[1].i;
+                          eqlit: result := intvalue = newoperands[1].p^.oprnds[1].i;
+                          neqlit: result := intvalue <> newoperands[1].p^.oprnds[1].i;
                           end
                         end;
                       end;
@@ -3210,7 +3161,7 @@ procedure build;
 
 
         procedure clear_expr(expr: exprptr; {expression to clear}
-                             mark: exprptr {last valid node} );
+                             mark: nodecountrange {last valid node} );
 
 { Scan an expression and invalidate all nodes which are later than "mark".
   This is used for conditional expressions, which may generate values on
@@ -3226,14 +3177,14 @@ procedure build;
 
 
           begin
-            if expr > mark then
-              with nodetable[expr] do
+            if expr^.nodecount > mark then
+              with expr^ do
                 begin
                 valid := false;
                 if action in [visit, revisit] then
                   for i := 1 to 3 do
                     if nodeoprnd[i] then clear_expr(oprnds[i].p, mark);
-                    if (slink <> 0) and (op < intop) then
+                    if (slink <> nil) and (op < intop) then
                       clear_expr(slink, mark);
                 end;
           end; {clear_expr}
@@ -3268,15 +3219,15 @@ procedure build;
 
 
             begin {define_target}
-              if n <> 0 then
+              if n <> nil then
                 begin
 
-                if nodetable[n].action = copy then
-                  n := nodetable[n].directlink;
+                if n^.action = copy then
+                  n := n^.directlink;
 
-                op := nodetable[n].op;
-                oprnds := nodetable[n].oprnds;
-                nodeoprnd := nodetable[n].nodeoprnd;
+                op := n^.op;
+                oprnds := n^.oprnds;
+                nodeoprnd := n^.nodeoprnd;
                 for i := 1 to 3 do
                   if nodeoprnd[i] then define_target(oprnds[i].p);
                 if targfound and
@@ -3284,8 +3235,8 @@ procedure build;
                   begin
                   if (targlev = oprnds[1].i) and (targoff = oprnds[2].i) then
                     begin
-                    nodetable[n].target := true;
-                    nodetable[n].mustinvalidate := true;
+                    n^.target := true;
+                    n^.mustinvalidate := true;
                     end;
                   end
                 else if (op = newvarop) or (op = newunsvarop) then
@@ -3393,18 +3344,18 @@ procedure build;
             begin
               insertnormal;
               newexprnode := stack[sp].p;
-              if nodetable[newexprnode].oprnds[1].p <> 0 then
+              if newexprnode^.oprnds[1].p <> nil then
                 begin
-                prevnode := nodetable[newexprnode].oprnds[1].p;
-                if nodetable[prevnode].action = visit then
-                  if (nodetable[prevnode].op > newunsvarop) and (nodetable[prevnode].op < intop) then
+                prevnode := newexprnode^.oprnds[1].p;
+                if prevnode^.action = visit then
+                  if (prevnode^.op > newunsvarop) and (prevnode^.op < intop) then
                     begin
-                    stack[sp].p := nodetable[newexprnode].oprnds[1].p;
-                    nodetable[newexprnode].oprnds[1].p := 0;
-                    nodetable[newexprnode].nodeoprnd[1] := false;
-                    while nodetable[prevnode].slink <> 0 do
-                      prevnode := nodetable[prevnode].slink;
-                    nodetable[prevnode].slink := newexprnode;
+                    stack[sp].p := newexprnode^.oprnds[1].p;
+                    newexprnode^.oprnds[1].p := nil;
+                    newexprnode^.nodeoprnd[1] := false;
+                    while prevnode^.slink <> nil do
+                      prevnode := prevnode^.slink;
+                    prevnode^.slink := newexprnode;
                     end;
                 end;
             end; {insertsequential}
@@ -3539,9 +3490,9 @@ procedure build;
 
 
               begin
-                while nindex <> 0 do
+                while nindex <> nil do
                   begin
-                  with nodetable[nindex] do
+                  with nindex^ do
                     begin
                     if (op in [varop, unsvarop]) and
                        (oprnds[1].i >= l) and (oprnds[1].i <= u) and
@@ -3643,15 +3594,15 @@ procedure build;
 
 
               begin {reverse}
-                if nodetable[current].slink = 0 then
+                if current^.slink = nil then
                   begin
                   reverse := current;
-                  nodetable[current].slink := previous;
+                  current^.slink := previous;
                   end
                 else
                   begin
-                  reverse := reverse(nodetable[current].slink, current);
-                  nodetable[current].slink := previous;
+                  reverse := reverse(current^.slink, current);
+                  current^.slink := previous;
                   end;
               end {reverse} ;
 
@@ -3687,7 +3638,7 @@ procedure build;
                 }
               if reverseparms then
                 { first on list is the reserve }
-                nodetable[reserve].slink := reverse(nodetable[reserve].slink, 0);
+                reserve^.slink := reverse(reserve^.slink, nil);
               proctable[blockref].leaf := false;
             end {callnode} ;
 
@@ -3732,15 +3683,15 @@ procedure build;
               insertnormal;
               { if the var has a value assigned use that instead }
               {travrs does not yet handle extended range variables...}
-              if nodetable[stack[sp].p].hasvalue and ((n.op = varop) or
-                 (nodetable[stack[sp].p].value > 0)) then
+              if stack[sp].p^.hasvalue and ((n.op = varop) or
+                 (stack[sp].p^.value > 0)) then
                 begin
                 { should tell some one that operand is now a literal
                   and can be folded. Future plans...
                 }
                 n.op := intop;
                 n.len := targetintsize;
-                n.oprndlist[1].i := nodetable[stack[sp].p].value;
+                n.oprndlist[1].i := stack[sp].p^.value;
                 n.oprndlist[2].i := 0;
                 n.oprndlist[3].i := 0;
                 for i := 1 to 3 do
@@ -3790,9 +3741,9 @@ procedure build;
 
 
               begin
-                while n1 <> 0 do
+                while n1 <> nil do
                   begin
-                  with nodetable[n1] do
+                  with n1^ do
                     begin
                     if valid and (op in [varop, unsvarop]) and
                        (oprnds[1].i = n.oprndlist[1].i) and
@@ -3800,7 +3751,7 @@ procedure build;
                       begin
                       mustinvalidate := true;
                       end;
-                    n1 := nodetable[n1].slink;
+                    n1 := n1^.slink;
                     end;
                   end;
               end {clobber} ;
@@ -3868,10 +3819,10 @@ procedure build;
               if (loopdepth > 0) and
                  not loopstack[loopdepth].deadlevels[level] then
                 begin
-                loopstack[loopdepth].writes := nodetable[n.oprndlist[2].p].looplink;
-                if loopstack[loopdepth].writes = 0 then
-                  loopstack[loopdepth].lastwrite := 0;
-                nodetable[n.oprndlist[2].p].looplink := 0;
+                loopstack[loopdepth].writes := n.oprndlist[2].p^.looplink;
+                if loopstack[loopdepth].writes = nil then
+                  loopstack[loopdepth].lastwrite := nil;
+                n.oprndlist[2].p^.looplink := nil;
                 end;
 
               with forstack[forsp], stack[sp] do
@@ -4019,16 +3970,16 @@ procedure build;
               unique := false;
               insertnode(1);
 
-              nodetable[stack[sp].p].nodeoprnd[1] := not savedn.oprndlist[1].litflag;
+              stack[sp].p^.nodeoprnd[1] := not savedn.oprndlist[1].litflag;
               if savedn.oprndlist[1].litflag then
-                nodetable[stack[sp].p].oprnds[1].i := savedn.oprndlist[1].i
+                stack[sp].p^.oprnds[1].i := savedn.oprndlist[1].i
               else
                 begin
-                with nodetable[savedn.oprndlist[1].p] do
+                with savedn.oprndlist[1].p^ do
                   refcount := refcount + 1;
-                nodetable[stack[sp].p].oprnds[1].p := savedn.oprndlist[1].p;
+                stack[sp].p^.oprnds[1].p := savedn.oprndlist[1].p;
                 end;
-              nodetable[stack[sp].p].oprnds[2].i := savedn.oprndlist[2].i;
+              stack[sp].p^.oprnds[2].i := savedn.oprndlist[2].i;
 
 
             end {buildregparam};
@@ -4101,7 +4052,7 @@ procedure build;
               pushfinal:
                 begin
                 collectargs(1);
-                with nodetable[n.oprndlist[1].p] do
+                with n.oprndlist[1].p^ do
                   if (action = visit) and (op = intop) then
                     begin
                     { just return the integer }
@@ -4167,7 +4118,7 @@ procedure build;
               movelit:
                 begin
                 collectwork(2);
-                marktargets(n.oprndlist[1].p, 0);
+                marktargets(n.oprndlist[1].p, nil);
                 insertnormal;
                 if (n.form = ints) and (propagation in genset) then
                   assignvalue(stack[sp].p);
@@ -4304,7 +4255,7 @@ procedure build;
                     l := forlevel;
                     end;
                   if not (deadcode and (removedeadcode in genset)) then
-                    if bumpvarcount(level, false, forref) then {nothing} ;
+                    if bumpvarcount(level, false, forref^.oprnds[2].i) then {nothing} ;
                   end;
                 end;
                 end;
@@ -4504,7 +4455,7 @@ procedure build;
             buildexpr := stack[sp].p;
             increfcount(stack[sp].p, deadcode, 1);
             end
-          else buildexpr := 0;
+          else buildexpr := nil;
           read(tempfiletwo, tempfilebuf);
         end {buildexpr} ;
 
@@ -4786,7 +4737,7 @@ procedure build;
               for j := 1 to regtablelimit do
                 if regvars[j].worth >= 0 then
                   begin
-                  regvars[j].varlife.lonmax := tnodetablesize;
+                  regvars[j].varlife.lonmax := tnodecountmax;
                   regvars[j].varlife.fonmax := shortmaxint;
                   end;
               loopkill(0, maxlevel);
@@ -5035,23 +4986,23 @@ procedure build;
 
           begin
             first := true;
-            while nodetable[n].action = copy do
-              with nodetable[n] do
+            while n^.action = copy do
+              with n^ do
                 begin
                 refcount := refcount + inc;
                 if not first then copycount := copycount + inc;
                 first := false;
-                n := nodetable[n].oldlink;
+                n := n^.oldlink;
                 end;
 
             { We now have a "visit" node with an operation}
-            if (nodetable[n].op < intop) and (nodetable[n].op > newunsvarop) then
-              while nodetable[n].slink <> 0 do
-                n := nodetable[n].slink;
+            if (n^.op < intop) and (n^.op > newunsvarop) then
+              while n^.slink <> nil do
+                n := n^.slink;
 
-            nodetable[n].refcount := nodetable[n].refcount + inc;
-            if not first then nodetable[n].copycount := nodetable[n].copycount + inc;
-            if nodetable[n].op = commaop then incref(nodetable[n].oprnds[2].p, inc);
+            n^.refcount := n^.refcount + inc;
+            if not first then n^.copycount := n^.copycount + inc;
+            if n^.op = commaop then incref(n^.oprnds[2].p, inc);
           end; {incref}
 
 
@@ -5131,7 +5082,7 @@ procedure build;
             this := first;
             basecost := cost(first, last);
             thisisordered := false;
-            if not nodetable[caseexpr].relation then
+            if not caseexpr^.relation then
               begin
               while this <> last do
                 begin
@@ -5487,15 +5438,15 @@ procedure build;
           forhdrstmt^.forstepsize := getintfileint;
           read(tempfiletwo, tempfilebuf);
 
-          controlledvar := nodetable[saveexpr2].oprnds[2].p;
+          controlledvar := saveexpr2^.oprnds[2].p;
 
           estimateloop(forhdrstmt, fixed, overflow, runcount);
 
-          if (nodetable[saveexpr1].op = forerrchkop)
+          if (saveexpr1^.op = forerrchkop)
              or fixed and (runcount = 0) and (removedeadcode in genset) then
             begin
-            if nodetable[saveexpr1].op = forerrchkop then
-              nodetable[saveexpr1].refcount := 0
+            if saveexpr1^.op = forerrchkop then
+              saveexpr1^.refcount := 0
             else
               forhdrstmt^.stmtkind := nohdr; { kill it!}
             incr_deadcount;
@@ -5529,7 +5480,7 @@ procedure build;
             buildstmtlist(endfor, forbotblock);
             if getintfileint <> 0 then {there's a goto out of the loop}
               {clear the "local access only" flag}
-              nodetable[saveexpr2].oprnds[1].i := 0;
+              saveexpr2^.oprnds[1].i := 0;
             read(tempfiletwo, tempfilebuf);
             clearcontext;
             if (currentblock = forstmts) and false then
@@ -5841,7 +5792,7 @@ procedure build;
           else
             begin
             { kill the expression on an "infinite" loop }
-            if removing then untilstmt^.expr1 := 0
+            if removing then untilstmt^.expr1 := nil
             else untilstmt^.expr1 := temp;
             untilstmt^.falseblock := loopbody;
             untilstmt^.trueblock := exit_block;
@@ -5892,19 +5843,19 @@ procedure build;
                   var ( on machines with ptrreg ).
                 }
               { now have the indxop, get the varop }
-              if nodetable[withref].op <> indxop then
+              if withref^.op <> indxop then
                 begin
-                writeln('in buildwith, expr not a indxop is ', ord(nodetable[withref].op): 1);
+                writeln('in buildwith, expr not a indxop is ', ord(withref^.op): 1);
                 compilerabort(inconsistent);
                 end;
-              withvar := nodetable[withref].oprnds[1].p;
-              if not (nodetable[withvar].op in [varop, newvarop, unsvarop, newunsvarop]) then
+              withvar := withref^.oprnds[1].p;
+              if not (withvar^.op in [varop, newvarop, unsvarop, newunsvarop]) then
                 begin
-                writeln('in buildwith, var not a varop is ', ord(nodetable[withvar].op): 1);
+                writeln('in buildwith, var not a varop is ', ord(withvar^.op): 1);
                 compilerabort(inconsistent);
                 end;
               { pointer dereference will have level of zero, which is ok }
-              if nodetable[withvar].oprnds[1].i = level then killasreg(withvar);
+              if withvar^.oprnds[1].i = level then killasreg(withvar);
               end;
             end;
 
@@ -6016,7 +5967,7 @@ procedure build;
             if regvars[j].worth >= 0 then
               begin
               { set lifetime region to encompass entire block }
-              regvars[j].varlife.lonmax := tnodetablesize;
+              regvars[j].varlife.lonmax := tnodecountmax;
               regvars[j].varlife.fonmax := shortmaxint;
               end;
           { again using the simple minded approach, kill hoisting in
@@ -6140,7 +6091,7 @@ procedure build;
 
         begin {buildsimplestmt}
           setupstmt(s);
-          if thisstmt^.expr1 <> 0 then increfcount(thisstmt^.expr1, deadcode, - 1);
+          if thisstmt^.expr1 <> nil then increfcount(thisstmt^.expr1, deadcode, - 1);
         end {buildsimplestmt} ;
 
 
@@ -6157,7 +6108,7 @@ procedure build;
 
         begin
           setupstmt(returnhdr);
-          if thisstmt^.expr1 <> 0 then increfcount(thisstmt^.expr1, deadcode, - 1);
+          if thisstmt^.expr1 <> nil then increfcount(thisstmt^.expr1, deadcode, - 1);
           thisstmt^.trueblock := retblock;
           addpredsuccs(currentblock, retblock);
           if not (deadcode and (removedeadcode in genset)) then
@@ -6261,8 +6212,8 @@ procedure build;
             for i := context[contextsp].searchlevel to contextsp do
               begin
               nindex := context[i].opmap[0];
-              while nindex <> 0 do
-                with nodetable[nindex] do
+              while nindex <> nil do
+                with nindex^ do
                   begin
                   if (oprnds[1].i = 1) and (oprnds[2].i = inputoffset) and
                      (op in [varop, unsvarop]) then
@@ -6280,17 +6231,17 @@ procedure build;
         begin {buildsyscallstmt}
           newstmt(thisstmt, syscallhdr);
           read(tempfiletwo, tempfilebuf);
-          thisstmt^.expr2 := getintfileint;
+          thisstmt^.intvalue := getintfileint;
 {
             We must produce the effect of doing a newvar on input if read
             or readln were seen without a filevar present.
 }
-          killinput := (thisstmt^.expr2 = ord(readid)) or
-                       (thisstmt^.expr2 = ord(readlnid));
+          killinput := (thisstmt^.intvalue = ord(readid)) or
+                       (thisstmt^.intvalue = ord(readlnid));
           read(tempfiletwo, tempfilebuf);
           temp := buildexpr;
           if killinput then clobberinput
-          else if thisstmt^.expr2 = ord(disposeid) then killptrchks;
+          else if thisstmt^.intvalue = ord(disposeid) then killptrchks;
           thisstmt^.expr1 := temp;
           proctable[blockref].leaf := false;
         end {buildsyscallstmt} ;
@@ -6453,7 +6404,7 @@ procedure build;
     with tail^ do
       begin
       isdead := true;
-      precode := 0;
+      precode := nil;
       beginstmt := nil;
       joinop := false;
       saveop := false;
@@ -6461,9 +6412,9 @@ procedure build;
       clearop := false;
       loophdr := false;
       looplabel := 0;
-      reads := 0;
-      writes := 0;
-      lastwrite := 0;
+      reads := nil;
+      writes := nil;
+      lastwrite := nil;
       end;
 
     symbolrecord := getintfileint;

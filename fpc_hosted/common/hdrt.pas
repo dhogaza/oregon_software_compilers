@@ -49,8 +49,6 @@ type
                  cforbothdr, returnhdr, loopbrkhdr, loopconthdr, swbrkhdr,
                  cswbrkhdr, loopbothdr, loophdr, caseerrhdr, nohdr);
 
-  nodeindex = 0..tnodetablesize; {index to tree element}
-
   basicblockptr = ^basicblock;
   linkptr = ^links;
 
@@ -72,10 +70,7 @@ type
   fonrange = shortint; {range for fon's}
   refcountrange = 0..maxrefcount; {range for refcounts}
 
-{
   exprptr = ^exprnode;
-}
-exprptr = nodeindex;
 
   oprndindex = 1..maxoprnd;
   oprndrecord =
@@ -88,8 +83,12 @@ exprptr = nodeindex;
      
   nodeoperandarray = packed array [oprndindex] of boolean;
 
+  nodecountrange = -1 .. tnodecountmax;
+
   exprnode =
     packed record {describes a node in the expression tree}
+      prevexpr: exprptr; {so we can easily dispose of exprnodes}
+      nodecount: nodecountrange; {serialize exprnodes}
       refcount: refcountrange; {number of active references to this node}
       copycount: refcountrange; {number of copies mode of this node}
       valid: boolean; {set if node is valid for cse search}
@@ -162,11 +161,13 @@ exprptr = nodeindex;
            ordered: boolean; {this is a contiguous ordered group}
            groupno: shortint; {which group this is} );
 
+
         forbothdr, whilebothdr, loopbothdr, whilehdr, rpthdr, ifhdr,
         foruphdr, fordnhdr, withhdr, simplehdr, syscallhdr, untilhdr,
         cforbothdr, returnhdr, nohdr:
           (looptop: basicblockptr; { top of for/while }
            expr1, expr2: exprptr; {Expressions used by statement}
+           intvalue: integer; {if an integer is also needed}
            has_break: boolean; {loop body contains a break}
            trueblock, falseblock: basicblockptr; {blocks for statement}
            forstepsize: integer; { for step for Modula-2 } );
@@ -221,7 +222,7 @@ exprptr = nodeindex;
 
   stackrecord =
     record {holds operands as the stack is being built}
-      context_mark: exprptr; {last node in this expression}
+      context_mark: nodecountrange; {last node in this expression}
       relation: boolean; { Node contains a relational op ('=') }
       uniqueoprnd: boolean; { At least one operand is unique -- can't be CSE }
       case litflag: boolean of {literal value?}
@@ -260,8 +261,8 @@ exprptr = nodeindex;
 
   region =
     record
-      lonmin: exprptr; { minimum node that refs var }
-      lonmax: exprptr; { maximum node that refs var }
+      lonmin: fonrange; { minimum node that refs var }
+      lonmax: fonrange; { maximum node that refs var }
       fonmin: fonrange; { flow order minimum value }
       fonmax: fonrange; { flow order maximum value }
     end;
@@ -304,8 +305,8 @@ var
 
   intlevelrefs: boolean; {set if proc makes intermediate level references}
 
-  lastnode: - 1..tnodetablesize; {last node allocated}
-  laststmtnode: -1..tnodetablesize; {for lifetime analys}
+  lastnode: nodecountrange; {last node allocated}
+  laststmtnode: nodecountrange; {for lifetime analys}
 
   stack: array [stackindex] of stackrecord; {expression stack for building}
   sp: stackindex; {top of expression stack}
@@ -397,11 +398,13 @@ var
   currentblock: basicblockptr; { basic block we are walking }
   maxnodes: integer;
 
+  exprlist: exprptr; { for disposing of statements }
+  exprcount: integer; { for verifying that we disposed all of them }
+
   stmtlist: stmtptr; { for disposing of statements }
   stmtcount: integer; { for verifying that we disposed all of them }
 
   localparamnode: exprptr; {points to node describing local param levop}
-  nodetable: array [0..bigtnodetablesize] of exprnode;
   exit_stmtno: integer; {save stmtno of the exit fake statement (VMS)}
 
 implementation

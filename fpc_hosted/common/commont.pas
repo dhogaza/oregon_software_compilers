@@ -88,13 +88,61 @@ procedure genrealop(o: pseudoop; {operator}
                         deadcode: boolean;
                         inc: shortint {amount to increment} );
 
-{ Change the effective reference count for a node by "inc".  This
-  may have to chain down a sequence of nodes to get the actual most
-  recent node which should be changed.
+  procedure newexpr(var n: exprptr {resulting new node} );
+
+{ Allocates a new expression node in the virtual node space and initializes
+  its fields.
+}
+
+implementation
+
+  procedure newexpr(var n: exprptr {resulting new node} );
+
+{ Allocates a new expression node in the virtual node space and initializes
+  its fields.
 }
 
 
-implementation
+    begin
+      lastnode := lastnode + 1;
+      new(n);
+      n^.prevexpr := exprlist;
+      exprlist := n;
+      exprcount := exprcount + 1;
+      with n^ do
+        begin
+        nodecount := lastnode;
+        op := endexpr;
+        form := none;
+        action := visit;
+        refcount := 0;
+        copycount := 0;
+        valid := false;
+        mustinvalidate := false;
+        join := false;
+        target := false;
+        relation := false;
+        shortevaluation := false;
+        local := false;
+        invariant := false;
+        nodeoprnd[1] := false;
+        nodeoprnd[2] := false;
+        nodeoprnd[3] := false;
+        oprnds[1].i := 0;
+        oprnds[2].i := 0;
+        oprnds[3].i := 0;
+        cost := 0;
+        prelink := nil;
+        hoistedby := nil;
+        looplink := nil;
+        slink := nil;
+        len := 0;
+        hasvalue := false;
+        ownvar := false;
+        oldlink := nil;
+        end;
+    end {newexprnode} ;
+
 
 function hashvaroffset(varoffset: addressrange): reghashindex;
 
@@ -137,7 +185,7 @@ procedure checkconst(node: exprptr; {node to check}
 
 
   begin {checkconst}
-    with nodetable[node] do
+    with node^ do
       if (action in [visit, revisit]) and (op = intop) then
         begin
         constflag := true;
@@ -189,12 +237,12 @@ procedure estimateloop(stmt: stmtptr;
     expr1 :=  stmt^.expr1;
     expr2 :=  stmt^.expr2;
  
-    with nodetable[expr1] do
+    with expr1^ do
       if op in [forupchkop, fordnchkop, forerrchkop] then
         checkconst(oprnds[1].p, constfinal, finalvalue)
       else checkconst(stmt^.expr1, constfinal, finalvalue);
 
-    with nodetable[expr2] do
+    with expr2^ do
       if constfinal and ((op = defforlitindexop) or
          (op = defunsforlitindexop)) then
         begin
@@ -369,15 +417,15 @@ procedure genrealop(o: pseudoop; {operator}
 
   begin
     if not (deadcode and (removedeadcode in genset)) and
-       (n <> 0) {or (inc < 0)} then
+       (n <> nil) {or (inc < 0)} then
       begin
-      if nodetable[n].action = visit then
-        if (nodetable[n].op < intop) and (nodetable[n].op > newunsvarop) then
-          while nodetable[n].slink <> 0 do
-            n := nodetable[n].slink;
-      nodetable[n].refcount := nodetable[n].refcount + inc;
-      if nodetable[n].action = visit then
-        if nodetable[n].op = commaop then increfcount(nodetable[n].oprnds[2].p, deadcode, inc);
+      if n^.action = visit then
+        if (n^.op < intop) and (n^.op > newunsvarop) then
+          while n^.slink <> nil do
+            n := n^.slink;
+      n^.refcount := n^.refcount + inc;
+      if n^.action = visit then
+        if n^.op = commaop then increfcount(n^.oprnds[2].p, deadcode, inc);
       end;
   end; {increfcount}
 end.
