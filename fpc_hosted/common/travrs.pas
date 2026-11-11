@@ -1173,6 +1173,7 @@ procedure build;
                 else reads := now^.looplink;
                 now := now^.looplink;
                 { isolate the node }
+if now <> nil then
                 now^.looplink := nil;
                 end
               else
@@ -1349,7 +1350,7 @@ procedure build;
               else reads := now^.looplink;
               now := now^.looplink;
               { isolate the node }
-              now^.looplink := nil;
+              if now <> nil then now^.looplink := nil;
               end
             else
               begin
@@ -2529,55 +2530,58 @@ procedure build;
 
         begin
           with oprnd do
-            if not litflag and not (deadcode and
-               (removedeadcode in genset)) then
+            if p <> nil then
               begin
-              { we want to force copy nodes for special regparam ops that
-                were inserted into context level one.
-              }
-              if (l > 0) then
+              if not litflag and not (deadcode and
+                 (removedeadcode in genset)) then
                 begin
-                originallink := p;
-                { We don't want to build copy nodes to regparams in context
-                  level two, as the code generator sees context levels one
-                  and two as being at the same context level.
+                { we want to force copy nodes for special regparam ops that
+                  were inserted into context level one.
                 }
-                for j := max(l + 1, 3) to contextlevel do
-                  with context[j] do
-                    begin
-                    n1 := firstblock^.precode;
-                    foundcopy := false;
-                    while (n1 <> nil) and not foundcopy do
+                if (l > 0) then
+                  begin
+                  originallink := p;
+                  { We don't want to build copy nodes to regparams in context
+                    level two, as the code generator sees context levels one
+                    and two as being at the same context level.
+                  }
+                  for j := max(l + 1, 3) to contextlevel do
+                    with context[j] do
                       begin
-                      n2 := n1;
-                      foundcopy := (n1^.oldlink = p);
-                      n1 := n1^.prelink;
-                      end;
-                    if not foundcopy then
-                      begin
-                      newexpr(n2);
-                      with n2^ do
+                      n1 := firstblock^.precode;
+                      foundcopy := false;
+                      while (n1 <> nil) and not foundcopy do
                         begin
-                        refcount := 0;
-                        copycount := 0;
-                        action := copy;
-                        prelink := firstblock^.precode;
-                        hoistedby := firstblock;
-                        oldlink := p;
-                        directlink := originallink;
+                        n2 := n1;
+                        foundcopy := (n1^.oldlink = p);
+                        n1 := n1^.prelink;
                         end;
-                      firstblock^.precode := n2;
+                      if not foundcopy then
+                        begin
+                        newexpr(n2);
+                        with n2^ do
+                          begin
+                          refcount := 0;
+                          copycount := 0;
+                          action := copy;
+                          prelink := firstblock^.precode;
+                          hoistedby := firstblock;
+                          oldlink := p;
+                          directlink := originallink;
+                          end;
+                        firstblock^.precode := n2;
+                        end;
+                      with p^ do
+                        begin
+                        refcount := refcount + 1;
+                        if action = visit then
+                          if op = commaop then
+                            increfcount(oprnds[2].p, deadcode, 1);
+                        copycount := copycount + 1
+                        end;
+                      p := n2;
                       end;
-                    with p^ do
-                      begin
-                      refcount := refcount + 1;
-                      if action = visit then
-                        if op = commaop then
-                          increfcount(oprnds[2].p, deadcode, 1);
-                      copycount := copycount + 1
-                      end;
-                    p := n2;
-                    end;
+                  end;
                 end;
               end;
         end {buildproperptr} ;
@@ -3026,7 +3030,8 @@ procedure build;
                           end;
                         otherwise
                         end;
-                      if (newoperands[opnum].p^.op = intop) and
+                      if nodeoperands[opnum] and
+                         (newoperands[opnum].p^.op = intop) and
                          (newoperands[opnum].p^.action = visit) then
                         begin
                         { remove ref count from the intop }
@@ -4255,7 +4260,8 @@ procedure build;
                     l := forlevel;
                     end;
                   if not (deadcode and (removedeadcode in genset)) then
-                    if bumpvarcount(level, false, forref^.oprnds[2].i) then {nothing} ;
+                    with forref^.oprnds[2].p^.oprnds[2] do
+                      if bumpvarcount(level, false, i) then {nothing} ;
                   end;
                 end;
                 end;
@@ -4415,9 +4421,9 @@ procedure build;
                   context_mark := 0;
                   relation := false;
                   uniqueoprnd := false;
-                  litflag := true;
+                  litflag := false;
                   l := 1;
-                  i := 0
+                  p := nil
                   end;
                 end;
               daddop, daddrop, dfaddrop, dfieldop, dfillop, dintop, drealop,

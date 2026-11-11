@@ -1177,127 +1177,131 @@ procedure loops;
 
       begin {invariantoprnd}
 
-        worthit := false;
-        aindxkludge := false;
-        copyfound := false;
-
-        i := contextsp;
-        while (i > 0) and (oprnd^.action = copy) do
+        if oprnd = nil then invariantoprnd := false
+        else
           begin
-          copyfound := true; {a few redundant assignments here won't hurt}
-          oprnd := oprnd^.oldlink;
-          i := i - 1;
-          end;
+          worthit := false;
+          aindxkludge := false;
+          copyfound := false;
 
-        invar := oprnd^.action = copy;
-        blockhoist := copyfound and (oprnd^.refcount > oprnd^.copycount);
-        musthoist := hoistsubtrees and not copyfound and (contextsp > 0) and
-                     (oprnd^.hoistedby <> loopblk) and (oprnd^.refcount > 1);
-
-        if oprnd^.action = visit then
-          begin
-          if ((oprnd^.op = paindxop) or (oprnd^.op = aindxop)) and
-             not dominating and (oprnd <> currenthoist) then
+          i := contextsp;
+          while (i > 0) and (oprnd^.action = copy) do
             begin
-                { this is a kludge, it is ok to hoist array indexing as
-                  long as we make sure that the possible bad address is
-                  not used until the actual reference point. That is for
-                  "invarop" + array[invar] the addition operator cannot
-                  be hoisted but both operands can.
-                }
-            aindxkludge := true;
+            copyfound := true; {a few redundant assignments here won't hurt}
+            oprnd := oprnd^.oldlink;
+            i := i - 1;
             end;
 
-          { see if this expression is not a hoistable type or unsafe }
+          invar := oprnd^.action = copy;
+          blockhoist := copyfound and (oprnd^.refcount > oprnd^.copycount);
+          musthoist := hoistsubtrees and not copyfound and (contextsp > 0) and
+                       (oprnd^.hoistedby <> loopblk) and (oprnd^.refcount > 1);
 
-          if {was not oprnd^.local and -- I don't know what this was supposed to
-              fix, but I know what it breaks; you really cannot hoist those.
-              a.o. no backend propagates correctly a key with a branchaccess
-              (see copyaccess); hoisting a call also seems kind of peculiar. }
-{
-           (((oprnd^.form = bools) and oprnd^.relation) or
-}
-           (((oprnd^.form = bools) and oprnd^.shortevaluation) or
-           (oprnd^.op in
-           [forindexop, forupchkop, fordnchkop, forerrchkop, moveop, cmoveop, movelit, lssop, leqop, neqop, eqop, gtrop,
-           geqop, lsslit, leqlit, eqlit, neqlit, gtrlit, geqlit, withop,
-           setfileop, setfileaddrop, setinput, newset, ptrchkop,
-                  { could do this if travrs kept better track get/put don't
-                   mark var as written }
-                  { could do bldset, setelt, setpair if genblk would make
-                    sure stack temp not popped during loop, someday... }
-           bldset, setelt, setpair, bldnil, bldfmt, inop, pushaddr, pushvalue,
-           pushcvalue, pushfinal, pushlitvalue, call, unscall, callparam,
-           copystackop, unscallparam, reserve, pushproc, rd, wr, switchstack,
-           closerangeop, definelazyop, filebufindrop, structop,
-           setbinfileop, sysfn, dummyargop]) or
-           (oprnd^.op in [rangechkop, indxchkop]) and (nowwalking or
-           nowdebugging) or not dominating and
-           (oprnd^.op in
-           [divop, stddivop, remop, quoop, kwoop, modop, stdmodop, rangechkop, indxchkop]) or
-           ((targetopsys = vdos) and switcheverplus[pic] and
-           (oprnd^.op in [extop]))) then
-            examineexpression(oprnd, hoistsubtrees and not copyfound)
-          else
+          if oprnd^.action = visit then
             begin
-            if (oprnd^.hoistedby = loopblk) or (oprnd^.hoistedby = root) then
-              invar := true
+            if ((oprnd^.op = paindxop) or (oprnd^.op = aindxop)) and
+               not dominating and (oprnd <> currenthoist) then
+              begin
+                  { this is a kludge, it is ok to hoist array indexing as
+                    long as we make sure that the possible bad address is
+                    not used until the actual reference point. That is for
+                    "invarop" + array[invar] the addition operator cannot
+                    be hoisted but both operands can.
+                  }
+              aindxkludge := true;
+              end;
+
+            { see if this expression is not a hoistable type or unsafe }
+
+            if {was not oprnd^.local and -- I don't know what this was supposed to
+                fix, but I know what it breaks; you really cannot hoist those.
+                a.o. no backend propagates correctly a key with a branchaccess
+                (see copyaccess); hoisting a call also seems kind of peculiar. }
+  {
+             (((oprnd^.form = bools) and oprnd^.relation) or
+  }
+             (((oprnd^.form = bools) and oprnd^.shortevaluation) or
+             (oprnd^.op in
+             [forindexop, forupchkop, fordnchkop, forerrchkop, moveop, cmoveop, movelit, lssop, leqop, neqop, eqop, gtrop,
+             geqop, lsslit, leqlit, eqlit, neqlit, gtrlit, geqlit, withop,
+             setfileop, setfileaddrop, setinput, newset, ptrchkop,
+                    { could do this if travrs kept better track get/put don't
+                     mark var as written }
+                    { could do bldset, setelt, setpair if genblk would make
+                      sure stack temp not popped during loop, someday... }
+             bldset, setelt, setpair, bldnil, bldfmt, inop, pushaddr, pushvalue,
+             pushcvalue, pushfinal, pushlitvalue, call, unscall, callparam,
+             copystackop, unscallparam, reserve, pushproc, rd, wr, switchstack,
+             closerangeop, definelazyop, filebufindrop, structop,
+             setbinfileop, sysfn, dummyargop]) or
+             (oprnd^.op in [rangechkop, indxchkop]) and (nowwalking or
+             nowdebugging) or not dominating and
+             (oprnd^.op in
+             [divop, stddivop, remop, quoop, kwoop, modop, stdmodop, rangechkop, indxchkop]) or
+             ((targetopsys = vdos) and switcheverplus[pic] and
+             (oprnd^.op in [extop]))) then
+              examineexpression(oprnd, hoistsubtrees and not copyfound)
             else
-              begin {must check}
-              if oprnd^.op in [defforindexop, defforlitindexop, defunsforindexop,
-                 defunsforlitindexop] then
-                { must determine if we are in this for loop or deeper }
-                invar := loopblk^.beginstmt^.expr2 <> oprnd
-              else {ordinary operator}
-                begin
-                operands := oprnd^.oprnds;
-                nodeoperands := oprnd^.nodeoprnd;
-                isvar := (oprnd^.op = varop) or (oprnd^.op = unsvarop);
-                if not dominating and (oprnd^.op = indrop) then
-                  begin {uservar^ can't be invariant, internal indrs can be}
-                  if language = c then invar := false
-                  else
-                    begin
-                    temp := oprnd^.oprnds[1].p;
-                    invar := (temp^.action = visit) and (temp^.op <> unsvarop);
-                    end
-                  end
-                else invar := true;
-                for i := 1 to 3 do
+              begin
+              if (oprnd^.hoistedby = loopblk) or (oprnd^.hoistedby = root) then
+                invar := true
+              else
+                begin {must check}
+                if oprnd^.op in [defforindexop, defforlitindexop, defunsforindexop,
+                   defunsforlitindexop] then
+                  { must determine if we are in this for loop or deeper }
+                  invar := loopblk^.beginstmt^.expr2 <> oprnd
+                else {ordinary operator}
                   begin
-                  hoist[i] := false;
-                  if nodeoperands[i] then
-                    begin
-                    if not invariantoprnd(operands[i].p, hoist[i],
-                                          hoistsubtrees and not copyfound) then
-                      invar := false;
-                    end;
-                  end;
-
-              { Varop's require additional checking to determine invariantness }
-
-                if invar and isvar then invar := varisinvar;
-                    {
-                      If entire expression wasn't hoistable, hoist worthwhile
-                      invariant subexpressions.
-                    }
-                if hoistsubtrees and not copyfound then
-                  if not invar then
-                    begin
-                    for i := 1 to 3 do if hoist[i] then hoistit(operands[i].p);
+                  operands := oprnd^.oprnds;
+                  nodeoperands := oprnd^.nodeoprnd;
+                  isvar := (oprnd^.op = varop) or (oprnd^.op = unsvarop);
+                  if not dominating and (oprnd^.op = indrop) then
+                    begin {uservar^ can't be invariant, internal indrs can be}
+                    if language = c then invar := false
+                    else
+                      begin
+                      temp := oprnd^.oprnds[1].p;
+                      invar := (temp^.action = visit) and (temp^.op <> unsvarop);
+                      end
                     end
-                  else if aindxkludge or musthoist then
+                  else invar := true;
+                  for i := 1 to 3 do
                     begin
-                    { can't let this go any further }
-                    invar := not aindxkludge;
-                    hoistit(oprnd);
+                    hoist[i] := false;
+                    if nodeoperands[i] then
+                      begin
+                      if not invariantoprnd(operands[i].p, hoist[i],
+                                            hoistsubtrees and not copyfound) then
+                        invar := false;
+                      end;
                     end;
-                worthit := invar and not (copyfound or musthoist);
-                end; {ordinary operator}
-              end; {else must check}
-            end; {hoistable}
-          end; {action = visit}
-        invariantoprnd := invar and not blockhoist;
+
+                { Varop's require additional checking to determine invariantness }
+
+                  if invar and isvar then invar := varisinvar;
+                      {
+                        If entire expression wasn't hoistable, hoist worthwhile
+                        invariant subexpressions.
+                      }
+                  if hoistsubtrees and not copyfound then
+                    if not invar then
+                      begin
+                      for i := 1 to 3 do if hoist[i] then hoistit(operands[i].p);
+                      end
+                    else if aindxkludge or musthoist then
+                      begin
+                      { can't let this go any further }
+                      invar := not aindxkludge;
+                      hoistit(oprnd);
+                      end;
+                  worthit := invar and not (copyfound or musthoist);
+                  end; {ordinary operator}
+                end; {else must check}
+              end; {hoistable}
+            end; {action = visit}
+          invariantoprnd := invar and not blockhoist;
+        end;
       end {invariantoprnd} ;
 
 
@@ -1884,7 +1888,7 @@ procedure smooth;
             end;
           for i := 1 to 3 do
             begin
-            if nodeoperands[i] then
+            if nodeoperands[i] and (operands[i].p <> nil) then
               begin
               getsize(operands[i].p);
               end;
@@ -1970,14 +1974,17 @@ procedure smooth;
 
 
     begin {smoothexpr}
-      maxlen := initial;
-      minlen := targetintsize;
+      if expression <> nil then
+        begin
+        maxlen := initial;
+        minlen := targetintsize;
 
-      getsize(expression);
-      { only smoothing integer expressions }
-      { temp let codegen blowup if smooth wrong thing }
-      if (maxlen > minlen) { ( maxlen <= targetintsize ) } then
-        setsize(expression);
+        getsize(expression);
+        { only smoothing integer expressions }
+        { temp let codegen blowup if smooth wrong thing }
+        if (maxlen > minlen) { ( maxlen <= targetintsize ) } then
+          setsize(expression);
+        end;
     end {smoothexpr} ;
 
 

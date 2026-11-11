@@ -333,21 +333,23 @@ procedure unnestparams(root: exprptr {tree to visit});
     op: operatortype; {operator for this node}
 
   begin {unnestparams}
-    op := root^.op;
-    if root^.action = visit then
-      if (op in [call, unscall, callparam, unscallparam, sysfn]) or
-         ((op = plusop) and (root^.form = strings)) then
-        walknode(root, k, 0, false)
-      else
-        begin
-        for j := 1 to 3 do
-          if root^.nodeoprnd[j] then
-            unnestparams(root^.oprnds[j].p);
-        if (root^.op < intop) and (root^.slink <> nil) then
-          unnestparams(root^.slink);
-        end;
+    if root <> nil then
+      begin
+      op := root^.op;
+      if root^.action = visit then
+        if (op in [call, unscall, callparam, unscallparam, sysfn]) or
+           ((op = plusop) and (root^.form = strings)) then
+          walknode(root, k, 0, false)
+        else
+          begin
+          for j := 1 to 3 do
+            if root^.nodeoprnd[j] then
+              unnestparams(root^.oprnds[j].p);
+          if (root^.op < intop) and (root^.slink <> nil) then
+            unnestparams(root^.slink);
+          end;
+      end;
   end {unnestparams} ;
-
 
 
 procedure shortvisit(root: exprptr; {tree to visit}
@@ -370,49 +372,52 @@ procedure shortvisit(root: exprptr; {tree to visit}
 
 
   begin
-    newroot := root;
-    op := root^.op;
-    if newroot^.action = visit then
+    if root <> nil then
       begin
-      if (op in [quoop, remop]) and (newroot^.refcount = 1) then
-        newroot := newroot^.oprnds[1].p;
-      if not newroot^.local and
-         ((newroot^.refcount > 1) or (newroot^.op = mulop) and
-         (newroot^.form = ints) or
-         (op in
-         [pushcvalue, divop, quoop, remop, paindxop, chrstrop, arraystrop, commaop]) or
-         switcheverplus[largemodel] and ((newroot^.op = filebufindrop) or
-         (newroot^.op = indrop))) then
-        walknode(root, k, 0, false)
-      else
+      newroot := root;
+      op := root^.op;
+      if newroot^.action = visit then
         begin
-        inpushaddr := inpushaddr or (op = pushaddr) or (op = pushstraddr) or
-                                    (op = regtargetop);
-        if inpushaddr and (language <> c) then
+        if (op in [quoop, remop]) and (newroot^.refcount = 1) then
+          newroot := newroot^.oprnds[1].p;
+        if not newroot^.local and
+           ((newroot^.refcount > 1) or (newroot^.op = mulop) and
+           (newroot^.form = ints) or
+           (op in
+           [pushcvalue, divop, quoop, remop, paindxop, chrstrop, arraystrop, commaop]) or
+           switcheverplus[largemodel] and ((newroot^.op = filebufindrop) or
+           (newroot^.op = indrop))) then
+          walknode(root, k, 0, false)
+        else
+          begin
+          inpushaddr := inpushaddr or (op = pushaddr) or (op = pushstraddr) or
+                                      (op = regtargetop);
+          if inpushaddr and (language <> c) then
+            for j := 1 to 3 do
+              if newroot^.nodeoprnd[j] and (newroot^.oprnds[j].p <> nil) then
+                begin
+                oprnd := newroot^.oprnds[j].p;
+                if (oprnd^.op in
+                   [originop, call, callparam, unscall, unscallparam]) or
+                   ((oprnd^.form = sets) and (op <> regtargetop)) or
+                   (oprnd^.form = strings) then
+                  begin
+                  walknode(newroot^.oprnds[j].p, k, 0, false);
+                  end;
+                end;
+          if (newroot^.op = rd) and (targetmachine in [iAPX86, i80386, ns32k, aarch64]) then
+            begin
+  {
+              Walk this early since work registers may die
+  }
+            walknode(newroot^.oprnds[2].p, k, 0, false);
+            end;
           for j := 1 to 3 do
             if newroot^.nodeoprnd[j] then
-              begin
-              oprnd := newroot^.oprnds[j].p;
-              if (oprnd^.op in
-                 [originop, call, callparam, unscall, unscallparam]) or
-                 ((oprnd^.form = sets) and (op <> regtargetop)) or
-                 (oprnd^.form = strings) then
-                begin
-                walknode(newroot^.oprnds[j].p, k, 0, false);
-                end;
-              end;
-        if (newroot^.op = rd) and (targetmachine in [iAPX86, i80386, ns32k, aarch64]) then
-          begin
-{
-            Walk this early since work registers may die
-}
-          walknode(newroot^.oprnds[2].p, k, 0, false);
+              shortvisit(newroot^.oprnds[j].p, inpushaddr);
+          if (newroot^.op < intop) and (newroot^.slink <> nil) then
+            shortvisit(newroot^.slink, false);
           end;
-        for j := 1 to 3 do
-          if newroot^.nodeoprnd[j] then
-            shortvisit(newroot^.oprnds[j].p, inpushaddr);
-        if (newroot^.op < intop) and (newroot^.slink <> nil) then
-          shortvisit(newroot^.slink, false);
         end;
       end;
   end {shortvisit} ;
@@ -433,7 +438,7 @@ procedure unnestsets(root: exprptr {tree to visit} );
 
 
   begin {unnestsets}
-    if root^.action = visit then
+    if (root <> nil) and (root^.action = visit) then
       if root^.op = bldset then walknode(root, k, 0, false)
       else
         begin
@@ -460,21 +465,24 @@ function targetpresent(p: exprptr {node to check} ): boolean;
 
   begin
     found := false;
-    if p^.action = recopy then found := targetpresent(p^.oldlink)
-    else
+    if p <> nil then
       begin
-      found := p^.target;
-      cnt := 0;
-      while (cnt < 3) and not found do
+      if p^.action = recopy then found := targetpresent(p^.oldlink)
+      else
         begin
-        cnt := cnt + 1;
-        if p^.nodeoprnd[cnt] then
+        found := p^.target;
+        cnt := 0;
+        while (cnt < 3) and not found do
           begin
-          found := targetpresent(p^.oprnds[cnt].p);
+          cnt := cnt + 1;
+          if p^.nodeoprnd[cnt] then
+            begin
+            found := targetpresent(p^.oprnds[cnt].p);
+            end;
           end;
+        if not found and (p^.op < intop) and (p^.slink <> nil) then
+          found := targetpresent(p^.slink);
         end;
-      if not found and (p^.op < intop) and (p^.slink <> nil) then
-        found := targetpresent(p^.slink);
       end;
     targetpresent := found;
   end {targetpresent} ;
@@ -1066,7 +1074,7 @@ with target = 0.
 
       begin
         if targetmachine = pdp11 then targetkey := max(multarget, targetkey);
-        walkvalue(l.p, lkey, targetkey);
+        if root^.nodeoprnd[1] then walkvalue(l.p, lkey, targetkey);
         mapkey;
         genpseudo(map[op, form], len, key, refcount, copycount, lkey, 0,
                   targetkey);
@@ -1364,7 +1372,7 @@ with target = 0.
         with root^ do
           begin
           if (oprnds[1].i = 0) or (oprnds[1].i = level) then rkey := 0
-          else walknode(oprnds[3].p, rkey, 0, true);
+          else if nodeoprnd[3] then walknode(oprnds[3].p, rkey, 0, true);
           mapkey;
           genpseudo(dolevel, ptrsize, key, refcount, copycount, oprnds[1].i,
                     oprnds[2].i, rkey);
@@ -1476,7 +1484,7 @@ with target = 0.
 
       begin
         third := root^.oprnds[3].i;
-        walknode(l.p, lkey, 0, true);
+        if root^.nodeoprnd[1] then walknode(l.p, lkey, 0, true);
         mapkey;
         genpseudo(stacktarget, len, key, refcount, copycount, 1, 0, 0);
         walknode(r.p, rkey, 0, true);
@@ -1556,8 +1564,8 @@ with target = 0.
 { Walk and generate code for a node which passes a param in a general
   register.
 
-  Left operand is the link to other parameters, third operand is the
-  register id.
+  Left operand is the link to other parameters, if any, third operand is
+  the register id.
 }
 
      var
@@ -1582,16 +1590,17 @@ with target = 0.
        slink := slink^.slink;
        end;
 
-        if targetmachine = aarch64 then unnestparams(r.p);
-        walknode(l.p, lkey, 0, true);
-        mapkey;
-        genpseudo(psop, len, key, refcount, copycount, regid, 0, 0);
-        walkvalue(r.p, rkey, key);
-        tk := newkey;
-        context[contextsp].high := tk;
-        keytable[tk] := nil;
-        genpseudo(map[moveop, form], len, tk, 0, 0, key, rkey, 0);
-        if language <> c then clearkeys;
+      if targetmachine = aarch64 then unnestparams(r.p);
+      if root^.nodeoprnd[1] then walknode(l.p, lkey, 0, true);
+      mapkey;
+      genpseudo(psop, len, key, refcount, copycount, regid, 0, 0);
+      walkvalue(r.p, rkey, key);
+      tk := newkey;
+      context[contextsp].high := tk;
+      keytable[tk] := nil;
+      genpseudo(map[moveop, form], len, tk, 0, 0, key, rkey, 0);
+      if language <> c then clearkeys;
+
       end {regtargetnode} ;
 
 
@@ -1605,7 +1614,7 @@ with target = 0.
 
 
       begin {stacknode}
-        walknode(l.p, lkey, 0, true);
+        if root^.nodeoprnd[1] then walknode(l.p, lkey, 0, true);
         mapkey;
         genpseudo(stacktarget, len, key, refcount, copycount, 1, 0, 0);
         if op in [pushlitvalue, pushfptr] then
@@ -1666,7 +1675,7 @@ with target = 0.
 
 
       begin {pushaddrnode}
-        walknode(l.p, lkey, 0, true);
+        if root^.nodeoprnd[1] then walknode(l.p, lkey, 0, true);
         walkfirst := (r.p^.op in
                      [copystackop, call, callparam, unscall, unscallparam, fileparamop]) or
                      (form = strings);
@@ -1768,8 +1777,11 @@ with target = 0.
 
 
       begin {wrnode}
-        shortvisit(l.p, false);
-        if targetmachine = aarch64 then unnestparams(l.p);
+        if root^.nodeoprnd[1] then
+          begin
+          shortvisit(l.p, false);
+          if targetmachine = aarch64 then unnestparams(l.p);
+          end;
         refcount := refcount - 1;
         unarynode(wr, root^.form);
         clearkeys;
@@ -1784,14 +1796,17 @@ with target = 0.
 
 
       begin
-        shortvisit(l.p, false);
-        if targetmachine = aarch64 then unnestparams(l.p);
+        if root^.nodeoprnd[1] then
+          begin
+          shortvisit(l.p, false);
+          if targetmachine = aarch64 then unnestparams(l.p);
+          end;
         refcount := refcount - 1;
         if root^.form = arrays then unarynode(rd, arrays)
         else
           begin
-          walknode(l.p, lkey, 0, true);
-          walknode(r.p, rkey, 0, true);
+          if root^.nodeoprnd[1] then walknode(l.p, lkey, 0, true);
+          if root^.nodeoprnd[2] then walknode(r.p, rkey, 0, true);
           mapkey;
           genpseudo(map[rd, root^.form], len, key, refcount, copycount, rkey,
                     0, 0);
@@ -1812,7 +1827,7 @@ with target = 0.
 }
 
       begin {stacknoderegnode}
-        walknode(l.p, lkey, 0, true);
+        if root^.nodeoprnd[1] then walknode(l.p, lkey, 0, true);
         mapkey;
 
         if targetmachine <> aarch64 then
@@ -2333,6 +2348,7 @@ with target = 0.
         else nextroot := nil
       else nextroot := nil;
       with root^ do
+        begin
         case action of
           visit:
             begin
@@ -2346,8 +2362,8 @@ with target = 0.
             end;
           revisit, recopy: mapkey;
           end;
-      if counting then
-        with root^ do refcount := refcount - 1;
+        if counting then refcount := refcount - 1;
+        end;
       root := nextroot;
       end;
   end {walknode};
@@ -2461,8 +2477,11 @@ procedure walkvalue(root: exprptr; {root of tree to walk}
 
 
   begin {walkvalue}
-    if root^.relation then convertrelation
-    else walknode(root, key, targetkey, true);
+    if root <> nil then
+      begin
+      if root^.relation then convertrelation
+      else walknode(root, key, targetkey, true);
+      end;
   end {walkvalue} ;
 
 
