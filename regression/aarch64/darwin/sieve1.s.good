@@ -19,58 +19,58 @@ _main:
 # Line: 17, Stmt: 0
 	mov	x25,xzr
 # Line: 18, Stmt: 0
-	mov	x27,xzr
+	mov	x28,xzr
 .L7:
 # Line: 19, Stmt: 0
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
-	add	x15,x15,w27, sxtw 0
+	add	x15,x15,w28, sxtw 0
 	mov	w16,1
 	strb	w16,[x15,24]
-	add	w27,w27,1
+	add	w28,w28,1
 	movz	x16,16960
 	movk	x16,15,lsl 16
-	cmp	w27,w16
+	cmp	w28,w16
 	b.le	.L7
 .L8:
 # Line: 20, Stmt: 0
-	mov	x27,xzr
+	mov	x28,xzr
 .L9:
 # Line: 21, Stmt: 0
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
-	add	x15,x15,w27, sxtw 0
+	add	x15,x15,w28, sxtw 0
 	ldrsb	w15,[x15,24]
 	cbz	w15,.L10
 .L11:
 # Line: 22, Stmt: 0
-	add	w26,w27,w27
+	add	w26,w28,w28
 	add	w26,w26,3
 # Line: 23, Stmt: 0
-	add	w28,w27,w26
+	add	w27,w28,w26
 .L3:
 # Line: 24, Stmt: 0
 	movz	x16,16960
 	movk	x16,15,lsl 16
-	cmp	w28,w16
+	cmp	w27,w16
 	b.gt	.L12
 .L13:
 # Line: 25, Stmt: 0
 	adrp	x14,.L32767@PAGE
 	add	x15,x14,.L32767@PAGEOFF
-	add	x15,x15,w28, sxtw 0
+	add	x15,x15,w27, sxtw 0
 	strb	wzr,[x15,24]
 # Line: 26, Stmt: 0
-	add	w28,w28,w26
+	add	w27,w27,w26
 	b	.L3
 .L12:
 # Line: 28, Stmt: 0
 	add	w25,w25,1
 .L10:
-	add	w27,w27,1
+	add	w28,w28,1
 	movz	x16,16960
 	movk	x16,15,lsl 16
-	cmp	w27,w16
+	cmp	w28,w16
 	b.le	.L9
 .L14:
 	add	w24,w24,1

@@ -4084,34 +4084,34 @@
 .L383:
 	adrp	x13,.L32767@PAGE
 # Line: 1496, Stmt: 0
-	mov	x14,1
+	mov	x15,1
 .L385:
 # Line: 1497, Stmt: 0
 	ldrsw	x12,[x13,.L32767+2088@PAGEOFF]
-	cmp	w14,w12
+	cmp	w15,w12
 	b.le	.L386
 .L387:
 # Line: 1497, Stmt: 0
 	add	x12,sp,8
-	add	x12,x12,w14, sxtw 0
+	add	x12,x12,w15, sxtw 0
 	mov	w16,32
 	strb	w16,[x12,15]
 	b	.L388
 .L386:
 # Line: 1498, Stmt: 0
 	add	x12,sp,8
-	add	x12,x12,w14, sxtw 0
+	add	x12,x12,w15, sxtw 0
 	adrp	x10,.L32767@PAGE
 	add	x11,x10,.L32767@PAGEOFF
-	add	x11,x11,w14, sxtw 0
+	add	x11,x11,w15, sxtw 0
 	ldrb	w11,[x11,1952]
 	add	x10,x10,.L32767@PAGEOFF
 	add	x11,x10,w11, uxtw 0
 	ldrb	w16,[x11,856]
 	strb	w16,[x12,15]
 .L388:
-	add	w14,w14,1
-	cmp	w14,9
+	add	w15,w15,1
+	cmp	w15,9
 	b.le	.L385
 .L389:
 # Line: 1499, Stmt: 0
@@ -4121,11 +4121,11 @@
 	add	x12,x11,.L32767@PAGEOFF
 	add	x13,x12,w13, sxtw 3
 # Line: 1501, Stmt: 0
-	ldrsw	x15,[x13,520]
+	ldrsw	x14,[x13,520]
 .L380:
 # Line: 1502, Stmt: 0
 	mov	x11,9
-	mul	w12,w15,w11
+	mul	w12,w14,w11
 	adrp	x10,.L32767@PAGE
 	add	x11,x10,.L32767@PAGEOFF
 	add	x12,x11,w12, sxtw 0
@@ -4142,16 +4142,16 @@
 .L32712:
 	b.eq	.L390
 	ldrsw	x12,[x13,524]
-	cmp	w15,w12
+	cmp	w14,w12
 	b.ge	.L390
 .L391:
 # Line: 1503, Stmt: 0
-	add	w15,w15,1
+	add	w14,w14,1
 	b	.L380
 .L390:
 # Line: 1505, Stmt: 0
 	mov	x12,9
-	mul	w13,w15,w12
+	mul	w13,w14,w12
 	adrp	x11,.L32767@PAGE
 	add	x12,x11,.L32767@PAGEOFF
 	add	x13,x12,w13, sxtw 0
@@ -4171,7 +4171,7 @@
 # Line: 1505, Stmt: 0
 	adrp	x13,.L32767@PAGE
 	add	x12,x13,.L32767@PAGEOFF
-	add	x12,x12,w15, sxtw 0
+	add	x12,x12,w14, sxtw 0
 	ldrsb	w16,[x12,487]
 	strb	w16,[x13,.L32767+1948@PAGEOFF]
 	b	.L395
@@ -4199,37 +4199,37 @@
 	sub	sp,sp,32
 # Line: 1534, Stmt: 1
 # Line: 1535, Stmt: 0
-	mov	x15,xzr
+	mov	x14,xzr
 # Line: 1536, Stmt: 0
 	adrp	x13,.L32767@PAGE
 	ldrsw	x12,[x13,.L32767+2088@PAGEOFF]
-	mov	x14,1
+	mov	x15,1
 .L399:
-	cmp	w14,w12
+	cmp	w15,w12
 	b.gt	.L398
 # Line: 1537, Stmt: 0
 	adrp	x11,.L32767@PAGE
 	add	x13,x11,.L32767@PAGEOFF
-	add	x13,x13,w14, sxtw 0
+	add	x13,x13,w15, sxtw 0
 	ldrb	w11,[x13,1952]
 	cmp	w11,95
 	b.eq	.L400
 .L401:
 # Line: 1538, Stmt: 0
 	mov	x13,3
-	mul	w15,w15,w13
+	mul	w14,w14,w13
 	adrp	x10,.L32767@PAGE
 	add	x13,x10,.L32767@PAGEOFF
 	add	x13,x13,w11, uxtw 0
 	ldrb	w13,[x13,600]
-	add	w15,w15,w13
-	and	w15,w15,1023
+	add	w14,w14,w13
+	and	w14,w14,1023
 .L400:
-	adds	w14,w14,1
+	adds	w15,w15,1
 	b.vc	.L399
 .L398:
 # Line: 1539, Stmt: 0
-	str	w15,[sp,16]
+	str	w14,[sp,16]
 # Line: 1540, Stmt: 0
 	ldrsw	x0,[sp,16]
 .L396:
