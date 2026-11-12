@@ -379,8 +379,7 @@ procedure assignregs;
         end {applytoindexnode};
 
     begin {applytoexprnode}
-      if expr^.action = copy then
-        expr := expr^.directlink;
+      if expr^.action = copy then expr := expr^.directlink;
       if (expr^.op < intop) and (expr^.slink <> nil) then
         applytoexprnode(expr^.slink);
       case expr^.op of
@@ -406,7 +405,6 @@ procedure assignregs;
 
       begin {applytostmt}
       with stmt^ do
-        begin
         case stmtkind of
           blkhdr, labelhdr, gotohdr, nohdr, caseerrhdr, loopbrkhdr, cswbrkhdr,
           loopconthdr, swbrkhdr, caselabhdr, casegroup, whilebothdr, loopbothdr,
@@ -422,7 +420,6 @@ procedure assignregs;
           syscallhdr: if expr1 <> nil then applytoexprnode(expr1);
           otherwise;
           end;
-        end;
       end {applytostmt};
 
     begin {applytostmtlist}
@@ -770,7 +767,6 @@ procedure loops;
 
         begin {flood}
           with expr^ do
-            begin
             if (hoistedby = nil) or forceflood then
               begin
               hoistedby := loopblk;
@@ -781,7 +777,6 @@ procedure loops;
                   end
               else flood(oldlink, false);
               end;
-            end;
         end {flood} ;
 
 
@@ -1762,6 +1757,7 @@ procedure loops;
       until currentblock = nil;
     end {improvesets};
 
+{DRB}
 
 procedure smooth;
 {
@@ -1863,12 +1859,10 @@ procedure smooth;
           if (expr^.op < intop) then
             begin
             if expr^.op = pushvalue then
-              begin
               { expressions pushed to stack should be computed at stackalign
                 size. At least on 32k it is desirable.
               }
               maxlen := stackalign;
-              end;
             { must smooth as parallel expression }
             if expr^.slink <> nil then smoothexpr(expr^.slink, 0);
             end
@@ -1976,9 +1970,7 @@ procedure smooth;
             nodeoperands[2] := false;
             end;
           for i := 1 to 3 do
-            begin
             if nodeoperands[i] then setsize(operands[i].p);
-            end;
           end { action=visit}
         else if expr^.action = copy then setsize(expr^.directlink);
       end; {setsize}
