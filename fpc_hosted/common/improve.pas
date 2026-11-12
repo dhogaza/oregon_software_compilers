@@ -379,20 +379,17 @@ procedure assignregs;
         end {applytoindexnode};
 
     begin {applytoexprnode}
-      if expr <> nil then
-        begin
-        if expr^.action = copy then
-          expr := expr^.directlink;
-        if (expr^.op < intop) and (expr^.slink <> nil) then
-          applytoexprnode(expr^.slink);
-        case expr^.op of
-          indxop: applytoindexnode(expr);
-          regparamop, ptrregparamop,realregparamop: applytoregparamnode(expr);
-          otherwise
-            for i := 1 to maxoprnd do
-              if expr^.nodeoprnd[i] then
-                applytoexprnode(expr^.oprnds[i].p);
-          end;
+      if expr^.action = copy then
+        expr := expr^.directlink;
+      if (expr^.op < intop) and (expr^.slink <> nil) then
+        applytoexprnode(expr^.slink);
+      case expr^.op of
+        indxop: applytoindexnode(expr);
+        regparamop, ptrregparamop,realregparamop: applytoregparamnode(expr);
+        otherwise
+          for i := 1 to maxoprnd do
+            if expr^.nodeoprnd[i] and (expr^.oprnds[i].p <> nil) then
+              applytoexprnode(expr^.oprnds[i].p);
         end;
     end {applytoexprnode};
 
@@ -413,15 +410,17 @@ procedure assignregs;
         case stmtkind of
           blkhdr, labelhdr, gotohdr, nohdr, caseerrhdr, loopbrkhdr, cswbrkhdr,
           loopconthdr, swbrkhdr, caselabhdr, casegroup, whilebothdr, loopbothdr,
-          loophdr: { no expressions };
+          loophdr, forbothdr, cforbothdr: { no expressions };
           casehdr: applytoexprnode(selector);
-          whilehdr, rpthdr, ifhdr, foruphdr, fordnhdr, withhdr, simplehdr,
-          syscallhdr, untilhdr, cforhdr, cforbothdr, returnhdr, forbothdr:
+          whilehdr, ifhdr, withhdr, simplehdr, untilhdr, returnhdr, cforhdr:
+            applytoexprnode(expr1);
+          foruphdr, fordnhdr:
             begin
             applytoexprnode(expr1);
             applytoexprnode(expr2);
             end;
-          otherwise writeln('statement missing from applytostmt ', ord(stmtkind))
+          syscallhdr: if expr1 <> nil then applytoexprnode(expr1);
+          otherwise;
           end;
         end;
       end {applytostmt};
