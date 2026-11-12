@@ -925,8 +925,37 @@ procedure loops;
 
             copied := newexprptr;
 
+{
             newexprptr^ := expr^;
-            newexprptr^.prelink := nil;
+}
+
+            with newexprptr^ do
+              begin
+              op := expr^.op;
+              form := expr^.form;
+              action := expr^.action;
+              refcount := expr^.refcount;
+              copycount := expr^.refcount;
+              valid := expr^.valid;
+              mustinvalidate := expr^.mustinvalidate;
+              join := expr^.join;
+              target := expr^.target;
+              relation := expr^.relation;
+              shortevaluation := expr^.shortevaluation;
+              local := expr^.local;
+              invariant := expr^.invariant;
+              nodeoprnd := expr^.nodeoprnd;
+              oprnds := expr^.oprnds;
+              cost := expr^.cost;
+              hoistedby := expr^.hoistedby;
+              looplink := expr^.looplink;
+              slink := expr^.slink;
+              len := expr^.len;
+              hasvalue := expr^.hasvalue;
+              ownvar := expr^.ownvar;
+              oldlink := expr^.oldlink;
+              prelink :=nil;
+              end;
 
             lastcopy := newexprptr;
             refc := expr^.refcount;
@@ -1876,14 +1905,20 @@ procedure smooth;
               end
             else if (not (expr^.form in [ints, subranges, scalars])) and
                     (expr^.op in
-                    [orop, andop, eqop, neqop, notop, plusop, minusop, mulop,
-                    divop, stddivop, remop, quoop, kwoop, modop, stdmodop,
-                    negop, shiftlop, incop, decop]) then
+                    [orop, andop, eqop, neqop, plusop, minusop, mulop,
+                    divop, stddivop, modop, stdmodop, shiftlop]) then
               begin
               smoothexpr(operands[1].p, 0);
               nodeoperands[1] := false;
               smoothexpr(operands[2].p, 0);
               nodeoperands[2] := false;
+              end
+            else if (not (expr^.form in [ints, subranges, scalars])) and
+                    (expr^.op in
+                    [notop, remop, quoop, kwoop, negop, incop, decop]) then
+              begin
+              smoothexpr(operands[1].p, 0);
+              nodeoperands[1] := false;
               end;
             end;
           for i := 1 to 3 do

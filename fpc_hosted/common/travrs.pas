@@ -1727,7 +1727,6 @@ if now <> nil then
 }
 
     var
-      n: exprptr; {dummy argument to newexprnode}
       i: shortint; {induction var for clearing opmap and virt mem}
       localvar: localvartype; { file read temp }
       j: reghashindex; { unsigned var for quicker mod }
@@ -1745,7 +1744,6 @@ if now <> nil then
       dead_level := nil;
       swbreak_found := false;
       caselab_found := false;
-      newexpr(n);
 
       withsp := 0;
       forsp := 0;
@@ -1918,6 +1916,8 @@ if now <> nil then
       localparamnode := nil;
       stmtlist := nil;
       stmtcount := 0;
+      exprlist := nil;
+      exprcount := 0;
     end {initbuild} ;
 
 

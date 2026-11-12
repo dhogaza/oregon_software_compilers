@@ -252,11 +252,11 @@ type
       searchlevel: contextindex; { Lowest level with valid node }
       joinflag: boolean; {must kill the tree at the next join point}
       dominates: boolean; { true if this context dominates exit }
-      origlow: keyindex; {dead code kludge to reset low, shouldn't be needed
+      origlow: 0..keysize; {dead code kludge to reset low, shouldn't be needed
                           now!}
       firstblock: basicblockptr; { Point to basic block header for this level}
       opmap: array [maphashindex] of exprptr; {for searching nodes}
-      low, high: keyindex; {used to assign keys during walk}
+      low, high: 0..keysize; {used to assign keys during walk}
     end;
 
   region =
@@ -322,8 +322,8 @@ var
         forlevel: contextindex; {context level of this loop}
         literalvalue: integer; { value of induction var for 1 trip loop }
         { walk side }
-        forkey1: keyindex; { key for expr1 }
-        forkey2: keyindex; { key for expr1 }
+        forkey1: 0..keysize; { key for expr1 }
+        forkey2: 0..keysize; { key for expr1 }
         improved: boolean; { true if test at bottom }
         downloop: boolean; { true if downto loop }
         {onetrip: boolean;} { true if a one trip only loop }
@@ -339,7 +339,7 @@ var
       end;
   withsp: 0..maxwithdepth; {top of with stack}
 
-  keytable: array [keyindex] of exprptr; {keys for active nodes in walk}
+  keytable: array [0..keysize] of exprptr; {keys for active nodes in walk}
 
   context: array [contextindex] of contextrecord; {statement context stack}
   contextsp: contextindex; {top of context stack}

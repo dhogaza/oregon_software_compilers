@@ -329,7 +329,7 @@ procedure unnestparams(root: exprptr {tree to visit});
 
   var
     j: 1..3; {induction for operand scan}
-    k: keyindex; {dummy argument to salknode}
+    k: keyindex; {dummy argument to walknode}
     op: operatortype; {operator for this node}
 
   begin {unnestparams}
@@ -3237,6 +3237,8 @@ procedure walk;
   var
     blocksize: addressrange; { C allows each block to declare variables }
     prevstmt: stmtptr; { for walking and disposing statements }
+    prevexpr: exprptr; { for walking and disposing expressions }
+    k: 0..keysize; { for clearing the keytable }
 
 
   begin {walk}
@@ -3348,9 +3350,9 @@ procedure walk;
       emitpseudo := false;
       end;
 
-    clearkeys;
     contextsp := 1;
-    clearkeys;
+
+    for k := 0 to keysize do keytable[k] := nil;
 
     { dispose of allocated memory }
     repeat
@@ -3372,6 +3374,7 @@ procedure walk;
               blockref: 1);
 
     { now get rid of stmtnodes }
+
     while stmtlist <> nil do
       begin
       prevstmt := stmtlist^.prevstmt;
@@ -3382,6 +3385,20 @@ procedure walk;
 
     if stmtcount <> 0 then
       writeln('warning  ', stmtcount: 1, ' statements not released in block ',
+              blockref: 1);
+
+    { now get rid of exprnodes }
+
+    while exprlist <> nil do
+      begin
+      prevexpr := exprlist^.prevexpr;
+      dispose(exprlist);
+      exprlist := prevexpr;
+      exprcount := exprcount - 1;
+      end;
+
+    if exprcount <> 0 then
+      writeln('warning  ', exprcount: 1, ' expressions not released in block ',
               blockref: 1);
 
   end {walk} ;
