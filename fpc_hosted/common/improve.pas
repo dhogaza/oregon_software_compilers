@@ -1549,20 +1549,16 @@ procedure loops;
                 begin
                 newoprnd := temp^.oprnds[1].p;
                 if simpleinvar(newoprnd, initexpr) and (templen = newoprnd^.len) then
-                  begin
                   { delete the pushfinal op }
                   fixnode^.oprnds[1].p := newoprnd;
-                  end;
                 end;
               end
             else if finalexpr^.op = pushfinal then
               begin
               newoprnd := finalexpr^.oprnds[1].p;
               if simpleinvar(newoprnd, initexpr) and (templen = newoprnd^.len) then
-                begin
                 { delete the pushfinal op }
                 loopblk^.beginstmt^.expr1 := newoprnd;
-                end;
               end;
             end; { forloop}
           end { <> nil } ;
@@ -1722,21 +1718,21 @@ procedure loops;
 
       begin {improvesetstmt}
       with stmt^ do
-        begin
         case stmtkind of
           blkhdr, labelhdr, gotohdr, nohdr, caseerrhdr, loopbrkhdr, cswbrkhdr,
           loopconthdr, swbrkhdr, caselabhdr, casegroup, whilebothdr, loopbothdr,
           loophdr: { no expressions };
           casehdr: improvesetexpr(selector);
-          whilehdr, rpthdr, ifhdr, foruphdr, fordnhdr, withhdr, simplehdr,
-          syscallhdr, untilhdr, cforhdr, cforbothdr, returnhdr, forbothdr:
+          whilehdr, rpthdr, ifhdr, withhdr, simplehdr, syscallhdr, untilhdr, cforhdr,
+          cforbothdr, returnhdr, forbothdr:
+            improvesetexpr(expr1);
+          foruphdr, fordnhdr:
             begin
             improvesetexpr(expr1);
             improvesetexpr(expr2);
             end;
           otherwise writeln('statement missing from improvesetstmt ', ord(stmtkind))
           end;
-        end;
       end {improvesetstmt};
 
     begin {improvesettmtlist}
@@ -1757,7 +1753,6 @@ procedure loops;
       until currentblock = nil;
     end {improvesets};
 
-{DRB}
 
 procedure smooth;
 {
