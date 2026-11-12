@@ -2009,17 +2009,14 @@ procedure smooth;
 
 
     begin {smoothexpr}
-      if expression <> nil then
-        begin
-        maxlen := initial;
-        minlen := targetintsize;
+      maxlen := initial;
+      minlen := targetintsize;
 
-        getsize(expression);
-        { only smoothing integer expressions }
-        { temp let codegen blowup if smooth wrong thing }
-        if (maxlen > minlen) { ( maxlen <= targetintsize ) } then
-          setsize(expression);
-        end;
+      getsize(expression);
+      { only smoothing integer expressions }
+      { temp let codegen blowup if smooth wrong thing }
+      if (maxlen > minlen) { ( maxlen <= targetintsize ) } then
+        setsize(expression);
     end {smoothexpr} ;
 
 
@@ -2030,15 +2027,13 @@ procedure smooth;
       stmt := blk^.beginstmt;
       while stmt <> nil do
         begin
-        if stmt^.stmtkind in
-           [ifhdr, whilehdr, withhdr, simplehdr, untilhdr, syscallhdr] then
-          begin
-          smoothexpr(stmt^.expr1, 0);
-          end
-        else if stmt^.stmtkind = casehdr then
-          begin
-          smoothexpr(stmt^.selector, 0);
-          end;
+        case stmt^.stmtkind of
+          syscallhdr:
+            if stmt^.expr1 <> nil then smoothexpr(stmt^.expr1, 0);
+          ifhdr, whilehdr, withhdr, simplehdr, untilhdr: smoothexpr(stmt^.expr1, 0);
+          casehdr: smoothexpr(stmt^.selector, 0);
+          otherwise ;
+        end;
         stmt := stmt^.nextblkstmt;
         end;
       blk := blk^.dfolist;
