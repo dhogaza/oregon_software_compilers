@@ -589,8 +589,50 @@ procedure walknode(root: exprptr; {root of tree to walk}
 
     var
       lkey, rkey: keyindex; {keys for left and right operands}
-      l, r: oprndrecord; {oprnds[1] and oprnds[2]}
 
+    { functions to rationalize getting of operand values }
+
+    function lptr: exprptr;
+
+      begin {lptr}
+        if root^.nodeoprnd[1] then lptr := root^.oprnds[1].p
+        else lptr := nil;
+      end {lptr};
+
+    function rptr: exprptr;
+
+      begin {rptr}
+        if root^.nodeoprnd[2] then rptr := root^.oprnds[2].p
+        else rptr := nil;
+      end {rptr};
+
+    function thirdptr: exprptr;
+
+      begin {thirdptr}
+        if root^.nodeoprnd[3] then thirdptr := root^.oprnds[3].p
+        else thirdptr := nil;
+      end {thirdptr};
+
+    function rint: integer;
+
+      begin {rint}
+        if not root^.nodeoprnd[2] then rint := root^.oprnds[2].i
+        else rint := 0;
+      end {rint};
+
+    function thirdint: integer;
+
+      begin {thirdint}
+        if not root^.nodeoprnd[3] then thirdint := root^.oprnds[3].i
+        else thirdint := 0;
+      end {thirdint};
+
+    function lint: integer;
+
+      begin {lint}
+        if not root^.nodeoprnd[1] then lint := root^.oprnds[1].i
+        else lint := 0;
+      end {lint};
 
     function cost(p: exprptr {node to check} ): shortint;
 
@@ -624,23 +666,23 @@ procedure walknode(root: exprptr; {root of tree to walk}
 
 
       begin {walkboth}
-        if (targetkey <> 0) and (l.p <> r.p) and targetpresent(l.p) then
+        if (targetkey <> 0) and (lptr <> rptr) and targetpresent(lptr) then
           righttarget := 0
         else righttarget := targetkey;
-        if (targetkey <> 0) and (l.p <> r.p) and targetpresent(r.p) then
+        if (targetkey <> 0) and (lptr <> rptr) and targetpresent(rptr) then
           lefttarget := 0
         else lefttarget := targetkey;
-        if cost(l.p) >= cost(r.p) then
+        if cost(lptr) >= cost(rptr) then
           begin
-          walkvalue(l.p, lkey, lefttarget);
+          walkvalue(lptr, lkey, lefttarget);
           if lefttarget <> 0 then righttarget := 0;
-          walkvalue(r.p, rkey, righttarget);
+          walkvalue(rptr, rkey, righttarget);
           end
         else
           begin
-          walkvalue(r.p, rkey, righttarget);
+          walkvalue(rptr, rkey, righttarget);
           if righttarget <> 0 then lefttarget := 0;
-          walkvalue(l.p, lkey, lefttarget);
+          walkvalue(lptr, lkey, lefttarget);
           end;
         mapkey;
       end {walkboth} ;
@@ -701,7 +743,7 @@ procedure walknode(root: exprptr; {root of tree to walk}
 
       begin
         offset := root^.oprnds[2].i;
-        walknode(l.p, lkey, 0, true);
+        walknode(lptr, lkey, 0, true);
         mapkey;
         genpseudo(p, len, key, refcount, copycount, lkey, offset, 0);
       end {indxnode} ;
@@ -741,7 +783,7 @@ procedure walknode(root: exprptr; {root of tree to walk}
           vax:
 {to be verified ... esp. the P2 linkage case}
             with proctable[blockref] do
-              if (l.p^.oprnds[2].i = 0) and
+              if (lptr^.oprnds[2].i = 0) and
                  (calllinkage = nonpascalcall) then
                 offset := root^.oprnds[2].i - final_block_size
               else offset := root^.oprnds[2].i;
@@ -751,7 +793,7 @@ procedure walknode(root: exprptr; {root of tree to walk}
         trav_offset := root^.oprnds[3].i;
         p := indx;
 
-        walknode(l.p, lkey, 0, true);
+        walknode(lptr, lkey, 0, true);
 
         if trav_offset <> 0 then
           begin
@@ -803,8 +845,8 @@ with target = 0.
 
 
       begin {orderednode}
-        walkvalue(r.p, rkey, 0);
-        walkvalue(l.p, lkey, 0);
+        walkvalue(rptr, rkey, 0);
+        walkvalue(lptr, lkey, 0);
         mapkey;
         genpseudo(map[op, form], len, key, refcount, copycount, lkey, rkey,
                   targetkey);
@@ -881,9 +923,9 @@ with target = 0.
 
       begin
         target := 0;
-        llen := l.p^.len;
+        llen := lptr^.len;
         lform := types(root^.oprnds[3].i);
-        walknode(l.p, lkey, 0, true);
+        walknode(lptr, lkey, 0, true);
         genpseudo(startreflex, 0, 0, 0, 0, 0, 0, 0);
         use_casts := (lform <> form) or (lform = reals) and (llen <> len);
         if use_casts then
@@ -894,7 +936,7 @@ with target = 0.
           genpseudo(castmap[form, lform], len, ckey, 1, 0, lkey, 0, 0);
           end
         else ckey := lkey;
-        walkvalue(r.p, rkey, 0);
+        walkvalue(rptr, rkey, 0);
         tkey := newkey;
         context[contextsp].high := tkey;
         keytable[tkey] := nil;
@@ -931,10 +973,10 @@ with target = 0.
         if form = ints then
           begin
           target := 0;
-          walknode(l.p, lkey, target, true);
+          walknode(lptr, lkey, target, true);
           genpseudo(startreflex, 0, 0, 0, 0, 0, 0, 0);
           target := 0;
-          walkvalue(r.p, rkey, target);
+          walkvalue(rptr, rkey, target);
           tdkey := newkey;
           context[contextsp].high := tdkey;
           keytable[tdkey] := nil;
@@ -966,9 +1008,9 @@ with target = 0.
       begin
         target := 0;
         deref := root^.refcount > 0;
-        walknode(l.p, lkey, target, false);
-        if deref then walkvalue(r.p, rkey, targetkey)
-        else walknode(r.p, rkey, targetkey, false);
+        walknode(lptr, lkey, target, false);
+        if deref then walkvalue(rptr, rkey, targetkey)
+        else walknode(rptr, rkey, targetkey, false);
         mapkey;
         genpseudo(commafake, len, key, refcount, copycount, rkey, 0, 0);
       end; {commanode}
@@ -987,9 +1029,9 @@ with target = 0.
 
 
       begin
-        walkvalue(l.p, lkey, targetkey);
+        walkvalue(lptr, lkey, targetkey);
         mapkey;
-        genpseudo(map[op, form], len, key, refcount, copycount, lkey, r.i,
+        genpseudo(map[op, form], len, key, refcount, copycount, lkey, rint,
                   targetkey);
       end {litopnode} ;
 
@@ -1003,12 +1045,12 @@ with target = 0.
 
 
       begin
-        walkvalue(l.p, lkey, targetkey);
+        walkvalue(lptr, lkey, targetkey);
         mapkey;
         if language = pascal then
-          genpseudo(map[movelit, form], len, key, 0, 0, lkey, r.i, targetkey)
+          genpseudo(map[movelit, form], len, key, 0, 0, lkey, rint, targetkey)
         else
-          genpseudo(map[movelit, form], len, key, refcount, copycount, lkey, r.i, targetkey)
+          genpseudo(map[movelit, form], len, key, refcount, copycount, lkey, rint, targetkey)
       end {movelitnode} ;
 
 
@@ -1057,7 +1099,7 @@ with target = 0.
 
 
       begin
-        walknode(l.p, lkey, targetkey, true);
+        walknode(lptr, lkey, targetkey, true);
         mapkey;
         genpseudo(map[op, ints], len, key, refcount, copycount, lkey, 0,
                   targetkey);
@@ -1074,7 +1116,7 @@ with target = 0.
 
       begin
         if targetmachine = pdp11 then targetkey := max(multarget, targetkey);
-        if root^.nodeoprnd[1] then walkvalue(l.p, lkey, targetkey);
+        if root^.nodeoprnd[1] then walkvalue(lptr, lkey, targetkey);
         mapkey;
         genpseudo(map[op, form], len, key, refcount, copycount, lkey, 0,
                   targetkey);
@@ -1091,9 +1133,9 @@ with target = 0.
 
       begin {castnode};
         if targetmachine = pdp11 then targetkey := max(multarget, targetkey);
-        walkvalue(l.p, lkey, targetkey);
+        walkvalue(lptr, lkey, targetkey);
         mapkey;
-        genpseudo(map[op, form], len, key, refcount, copycount, lkey, r.i,
+        genpseudo(map[op, form], len, key, refcount, copycount, lkey, rint,
                   targetkey);
       end {castnode};
 
@@ -1107,7 +1149,7 @@ with target = 0.
 
 
       begin
-        walknode(l.p, lkey, targetkey, true);
+        walknode(lptr, lkey, targetkey, true);
         key := lkey;
       end;
 
@@ -1121,9 +1163,9 @@ with target = 0.
 
 
       begin {setbindfilenode}
-        shortvisit(l.p, true);
-        if targetmachine = aarch64 then unnestparams(l.p);
-        walkvalue(l.p, lkey, targetkey);
+        shortvisit(lptr, true);
+        if targetmachine = aarch64 then unnestparams(lptr);
+        walkvalue(lptr, lkey, targetkey);
         mapkey;
         genpseudo(setbinfile, len, key, refcount, copycount, lkey, 0,
                   targetkey);
@@ -1140,7 +1182,7 @@ with target = 0.
 
       begin {unmappedunarynode}
         if targetmachine = pdp11 then targetkey := max(multarget, targetkey);
-        walkvalue(l.p, lkey, targetkey);
+        walkvalue(lptr, lkey, targetkey);
         genpseudo(map[op, form], len, 0, 0, 0, lkey, 0, targetkey);
       end {unmappedunarynode} ;
 
@@ -1157,7 +1199,7 @@ with target = 0.
 
       begin
         if targetmachine = pdp11 then targetkey := max(multarget, targetkey);
-        walkvalue(l.p, key, targetkey);
+        walkvalue(lptr, key, targetkey);
         if len <> 0 then genpseudo(makeroom, len, 0, 0, 0, 0, 0, 0);
         genpseudo(copystack, 0, 0, 0, 0, 0, 0, 0);
       end {copystacknode} ;
@@ -1172,7 +1214,7 @@ with target = 0.
 
 
       begin {fileparamnode}
-        walkvalue(l.p, key, targetkey);
+        walkvalue(lptr, key, targetkey);
         genpseudo(fileparam, ptrsize, 0, 0, 0, 0, 0, 0);
       end {fileparamnode} ;
 
@@ -1192,7 +1234,7 @@ with target = 0.
 
       begin
         exprlimit := root^.nodeoprnd[2];
-        walkvalue(l.p, lkey, 0);
+        walkvalue(lptr, lkey, 0);
         if exprlimit then
           begin
           walkvalue(root^.oprnds[2].p, lowkey, 0);
@@ -1226,8 +1268,8 @@ with target = 0.
 
       begin
         size := root^.oprnds[3].p;
-        walknode(l.p, lkey, 0, true);
-        walkvalue(r.p, rkey, lkey);
+        walknode(lptr, lkey, 0, true);
+        walkvalue(rptr, rkey, lkey);
         if op = cmoveop then walkvalue(size, skey, 0)
         else skey := 0;
         mapkey;
@@ -1395,9 +1437,9 @@ with target = 0.
 
 
       begin
-        shortvisit(r.p, false);
-        if targetmachine = aarch64 then unnestparams(r.p);
-        walknode(r.p, rkey, 0, true);
+        shortvisit(rptr, false);
+        if targetmachine = aarch64 then unnestparams(rptr);
+        walknode(rptr, rkey, 0, true);
         mapkey;
         if op = unscall then
           genpseudo(unscallroutine, len, key, refcount, copycount,
@@ -1420,10 +1462,10 @@ with target = 0.
 
 
       begin {callparamnode}
-        walknode(l.p, lkey, 0, true);
-        shortvisit(r.p, false);
-        if targetmachine = aarch64 then unnestparams(r.p);
-        walknode(r.p, rkey, 0, true);
+        walknode(lptr, lkey, 0, true);
+        shortvisit(rptr, false);
+        if targetmachine = aarch64 then unnestparams(rptr);
+        walknode(rptr, rkey, 0, true);
 
         mapkey;
         if op = unscallparam then
@@ -1445,8 +1487,8 @@ with target = 0.
 
 
       begin
-        walknode(l.p, lkey, 0, true);
-        walknode(r.p, rkey, key, true);
+        walknode(lptr, lkey, 0, true);
+        walknode(rptr, rkey, key, true);
         mapkey;
         genpseudo(map[op, form], len, key, refcount, copycount, rkey, 0, 0);
       end {linkednode} ;
@@ -1467,7 +1509,7 @@ with target = 0.
       begin
         mapkey;
         genpseudo(stacktarget, len, key, refcount, copycount, 0, 0, 0);
-        walkvalue(l.p, lkey, key);
+        walkvalue(lptr, lkey, key);
         genpseudo(pshint, len, key, refcount, copycount, lkey, 0, 0);
       end {pushfinalnode} ;
 
@@ -1484,10 +1526,10 @@ with target = 0.
 
       begin
         third := root^.oprnds[3].i;
-        if root^.nodeoprnd[1] then walknode(l.p, lkey, 0, true);
+        if root^.nodeoprnd[1] then walknode(lptr, lkey, 0, true);
         mapkey;
         genpseudo(stacktarget, len, key, refcount, copycount, 1, 0, 0);
-        walknode(r.p, rkey, 0, true);
+        walknode(rptr, rkey, 0, true);
         genpseudo(pshproc, len, key, 0, 0, rkey, third, 0);
         proctable[third].referenced := true;
       end {pushprocnode} ;
@@ -1500,7 +1542,7 @@ with target = 0.
 
 
       begin
-        walkvalue(l.p, lkey, targetkey);
+        walkvalue(lptr, lkey, targetkey);
         mapkey;
         genpseudo(stacktarget, len, key, refcount, copycount, 0, 0, 0);
         genpseudo(map[pushcvalue, form], len, key, refcount, copycount, lkey, 0,
@@ -1515,7 +1557,7 @@ with target = 0.
 
 
       begin
-        walknode(l.p, lkey, 0, true);
+        walknode(lptr, lkey, 0, true);
         mapkey;
         case targetmachine of
           vax:
@@ -1527,7 +1569,7 @@ with target = 0.
           otherwise
             genpseudo(ptrtemp, len, key, refcount, copycount, 0, 0, - 2);
           end;
-        walkvalue(r.p, rkey, key);
+        walkvalue(rptr, rkey, key);
         genpseudo(map[pushret, ptrs], len, key, 0, 0, rkey, 0, 0);
       end; {pushretnode}
 
@@ -1548,9 +1590,9 @@ with target = 0.
        tk: keyindex;
 
       begin {regreturnnode}
-        walkvalue(l.p, lkey, key);
+        walkvalue(lptr, lkey, key);
         mapkey;
-        genpseudo(psop, len, key, 1, 0, r.i, 0, 1);
+        genpseudo(psop, len, key, 1, 0, rint, 0, 1);
         tk := newkey;
         context[contextsp].high := tk;
         keytable[tk] := nil;
@@ -1590,11 +1632,11 @@ with target = 0.
        slink := slink^.slink;
        end;
 
-      if targetmachine = aarch64 then unnestparams(r.p);
-      if root^.nodeoprnd[1] then walknode(l.p, lkey, 0, true);
+      if targetmachine = aarch64 then unnestparams(rptr);
+      if root^.nodeoprnd[1] then walknode(lptr, lkey, 0, true);
       mapkey;
       genpseudo(psop, len, key, refcount, copycount, regid, 0, 0);
-      walkvalue(r.p, rkey, key);
+      walkvalue(rptr, rkey, key);
       tk := newkey;
       context[contextsp].high := tk;
       keytable[tk] := nil;
@@ -1614,14 +1656,14 @@ with target = 0.
 
 
       begin {stacknode}
-        if root^.nodeoprnd[1] then walknode(l.p, lkey, 0, true);
+        if root^.nodeoprnd[1] then walknode(lptr, lkey, 0, true);
         mapkey;
         genpseudo(stacktarget, len, key, refcount, copycount, 1, 0, 0);
         if op in [pushlitvalue, pushfptr] then
           genpseudo(map[op, form], len, key, 0, 0, root^.oprnds[2].i, 0, 0)
         else
           begin
-          walkvalue(r.p, rkey, key);
+          walkvalue(rptr, rkey, key);
           genpseudo(map[op, form], len, key, 0, 0, rkey, 0, 0);
           end;
 
@@ -1644,16 +1686,16 @@ with target = 0.
 
 
       begin {stacknoderegnode}
-        walknode(l.p, lkey, 0, true);
+        walknode(lptr, lkey, 0, true);
         mapkey;
 
         if targetmachine <> aarch64 then
           genpseudo(stacktarget, len, key, refcount, copycount, 1, 0, 0);
         if op in [pushlitvalue, pushfptr] then
-          genpseudo(map[op, form], len, key, 0, 0, r.i, 0, 0)
+          genpseudo(map[op, form], len, key, 0, 0, rint, 0, 0)
         else
           begin
-          walkvalue(r.p, rkey, key);
+          walkvalue(rptr, rkey, key);
           genpseudo(map[op, form], len, key, 0, 0, rkey, 0, 0);
           end;
 
@@ -1675,14 +1717,14 @@ with target = 0.
 
 
       begin {pushaddrnode}
-        if root^.nodeoprnd[1] then walknode(l.p, lkey, 0, true);
-        walkfirst := (r.p^.op in
+        if root^.nodeoprnd[1] then walknode(lptr, lkey, 0, true);
+        walkfirst := (rptr^.op in
                      [copystackop, call, callparam, unscall, unscallparam, fileparamop]) or
                      (form = strings);
-        if walkfirst then walkvalue(r.p, rkey, key);
+        if walkfirst then walkvalue(rptr, rkey, key);
         mapkey;
         genpseudo(stacktarget, len, key, refcount, copycount, 1, 0, 0);
-        if not walkfirst then walkvalue(r.p, rkey, key);
+        if not walkfirst then walkvalue(rptr, rkey, key);
         genpseudo(map[op, form], len, key, 0, 0, rkey, 0, 0);
         if language <> c then clearkeys;
       end {pushaddrnode} ;
@@ -1697,8 +1739,8 @@ with target = 0.
 
 
       begin
-        walknode(l.p, lkey, 0, true);
-        walkvalue(r.p, rkey, 0);
+        walknode(lptr, lkey, 0, true);
+        walkvalue(rptr, rkey, 0);
         mapkey;
         genpseudo(map[op, form], len, key, 0, 0, rkey, 0, 0);
         if language <> c then clearkeys;
@@ -1718,8 +1760,8 @@ with target = 0.
 
 
       begin
-        walknode(l.p, lkey, targetkey, true);
-        walkvalue(r.p, rkey, 0);
+        walknode(lptr, lkey, targetkey, true);
+        walkvalue(rptr, rkey, 0);
         genpseudo(setinsert, len, 0, 0, 0, rkey, 0, targetkey);
         clearkeys;
       end {seteltnode} ;
@@ -1733,8 +1775,8 @@ with target = 0.
 
 
       begin
-        walknode(l.p, lkey, targetkey, true);
-        walkvalue(r.p, lkey, 0);
+        walknode(lptr, lkey, targetkey, true);
+        walkvalue(rptr, lkey, 0);
         walkvalue(root^.oprnds[3].p, rkey, 0);
         genpseudo(setinsert, len, 0, 0, 0, lkey, rkey, targetkey);
         clearkeys;
@@ -1755,14 +1797,14 @@ with target = 0.
 
 
       begin
-        if targetmachine = aarch64 then unnestparams(l.p);
-        unnestsets(l.p);
-        walknode(r.p, rkey, 0, true);
+        if targetmachine = aarch64 then unnestparams(lptr);
+        unnestsets(lptr);
+        walknode(rptr, rkey, 0, true);
         mapkey;
         if walkdepth > 2 then targetkey := 0;
         genpseudo(doset, len, key, refcount, copycount, rkey,
-                  ord(l.i <> 0), targetkey);
-        walknode(l.p, lkey, key, true);
+                  ord(lptr <> nil), targetkey);
+        walknode(lptr, lkey, key, true);
         clearkeys;
       end {bldsetnode} ;
 
@@ -1779,8 +1821,8 @@ with target = 0.
       begin {wrnode}
         if root^.nodeoprnd[1] then
           begin
-          shortvisit(l.p, false);
-          if targetmachine = aarch64 then unnestparams(l.p);
+          shortvisit(lptr, false);
+          if targetmachine = aarch64 then unnestparams(lptr);
           end;
         refcount := refcount - 1;
         unarynode(wr, root^.form);
@@ -1798,15 +1840,15 @@ with target = 0.
       begin
         if root^.nodeoprnd[1] then
           begin
-          shortvisit(l.p, false);
-          if targetmachine = aarch64 then unnestparams(l.p);
+          shortvisit(lptr, false);
+          if targetmachine = aarch64 then unnestparams(lptr);
           end;
         refcount := refcount - 1;
         if root^.form = arrays then unarynode(rd, arrays)
         else
           begin
-          if root^.nodeoprnd[1] then walknode(l.p, lkey, 0, true);
-          if root^.nodeoprnd[2] then walknode(r.p, rkey, 0, true);
+          if root^.nodeoprnd[1] then walknode(lptr, lkey, 0, true);
+          if root^.nodeoprnd[2] then walknode(rptr, rkey, 0, true);
           mapkey;
           genpseudo(map[rd, root^.form], len, key, refcount, copycount, rkey,
                     0, 0);
@@ -1827,13 +1869,13 @@ with target = 0.
 }
 
       begin {stacknoderegnode}
-        if root^.nodeoprnd[1] then walknode(l.p, lkey, 0, true);
+        if root^.nodeoprnd[1] then walknode(lptr, lkey, 0, true);
         mapkey;
 
         if targetmachine <> aarch64 then
           genpseudo(stacktarget, len, key, refcount, copycount, 1, 0, 0);
 
-        walkvalue(r.p, rkey, key);
+        walkvalue(rptr, rkey, key);
         genpseudo(fmt, len, key, 0, 0, rkey, 0, 0);
 
         clearkeys;
@@ -1909,7 +1951,7 @@ with target = 0.
 
 
       begin
-        shortvisit(r.p, false);
+        shortvisit(rptr, false);
 
         if not (switcheverplus[fpc68881] and (standardids(root^.oprnds[1].i) in
            [facosid, fasinid, fatanid, fatanhid, fcoshid, fetoxm1id, fgetexpid,
@@ -1919,9 +1961,9 @@ with target = 0.
            sqrtid, arctanid, truncid, roundid, snglid, dblid, acosid, asinid,
            tanid, coshid, tanhid, log10id, fabsid, labsid, sinhid,
            logid])) then
-          if form <> r.p^.form then targetkey := 0;
+          if form <> rptr^.form then targetkey := 0;
 
-        walkvalue(r.p, rkey, 0);
+        walkvalue(rptr, rkey, 0);
         mapkey;
         genpseudo(map[op, form], len, key, refcount, copycount, rkey,
                   root^.oprnds[1].i, targetkey);
@@ -1985,7 +2027,6 @@ with target = 0.
         k: keyindex; {new key for building value}
         tk: integer; {temp for searching list of nodes}
         targ: keyindex; {temp target}
-        cond: exprptr; {the condition expression}
         form: types; {form for this operation}
         oldclearok: boolean; {old value of oktoclear}
         val_used: boolean; {the value is used}
@@ -1995,16 +2036,13 @@ with target = 0.
       begin
         oldclearok := oktoclear;
         oktoclear := false;
-        cond := l.p; {first get the names right}
-        l := r;
-        r.p := root^.oprnds[3].p;
         val_used := root^.refcount > 0;
         form := root^.form;
 
         if not val_used then
           begin
-          increfcount(l.p, false, - 1);
-          increfcount(r.p, false, - 1);
+          increfcount(rptr, false, - 1);
+          increfcount(thirdptr, false, - 1);
           end;
 
         oldinv := inverted;
@@ -2025,30 +2063,30 @@ with target = 0.
           keytable[k] := nil;
           genpseudo(createtemp, len, k, 3, 0, ord(form), 0, targetkey);
           end;
-        walkboolean(cond, key, tlabel, flabel);
+        walkboolean(lptr, key, tlabel, flabel);
         definelabel(tlabel);
         targ := k;
         if val_used then
           begin
-          walkvalue(l.p, lkey, targ);
+          walkvalue(rptr, lkey, targ);
           tk := newkey;
           context[contextsp].high := tk;
           keytable[tk] := nil;
           genpseudo(map[moveop, form], len, tk, 0, 0, k, lkey, k);
           end
-        else walknode(l.p, lkey, 0, false);
+        else walknode(rptr, lkey, 0, false);
         genpseudo(jump, 0, 0, 0, 0, jlabel, 0, 0);
         definelabel(flabel);
         targ := k;
         if val_used then
           begin
-          walkvalue(r.p, rkey, targ);
+          walkvalue(thirdptr, rkey, targ);
           tk := newkey;
           context[contextsp].high := tk;
           keytable[tk] := nil;
           genpseudo(map[moveop, form], len, tk, 0, 0, k, rkey, k);
           end
-        else walknode(r.p, rkey, 0, false);
+        else walknode(thirdptr, rkey, 0, false);
         definelabel(jlabel);
         if val_used then
           begin
@@ -2108,8 +2146,8 @@ with target = 0.
         oldused := trueused;
         trueused := false;
         oldinv := inverted;
-        if language = pascal then shortvisit(r.p, false);
-        walknode(l.p, lkey, 0, true);
+        if language = pascal then shortvisit(rptr, false);
+        walknode(lptr, lkey, 0, true);
         if inverted then genpseudo(jumpt, 0, 0, 0, 0, falselabel, lkey, 0)
         else genpseudo(jumpf, 0, 0, 0, 0, falselabel, lkey, 0);
         inverted := oldinv;
@@ -2117,7 +2155,7 @@ with target = 0.
         if trueused then definelabel(nextlabel);
         falseused := true;
         trueused := oldused;
-        walknode(r.p, key, 0, true);
+        walknode(rptr, key, 0, true);
       end {shortand} ;
 
 
@@ -2144,8 +2182,8 @@ with target = 0.
         oldused := falseused;
         falseused := false;
         oldinv := inverted;
-        if language = pascal then shortvisit(r.p, false);
-        walknode(l.p, lkey, 0, true);
+        if language = pascal then shortvisit(rptr, false);
+        walknode(lptr, lkey, 0, true);
         if inverted then genpseudo(jumpf, 0, 0, 0, 0, truelabel, lkey, 0)
         else genpseudo(jumpt, 0, 0, 0, 0, truelabel, lkey, 0);
         inverted := oldinv;
@@ -2153,7 +2191,7 @@ with target = 0.
         falseused := oldused;
         trueused := true;
         falselabel := f;
-        walknode(r.p, key, 0, true);
+        walknode(rptr, key, 0, true);
       end {shortor} ;
 
 
@@ -2177,7 +2215,7 @@ with target = 0.
         b := trueused;
         trueused := falseused;
         falseused := b;
-        walknode(l.p, key, 0, true);
+        walknode(lptr, key, 0, true);
         t := truelabel;
         truelabel := falselabel;
         falselabel := t;
@@ -2196,10 +2234,6 @@ with target = 0.
       key := 0;
       with root^ do
         begin
-        if nodeoprnd[1] then l.p := oprnds[1].p
-        else l.i := oprnds[1].i;
-        if nodeoprnd[2] then r.p := oprnds[2].p
-        else r.i := oprnds[2].i;
         case op of
           indxchkop, cindxchkop, rangechkop, forupchkop, fordnchkop,
           forerrchkop, congruchkop:
