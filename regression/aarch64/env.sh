@@ -12,6 +12,7 @@ fi
 src="$HOME/oregon_software_compilers/regression/src"
 lib="$HOME/oregon_software_compilers/lib"
 pasdir="$HOME/oregon_software_compilers/fpc_hosted/aarch64"
+pas68dir="$HOME/oregon_software_compilers/fpc_hosted/mc68000"
 if [ ! -d "$os" ]; then
   mkdir $os
 fi
