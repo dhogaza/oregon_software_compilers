@@ -696,19 +696,15 @@ procedure loops;
 
         repeat
           if outerblk^.restoreop then
-            begin
             if overflow = 0 then contextsp := contextsp - 1
             else overflow := overflow - 1;
-            end;
           if outerblk^.saveop then
-            begin
             if contextsp = contextdepth then overflow := overflow + 1
             else
               begin
               contextsp := contextsp + 1;
               context[contextsp].firstblock := outerblk;
               end;
-            end;
           outerblk := outerblk^.dfolist;
         until outerblk = innerblk^.dfolist;
 
@@ -834,7 +830,6 @@ procedure loops;
               for i := 1 to 3 do
                 begin
                 if nodeoperands[i] then
-                  begin
                   if operands[i].p^.action = copy then
                     begin
                     d := depth;
@@ -849,7 +844,6 @@ procedure loops;
                     if d > 0 then removecopies(d, copylink);
                     end
                   else removecopies(depth, operands[i].p);
-                  end;
                 end; {for}
               end
             else
@@ -1879,7 +1873,6 @@ procedure smooth;
             if expr^.slink <> nil then smoothexpr(expr^.slink, 0);
             end
           else
-            begin
             if (expr^.op in
                [plusop, minusop, mulop, divop, stddivop, remop, quoop, kwoop,
                modop, stdmodop, negop, shiftlop, incop, decop]) and
@@ -1919,19 +1912,11 @@ procedure smooth;
               smoothexpr(operands[1].p, 0);
               nodeoperands[1] := false;
               end;
-            end;
           for i := 1 to 3 do
-            begin
             if nodeoperands[i] and (operands[i].p <> nil) then
-              begin
               getsize(operands[i].p);
-              end;
-            end;
           end { action=visit}
-        else if expr^.action = copy then
-          begin
-          getsize(expr^.directlink);
-          end;
+        else if expr^.action = copy then getsize(expr^.directlink);
       end; {getsize}
 
 
@@ -1972,9 +1957,7 @@ procedure smooth;
              [plusop, minusop, mulop, divop, stddivop, remop, quoop, kwoop,
              modop, stdmodop, negop, shiftlop, incop, decop]) and
              (expr^.form in [ints, subranges, scalars]) then
-            begin
             expr^.len := maxlen;
-            end;
           operands := expr^.oprnds;
           nodeoperands := expr^.nodeoprnd;
           { don't follow certain expressions }
@@ -1994,16 +1977,10 @@ procedure smooth;
             end;
           for i := 1 to 3 do
             begin
-            if nodeoperands[i] then
-              begin
-              setsize(operands[i].p);
-              end;
+            if nodeoperands[i] then setsize(operands[i].p);
             end;
           end { action=visit}
-        else if expr^.action = copy then
-          begin
-          setsize(expr^.directlink);
-          end;
+        else if expr^.action = copy then setsize(expr^.directlink);
       end; {setsize}
 
 
@@ -2032,7 +2009,7 @@ procedure smooth;
           ifhdr, whilehdr, withhdr, simplehdr, untilhdr: smoothexpr(stmt^.expr1, 0);
           casehdr: smoothexpr(stmt^.selector, 0);
           otherwise ;
-        end;
+          end;
         stmt := stmt^.nextblkstmt;
         end;
       blk := blk^.dfolist;
