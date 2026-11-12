@@ -280,7 +280,7 @@ const
 
   maxstringblks = 400; {max number of string blocks}
   tablesize = 16383; {max number of types and names}
-  tnodetablesize = 12000; {maximum nodes in tree}
+  tnodecountmax = 16383; {maximum nodes in tree}
   cnodetablesize = 16383; {max number of nodes per block}
 
   { Number of nodes per virtual memory block for each pass:  These
@@ -316,7 +316,6 @@ const
   }
 
   bigtablesize = tablesize; {minimum for this one is 1}
-  bigtnodetablesize = tnodetablesize; {minimum for this one is 1}
   bigcnodetablesize = cnodetablesize; {minimum for this one is 4}
 
 { Blocking definitions for environment files }

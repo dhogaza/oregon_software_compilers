@@ -4944,7 +4944,7 @@ procedure bumptempcount(k: keyindex; {key of temp desired}
           begin
           if (delta < - refcount) then { overflow is rarely a problem }
             begin
-            write('BUMPTEMPCOUNT, refcount underflow');
+            write('BUMPTEMPCOUNT, properreg refcount underflow for key ', k);
             compilerabort(inconsistent);
             end;
           refcount := refcount + delta;
@@ -4955,7 +4955,7 @@ procedure bumptempcount(k: keyindex; {key of temp desired}
           begin
           if (delta < - refcount) then { overflow is rarely a problem }
             begin
-            write('BUMPTEMPCOUNT, refcount underflow');
+            write('BUMPTEMPCOUNT, properindxr refcount underflow for key ',k);
             compilerabort(inconsistent);
             end;
           refcount := refcount + delta;
