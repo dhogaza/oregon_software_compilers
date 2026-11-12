@@ -1,0 +1,139 @@
+*  Oregon Software Pascal-2 V2.3.0.1 Cross Compiler
+*    IAPX-86 (Unix) to MC68000 (VERSAdos)
+*  Assembly Listing of:  BIGARRAY       
+*
+BIGARRAY        IDNT  0,0
+         SECTION           13
+*
+*  String Constants:
+*
+L:       DC.W         $0766,$6169,$6C73,$3A20,$2C00 .fails: ,
+*
+*  [10]  FILL
+*
+P1:      LINK     A6,#-8
+         MOVEM.L  A2/A1/A0/D7/D6/D4/D3/D1/D0,-(SP)
+* Line: 13, Stmt: 1
+         MOVEA.L  8(A6),A0
+* Line: 14, Stmt: 2
+         MOVEQ    #1,D6
+L5:      MOVE.L   D6,D4
+         MOVE.L   #$0001387C,D3
+         JSR.S    P_IMUL    
+         MOVE.L   D4,-(SP)
+         MOVE.L   D6,D4
+         MOVE.L   #$00004E20,D3
+         JSR.S    P_IMUL    
+         MOVEQ    #1,D7
+L6:      MOVE.W   D7,D0
+         ASL.W    #2,D0
+         MOVE.L   (SP),D1
+         LEA      0(A0,D1.L),A1
+         LEA      0(A1,D0.W),A1
+         MOVEA.L  A1,A2
+         ADDA.L   #$FFFEC780,A2
+         MOVE.L   D4,(A2)
+         ADD.L    D7,(A2)
+         ADDQ.L   #1,D7
+         CMPI.L   #$00004E1F,D7
+         BLE.S    L6
+L7:      ADDQ.W   #4,SP
+         ADDQ.L   #1,D6
+         CMPI.L   #$00004E1F,D6
+         BLE.S    L5
+L2:
+L8:      MOVEM.L  (SP)+,D0/D1/D3/D4/D6/D7/A0/A1/A2
+         UNLK     A6
+         RTS
+*
+*  [10]  VERIFY
+*
+P2:      LINK     A6,#-12
+         MOVEM.L  A4/A3/A2/A1/A0/D7/D6/D5/D4/D3/D2/D1/D0,-(SP)
+         LEA      1,A3
+         LEA      P_WTI_O   ,A4
+         MOVE.L   #$00004E20,D2
+* Line: 23, Stmt: 1
+         MOVEQ    #0,D6
+         MOVEA.L  8(A6),A0
+         MOVEQ    #1,D5
+L12:     MOVE.L   D5,D4
+         MOVE.L   #$0001387C,D3
+         JSR.S    P_IMUL    
+         MOVE.L   D4,-(SP)
+         MOVE.L   D5,D4
+         MOVE.L   D2,D3
+         JSR.S    P_IMUL    
+         MOVEQ    #1,D7
+L13:     MOVE.W   D7,D0
+         ASL.W    #2,D0
+         MOVE.L   (SP),D1
+         LEA      0(A0,D1.L),A1
+         LEA      0(A1,D0.W),A1
+         MOVEA.L  A1,A2
+         ADDA.L   #$FFFEC780,A2
+         MOVE.L   D4,D0
+         ADD.L    D7,D0
+         CMP.L    (A2),D0
+         BEQ.S    L14
+L15:     ADDQ.L   #1,D6
+         MOVE.L   D5,-(SP)
+         PEA      (A3)
+         JSR      (A4)
+         ADDQ.W   #6,SP
+         MOVE.B   D2,(SP)
+         PEA      (A3)
+         JSR.S    P_WTC_O   
+         ADDQ.W   #2,SP
+         MOVE.L   D7,(SP)
+         PEA      (A3)
+         JSR      (A4)
+         ADDQ.W   #6,SP
+         MOVE.B   D2,(SP)
+         PEA      (A3)
+         JSR.S    P_WTC_O   
+         ADDQ.W   #2,SP
+         MOVE.L   (A2),(SP)
+         PEA      (A3)
+         JSR      (A4)
+         ADDQ.W   #8,SP
+         JSR.S    P_WTLN_O  
+L14:     ADDQ.L   #1,D7
+         CMPI.L   #$00004E1F,D7
+         BLE.S    L13
+L16:     ADDQ.W   #4,SP
+         ADDQ.L   #1,D5
+         CMPI.L   #$00004E1F,D5
+         BLE.S    L12
+L17:     PEA      L+1(PC)
+         PEA      7
+         MOVE.L   (SP),-(SP)
+         JSR.S    P_WTS_O   
+         ADDA.W   #12,SP
+         MOVE.L   D6,(SP)
+         PEA      (A3)
+         JSR      (A4)
+         ADDQ.W   #8,SP
+         JSR.S    P_WTLN_O  
+L9:      MOVEM.L  (SP)+,D0/D1/D2/D3/D4/D5/D6/D7/A0/A1/A2/A3/A4
+         UNLK     A6
+         RTS
+*
+*  [10]  Main Body:
+*
+BEGIN$:         LEA      *+8(PC),SP
+         JMP.S    P_INITIO  
+* Line: 35, Stmt: 1
+         PEA      24(A5)
+         JSR      P1(PC)      FILL
+         ADDQ.W   #4,SP
+         PEA      24(A5)
+         JSR      P2(PC)      VERIFY
+         ADDQ.W   #4,SP
+L18:     JSR.S    P_EXIT    
+*
+*
+*  [10]  10 code bytes generated
+*
+         XDEF         BEGIN$
+         END         BEGIN$

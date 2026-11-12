@@ -1,0 +1,182 @@
+*  Oregon Software Pascal-2 V2.3.0.1 Cross Compiler
+*    IAPX-86 (Unix) to MC68000 (VERSAdos)
+*  Assembly Listing of:  BIGINT         
+*
+BIGINT          IDNT  0,0
+         SECTION           13
+*
+*  String Constants:
+*
+L:       DC.W         $0369,$3A20,$2C03,$6A3A,$202C,$036B .i: ,.j: ,.k
+         DC.W         $3A20,$2C03,$6C3A,$202C,$0361,$3A20 : ,.l: ,.a: 
+         DC.W         $2C03,$693A,$202C,$036A,$3A20,$2C03 ,.i: ,.j: ,.
+         DC.W         $6B3A,$202C,$036C,$3A20,$2C03,$613A k: ,.l: ,.a:
+         DC.W         $202C                      ,
+*
+*  [50]  BAR
+*
+P1:      LINK     A6,#-16
+         MOVEM.L  A4/A3/A2/A1/A0/D7,-(SP)
+         LEA      3,A0
+         LEA      P_WTS_O   ,A1
+         LEA      1,A2
+         LEA      P_WTI_O   ,A3
+         LEA      P_WTLN_O  ,A4
+* Line: 7, Stmt: 1
+* Line: 8, Stmt: 2
+         MOVE.L   #$00010000,D7
+         MOVE.L   #$00010FFF,D7
+         MOVE.L   24(A5),D7
+         ADDI.L   #$00000FFF,D7
+         MOVE.L   D7,-4(A6)
+         ADDI.L   #$00001000,-4(A6)
+         PEA      L+1(PC)
+         PEA      (A0)
+         MOVE.L   (SP),-(SP)
+         JSR      (A1)
+         ADDQ.W   #8,SP
+         MOVE.L   #$00010000,(SP)
+         PEA      (A2)
+         JSR      (A3)
+         ADDQ.W   #8,SP
+         JSR      (A4)
+         PEA      L+6(PC)
+         PEA      (A0)
+         MOVE.L   (SP),-(SP)
+         JSR      (A1)
+         ADDQ.W   #8,SP
+         MOVE.L   #$00010FFF,(SP)
+         PEA      (A2)
+         JSR      (A3)
+         ADDQ.W   #8,SP
+         JSR      (A4)
+         PEA      L+11(PC)
+         PEA      (A0)
+         MOVE.L   (SP),-(SP)
+         JSR      (A1)
+         ADDQ.W   #8,SP
+         MOVE.L   D7,(SP)
+         PEA      (A2)
+         JSR      (A3)
+         ADDQ.W   #8,SP
+         JSR      (A4)
+         PEA      L+16(PC)
+         PEA      (A0)
+         MOVE.L   (SP),-(SP)
+         JSR      (A1)
+         ADDQ.W   #8,SP
+         MOVE.L   -4(A6),(SP)
+         PEA      (A2)
+         JSR      (A3)
+         ADDQ.W   #8,SP
+         JSR      (A4)
+         PEA      L+21(PC)
+         PEA      (A0)
+         MOVE.L   (SP),-(SP)
+         JSR      (A1)
+         ADDQ.W   #8,SP
+         MOVE.L   24(A5),(SP)
+         PEA      (A2)
+         JSR      (A3)
+         ADDQ.W   #8,SP
+         JSR      (A4)
+L2:      MOVEM.L  (SP)+,D7/A0/A1/A2/A3/A4
+         UNLK     A6
+         RTS
+*
+*  [50]  FOO2
+*
+P3:      LINK     A6,#0
+         MOVEM.L  A3/A2/A1/A0,-(SP)
+         LEA      3,A0
+         LEA      P_WTS_O   ,A1
+         LEA      1,A2
+         LEA      P_WTI_O   ,A3
+* Line: 27, Stmt: 1
+         PEA      L+26(PC)
+         PEA      (A0)
+         MOVE.L   (SP),-(SP)
+         JSR      (A1)
+         ADDQ.W   #8,SP
+         MOVE.L   (A4),(SP)
+         PEA      (A2)
+         JSR      (A3)
+         ADDQ.W   #8,SP
+         JSR.S    P_WTLN_O  
+         PEA      L+31(PC)
+         PEA      (A0)
+         MOVE.L   (SP),-(SP)
+         JSR      (A1)
+         ADDQ.W   #8,SP
+         MOVE.L   4(A4),(SP)
+         PEA      (A2)
+         JSR      (A3)
+         ADDQ.W   #8,SP
+         JSR.S    P_WTLN_O  
+         PEA      L+36(PC)
+         PEA      (A0)
+         MOVE.L   (SP),-(SP)
+         JSR      (A1)
+         ADDQ.W   #8,SP
+         MOVE.L   8(A4),(SP)
+         PEA      (A2)
+         JSR      (A3)
+         ADDQ.W   #8,SP
+         JSR.S    P_WTLN_O  
+         PEA      L+41(PC)
+         PEA      (A0)
+         MOVE.L   (SP),-(SP)
+         JSR      (A1)
+         ADDQ.W   #8,SP
+         MOVE.L   12(A4),(SP)
+         PEA      (A2)
+         JSR      (A3)
+         ADDQ.W   #8,SP
+         JSR.S    P_WTLN_O  
+         PEA      L+46(PC)
+         PEA      (A0)
+         MOVE.L   (SP),-(SP)
+         JSR      (A1)
+         ADDQ.W   #8,SP
+         MOVE.L   24(A5),(SP)
+         PEA      (A2)
+         JSR      (A3)
+         ADDQ.W   #8,SP
+         JSR.S    P_WTLN_O  
+L3:      MOVEM.L  (SP)+,A0/A1/A2/A3
+         UNLK     A6
+         RTS
+*
+*  [50]  FOO
+*
+P2:      LINK     A6,#-16
+         MOVEM.L  A4/A0,-(SP)
+         LEA      -8(A6),A0
+* Line: 35, Stmt: 1
+         MOVE.L   #$00010000,-16(A6)
+         MOVE.L   #$00010FFF,-12(A6)
+         MOVE.L   24(A5),(A0)
+         ADDI.L   #$00000FFF,(A0)
+         MOVE.L   (A0),-4(A6)
+         ADDI.L   #$00001000,-4(A6)
+         LEA      -16(A6),A4
+         JSR      P3(PC)      FOO2
+L4:      MOVEM.L  (SP)+,A0/A4
+         UNLK     A6
+         RTS
+*
+*  [50]  Main Body:
+*
+BEGIN$:         LEA      *+8(PC),SP
+         JMP.S    P_INITIO  
+* Line: 43, Stmt: 1
+         MOVE.L   #$00000001,24(A5)
+         JSR      P1(PC)      BAR
+         JSR      P2(PC)      FOO
+L5:      JSR.S    P_EXIT    
+*
+*
+*  [50]  50 code bytes generated
+*
+         XDEF         BEGIN$
+         END         BEGIN$

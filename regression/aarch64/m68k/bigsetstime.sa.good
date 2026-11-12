@@ -1,0 +1,225 @@
+*  Oregon Software Pascal-2 V2.3.0.1 Cross Compiler
+*    IAPX-86 (Unix) to MC68000 (VERSAdos)
+*  Assembly Listing of:  BIGSETSTIME    
+*
+BIGSETSTIME     IDNT  0,0
+         SECTION           13
+*
+*  String Constants:
+*
+L:       DC.W         $1000,$0000,$0000,$0000,$0000,$0000 ............
+         DC.W         $0000,$0000,$0000,$0000,$0000,$0000 ............
+         DC.W         $0000,$0000,$0000,$0000,$0000,$0000 ............
+         DC.W         $0000,$0000,$0000,$0000,$0000,$0000 ............
+         DC.W         $2000,$0000,$0000,$0000,$0000,$0002  ...........
+         DC.W         $0000,$0000,$0000,$0000,$0000,$0080 ............
+         DC.W         $0100,$0000,$0000,$0000,$0000,$0000 ............
+         DC.W         $0000,$0000,$0000,$0000,$0000,$0000 ............
+         DC.W         $0100,$0000,$0000,$0000,$0000,$0000 ............
+         DC.W         $0000,$0000,$0000,$0000,$0000,$0000 ............
+         DC.W         $1000,$0000,$0000,$0000,$0000,$0000 ............
+         DC.W         $0000,$0000,$3000,$0000,$0000,$0000 ....0.......
+         DC.W         $0000,$0000,$0000,$0000,$1000,$0000 ............
+         DC.W         $0000,$0000,$0000,$0000,$0000,$0000 ............
+         DC.W         $3000,$0000,$0000,$0000,$0000,$0000 0...........
+         DC.W         $0000,$0000,$2000,$0000,$0000,$0000 .... .......
+         DC.W         $0000,$0002,$0000,$0000,$0000,$0000 ............
+         DC.W         $0000,$0080,$0000,$0000,$0000,$0000 ............
+         DC.W         $0000,$0002,$0000,$0000,$0000,$0000 ............
+         DC.W         $0000,$0080,$2000,$0000,$0000,$0000 .... .......
+         DC.W         $0000,$0002,$0000,$0000,$0000,$0000 ............
+         DC.W         $0000,$0080,$0000,$0000,$0000,$0000 ............
+         DC.W         $0000,$0002,$0000,$0000,$0000,$0000 ............
+         DC.W         $0000,$0080               ....
+*
+*  [280]  SETS
+*
+P1:      LINK     A6,#-8
+         MOVEM.L  A4/A3/A2/A1/A0/D7/D6/D3/D2/D1/D0,-(SP)
+         LEA      64(A5),A2
+         LEA      24(A5),A3
+         LEA      40(A5),A4
+         MOVEQ    #24,D3
+* Line: 101, Stmt: 1
+* Line: 102, Stmt: 2
+         MOVEQ    #1,D6
+L5:      MOVEQ    #1,D7
+L6:      MOVE.B   #74,120(A5)
+         MOVE.L   L+0(PC),(A3)
+         MOVE.L   L+4(PC),28(A5)
+         MOVE.L   L+8(PC),32(A5)
+         MOVE.L   L+12(PC),36(A5)
+         MOVE.B   #94,121(A5)
+         MOVE.B   #5,122(A5)
+         MOVE.B   #189,123(A5)
+         MOVEA.L  A4,A0
+         LEA      L+16(PC),A1
+         MOVEQ    #5,D0
+L32767:  MOVE.L   (A1)+,(A0)+
+         DBRA     D0,L32767
+         CLR.L    D0
+         MOVE.B   122(A5),D0
+         MOVE.W   D0,D1
+         BRA.S    L32765
+L32766:  MOVE.W   D1,D0
+         LSR.W    #3,D0
+         BSET     D1,40(A5,D0.W)
+         ADDQ.W   #1,D1
+L32765:  CMP.B    121(A5),D1
+         BLE.S    L32766
+         MOVEA.L  A2,A0
+         LEA      L+48(PC),A1
+         MOVEQ    #5,D0
+L32764:  MOVE.L   (A1)+,(A0)+
+         DBRA     D0,L32764
+         LEA      88(A5),A0
+         MOVEA.L  A2,A1
+         MOVEQ    #5,D0
+L32763:  MOVE.L   -(A0),D1
+         OR.L     -(A1),D1
+         MOVE.L   D1,-(SP)
+         DBRA     D0,L32763
+         MOVEA.L  SP,A0
+         MOVEA.L  A4,A1
+         MOVEQ    #5,D0
+L32762:  MOVE.L   (A1)+,D1
+         AND.L    (A1)+,D1
+         MOVE.L   D1,(A0)+
+         DBRA     D0,L32762
+         MOVEA.L  A4,A0
+         MOVEQ    #5,D0
+L32761:  MOVE.L   (SP)+,(A0)+
+         DBRA     D0,L32761
+         MOVEQ    #0,D0
+         BTST     #89,51(A5)
+         BEQ.S    L8
+         ADDQ.B   #1,D0
+L8:      MOVE.B   D0,124(A5)
+         MOVEQ    #0,D0
+         BTST     #191,63(A5)
+         BEQ.S    L10
+         ADDQ.B   #1,D0
+L10:     NEG.B    D0
+         ADDQ.B   #1,D0
+         MOVE.B   D0,125(A5)
+         MOVEQ    #0,D0
+         LEA      L+96(PC),A0
+         MOVEA.L  A2,A1
+         MOVEQ    #5,D1
+L32760:  MOVE.L   -(A0),D2
+         NOT.L    D2
+         AND.L    -(A1),D2
+         MOVE.L   D2,-(SP)
+         DBRA     D1,L32760
+         MOVEA.L  SP,A0
+         BTST     #0,(A0)
+         BNE.S    *+6
+         ADDA.W   D3,SP
+         BRA.S    L12
+         ADDQ.B   #1,D0
+         ADDA.W   D3,SP
+L12:     NEG.B    D0
+         ADDQ.B   #1,D0
+         MOVE.B   D0,126(A5)
+         MOVEA.L  A4,A0
+         LEA      L+96(PC),A1
+         MOVEQ    #5,D0
+L32759:  MOVE.L   (A1)+,D1
+         OR.L     D1,(A0)+
+         DBRA     D0,L32759
+         CLR.B    127(A5)
+         LEA      L+120(PC),A0
+         MOVEA.L  A3,A1
+         MOVEQ    #3,D0
+L32757:  CMPM.L   (A0)+,(A1)+
+         DBNE     D0,L32757
+         BNE.S    L14
+         ADDQ.B   #1,127(A5)
+L14:     CLR.B    128(A5)
+         LEA      L+136(PC),A0
+         MOVEA.L  A3,A1
+         MOVEQ    #3,D0
+L32755:  CMPM.L   (A0)+,(A1)+
+         DBNE     D0,L32755
+         BEQ.S    L16
+         ADDQ.B   #1,128(A5)
+L16:     CLR.B    130(A5)
+         LEA      L+152(PC),A0
+         MOVEA.L  A3,A1
+         MOVEQ    #3,D0
+L32754:  MOVE.L   (A1)+,D1
+         NOT.L    D1
+         AND.L    (A0)+,D1
+         DBNE     D0,L32754
+         BNE.S    L18
+         ADDQ.B   #1,130(A5)
+L18:     CLR.B    129(A5)
+         MOVEA.L  A3,A0
+         LEA      L+168(PC),A1
+         MOVEQ    #3,D0
+L32753:  MOVE.L   (A1)+,D1
+         NOT.L    D1
+         AND.L    (A0)+,D1
+         DBNE     D0,L32753
+         BNE.S    L20
+         ADDQ.B   #1,129(A5)
+L20:     CLR.B    131(A5)
+         LEA      L+184(PC),A0
+         MOVEA.L  A2,A1
+         MOVEQ    #5,D0
+L32751:  CMPM.L   (A0)+,(A1)+
+         DBNE     D0,L32751
+         BNE.S    L22
+         ADDQ.B   #1,131(A5)
+L22:     CLR.B    132(A5)
+         LEA      L+208(PC),A0
+         MOVEA.L  A2,A1
+         MOVEQ    #5,D0
+L32749:  CMPM.L   (A0)+,(A1)+
+         DBNE     D0,L32749
+         BEQ.S    L24
+         ADDQ.B   #1,132(A5)
+L24:     CLR.B    133(A5)
+         MOVEA.L  A2,A0
+         LEA      L+232(PC),A1
+         MOVEQ    #5,D0
+L32748:  MOVE.L   (A1)+,D1
+         NOT.L    D1
+         AND.L    (A0)+,D1
+         DBNE     D0,L32748
+         BNE.S    L26
+         ADDQ.B   #1,133(A5)
+L26:     CLR.B    134(A5)
+         LEA      L+256(PC),A0
+         MOVEA.L  A2,A1
+         MOVEQ    #5,D0
+L32747:  MOVE.L   (A1)+,D1
+         NOT.L    D1
+         AND.L    (A0)+,D1
+         DBNE     D0,L32747
+         BNE.S    L28
+         ADDQ.B   #1,134(A5)
+L28:     ADDQ.L   #1,D7
+         CMPI.L   #$00001388,D7
+         BLE.S    L6
+L29:     ADDQ.L   #1,D6
+         CMPI.L   #$00001388,D6
+         BLE.S    L5
+L2:
+L30:     MOVEM.L  (SP)+,D0/D1/D2/D3/D6/D7/A0/A1/A2/A3/A4
+         UNLK     A6
+         RTS
+*
+*  [280]  Main Body:
+*
+BEGIN$:         LEA      *+8(PC),SP
+         JMP.S    P_INITIO  
+* Line: 130, Stmt: 1
+         JSR      P1(PC)      SETS
+L31:     JSR.S    P_EXIT    
+*
+*
+*  [280]  280 code bytes generated
+*
+         XDEF         BEGIN$
+         END         BEGIN$
