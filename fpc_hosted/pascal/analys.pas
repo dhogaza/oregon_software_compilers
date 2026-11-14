@@ -93,23 +93,6 @@ procedure enterblock(level: levelindex; {lex level of block}
 
 function create_type(typeindex:index) : unsignedword; forward;
 
-procedure flushbuffers;
-
- { dispose of all software virtual memory buffers }
-
-  var          
-    i: integer; { induction variable }
-
-
-  begin {flushbuffers}
-    if not bigcompilerversion then
-      for i := 1 to lastblocksin do
-        with blocksin[i] do
-          if not lowblock and (buffer <> nil) then dispose(buffer);
-  end {flushbuffers} ;
-
-
-
 
 procedure exitblock(level: levelindex {level of block being exited} );
 
@@ -156,7 +139,7 @@ procedure exitblock(level: levelindex {level of block being exited} );
         if level > 0 then
           for i := oldtabletop + 1 to tabletop do
             begin
-            if bigcompilerversion then p := @(bigtable[i]);
+            p := @(bigtable[i]);
             { tell travrs about any var that may be assigned to a register }
             if not p^.form and (p^.namekind = varname) and p^.allocated and
                regok and p^.registercandidate then
@@ -188,7 +171,7 @@ procedure exitblock(level: levelindex {level of block being exited} );
           while t > threshold do
             begin
             namesdeclared := namesdeclared - 1;
-            if bigcompilerversion then p := @(bigtable[t]);
+            p := @(bigtable[t]);
             t := p^.nextname;
             end;
           keymap[i] := t;
@@ -224,7 +207,7 @@ procedure listundefprocs;
   begin {listundefprocs}
     for i := display[level].oldundeftabletop + 1 to undeftabletop do
       begin
-      if bigcompilerversion then p := @(bigtable[undeftable[i].tableref]);
+      p := @(bigtable[undeftable[i].tableref]);
       with p^, undeftable[i] do
         if form then
           begin
@@ -257,12 +240,11 @@ procedure listundeftypes;
   begin {listundeftypes}
     for i := display[level].oldundeftabletop + 1 to undeftabletop do
       begin
-      if bigcompilerversion then p := @(bigtable[undeftable[i].tableref]);
+      p := @(bigtable[undeftable[i].tableref]);
       with undeftable[i] do
         begin
         if p^.namekind = undeftypename then
           begin
-          if not bigcompilerversion then blocksin[1].written := true;
           with p^ do
             if namekind = undeftypename then
               begin
@@ -463,7 +445,7 @@ procedure enterident(id: integer; {scope id for entry}
       search(t);
       if id <> display[displaytop].blockid then
         begin
-        if bigcompilerversion then p := @(bigtable[t]);
+        p := @(bigtable[t]);
         if (t <> 0) and (p^.namekind in [undefname, undeftypename]) and
            (p^.lastoccurrence >= lastscope) then
           warn(duplicateident);
@@ -471,7 +453,7 @@ procedure enterident(id: integer; {scope id for entry}
         end;
       if t <> 0 then
         begin
-        if bigcompilerversion then p := @(bigtable[t]);
+        p := @(bigtable[t]);
         if switcheverplus[multidef] and
            (p^.namekind = varname) and
            (p^.varalloc in [usealloc, definealloc]) then newindex := t
@@ -495,7 +477,7 @@ procedure enterident(id: integer; {scope id for entry}
                                            1;
       if key > display[displaytop].highestkey then
         display[displaytop].highestkey := key;
-      if bigcompilerversion then p := @(bigtable[tabletop]);
+      p := @(bigtable[tabletop]);
       p^.dbgsymbol := 0;
       p^.form := false;
       p^.nextname := keymap[key];
@@ -578,12 +560,12 @@ procedure programheading;
           begin
           enterlocalident(identindex, noname);
           enterundef(identindex);
-          if bigcompilerversion then idenp := @(bigtable[identindex]);
+          idenp := @(bigtable[identindex]);
           idenp^.namekind := undefname;
           end
         else
           begin
-          if bigcompilerversion then idenp := @(bigtable[identindex]);
+          idenp := @(bigtable[identindex]);
           if idenp^.programdecl then warn(duplicateident)
           else if identindex = inputindex then inputdeclared := true
           else if identindex = outputindex then outputdeclared := true
@@ -632,7 +614,7 @@ var p:entryptr; {The usual}
 begin {getdbgsymbol}
 if i = 0 then getdbgsymbol := 0
 else begin
-if bigcompilerversion then p := @(bigtable[i]);
+p := @(bigtable[i]);
 getdbgsymbol := p^.dbgsymbol;
 end;
 end   {getdbgsymbol};
@@ -694,7 +676,7 @@ procedure onevar(id: integer; {Scope in which to enter ident}
   begin {onevar}
     {The following actually consumes the token}
     enterident(id, where, undefname);
-    if bigcompilerversion then p := @(bigtable[where]);
+    p := @(bigtable[where]);
     with p^ do
       begin
       if namekind <> undefname then programdecl := false;
@@ -881,7 +863,7 @@ procedure alloconeparam(t: index; { name entry for variable }
 
 
   begin {alloconeparam}
-    if bigcompilerversion then p := @(bigtable[t]);
+    p := @(bigtable[t]);
     p^.namekind := paramkind;
     p^.vartype := f;
     if p^.varalloc = noalloc then
@@ -921,7 +903,7 @@ procedure alloconevar(t: index; { name entry for variable }
 
 
   begin {alloconevar}
-    if bigcompilerversion then p := @(bigtable[t]);
+    p := @(bigtable[t]);
     p^.namekind := varkind;
     p^.allocated := true;
 
@@ -1072,7 +1054,7 @@ procedure variablelist(follow: tokenset; { legal following symbols }
         varcount := varcount + 1;
         if last - 1 <> f then
           begin
-          if bigcompilerversion then fptr := @(bigtable[f]);
+          fptr := @(bigtable[f]);
           fptr^.nextparamlink := last - 1;
           end;
         end;
@@ -1081,7 +1063,7 @@ procedure variablelist(follow: tokenset; { legal following symbols }
       verifytoken(colon, nocolonerr);
       gettyp(follow + startset, f);
 
-      if bigcompilerversion then fptr := @(bigtable[f]);
+      fptr := @(bigtable[f]);
       if notrecord and fptr^.containsfile then
         proctable[display[level].blockref].opensfile := true;
 
@@ -1089,9 +1071,9 @@ procedure variablelist(follow: tokenset; { legal following symbols }
       repeat
         getallocdata(fptr, varkind, packedresult, size, typelen, a, align);
         alloconevar(t, f, varkind, size, a, typelen, packedresult);
-        if bigcompilerversion then tptr := @(bigtable[t]);
+        tptr := @(bigtable[t]);
         t := tptr^.nextparamlink + 1;
-        if bigcompilerversion then fptr := @(bigtable[f]);
+        fptr := @(bigtable[f]);
         varcount := varcount - 1;
       until varcount = 0;
 
@@ -1167,7 +1149,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
 
       begin {onescalar}
         enterlocalident(t, noname);
-        if bigcompilerversion then p := @(bigtable[t]);
+        p := @(bigtable[t]);
         with p^, constvalue do
           begin
           namekind := constname;
@@ -1196,7 +1178,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           onescalar;
           end;
 
-        if bigcompilerversion then resulp := @(bigtable[resulttype]);
+        resulp := @(bigtable[resulttype]);
         with resulp^ do
           begin
           lastord := latestord;
@@ -1212,7 +1194,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
         if token = ident then
           begin
           search(t);
-          if bigcompilerversion then p := @(bigtable[t]);
+          p := @(bigtable[t]);
           if (t = 0) or (p^.namekind = undeftypename) and
              (p^.typeindex = noneindex) or (p^.namekind = noname) then
             begin {undefined, assume was meant to be type id.}
@@ -1233,7 +1215,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           verifytoken(dotdot, nodotdoterr);
           constant(follow, true, uppervalue);
           extended := uppervalue.extended;
-          if bigcompilerversion then f := @(bigtable[lowervalue.typeindex]);
+          f := @(bigtable[lowervalue.typeindex]);
           if (lowervalue.typeindex <> noneindex) and
              (uppervalue.typeindex <> noneindex) and
              ((lowervalue.typeindex <> uppervalue.typeindex) or
@@ -1274,7 +1256,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                   if size = defaulttargetintsize - 1 then
                     size := defaulttargetintsize;
                   parenttype := lowervalue.typeindex;
-                  if bigcompilerversion then p := @(bigtable[parenttype]);
+                  p := @(bigtable[parenttype]);
                   if (switchcounters[pdp11data] > 0) and (p^.size > 1) then
                     align := pdpalign
                   else align := min(intalign, size);
@@ -1305,7 +1287,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                     else size := simplesize(upperord);
                   align := size;
                   parenttype := lowervalue.typeindex;
-                  if bigcompilerversion then p := @(bigtable[parenttype]);
+                  p := @(bigtable[parenttype]);
                   { the strategy here is to allocate 2 bytes if
                     it is subrange of a parenttype which is going
                     to be 4 bytes.
@@ -1327,7 +1309,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                     else size := simplesize(upperord);
                   align := size;
                   parenttype := lowervalue.typeindex;
-                  if bigcompilerversion then p := @(bigtable[parenttype]);
+                  p := @(bigtable[parenttype]);
                   { the strategy here is to allocate 1 or 2 bytes if
                     it is subrange of a parenttype which is going
                     to be 4 bytes.
@@ -1359,7 +1341,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                     else size := simplesize(upperord);
                   align := size;
                   parenttype := lowervalue.typeindex;
-                  if bigcompilerversion then p := @(bigtable[parenttype]);
+                  p := @(bigtable[parenttype]);
                   { the strategy here is to allocate 2 bytes if
                     it is subrange of a parenttype which is going
                     to be 4 bytes but to align 2 bytes on 2 byte bounds and
@@ -1394,7 +1376,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                     end
                   else
                     begin
-                    if bigcompilerversion then p := @(bigtable[parenttype]);
+                    p := @(bigtable[parenttype]);
                     size := min(p^.size, forcealign(size, intalign, false));
                     align := p^.align;
                     end;
@@ -1424,7 +1406,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                     end
                   else
                     begin
-                    if bigcompilerversion then p := @(bigtable[parenttype]);
+                    p := @(bigtable[parenttype]);
                     size := min(p^.size, forcealign(size, intalign, false));
                     align := p^.align;
                     end;
@@ -1486,7 +1468,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           probing := true;
           search(t);
           probing := false;
-          if bigcompilerversion then p := @(bigtable[t]);
+          p := @(bigtable[t]);
           if (t = 0) or
              not (p^.namekind in [undeftypename, noname, typename]) then
             begin
@@ -1501,12 +1483,12 @@ procedure gettyp(follow: tokenset; {legal following symbols}
             begin
             enterlocalident(t, noname);
             enterundef(t);
-            if bigcompilerversion then p := @(bigtable[t]);
+            p := @(bigtable[t]);
             p^.namekind := undeftypename;
             p^.typeindex := newtype;
             end
           else gettoken;
-          if bigcompilerversion then resulp := @(bigtable[resulttype]);
+          resulp := @(bigtable[resulttype]);
           resulp^.ptrtypename := t
           end
         else warnbetween(novarerr);
@@ -1554,7 +1536,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
       begin {arraywork}
         gettyp(follow + [ofsym, comma, rpar, rbrack] + begsimplset,
                newindextype);
-        if bigcompilerversion then f := @(bigtable[newindextype]);
+        f := @(bigtable[newindextype]);
         if not (f^.typ in [none, chars, bools, scalars, subranges]) then
           begin
           warnbefore(badindex);
@@ -1587,7 +1569,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           verifytoken(ofsym, nooferr);
           gettyp(follow, elttype)
           end;
-        if bigcompilerversion then f := @(bigtable[elttype]);
+        f := @(bigtable[elttype]);
         if isstring then isstring := f^.typ in [chars, none];
         enterform(arrays, resulttype, resulp);
         with resulp^ do
@@ -1667,7 +1649,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
       gettoken;
       verifytoken(ofsym, nooferr);
       gettyp(follow, newfilebasetype);
-      if bigcompilerversion then f := @(bigtable[newfilebasetype]);
+      f := @(bigtable[newfilebasetype]);
       if f^.containsfile then warnbefore(nofilefile);
       enterform(files, resulttype, resulp);
       with resulp^ do
@@ -1710,13 +1692,13 @@ procedure gettyp(follow: tokenset; {legal following symbols}
       gettoken;
       verifytoken(ofsym, nooferr);
       gettyp(follow, newbasetype);
-      if bigcompilerversion then f := @(bigtable[newbasetype]);
+      f := @(bigtable[newbasetype]);
       if not (f^.typ in [none, scalars, bools, chars, subranges]) then
         warnbefore(badsetbase)
       else if (lower(f) < 0) or (upper(f) > maxsetord) then
         warnbefore(bigsetbase);
       stripsubrange(newbasetype);
-      if bigcompilerversion then f := @(bigtable[newbasetype]);
+      f := @(bigtable[newbasetype]);
       if f^.typ = ints then m := maxsetord + 1
       else m := upper(f) + 1;
       enterform(sets, resulttype, resulp);
@@ -1858,7 +1840,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           begin {checklabs}
             while (header <> 0) do
               begin
-              if bigcompilerversion then f := @(bigtable[header]);
+              f := @(bigtable[header]);
               with f^ do
                 begin
                 if (labelval.cvalue.intvalue = varlabvalue) then
@@ -1881,7 +1863,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           t := latestvariant;
           while (t <> 0) do
             begin
-            if bigcompilerversion then f := @(bigtable[t]);
+            f := @(bigtable[t]);
             with f^ do
               begin
               t := nextvariant;
@@ -1928,7 +1910,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           lastfield := tabletop + 1;
           repeat
             lastfield := lastfield - 1;
-            if bigcompilerversion then p := @(bigtable[lastfield]);
+            p := @(bigtable[lastfield]);
           until (p^.name = fieldid) or (lastfield < firstfield);
           containsfile := anyfile;
           anyfile := oldany;
@@ -1941,7 +1923,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
             if (token = ident) and (nexttoken.token = colon) then
               begin
               onevar(id, fieldname, t, false);
-              if bigcompilerversion then p := @(bigtable[t]);
+              p := @(bigtable[t]);
               p^.varianttag := true;
               tagfield := t; { tagfield is in a packed record }
               gettoken;
@@ -1954,14 +1936,14 @@ procedure gettyp(follow: tokenset; {legal following symbols}
             gettyp(follow + [ofsym, endsym, ident, colon], casetype);
             if tagfield <> 0 then
               begin {allocate a tag field}
-              if bigcompilerversion then caseptr := @(bigtable[casetype]);
+              caseptr := @(bigtable[casetype]);
               a := max(a, alignmentof(caseptr, packflag));
               alloconevar(tagfield, casetype, fieldname, startsize,
                           alignmentof(caseptr, packflag), sizeof(caseptr,
                           packflag), packflag);
               end;
 
-            if bigcompilerversion then caseptr := @(bigtable[casetype]);
+            caseptr := @(bigtable[casetype]);
             lowesttag := lower(caseptr);
             highesttag := upper(caseptr);
             stripsubrange(casetype);
@@ -1994,7 +1976,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                 verifytoken(lpar, nolparerr);
                 fieldlist(follow + [comma, colon, rpar], tagfield,
                           latestlabel, latestvariant, size, f1);
-                if bigcompilerversion then f1ptr := @(bigtable[f1]);
+                f1ptr := @(bigtable[f1]);
                 containsfile := containsfile or f1ptr^.containsfile;
                 f1ptr^.packedflag := packflag;
                 f1ptr^.bitaddress := packflag;
@@ -2015,7 +1997,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           align := a;
           end;
         anyfile := oldany;
-        if bigcompilerversion then resulp := @(bigtable[result]);
+        resulp := @(bigtable[result]);
         resulp^ := localresult;
       end {fieldlist} ;
 
@@ -2122,7 +2104,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
       end
     else simpletyp;
     verify1(follow, badtypesyntax);
-    if bigcompilerversion then resulp := @(bigtable[resulttype]);
+    resulp := @(bigtable[resulttype]);
     anyfile := anyfile or resulp^.containsfile;
   end {gettyp} ;
 
@@ -2242,7 +2224,7 @@ procedure constantdefinition;
       enterlocalident(t, noname);
       verifytoken(eql, noeqlerr);
       constant(neverskipset, true, newvalue);
-      if bigcompilerversion then p := @(bigtable[t]);
+      p := @(bigtable[t]);
       with p^ do
         begin
         namekind := constname;
@@ -2288,7 +2270,7 @@ procedure typedefinition;
       verifytoken(eql, noeqlerr);
       gettyp([eql, ident, semicolon, uparrow..stringsym, nilsym,
              intconst..stringconst, plus, minus, lpar], f);
-      if bigcompilerversion then p := @(bigtable[t]);
+      p := @(bigtable[t]);
       with p^ do
         begin
         namekind := typename;
@@ -2349,7 +2331,7 @@ procedure changeparamids(firstparam: index; {entry of first parameter}
   begin {changeparamids}
     for i := firstparam to lastparam do
       begin
-      if bigcompilerversion then p := @(bigtable[i]);
+      p := @(bigtable[i]);
       if not p^.form and (p^.name <> deadscope) then p^.name := n;
       end;
   end {changeparamids} ;
@@ -2391,7 +2373,7 @@ procedure getfunctiontype(functiondefinition: boolean; {in func def}
           i := i - 1;
           searchsection(display[i].blockid, t);
         until (i = 0) or (t <> 0);
-        if bigcompilerversion then f := @(bigtable[t]);
+        f := @(bigtable[t]);
         if f^.namekind = typename then returntype := f^.typeindex
         else warn(notypenameerr);
         gettoken;
@@ -2401,7 +2383,7 @@ procedure getfunctiontype(functiondefinition: boolean; {in func def}
         warn(notypenameerr);
         gettyp(neverskipset + [rpar], returntype);
         end;
-      if bigcompilerversion then f := @(bigtable[returntype]);
+      f := @(bigtable[returntype]);
       if (not (f^.typ in legalfunctypes)) and
          (switchcounters[standard] > 0) then
         warn(badfunctype);
@@ -2490,7 +2472,7 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
           parameterdefinition(paramsizedummy, blocksizedummy, regparamsdummy,
                               [colon, rpar, semicolon] + begparamhdr);
           end;
-        if bigcompilerversion then p := @(bigtable[routineindex]);
+        p := @(bigtable[routineindex]);
         {DRB need to sort this out in allocparam}
         p^.lastinsection := true;
         p^.length := procparamsize;
@@ -2571,7 +2553,7 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
         verifytoken(colon, nocolonerr);
         if token <> ident then warn(notypenameerr);
         gettyp(follow + [semicolon, rbrack, ofsym, arraysym], thisindextype);
-        if bigcompilerversion then p := @(bigtable[thisindextype]);
+        p := @(bigtable[thisindextype]);
         if not (p^.typ in [none, chars, bools, scalars, subranges, ints]) then
           warn(badindex);
 
@@ -2606,16 +2588,16 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
           indextype := thisindextype;
           elementtype := elttype;
           stringtype := false;
-          if bigcompilerversion then p := @(bigtable[elttype]);
+          p := @(bigtable[elttype]);
           containsfile := p^.containsfile;
           elementsize := arraysizeof(p, packflag);
 { the following test should follow the wry logic in arraywork }
           if packflag and (elementsize > bitsperunit * packingunit) then
             elementsize := arraysizeof(p, false) * bitsperunit;
           end;
-        if bigcompilerversion then p := @(bigtable[lowid]);
+        p := @(bigtable[lowid]);
         p^.sparelink := result;
-        if bigcompilerversion then p := @(bigtable[highid]);
+        p := @(bigtable[highid]);
         p^.lastinsection := true;
         p^.sparelink := 0; {used only by lowid}
       end {conformantparam} ;
@@ -2640,17 +2622,17 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
       begin {allocboundids}
         align := intalign;
         repeat
-          if bigcompilerversion then p := @(bigtable[paramtype]);
+          p := @(bigtable[paramtype]);
           elttype := p^.elementtype;
           indextype := p^.indextype;
           lowid := p^.lowbound;
           highid := p^.highbound;
-          if bigcompilerversion then p := @(bigtable[indextype]);
+          p := @(bigtable[indextype]);
           getallocdata(p, boundid, false, paramsize, indexlen, a, align);
           alloconeparam(lowid, indextype, boundid, paramsize, blocksize, regparams, a, indexlen);
           alloconeparam(highid, indextype, boundid, paramsize, blocksize, regparams, a, indexlen);
           paramtype := elttype;
-          if bigcompilerversion then p := @(bigtable[paramtype]);
+          p := @(bigtable[paramtype]);
         until p^.typ <> conformantarrays;
       end {allocboundids} ;
 
@@ -2713,7 +2695,7 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
             univflag := true;
             end;
           search(paramtype);
-          if bigcompilerversion then paramptr := @(bigtable[paramtype]);
+          paramptr := @(bigtable[paramtype]);
           if paramptr^.namekind <> typename then
             begin
             warn(notypenameerr);
@@ -2724,25 +2706,25 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
           end
         else warn(notypenameerr);
 
-        if bigcompilerversion then paramptr := @(bigtable[paramtype]);
+        paramptr := @(bigtable[paramtype]);
         if paramptr^.containsfile and (paramkind in [param, confparam, constconfparam]) then
           warn(novaluefile);
 
         for t := first to last do
           begin
-          if bigcompilerversion then paramptr := @(bigtable[paramtype]);
+          paramptr := @(bigtable[paramtype]);
           getallocdata(paramptr, paramkind, false, paramsize, typelen, a,
                        align);
           alloconeparam(t, paramtype, paramkind, paramsize, blocksize, regparams, a, typelen);
           if univflag then
             begin
-            if bigcompilerversion then p := @(bigtable[t]);
+            p := @(bigtable[t]);
             p^.univparam := true;
             end;
           end;
         if paramkind in [constconfparam, varconfparam, confparam] then
           allocboundids(paramtype);
-        if bigcompilerversion then paramptr := @(bigtable[last]);
+        paramptr := @(bigtable[last]);
         paramptr^.lastinsection := true;
         paramptr^.nextparamlink := tabletop;
         if token = semicolon then gettoken
@@ -2851,7 +2833,7 @@ procedure procdefinition;
       searchlevel(procindex);
       if procindex <> 0 then
         begin
-        if bigcompilerversion then procptr := @(bigtable[procindex]);
+        procptr := @(bigtable[procindex]);
         with procptr^ do
           begin
           forwardbody := namekind in [externalproc, externalfunc, forwardproc,
@@ -2868,13 +2850,13 @@ procedure procdefinition;
     if not forwardbody then
       begin
       enterlocalident(procindex, noname);
-      if bigcompilerversion then procptr := @(bigtable[procindex]);
+      procptr := @(bigtable[procindex]);
       procptr^.procref := newproc;
       proctable[procptr^.procref].backlink := display[level].blockref;
       end
     else gettoken;
     if level = maxlevel then fatal(levelerr);
-    if bigcompilerversion then procptr := @(bigtable[procindex]);
+    procptr := @(bigtable[procindex]);
     enterblock(level + 1, procindex, procptr^.procref);
     if token = lpar then
       begin
@@ -2887,14 +2869,14 @@ procedure procdefinition;
     paramindex := tabletop;
     getfunctiontype(functiondefinition, forwardbody, returntype);
     verifytoken(semicolon, nosemierr);
-    if bigcompilerversion then procptr := @(bigtable[procindex]);
+    procptr := @(bigtable[procindex]);
     with procptr^ do
       begin
       proctable[procref].globaldeath := false;
       proctable[procref].invalidateptrchks := false;
       proctable[procref].charindex := charindex;
       proctable[procref].charlen := min(maxprocnamelen, charlen);
-      if bigcompilerversion then f := @(bigtable[returntype]);
+      f := @(bigtable[returntype]);
 {
       Reset the calling linkage to Pascal-2.  This is needed
       for non-pascal declared routines for which a body is present.
@@ -2933,7 +2915,7 @@ procedure procdefinition;
       if token = ident then
         begin
         search(directiveindex);
-        if bigcompilerversion then f := @(bigtable[directiveindex]);
+        f := @(bigtable[directiveindex]);
         if f^.namekind = directivename then
           begin
           directive := f^.procid;
@@ -3043,7 +3025,7 @@ procedure procdefinition;
           changeparamids(procindex + 1, directiveindex, deadscope);
         for directiveindex := procindex + 1 to directiveindex do
           begin
-          if bigcompilerversion then f := @(bigtable[directiveindex]);
+          f := @(bigtable[directiveindex]);
           if not f^.form then f^.modified := f^.parammodified;
           end;
         end;
@@ -3248,7 +3230,7 @@ procedure initanalys;
                                          (today <= uslate));
         end;
       keymap[i] := tabletop;
-      if bigcompilerversion then p := @(bigtable[tabletop]);
+      p := @(bigtable[tabletop]);
       with p^ do
         begin
         form := false;
@@ -3409,9 +3391,6 @@ procedure initanalys;
     tokenbufindex := 0;
     probing := false;
     sourcestringindex := 0;
-
-    fewestblocks := lastblocksin;
-    mostblocks := lastblocksin;
 
     for i := 0 to cseregions do
       begin
@@ -3959,7 +3938,7 @@ procedure initanalys;
 
       {define 'nil' for debugger}
       tabletop := tabletop + 1;
-      if bigcompilerversion then p := @(bigtable[tabletop]);
+      p := @(bigtable[tabletop]);
       with p^ do
         begin
         form := false;
@@ -3972,7 +3951,7 @@ procedure initanalys;
       enterdebuggerid('nil      ', 3);
 
       {define 'main' program}
-      if bigcompilerversion then p := @(bigtable[0]);
+      p := @(bigtable[0]);
       with p^ do
         begin
         name := 0;

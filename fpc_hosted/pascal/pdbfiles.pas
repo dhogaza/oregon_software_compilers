@@ -56,8 +56,7 @@ procedure dumpform(f: entryptr;
             debugfile^.lowerord := lowerord;
             debugfile^.upperord := upperord;
             debugfile^.extended := extendedrange;
-            if bigcompilerversion then p := ref(bigtable[parenttype])
-            else areadaccess(parenttype, p);
+            p := ref(bigtable[parenttype]);
             debugfile^.parenttype := p^.dbgsymbol;
             end;
           fields:
@@ -67,8 +66,7 @@ procedure dumpform(f: entryptr;
             { new....... speed up pdb }
             debugfile^.firstfield := 0;
             debugfile^.lastfield := 0;
-            if bigcompilerversion then p := ref(bigtable[f^.firstfield])
-            else awriteaccess(f^.firstfield, p);
+            p := ref(bigtable[f^.firstfield]);
             { modify the first field name to help pdb }
             if not p^.form and (p^.namekind = fieldname) then
               p^.sparelink := id;
@@ -76,32 +74,26 @@ procedure dumpform(f: entryptr;
           strings, arrays, conformantarrays:
             begin
             debugfile^.elementsize := elementsize;
-            if bigcompilerversion then p := ref(bigtable[indextype])
-            else areadaccess(indextype, p);
+            p := ref(bigtable[indextype]);
             debugfile^.indextype := p^.dbgsymbol;
-            if bigcompilerversion then p := ref(bigtable[elementtype])
-            else areadaccess(elementtype, p);
+            p := ref(bigtable[elementtype]);
             debugfile^.elementtype := p^.dbgsymbol;
             end;
           sets:
             begin
-            if bigcompilerversion then p := ref(bigtable[basetype])
-            else areadaccess(basetype, p);
+            p := ref(bigtable[basetype]);
             debugfile^.basetype := p^.dbgsymbol;
             end;
           files:
             begin
-            if bigcompilerversion then p := ref(bigtable[filebasetype])
-            else areadaccess(filebasetype, p);
+            p := ref(bigtable[filebasetype]);
             debugfile^.filebasetype := p^.dbgsymbol;
             end;
           ptrs:
             if ptrtypename <> 0 then
               begin
-              if bigcompilerversion then p := ref(bigtable[ptrtypename])
-              else areadaccess(ptrtypename, p);
-              if bigcompilerversion then p := ref(bigtable[p^.typeindex])
-              else areadaccess(p^.typeindex, p);
+              p := ref(bigtable[ptrtypename]);
+              p := ref(bigtable[p^.typeindex]);
               debugfile^.ptrtype := p^.dbgsymbol
               end;
           otherwise;
@@ -165,14 +157,12 @@ procedure dumpname(p: entryptr;
         case namekind of
           typename:
             begin
-            if bigcompilerversion then f := ref(bigtable[typeindex])
-            else areadaccess(typeindex, f);
+            f := ref(bigtable[typeindex]);
             debugfile^.typeindex := f^.dbgsymbol;
             end;
           constname:
             begin
-            if bigcompilerversion then f := ref(bigtable[consttype])
-            else areadaccess(consttype, f);
+            f := ref(bigtable[consttype]);
             debugfile^.constform := f^.typ;
             debugfile^.consttype := f^.dbgsymbol;
             if (debugfile^.constform = reals) or
@@ -210,8 +200,7 @@ procedure dumpname(p: entryptr;
             debugfile^.length := length;
             debugfile^.varalloc := varalloc;
             debugfile^.refparam := refparam;
-            if bigcompilerversion then f := ref(bigtable[vartype])
-            else areadaccess(vartype, f);
+            f := ref(bigtable[vartype]);
             debugfile^.vartype := f^.dbgsymbol;
 
             { This is a kludge. sparelink is used to point to parent type..}
@@ -219,8 +208,7 @@ procedure dumpname(p: entryptr;
             if (namekind = fieldname) and (sparelink <> 0) then
               begin
               { idno is set for the first field name }
-              if bigcompilerversion then f := ref(bigtable[sparelink])
-              else areadaccess(sparelink, f);
+              f := ref(bigtable[sparelink]);
               put(debugfile);
               seek(debugfile, f^.dbgsymbol);
               debugfile^.firstfield := lastdebugrecord - 1;
@@ -229,8 +217,7 @@ procedure dumpname(p: entryptr;
               end;
             if (namekind = boundid) and (sparelink <> 0) then
               begin
-              if bigcompilerversion then f := ref(bigtable[sparelink])
-              else areadaccess(sparelink, f);
+              f := ref(bigtable[sparelink]);
               put(debugfile);
               seek(debugfile, f^.dbgsymbol);
               debugfile^.lowbound := lastdebugrecord - 2;
@@ -253,8 +240,7 @@ procedure dumpname(p: entryptr;
             debugfile^.paramsize := display[level].paramsize;
             debugfile^.blocksize := display[level].blocksize;
             debugfile^.entryaddress := 0;
-            if bigcompilerversion then f := ref(bigtable[functype])
-            else areadaccess(functype, f);
+            f := ref(bigtable[functype]);
             debugfile^.functype := f^.dbgsymbol;
             if newdebugger then
               begin
@@ -293,15 +279,13 @@ parameters, then other names
       {Dump the forms defined locally}
       for i := oldtabletop + 1 to tabletop do
         begin
-        if bigcompilerversion then p := ref(bigtable[i])
-        else areadaccess(i, p);
+        p := ref(bigtable[i]);
         if p^.form then if not p^.disposable then dumpform(p, i, level);
         end;
 
       seek(debugfile, lastdebugrecord + 1);
 
-      if bigcompilerversion then p := ref(bigtable[blockname])
-      else areadaccess(blockname, p);
+      p := ref(bigtable[blockname]);
 
       t := lastdebugrecord + 1;
 
@@ -309,16 +293,14 @@ parameters, then other names
 
       for i := blockname to p^.paramlist do
         begin {dump block and parameters}
-        if bigcompilerversion then p := ref(bigtable[i])
-        else areadaccess(i, p);
+        p := ref(bigtable[i]);
         if not p^.form then dumpname(p, level, i)
         end;
 
       { don't dump field names on this pass }
       for i := oldtabletop + 1 to tabletop do
         begin {dump all other names}
-        if bigcompilerversion then p := ref(bigtable[i])
-        else areadaccess(i, p);
+        p := ref(bigtable[i]);
         if not p^.form then
           if not (p^.namekind in
              [fieldname, procname, funcname, forwardproc, forwardfunc,
@@ -345,16 +327,14 @@ parameters, then other names
       firstfieldname := lastdebugrecord + 1;
       for i := oldtabletop + 1 to tabletop do
         begin {dump all other names}
-        if bigcompilerversion then p := ref(bigtable[i])
-        else areadaccess(i, p);
+        p := ref(bigtable[i]);
         if not p^.form then
           if p^.namekind = fieldname then dumpname(p, level, i);
         end;
       { fix all the lastfield id's }
       for i := oldtabletop + 1 to tabletop do
         begin
-        if bigcompilerversion then p := ref(bigtable[i])
-        else areadaccess(i, p);
+        p := ref(bigtable[i]);
         if p^.form then
           if not p^.disposable and (p^.typ = fields) then
             begin

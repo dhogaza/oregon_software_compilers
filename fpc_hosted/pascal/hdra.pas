@@ -242,16 +242,6 @@ type
 
   nameblockptr = ^nameblock;
 
-  blockindex = - 1..amaxblocksin;
-
-  blockmap =
-    record {Used to map block number into buffer pointer}
-      blkno: blockindex; { index for seek }
-      written: boolean; {set if block has been modified}
-      lowblock: boolean; {set if buffer not on heap}
-      buffer: nameblockptr {points to block if exists, otherwise nil}
-    end;
-
   undefentry =
     record {used to record forward routines and type definitions}
       tableref: index; {symbol table entry for name}
@@ -482,8 +472,6 @@ var
 
   anynonpascalcalls: boolean; {set if block contains any non-pascal calls}
 
-  fewestblocks, mostblocks: 0..amaxblocksin; {monitor virt mem scheme}
-
 { Gross kludge to enable placement of structured constants in analys
   overlay: }
 
@@ -492,12 +480,7 @@ var
   structvalue: operand; {the returned value}
   tempvars: integer; {number of locals available for register assignment}
 
-  lastblocksin: 1..amaxblocksin; {last block actually allocated}
-  thrashing: boolean; {set true when sym table spills onto disk}
   bigtable: array [0..bigtablesize] of tableentry; {symboltable if
                                                     bigcompiler}
-  blocksin: array [1..amaxblocksin] of blockmap; {name blocks in memory}
-  blockslow: array [1..maxblockslow] of nameblock;
-
   implementation
   end.

@@ -579,7 +579,7 @@ procedure enterform(newtyp: types; {type for this form}
     if tabletop = tablesize then fatal(tablefull)
     else tabletop := tabletop + 1;
     where := tabletop;
-    if bigcompilerversion then whereptr := @(bigtable[tabletop]);
+    whereptr := @(bigtable[tabletop]);
     with whereptr^ do
       begin
       if not newdebugger and (newtyp in
@@ -619,20 +619,17 @@ procedure searchsection(id: scoperange; {scope id for search}
 
   begin {searchsection}
     twherefound := keymap[thistoken.key];
-    if bigcompilerversion then p := @(bigtable[twherefound]);
+    p := @(bigtable[twherefound]);
     while (twherefound <> 0) and (p^.name <> id) do
       begin
       twherefound := p^.nextname;
-      if bigcompilerversion then p := @(bigtable[twherefound]);
+      p := @(bigtable[twherefound]);
       end;
     if not probing and (twherefound <> 0) and
        (p^.lastoccurrence < display[displaytop].scopeid) and
        (p^.namekind in
        [procname, funcname, constname, typename, standardproc, standardfunc, undeftypename, fieldname, undefname]) then
-      begin
-      if not bigcompilerversion then blocksin[1].written := true;
       p^.lastoccurrence := display[displaytop].scopeid;
-      end;
     wherefound := twherefound;
   end {searchsection} ;
 
@@ -719,11 +716,11 @@ procedure searchvariants(var currentrecord: index; {record to search}
 
   begin {searchvariants}
     found := false;
-    if bigcompilerversion then ptr := @(bigtable[currentrecord]);
+    ptr := @(bigtable[currentrecord]);
     t := ptr^.firstvariant;
     while (t <> 0) and not found do
       begin
-      if bigcompilerversion then ptr := @(bigtable[t]);
+      ptr := @(bigtable[t]);
       with ptr^ do
         begin
         t2 := t;
@@ -731,7 +728,7 @@ procedure searchvariants(var currentrecord: index; {record to search}
         t1 := firstlabel;
         while (t1 <> 0) and not found do
           begin
-          if bigcompilerversion then ptr1 := @(bigtable[t1]);
+          ptr1 := @(bigtable[t1]);
           with ptr1^ do
             begin
             found := (labvalue.cvalue.intvalue = varlabvalue);
@@ -758,7 +755,7 @@ procedure stripsubrange(var objectindex: index {form to be stripped} );
 
 
   begin {stripsubrange}
-    if bigcompilerversion then ptr := @(bigtable[objectindex]);
+    ptr := @(bigtable[objectindex]);
     with ptr^ do if (typ = subranges) then objectindex := parenttype;
   end {stripsubrange} ;
 
@@ -1484,7 +1481,7 @@ procedure conststructure(form: index; {form found for this constant}
             if (representation = ints) and (elttype <> noneindex) and
                compatible(typeindex, elttype) then
               begin
-              if bigcompilerversion then elp := @(bigtable[elttype]);
+              elp := @(bigtable[elttype]);
               if extended and not elp^.extendedrange or (intvalue < 0) and
                  negated and elp^.extendedrange then
                 warnbefore(badconsterr)
@@ -1507,7 +1504,7 @@ procedure conststructure(form: index; {form found for this constant}
         if token = ident then
           begin
           search(tindex);
-          if bigcompilerversion then p := @(bigtable[tindex]);
+          p := @(bigtable[tindex]);
           with p^ do
             if namekind = typename then
               begin
@@ -1520,7 +1517,7 @@ procedure conststructure(form: index; {form found for this constant}
           end
         else if token = lpar then
           begin
-          if bigcompilerversion then elp := @(bigtable[elttype]);
+          elp := @(bigtable[elttype]);
           if not (elp^.typ in [arrays, fields, none]) then
             begin
             warn(badconsterr);
@@ -1533,8 +1530,7 @@ procedure conststructure(form: index; {form found for this constant}
         else getconstant(follow, elttype, value1);
         if not written then
           begin
-          if bigcompilerversion then
-            elp := @(bigtable[value1.typeindex]);
+          elp := @(bigtable[value1.typeindex]);
           if not (eltstring and ((elp^.typ = chars) or
              (elp^.typ = arrays) and (elp^.stringtype)) or
              compatible(elttype, value1.typeindex)) then
@@ -1616,12 +1612,12 @@ procedure conststructure(form: index; {form found for this constant}
 
       begin {constarray}
         eltcount := 1;
-        if bigcompilerversion then f := @(bigtable[form]);
+        f := @(bigtable[form]);
         elttype := f^.elementtype;
         packing := f^.packedflag;
         eltsize := f^.elementsize;
         eltsinarray := f^.arraymembers;
-        if bigcompilerversion then f := @(bigtable[elttype]);
+        f := @(bigtable[elttype]);
         eltstring := f^.typ = strings;
         constelement(eltloc, elttype, eltsize, eltstring, packing);
 	while token in [lpar, comma] + begconstset do
@@ -1669,18 +1665,18 @@ procedure conststructure(form: index; {form found for this constant}
             constelement(eltloc, noneindex, unitsize, false, false)
           else
             begin
-            if bigcompilerversion then f := @(bigtable[form]);
+            f := @(bigtable[form]);
             localform := f^;
             found := false;
             while (currentfield < localform.lastfield) and not found do
               begin
               currentfield := currentfield + 1;
-              if bigcompilerversion then p := @(bigtable[currentfield]);
+              p := @(bigtable[currentfield]);
               if not p^.form then found := p^.name = localform.fieldid;
               end;
             if found then
               begin
-              if bigcompilerversion then f1 := @(bigtable[p^.vartype]);
+              f1 := @(bigtable[p^.vartype]);
               constelement(p^.offset + eltloc, p^.vartype, sizeof(f1,
                            localform.packedflag), f1^.typ = strings,
                            localform.packedflag)
@@ -1696,19 +1692,16 @@ procedure conststructure(form: index; {form found for this constant}
               tagoffset := 0;
               if localform.tagfield <> 0 then
                 begin
-                if bigcompilerversion then
-                  p := @(bigtable[localform.tagfield]);
+                p := @(bigtable[localform.tagfield]);
                 elttype := p^.vartype;
                 tagoffset := p^.offset;
                 end
               else if localform.firstvariant <> 0 then
                 begin
-                if bigcompilerversion then
-                  f := @(bigtable[localform.firstvariant]);
+                f := @(bigtable[localform.firstvariant]);
                 if f^.firstlabel <> 0 then
                   begin
-                  if bigcompilerversion then
-                    f := @(bigtable[f^.firstlabel]);
+                  f := @(bigtable[f^.firstlabel]);
                   elttype := f^.varlabtype;
                   end
                 else elttype := noneindex;
@@ -1718,13 +1711,13 @@ procedure conststructure(form: index; {form found for this constant}
                          localform.packedflag, temp, written);
               if localform.tagfield <> 0 then
                 begin
-                if bigcompilerversion then f := @(bigtable[elttype]);
+                f := @(bigtable[elttype]);
                 putvalue(tagoffset + eltloc, false, false,
                          localform.packedflag, sizeof(f, localform.packedflag),
                          temp);
                 end;
               searchvariants(form, temp);
-              if bigcompilerversion then f := @(bigtable[form]);
+              f := @(bigtable[form]);
               currentfield := f^.firstfield - 1;
               end;
             end;
@@ -1733,7 +1726,7 @@ procedure conststructure(form: index; {form found for this constant}
 
       begin {constrecord}
         finished := false;
-        if bigcompilerversion then f := @(bigtable[form]);
+        f := @(bigtable[form]);
         currentfield := f^.firstfield - 1;
 
         constfield;
@@ -1743,7 +1736,7 @@ procedure conststructure(form: index; {form found for this constant}
           constfield;
           end;
 
-        if bigcompilerversion then f := @(bigtable[form]);
+        f := @(bigtable[form]);
         if (currentfield < f^.lastfield) or (f^.firstvariant <> 0) then
           warnbefore(badconsterr);
       end {constrecord} ;
@@ -1772,7 +1765,7 @@ procedure conststructure(form: index; {form found for this constant}
       if token = lpar then
         begin
         gettoken;
-        if bigcompilerversion then f := @(bigtable[form]);
+        f := @(bigtable[form]);
         packedflag := f^.packedflag;
         if outerpacked and not packedflag then
           begin
@@ -1814,7 +1807,7 @@ procedure conststructure(form: index; {form found for this constant}
     if not scanalys and switcheverplus[defineswitch] then
       warnbefore(baddefine);
     gettoken;
-    if bigcompilerversion then f := @(bigtable[form]);
+    f := @(bigtable[form]);
     packedflag := f^.packedflag;
     initcdump(value1, form, f);
     innercstruct(0, form, false);
@@ -1855,7 +1848,7 @@ procedure conststructure(form: index; {form found for this constant}
       else if token = ident then
         begin {either constant or constant structure}
         search(t);
-        if bigcompilerversion then p := @(bigtable[t]);
+        p := @(bigtable[t]);
         if t = 0 then
           begin
           warn(undefidenterr);
@@ -1866,7 +1859,7 @@ procedure conststructure(form: index; {form found for this constant}
             if namekind = constname then
               begin
               value1.typeindex := consttype;
-              if bigcompilerversion then t1 := @(bigtable[consttype]);
+              t1 := @(bigtable[consttype]);
               value1.oprndlen := sizeof(t1, false);
               value1.cvalue := constvalue;
               gettoken;
@@ -2022,8 +2015,8 @@ function compatible(left, right: index {types to compare} ): boolean;
     else
       begin
       compatible := false;
-      if bigcompilerversion then lptr := @(bigtable[left]);
-      if bigcompilerversion then rptr := @(bigtable[right]);
+      lptr := @(bigtable[left]);
+      rptr := @(bigtable[right]);
       if lptr^.typ = rptr^.typ then
         case lptr^.typ of
           strings: compatible := true;
@@ -2039,8 +2032,8 @@ function compatible(left, right: index {types to compare} ): boolean;
               compatible := true
             else
               begin
-              if bigcompilerversion then lptr := @(bigtable[lptr^.ptrtypename]);
-              if bigcompilerversion then rptr := @(bigtable[rptr^.ptrtypename]);
+              lptr := @(bigtable[lptr^.ptrtypename]);
+              rptr := @(bigtable[rptr^.ptrtypename]);
               c := (switchcounters[standard] <= 0) and
                    (lptr^.typeindex = rptr^.typeindex);
               if not c then

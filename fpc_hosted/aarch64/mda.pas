@@ -849,7 +849,7 @@ procedure possibletemp(p:entryptr);
   begin {possibletemp}
     if tempvars < maxtrackvar then
       begin
-      if bigcompilerversion then f := @(bigtable[p^.vartype]);
+      f := @(bigtable[p^.vartype]);
       if p^.registercandidate and (p^.refparam or
         (f^.typ in [bools, chars, ints, ptrs, scalars, subranges, sets]) and
         (f^.size <= defaultptrsize) or (f^.typ in [reals, doubles])) then

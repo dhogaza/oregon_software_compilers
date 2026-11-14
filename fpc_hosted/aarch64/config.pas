@@ -64,7 +64,6 @@ type
   integer = longint; {DRB fpc defaults to 16 bits}
 
 const
-  bigcompilerversion = true; {runs in fewer passes if 'true', but is bigger}
   scanalys = true; {phases scan and analys run together if 'true'}
   travcode = true; {phases travrs and code run together if 'true'}
   hostmachine = aarch64;

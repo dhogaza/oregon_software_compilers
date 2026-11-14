@@ -670,7 +670,7 @@ procedure genoprnd;
             doubles: genrealvalue(doubleop, realvalue.realbuffer);
             strings, arrays, fields:
               begin
-              if bigcompilerversion then f := @(bigtable[typeindex]);
+              f := @(bigtable[typeindex]);
               if f^.disposable and (typeindex = tabletop) then
                 begin
                 lastdebugrecord := lastdebugrecord - 2;
@@ -870,7 +870,7 @@ procedure checkrange(subject: operand; {does this fit?}
       begin
       if believeit then r := optimistic
       else r := pessimistic;
-      if bigcompilerversion then typeptr := @(bigtable[typeindex]);
+      typeptr := @(bigtable[typeindex]);
       l := lower(typeptr);
       u := upper(typeptr);
       if typeptr^.extendedrange or r.extended then
@@ -908,7 +908,7 @@ procedure newresulttype(newtype: index);
 
   begin {newresulttype}
     resulttype := newtype;
-    if bigcompilerversion then resultptr := @(bigtable[resulttype]);
+    resultptr := @(bigtable[resulttype]);
     resultform := getform(resultptr);
   end {newresulttype} ;
 
@@ -1452,7 +1452,7 @@ procedure foldmod;
         foldedbinary := false;
         with oprndstk[l] do
           begin
-          if bigcompilerversion then typeptr := @(bigtable[typeindex]);
+          typeptr := @(bigtable[typeindex]);
           rangenonneg := value_range.optimistic.minlimit >= 0;
           rangenonneg := rangenonneg or unsigned(typeptr, oprndlen, false);
           end;
@@ -1501,7 +1501,7 @@ procedure foldkwo;
         foldedbinary := false;
         with oprndstk[l] do
           begin
-          if bigcompilerversion then typeptr := @(bigtable[typeindex]);
+          typeptr := @(bigtable[typeindex]);
           rangenonneg := value_range.optimistic.minlimit >= 0;
           rangenonneg := rangenonneg or unsigned(typeptr, oprndlen, false);
           end;
@@ -1729,7 +1729,7 @@ procedure foldchk(adjustlow: boolean; {adjust lower bound to 0}
 
 
   begin {foldchk}
-    if bigcompilerversion then typeptr := @(bigtable[oprndstk[sp].typeindex]);
+    typeptr := @(bigtable[oprndstk[sp].typeindex]);
     lowerbound := lower(typeptr);
     upperbound := upper(typeptr);
     if typeptr^.typ in [subranges, chars, bools, ints, scalars] then
@@ -1851,7 +1851,7 @@ procedure genunary(op: operatortype; {operation to generate}
           end;
         end;
       end;
-    if bigcompilerversion then resultptr := @(bigtable[resulttype]);
+    resultptr := @(bigtable[resulttype]);
   end {genunary} ;
 
 procedure genregtargetop(regid: regrange; alloc: allockind; form: types);
@@ -2205,7 +2205,7 @@ procedure folddiv;
         power2check(getintvalue(r), power2, power2value);
         with oprndstk[l] do
           begin
-          if bigcompilerversion then typeptr := @(bigtable[typeindex]);
+          typeptr := @(bigtable[typeindex]);
           rangenonneg := value_range.optimistic.minlimit >= 0;
           if power2 and (rangenonneg or unsigned(typeptr, oprndlen, false)) then
             oprndstk[r].cvalue.intvalue := - power2value
@@ -2615,7 +2615,7 @@ procedure genbinary(op: operatortype; {operation to generate}
           end;
         end;
       end;
-    if bigcompilerversion then resultptr := @(bigtable[resulttype]);
+    resultptr := @(bigtable[resulttype]);
   end {genbinary} ;
 
 
@@ -2699,11 +2699,11 @@ procedure computeresult(maybestring: boolean {force char to string?});
     if sp >= 0 then righttype := oprndstk[sp].typeindex
     else righttype := noneindex;
     newresulttype(noneindex);
-    if bigcompilerversion then f := @(bigtable[lefttype]);
+    f := @(bigtable[lefttype]);
     leftform := getform(f);
     leftstringtype := (leftform = arrays) and f^.stringtype;
     leftshortstring := leftstringtype and (f^.arraymembers = 1);
-    if bigcompilerversion then f := @(bigtable[righttype]);
+    f := @(bigtable[righttype]);
     rightform := getform(f);
     rightshortstring := (rightform = arrays) and f^.stringtype and
                         (f^.arraymembers = 1);
@@ -2848,7 +2848,7 @@ procedure gencheck(op: operatortype; {operator to generate}
 
 
   begin {gencheck}
-    if bigcompilerversion then checkptr := @(bigtable[checktype]);
+    checkptr := @(bigtable[checktype]);
     with checkptr^ do
       if typ = subranges then
         generate := (lowerord <> 0) or (upperord <> maxusint)
@@ -3077,7 +3077,7 @@ procedure regparamsinitial;
     p: entryptr; {used for accessing procedure and parameters}
 
 begin {regparamsinitial}
-  if bigcompilerversion then p := @(bigtable[display[level].blockname]);
+  p := @(bigtable[display[level].blockname]);
   t := p^.paramlist;
 { DRB 2023 function return value might be passed as a regparam ptr
   i := display[level].blockname  + 1;
@@ -3085,7 +3085,7 @@ begin {regparamsinitial}
   i := display[level].blockname;
   while i <= t do
     begin
-    if bigcompilerversion then p := @(bigtable[i]);
+    p := @(bigtable[i]);
     if not p^.form and p^.allocated then
       if (p^.varalloc <> normalalloc) then
         begin
@@ -3125,7 +3125,7 @@ procedure regparamsfinal;
     p: entryptr; {used for accessing procedure and parameters}
 
 begin {regparamsfinal}
-  if bigcompilerversion then p := @(bigtable[display[level].blockname]);
+  p := @(bigtable[display[level].blockname]);
   t := p^.paramlist;
 { DRB 2023 function return value might be passed as a regparam ptr
   i := display[level].blockname  + 1;
@@ -3133,7 +3133,7 @@ begin {regparamsfinal}
   i := display[level].blockname;
   while i <= t do
     begin
-    if bigcompilerversion then p := @(bigtable[i]);
+    p := @(bigtable[i]);
     if not p^.form and p^.allocated then
       if (p^.varalloc <> normalalloc) then
         begin
@@ -3231,7 +3231,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 
     begin {genvalsize}
       packedaccess := false;
-      if bigcompilerversion then f := @(bigtable[elttype]);
+      f := @(bigtable[elttype]);
       with f^ do
         if typ = conformantarrays then
           begin
@@ -3425,7 +3425,7 @@ procedure statement(follow: tokenset {legal following symbols} );
           warnbefore(indexincomp);
         linearize := false;
         oprndstk[sp].typeindex := indexwanted;
-        if bigcompilerversion then indextypeptr := @(bigtable[indexwanted]);
+        indextypeptr := @(bigtable[indexwanted]);
         lowerbound := lower(indextypeptr);
         if not conformant and (switchcounters[indexcheck] > 0) then
           genunary(indxchkop, ints)
@@ -3542,7 +3542,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                 searchsection(fieldid, fieldindex);
                 if fieldindex <> 0 then
                   begin
-                  if bigcompilerversion then p := @(bigtable[fieldindex]);
+                  p := @(bigtable[fieldindex]);
                   newresulttype(p^.vartype);
                   nowvariant := p^.varianttag;
                   setnowunpacking(packedflag, p^.offset, nowunpacking);
@@ -3584,7 +3584,7 @@ procedure statement(follow: tokenset {legal following symbols} );
             begin
             if typ = ptrs then
               begin
-              if bigcompilerversion then p := @(bigtable[ptrtypename]);
+              p := @(bigtable[ptrtypename]);
               newresulttype(p^.typeindex);
               newoff := ptrkey;
               end
@@ -3756,7 +3756,7 @@ procedure statement(follow: tokenset {legal following symbols} );
       unpacking := false;
       varlev := lev;
       ownvar := false;
-      if bigcompilerversion then varptr := @(bigtable[varindex]);
+      varptr := @(bigtable[varindex]);
       with varptr^ do
         begin
         if checkforstack(varindex, i) then
@@ -4118,7 +4118,7 @@ varkey := regparamkey;
       if resultindex = 0 then illegalident(resultindex)
       else
         begin
-        if bigcompilerversion then p := @(bigtable[resultindex]);
+        p := @(bigtable[resultindex]);
         with p^ do
           if namekind in
              [varname, fieldname, param, constparam, varparam, confparam,
@@ -4154,7 +4154,7 @@ varkey := regparamkey;
         search(fileindex);
         if (fileindex = inputindex) or (fileindex = outputindex) then
           begin
-          if bigcompilerversion then f := @(bigtable[fileindex]);
+          f := @(bigtable[fileindex]);
           filedeclared := f^.programdecl;
           end;
         end;
@@ -4195,8 +4195,7 @@ varkey := regparamkey;
             if resulttype = textindex then genpushdefaultint(-1, regparams)
             else
               begin
-              if bigcompilerversion then
-                f := @(bigtable[resultptr^.filebasetype]);
+              f := @(bigtable[resultptr^.filebasetype]);
               genpushdefaultint(forcealign(sizeof(f, false), alignmentof(f,
                                            false),
                                 false) * (bitsperunit div bitsperfileunit),
@@ -4412,8 +4411,8 @@ varkey := regparamkey;
               if identical(formalt, actualt) then equivtypes := true
               else
                 begin
-                if bigcompilerversion then at := @(bigtable[actualt]);
-                if bigcompilerversion then ft := @(bigtable[formalt]);
+                at := @(bigtable[actualt]);
+                ft := @(bigtable[formalt]);
                 if (at^.typ = conformantarrays) and
                    (ft^.typ = conformantarrays) then
                   equivtypes := (at^.packedflag = ft^.packedflag) and
@@ -4429,8 +4428,8 @@ varkey := regparamkey;
             formal := formal + 1;
             while c and (actual <= lastactual) do
               begin
-              if bigcompilerversion then ap := @(bigtable[actual]);
-              if bigcompilerversion then fp := @(bigtable[formal]);
+              ap := @(bigtable[actual]);
+              fp := @(bigtable[formal]);
               nexta := ap^.nextparamlink;
               nextf := fp^.nextparamlink;
               c := (ap^.namekind = fp^.namekind) and
@@ -4504,8 +4503,8 @@ varkey := regparamkey;
 
 
         begin {conformable}
-          if bigcompilerversion then formalptr := @(bigtable[formal]);
-          if bigcompilerversion then actualptr := @(bigtable[actual]);
+          formalptr := @(bigtable[formal]);
+          actualptr := @(bigtable[actual]);
           if (formalptr^.typ = conformantarrays) and
              (actualptr^.typ in [conformantarrays, arrays, strings]) then
             begin
@@ -4518,10 +4517,8 @@ varkey := regparamkey;
                  conformable(formalelt, actualelt);
             if c and (actualptr^.typ in [arrays, strings]) then
               begin
-              if bigcompilerversion then
-                formalptr := @(bigtable[formalindex]);
-              if bigcompilerversion then
-                actualptr := @(bigtable[actualindex]);
+              formalptr := @(bigtable[formalindex]);
+              actualptr := @(bigtable[actualindex]);
               c := (lower(actualptr) >= lower(formalptr)) and
                    (upper(actualptr) <= upper(formalptr));
               end;
@@ -4592,7 +4589,7 @@ varkey := regparamkey;
             begin
             if pushbounds then
               begin
-              if bigcompilerversion then paramtypeptr := @(bigtable[paramtype]);
+              paramtypeptr := @(bigtable[paramtype]);
               actualtypeptr := resultptr;
               {DRB: this code does not work for strings!}
               while (actualtypeptr^.typ in [arrays, conformantarrays, strings]) and
@@ -4601,15 +4598,13 @@ varkey := regparamkey;
                 pt1 := paramtypeptr^.elementtype;
                 at1 := actualtypeptr^.elementtype;
 
-                if bigcompilerversion then
-                  boundidptr := @(bigtable[paramtypeptr^.lowbound]);
+                boundidptr := @(bigtable[paramtypeptr^.lowbound]);
                 boundidsize := boundidptr^.length;
                 boundidtype := boundidptr^.vartype;
                 highid := actualtypeptr^.highbound;
                 lowid := actualtypeptr^.lowbound;
                 desiredindex := paramtypeptr^.indextype;
-                if bigcompilerversion then
-                  indexptr := @(bigtable[actualtypeptr^.indextype]);
+                indexptr := @(bigtable[actualtypeptr^.indextype]);
 
                 if actualisconformant then pushbound(lowid)
                 else pushint(lower(indexptr));
@@ -4618,8 +4613,7 @@ varkey := regparamkey;
                 genparamvalue(boundidptr, getform(indexptr), stackparamcount);
                 genoprnd;
 
-                if bigcompilerversion then
-                  boundidptr := @(bigtable[paramtypeptr^.highbound]);
+                boundidptr := @(bigtable[paramtypeptr^.highbound]);
                 if actualisconformant then pushbound(highid)
                 else pushint(upper(indexptr));
                 oprndstk[sp].typeindex := boundidtype;
@@ -4627,8 +4621,8 @@ varkey := regparamkey;
                 genparamvalue(boundidptr, getform(indexptr), stackparamcount);
                 genoprnd;
 
-                if bigcompilerversion then paramtypeptr := @(bigtable[pt1]);
-                if bigcompilerversion then actualtypeptr := @(bigtable[at1]);
+                paramtypeptr := @(bigtable[pt1]);
+                actualtypeptr := @(bigtable[at1]);
                 end;
               end;
             end
@@ -4650,7 +4644,7 @@ varkey := regparamkey;
             end;
           paramindex := maxparams
           end;
-        if bigcompilerversion then p := @(bigtable[paramindex]);
+        p := @(bigtable[paramindex]);
         namekind := p^.namekind;
         nextparam := p^.nextparamlink + 1;
         if alreadywarned or (namekind in [param, constparam, constconfparam, confparam]) or
@@ -4660,9 +4654,9 @@ varkey := regparamkey;
           actualstdstring := (resultform = arrays) and resultptr^.stringtype;
           if not alreadywarned then
             begin
-            if bigcompilerversion then p := @(bigtable[paramindex]);
+            p := @(bigtable[paramindex]);
             formaltype := p^.vartype;
-            if bigcompilerversion then paramptr := @(bigtable[formaltype]);
+            paramptr := @(bigtable[formaltype]);
             formallen := p^.length;
             if namekind in [constparam, param] then
               begin
@@ -4729,7 +4723,7 @@ varkey := regparamkey;
           if actualindex = 0 then illegalident(actualindex)
           else
             begin
-            if bigcompilerversion then actualptr := @(bigtable[actualindex]);
+            actualptr := @(bigtable[actualindex]);
             case namekind of
               varparam:
                 begin
@@ -4739,7 +4733,7 @@ varkey := regparamkey;
                    (actualptr^.varalloc in [regparam, realregparam, ptrregparam]) then
                   forcememoryparam(lev, actualptr);
                 modifyvariable(false, false);
-                if bigcompilerversion then p := @(bigtable[paramindex]);
+                p := @(bigtable[paramindex]);
                 if not (p^.univparam or identical(p^.vartype, resulttype)) then
                   warnbefore(paramtypeerr);
                 oprndstk[sp].oprndlen := ptrsize;
@@ -4791,7 +4785,7 @@ varkey := regparamkey;
     begin {parameterlist}
       lastconfactual := noneindex;
       alreadywarned := false;
-      if bigcompilerversion then p := @(bigtable[procindex]);
+      p := @(bigtable[procindex]);
       with p^ do
         if (procindex = 0) or
            not (namekind in
@@ -4849,13 +4843,13 @@ varkey := regparamkey;
 
     begin {procedurecall}
       gettoken;
-      if bigcompilerversion then p := @(bigtable[where]);
+      p := @(bigtable[where]);
       with p^ do
         begin
         ftype := vartype;
         pref := procref;
         end;
-      if bigcompilerversion then p := @(bigtable[ftype]);
+      p := @(bigtable[ftype]);
       plen := sizeof(p, false);
       genlit(pref);
       genop(reserve);
@@ -4901,7 +4895,7 @@ varkey := regparamkey;
       oprndstk[sp].typeindex := resulttype;
       oprndstk[sp].oprndlen := plen;
       setvarrange(plen, false, false);
-      if bigcompilerversion then p := @(bigtable[ftype]);
+      p := @(bigtable[ftype]);
       if unsigned(p, plen, false) then genunary(unscall, resultform)
       else genunary(call, resultform);
     end {procedurecall} ;
@@ -4923,7 +4917,7 @@ varkey := regparamkey;
     begin {paramcall}
       variable(true, false, true, false, true, where);
       ftype := resulttype;
-      if bigcompilerversion then p := @(bigtable[ftype]);
+      p := @(bigtable[ftype]);
       plen := sizeof(p, false);
       genop(reserve);
       genint(plen);
@@ -4975,22 +4969,21 @@ varkey := regparamkey;
         begin
         verifytoken(comma, nocommaerr);
         constant([comma, rpar], true, labvalue);
-        if bigcompilerversion then currentptr := @(bigtable[currentrecord]);
+        currentptr := @(bigtable[currentrecord]);
         if getform(currentptr) = fields then
           begin
           tagtype := noneindex;
           if currentptr^.tagfield <> 0 then
             begin
-            if bigcompilerversion then p := @(bigtable[currentptr^.tagfield]);
+            p := @(bigtable[currentptr^.tagfield]);
             tagtype := p^.vartype
             end
           else if currentptr^.firstvariant <> 0 then
             begin
-            if bigcompilerversion then
-              f := @(bigtable[currentptr^.firstvariant]);
+            f := @(bigtable[currentptr^.firstvariant]);
             if f^.firstlabel <> 0 then
               begin
-              if bigcompilerversion then f := @(bigtable[f^.firstlabel]);
+              f := @(bigtable[f^.firstlabel]);
               tagtype := f^.varlabtype;
               end;
             end;
@@ -5450,7 +5443,7 @@ varkey := regparamkey;
             if typeident = 0 then warn(undefidenterr)
             else
               begin
-              if bigcompilerversion then p := @(bigtable[typeident]);
+              p := @(bigtable[typeident]);
               if p^.namekind in [typename, undeftypename] then
                 begin
                 restype := p^.typeindex;
@@ -5495,7 +5488,7 @@ varkey := regparamkey;
         begin {sizefunction}
           firstypeparam(true, thistype);
           parsetagparams(thistype);
-          if bigcompilerversion then f := @(bigtable[thistype]);
+          f := @(bigtable[thistype]);
           pushint(sizeof(f, procid = bitsizeid));
           with oprndstk[sp] do
             begin
@@ -5522,7 +5515,7 @@ varkey := regparamkey;
         begin {lowerupperfunction}
           setflag := false;
           firstypeparam(true, thistype);
-          if bigcompilerversion then f := @(bigtable[thistype]);
+          f := @(bigtable[thistype]);
           if f^.typ in [sets, arrays] then
             begin {royal kludge per customer request}
             if f^.typ = arrays then thistype := f^.indextype
@@ -5531,7 +5524,7 @@ varkey := regparamkey;
               setflag := true;
               thistype := f^.basetype;
               end;
-            if bigcompilerversion then f := @(bigtable[thistype]);
+            f := @(bigtable[thistype]);
             end;
           if not (f^.typ in [none, bools, scalars, ints, subranges, chars]) then
             warnbefore(badfunctionarg);
@@ -5567,7 +5560,7 @@ varkey := regparamkey;
 
         begin {loopholefunction}
           firstypeparam(false, newtype);
-          if bigcompilerversion then newptr := @(bigtable[newtype]);
+          newptr := @(bigtable[newtype]);
           newsize := sizeof(newptr, false);
           newform := getform(newptr);
           newunsigned := unsigned(newptr, newsize, false);
@@ -5608,7 +5601,7 @@ varkey := regparamkey;
           if token = ident then
             begin
             search(varindex);
-            if bigcompilerversion then varptr := @(bigtable[varindex]);
+            varptr := @(bigtable[varindex]);
             modifyvariable(true, false);
             end
           else
@@ -5621,7 +5614,7 @@ varkey := regparamkey;
           genunary(addrop, ptrs);
           if tabletop = tablesize then fatal(tablefull)
           else tabletop := tabletop + 1;
-          if bigcompilerversion then varptr := @(bigtable[tabletop]);
+          varptr := @(bigtable[tabletop]);
           with varptr^ do
             begin
             dbgsymbol := 0;
@@ -6031,7 +6024,7 @@ varkey := regparamkey;
             basetype := resulttype;
             end;
           if basetype = intindex then basetype := subrangeindex;
-          if bigcompilerversion then baseptr := @(bigtable[basetype]);
+          baseptr := @(bigtable[basetype]);
           if not (getform(baseptr) in
              [ints, chars, bools, scalars, subranges, none]) then
             warnbefore(badsetbase)
@@ -6054,7 +6047,7 @@ varkey := regparamkey;
               dumpstr(thistoken.len + 1, curstringbuf, true);
               end;
             pushconstant(follow);
-            if bigcompilerversion then resultptr := @(bigtable[resulttype]);
+            resultptr := @(bigtable[resulttype]);
             resultptr^.align := 0;
             resultptr^.disposable := true;
             end;
@@ -6066,7 +6059,7 @@ varkey := regparamkey;
             if varindex = 0 then illegalident(varindex)
             else
               begin
-              if bigcompilerversion then varptr := @(bigtable[varindex]);
+              varptr := @(bigtable[varindex]);
               with varptr^ do
                 case namekind of
                   noname: illegalident(varindex);
@@ -6174,7 +6167,7 @@ varkey := regparamkey;
                 if token <> rbrack then verifytoken(comma, nocommaerr);
                 genoprnd;
                 end;
-              if bigcompilerversion then baseptr := @(bigtable[basetype]);
+              baseptr := @(bigtable[basetype]);
               if getform(baseptr) in
                  [ints, chars, bools, scalars, subranges] then
                 begin
@@ -6184,7 +6177,7 @@ varkey := regparamkey;
                 end;
               oprndstk[sp].oprndlen := size;
               end;
-            if bigcompilerversion then setptr := @(bigtable[settype]);
+            setptr := @(bigtable[settype]);
             setptr^ := setentry;
             newresulttype(settype);
             verifytoken(rbrack, norbrackerr);
@@ -6321,12 +6314,10 @@ varkey := regparamkey;
                             specialdiv := false
                           else
                             begin
-                            if bigcompilerversion then
-                              f := @(bigtable[oprndstk[sp - 1].typeindex]);
+                            f := @(bigtable[oprndstk[sp - 1].typeindex]);
                             if (lower(f) >= 0) or oprndstk[sp - 1].extended then
                               begin
-                              if bigcompilerversion then
-                                f := @(bigtable[oprndstk[sp].typeindex]);
+                              f := @(bigtable[oprndstk[sp].typeindex]);
                               if (lower(f) >= 0) or oprndstk[sp].extended then
                                 specialdiv := false;
                               end;
@@ -6352,12 +6343,10 @@ varkey := regparamkey;
                             specialdiv := false
                           else
                             begin
-                            if bigcompilerversion then
-                              f := @(bigtable[oprndstk[sp - 1].typeindex]);
+                            f := @(bigtable[oprndstk[sp - 1].typeindex]);
                             if (lower(f) >= 0) or oprndstk[sp - 1].extended then
                               begin
-                              if bigcompilerversion then
-                                f := @(bigtable[oprndstk[sp].typeindex]);
+                              f := @(bigtable[oprndstk[sp].typeindex]);
                               if (lower(f) >= 0) or oprndstk[sp].extended then
                                 specialdiv := false;
                               end;
@@ -6459,7 +6448,7 @@ varkey := regparamkey;
         simpleexpression;
         if op = insym then
           begin
-          if bigcompilerversion then leftptr := @(bigtable[lefttype]);
+          leftptr := @(bigtable[lefttype]);
           if (resultform <> sets) or
              not (leftptr^.typ in
              [none, ints, chars, scalars, bools, subranges]) or not compatible(lefttype,
@@ -6715,7 +6704,7 @@ varkey := regparamkey;
           search(n);
           if n <> 0 then
             begin
-            if bigcompilerversion then p := @(bigtable[n]);
+            p := @(bigtable[n]);
             if (p^.namekind = param) and (p^.varalloc = regparam) then
               forcememoryparam(lev, p);
             end;
@@ -6729,19 +6718,15 @@ varkey := regparamkey;
         with resultptr^ do
           if typ = ptrs then
             begin
-            if bigcompilerversion then p := @(bigtable[ptrtypename]);
+            p := @(bigtable[ptrtypename]);
             currentrecord := p^.typeindex;
             if p^.namekind = undeftypename then
-              begin
-              if not bigcompilerversion then blocksin[1].written := true;
               p^.lastoccurrence := display[level].scopeid;
-              end;
-            if bigcompilerversion then
               currentptr := @(bigtable[currentrecord]);
             containedfile := currentptr^.containsfile;
             end;
         parsetagparams(currentrecord);
-        if bigcompilerversion then currentptr := @(bigtable[currentrecord]);
+        currentptr := @(bigtable[currentrecord]);
         pushint(sizeof(currentptr, false));
         oprndstk[sp].oprndlen := defaultptrsize;
         genstdparamvalue(ints, regparams);
@@ -6770,7 +6755,7 @@ varkey := regparamkey;
         genunary(indrop, files);
         genop(newvarop);
         bumpsp;
-        if bigcompilerversion then f := @(bigtable[filetype]);
+        f := @(bigtable[filetype]);
         newresulttype(f^.filebasetype);
         with oprndstk[sp] do
           begin
@@ -6894,7 +6879,7 @@ varkey := regparamkey;
               readform := resultform;
               if filetype <> textindex then
                 begin
-                if bigcompilerversion then f := @(bigtable[filetype]);
+                f := @(bigtable[filetype]);
                 if not compatible(resulttype, f^.filebasetype) then
                   warnbefore(typesincomp);
                 genop(switchstack);
@@ -7055,9 +7040,9 @@ varkey := regparamkey;
               end
             else
               begin
-              if bigcompilerversion then f := @(bigtable[filetype]);
+              f := @(bigtable[filetype]);
               basetype := f^.filebasetype;
-              if bigcompilerversion then f := @(bigtable[basetype]);
+              f := @(bigtable[basetype]);
               if ((getform(f) = ints) and ((writeform = reals) or
                  (writeform = doubles))) or
                  not compatible(basetype, resulttype) then
@@ -7489,7 +7474,7 @@ varkey := regparamkey;
         end
       else genbinary(moveop, leftform);
       genoprndstmt;
-      if bigcompilerversion then varptr := @(bigtable[varindex]);
+      varptr := @(bigtable[varindex]);
       with varptr^ do
         if namekind in
            [varname, fieldname, param, constparam, varparam, confparam,
@@ -7864,11 +7849,11 @@ varkey := regparamkey;
         else
           begin
           if checkforstack(forvar, t) then warn(modifiedfor);
-          if bigcompilerversion then forvarptr := @(bigtable[forvar]);
+          forvarptr := @(bigtable[forvar]);
           with forvarptr^ do
             if namekind in [varname, param, constparam, varparam] then
               begin
-              if bigcompilerversion then fortypeptr := @(bigtable[vartype]);
+              fortypeptr := @(bigtable[vartype]);
               if namekind = constparam then
                 warn(constparamassign)
               else
@@ -8015,7 +8000,7 @@ varkey := regparamkey;
         begin
         containedgoto := false; {hopefully remains false!}
         forindex := forvar;
-        if bigcompilerversion then fortypeptr := @(bigtable[fortype]);
+        fortypeptr := @(bigtable[fortype]);
         settyperange(fortypeptr, forrange);
         if upflag then
           begin
@@ -8034,7 +8019,7 @@ varkey := regparamkey;
             end
           end;
         end;
-      if bigcompilerversion then forvarptr := @(bigtable[forvar]);
+      forvarptr := @(bigtable[forvar]);
       with forvarptr^ do
         if namekind in [varname, fieldname, param, varparam] then
           modified := true;
@@ -8054,7 +8039,7 @@ varkey := regparamkey;
       if not (forstack[forsp].containedgoto and
          (switchcounters[standard] > 0)) and (nest = 1) then
         begin
-        if bigcompilerversion then forvarptr := @(bigtable[forvar]);
+        forvarptr := @(bigtable[forvar]);
         if forvarptr^.namekind = varname then forvarptr^.modified := false;
         end;
       forsp := forsp - 1;
@@ -8099,7 +8084,7 @@ varkey := regparamkey;
         if token = ident then
           begin
           search(i);
-          if bigcompilerversion then p := @(bigtable[i]);
+          p := @(bigtable[i]);
           if p^.namekind in [varname, fieldname, param, varparam] then
             off := p^.offset
           else off := 0;
@@ -8221,7 +8206,7 @@ i: levelindex;
       if varindex = 0 then illegalassign
       else
         begin
-        if bigcompilerversion then varptr := @(bigtable[varindex]);
+        varptr := @(bigtable[varindex]);
         case varptr^.namekind of
           standardproc: standardprocedures(varptr^.procid);
           varname, fieldname, param, constparam, varparam, confparam,
@@ -8246,7 +8231,6 @@ i: levelindex;
             end;
           funcname:
             begin
-            if not bigcompilerversion then blocksin[1].written := true;
             varptr^.modified := true;
             newexprstmt(simple);
             if (lev >= level) or (varindex <> display[lev + 1].blockname) then
@@ -8300,8 +8284,7 @@ procedure body;
       len, off: addressrange;
 
     begin {functionreturn}
-      if bigcompilerversion then
-        procptr := @(bigtable[display[level].blockname]);
+      procptr := @(bigtable[display[level].blockname]);
       if procptr^.allocated {and (procptr^.varalloc = normalalloc)} and
          (paramalloc(procptr, resultptr) <> normalalloc) then
         begin
