@@ -615,20 +615,12 @@ procedure seekstringfile(n: integer {byte to access});
     newblock := n div (diskbufsize + 1) + 1;
     if newblock <> curstringblock then
       begin
-      if needcaching then
+      curstringblock := newblock;
+      stringblkptr := stringblkptrtbl[newblock];
+      if stringblkptr = nil then
         begin
-        seek(stringfile, newblock);
-        curstringblock := newblock;
-        end
-      else
-        begin
-        curstringblock := newblock;
-        stringblkptr := stringblkptrtbl[newblock];
-        if stringblkptr = nil then
-          begin
-          write('unexpected end of stringtable ');
-          compilerabort(inconsistent);
-          end;
+        write('unexpected end of stringtable ');
+        compilerabort(inconsistent);
         end;
       end;
     nextstringfile := n mod (diskbufsize + 1);
@@ -890,14 +882,9 @@ function get_from_sfile(loc, len: integer;
   begin {get_from_sfile}
   if ident then loc := stringfilecount + loc - 1; {skip strings}
 
-  if needcaching then
-    seekstringfile(loc)
-  else
-    begin
-    curstringblock := loc div (diskbufsize + 1) + 1;
-    stringblkptr := stringblkptrtbl[curstringblock];
-    nextstringfile := loc mod (diskbufsize + 1);
-    end;
+  curstringblock := loc div (diskbufsize + 1) + 1;
+  stringblkptr := stringblkptrtbl[curstringblock];
+  nextstringfile := loc mod (diskbufsize + 1);
 
   for i := 1 to maxprocnamelen do
     linkname[i] := ' '; { initialize link name }
@@ -988,14 +975,9 @@ procedure CopySFile;
 
 
   begin {CopySFile}
-    if needcaching then
-      seekstringfile(0)
-    else
-      begin
-      curstringblock := 1;
-      stringblkptr := stringblkptrtbl[curstringblock];
-      nextstringfile := 0;
-    end;
+    curstringblock := 1;
+    stringblkptr := stringblkptrtbl[curstringblock];
+    nextstringfile := 0;
 
     { first write the string table as fixed length character strings }
 
@@ -1016,14 +998,9 @@ procedure CopySFile;
 
     {now move on to the constant table and write it}
 
-    if needcaching then
-      seekstringfile(stringtablelimit)
-    else
-      begin
-      curstringblock := stringtablelimit div (diskbufsize + 1) + 1;
-      stringblkptr := stringblkptrtbl[curstringblock];
-      nextstringfile := stringtablelimit mod (diskbufsize + 1);
-      end;
+    curstringblock := stringtablelimit div (diskbufsize + 1) + 1;
+    stringblkptr := stringblkptrtbl[curstringblock];
+    nextstringfile := stringtablelimit mod (diskbufsize + 1);
  
     i := consttablelimit - stringtablelimit;
 
@@ -1171,14 +1148,9 @@ procedure InitMac;
       writech(' ');
       loc := stringfilecount + ident_string - 1;
 
-      if needcaching then
-	seekstringfile(loc)
-      else
-	begin
-	curstringblock := loc div (diskbufsize + 1) + 1;
-	stringblkptr := stringblkptrtbl[curstringblock];
-	nextstringfile := loc mod (diskbufsize + 1);
-	end;
+      curstringblock := loc div (diskbufsize + 1) + 1;
+      stringblkptr := stringblkptrtbl[curstringblock];
+      nextstringfile := loc mod (diskbufsize + 1);
 
       if newobjectfmt then writech('''');
 
@@ -1638,7 +1610,7 @@ procedure getnextnode;
     else
       begin
       currnode := currnode + 1;
-      if bigcompilerversion then n := @(bignodetable[currnode]);
+      n := @(bignodetable[currnode]);
       end
   end; {getnextnode}
 
@@ -1651,7 +1623,7 @@ procedure lookahead(n: integer);
 
   begin {lookahead}
     if currnode + n > lastnode then puterror(endofnodes)
-    else if bigcompilerversion then p := @(bignodetable[currnode + n]);
+    else p := @(bignodetable[currnode + n]);
   end; {lookahead}
 
 
@@ -1686,7 +1658,7 @@ procedure getprevoperand(num: integer);
 
 
   begin { getprevoperand }
-    if bigcompilerversion then n := @(bignodetable[currnode - num]);
+    n := @(bignodetable[currnode - num]);
 
     if n^.kind <> oprndnode then
       begin
@@ -3303,7 +3275,7 @@ function computedistance: addressrange;
 
     repeat { find current instruction node }
       tempnode := tempnode - 1;
-      if bigcompilerversion then p := @(bignodetable[tempnode]);
+      p := @(bignodetable[tempnode]);
     until p^.kind = instnode;
 
     bytecount := - 2; { the opcode is at (PC-2) regardless of length! }
@@ -3313,7 +3285,7 @@ function computedistance: addressrange;
         begin
         repeat { find previous instruction node }
           tempnode := tempnode - 1;
-          if bigcompilerversion then p := @(bignodetable[tempnode]);
+          p := @(bignodetable[tempnode]);
         until p^.kind = instnode;
 
         bytecount := bytecount - p^.computed_length {instlength(tempnode)}
@@ -3326,7 +3298,7 @@ function computedistance: addressrange;
 
         repeat { find next instruction node }
           tempnode := tempnode + 1;
-          if bigcompilerversion then p := @(bignodetable[tempnode]);
+          p := @(bignodetable[tempnode]);
         until p^.kind = instnode;
         end;
 

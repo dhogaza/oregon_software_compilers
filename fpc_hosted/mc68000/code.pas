@@ -291,14 +291,6 @@ procedure initblock;
 
     {Re-initialize virtual node storage}
 
-    thrashing := false;
-    for i := 1 to lastblocksin do
-      with blocksin[i] do
-        begin
-        written := true;
-        blkno := i - 1;
-        end;
-
     contextsp := 1;
     context[1].keymark := 1;
     context[1].clearflag := false;
@@ -417,7 +409,7 @@ function instlength(n: nodeindex {must refer to an instruction}) : integer;
 
 
   begin {instlength}
-    if bigcompilerversion then p := @(bignodetable[n]);
+    p := @(bignodetable[n]);
 
     if p^.kind <> instnode then { filter the pretenders }
 
@@ -441,7 +433,7 @@ function instlength(n: nodeindex {must refer to an instruction}) : integer;
       if inst = nop then len := 0
       else if inst = movem then
         begin
-        if bigcompilerversion then p := @(bignodetable[n + 2]);
+        p := @(bignodetable[n + 2]);
 
         if p^.oprnd.m = relative then len := long + word else len := long;
         end
@@ -459,7 +451,7 @@ function instlength(n: nodeindex {must refer to an instruction}) : integer;
 
         for i := 1 to p^.oprndcount do
           begin
-          if bigcompilerversion then p := @(bignodetable[n + i]);
+          p := @(bignodetable[n + i]);
 
           case p^.kind of
             relnode:
@@ -536,7 +528,7 @@ function instlength(n: nodeindex {must refer to an instruction}) : integer;
             end; { case p^.kind }
           end { for i } ;
         end;
-      if bigcompilerversion then p := @(bignodetable[n]);
+      p := @(bignodetable[n]);
 
       p^.computed_length := len;
       end; { instruction }
@@ -575,8 +567,8 @@ procedure insert(m: nodeindex; {instruction to insert after}
 
 
     begin
-      if bigcompilerversion then n1 := @(bignodetable[m]);
-      if bigcompilerversion then n2 := @(bignodetable[n]);
+      n1 := @(bignodetable[m]);
+      n2 := @(bignodetable[n]);
       n2^ := n1^;
     end {movenode} ;
 
@@ -589,7 +581,7 @@ procedure insert(m: nodeindex; {instruction to insert after}
 
       i := m;
 
-      if bigcompilerversion then p := @(bignodetable[i + 1]);
+      p := @(bignodetable[i + 1]);
 
       if p^.kind <> instnode then
         begin
@@ -599,7 +591,7 @@ procedure insert(m: nodeindex; {instruction to insert after}
 
       repeat
         i := i + 1;
-        if bigcompilerversion then p := @(bignodetable[i]);
+        p := @(bignodetable[i]);
       until (p^.inst <> nop) or (i >= m + n);
 
       {There are "n" nodes left which must be moved}
@@ -622,16 +614,13 @@ procedure insert(m: nodeindex; {instruction to insert after}
         cp := firstbr;
         while cp <> nil do
           begin
-          if bigcompilerversion then p := @(bignodetable[cp^.n + 1]);
+          p := @(bignodetable[cp^.n + 1]);
           bl := p^.brnodelink;
           while bl <> 0 do
             begin
             if bl >= i then
-              begin
               p^.brnodelink := p^.brnodelink + n;
-              blocksin[1].written := true;
-              end;
-            if bigcompilerversion then p := @(bignodetable[bl + 1]);
+            p := @(bignodetable[bl + 1]);
             bl := p^.brnodelink;
             end;
           if cp^.n >= i then
@@ -753,11 +742,8 @@ function eqinst(n, n1: nodeindex {nodes to compare} ): boolean;
 
 
   begin
-    if bigcompilerversion then
-      begin
-      p := @(bignodetable[n]);
-      p1 := @(bignodetable[n1]);
-      end;
+    p := @(bignodetable[n]);
+    p1 := @(bignodetable[n1]);
 
     equal := ((p^.inst = p1^.inst) and (p^.oprndcount = p1^.oprndcount) and
              (p^.oprndlength = p1^.oprndlength)) or
@@ -770,11 +756,8 @@ function eqinst(n, n1: nodeindex {nodes to compare} ): boolean;
       n := succ(n);
       n1 := succ(n1);
 
-      if bigcompilerversion then
-        begin
-        p := @(bignodetable[n]);
-        p1 := @(bignodetable[n1]);
-        end;
+      p := @(bignodetable[n]);
+      p1 := @(bignodetable[n1]);
 
       if p^.kind = p1^.kind then
         case p^.kind of
@@ -1642,13 +1625,12 @@ procedure adjustoffsets(firstnode: nodeindex; {first node of scan}
 
     for i := firstnode to lastnode do
       begin
-      if bigcompilerversion then p := @(bignodetable[i]);
+      p := @(bignodetable[i]);
 
       with p^ do
         if tempcount <> 0 then
           if tempcount < 0 then
             begin
-            if needcaching then blocksin[1].written := true;
             tempcount := tempcount + 1;
             if change then
               if kind = oprndnode then oprnd.offset := oprnd.offset + delta
@@ -1656,7 +1638,6 @@ procedure adjustoffsets(firstnode: nodeindex; {first node of scan}
             end
           else
             begin
-            if needcaching then blocksin[1].written := true;
             tempcount := tempcount - 1;
             if change then
               if kind = oprndnode then oprnd.offset := oprnd.offset - delta
@@ -1779,7 +1760,7 @@ procedure delete(m: nodeindex; {first node to delete}
       cp1 := firstbr;
       while (cp1 <> nil) and not finished do
         begin {search the brlinks}
-        if bigcompilerversion then p1 := @(bignodetable[cp1^.n + 1]);
+        p1 := @(bignodetable[cp1^.n + 1]);
 
         if cp1^.n + 1 = m then
           begin
@@ -1799,16 +1780,13 @@ procedure delete(m: nodeindex; {first node to delete}
             p2 := p1;
             if p2^.brnodelink + 1 = m then
               begin
-              blocksin[1].written := true;
 
-              if bigcompilerversion then
-                p1 := @(bignodetable[p2^.brnodelink + 1]);
+              p1 := @(bignodetable[p2^.brnodelink + 1]);
 
               p2^.brnodelink := p1^.brnodelink;
               finished := true;
               end
-            else if bigcompilerversion then
-              p1 := @(bignodetable[p2^.brnodelink + 1]);
+            else p1 := @(bignodetable[p2^.brnodelink + 1]);
             end {while} ;
           cp2 := cp1;
           cp1 := cp2^.nextbr;
@@ -1820,7 +1798,7 @@ procedure delete(m: nodeindex; {first node to delete}
   begin {delete}
     for i := 1 to n do
       begin
-      if bigcompilerversion then p := @(bignodetable[m]);
+      p := @(bignodetable[m]);
 
       if p^.kind in [instnode, errornode] then
         count := p^.oprndcount
@@ -1840,15 +1818,14 @@ procedure delete(m: nodeindex; {first node to delete}
       m := m + 1;
       for j := 1 to count do
         begin
-        if bigcompilerversion then p := @(bignodetable[m]);
+        p := @(bignodetable[m]);
 
         if p^.kind = labelnode then
           begin
           unlinklabelnode(m);
 
-          if bigcompilerversion then p := @(bignodetable[m]);
-          end
-        else blocksin[1].written := true;
+          p := @(bignodetable[m]);
+          end;
         p^.tempcount := 0;
         p^.kind := instnode;
         p^.labelled := false;
@@ -2156,7 +2133,7 @@ procedure fixsimplestuff;
       begin
       repeat
         i := i + 1;
-        if bigcompilerversion then ip := @(bignodetable[i]);
+        ip := @(bignodetable[i]);
         with ip^ do
           if (kind = instnode) and labelled or
              (kind in [labelnode, labeldeltanode, relnode, datanode]) then
@@ -2167,7 +2144,6 @@ procedure fixsimplestuff;
       with ip^ do
         if (kind = instnode) and (i <= lastnode) then
           begin
-          blocksin[1].written := true;
 
           if inst in monadicinsts then
             opct := 1
@@ -2204,7 +2180,7 @@ procedure fixsimplestuff;
             sp := ip
           else
             begin
-            if bigcompilerversion then sp := @(bignodetable[i + 1]);
+            sp := @(bignodetable[i + 1]);
 
             if not (sp^.kind in [oprndnode, relnode, labelnode]) then
               begin
@@ -2217,7 +2193,7 @@ procedure fixsimplestuff;
             dp := sp
           else
             begin
-            if bigcompilerversion then dp := @(bignodetable[i + 2]);
+            dp := @(bignodetable[i + 2]);
 
             if not (dp^.kind in [oprndnode, relnode, labelnode]) then
               begin
@@ -2718,7 +2694,7 @@ procedure fixcmps;
 	begin
 	repeat
 	  i := i + 1;
-	  if bigcompilerversion then n := @(bignodetable[i]);
+	  n := @(bignodetable[i]);
 	until (n^.kind = instnode) or (i = lastnode);
 
 	if n^.kind = instnode then
@@ -2728,7 +2704,7 @@ procedure fixcmps;
 	    repeat
 	      repeat
 		j := j + 1;
-		if bigcompilerversion then m := @(bignodetable[j]);
+		m := @(bignodetable[j]);
 	      until (m^.kind = instnode) or (j >= lastnode);
 	      if not m^.labelled and eqinst(i, j) then delete(j, 1);
 	    until m^.labelled or not (m^.inst in [nop, beq..bvs]) or
@@ -3015,7 +2991,7 @@ procedure stuffregisters;
 
       for t := stuffreginst to lastnode do
         begin
-        if bigcompilerversion then p := @(bignodetable[t]);
+        p := @(bignodetable[t]);
 
         if p^.kind = instnode then
           begin
@@ -3246,7 +3222,7 @@ procedure stuffregisters;
     begin {replacereferences}
       for t := stuffreginst to lastnode do
         begin
-        if bigcompilerversion then p := @(bignodetable[t]);
+        p := @(bignodetable[t]);
 
         if p^.kind = instnode then
           begin
@@ -3270,13 +3246,12 @@ procedure stuffregisters;
                 indxr := 0;
                 offset := 0;
                 offset1 := 0;
-                blocksin[1].written := true;
                 end;
               if leainstruction then
                 begin {LEA (An),Am is silly looking}
                 p^.oprnd.m := areg;
 
-                if bigcompilerversion then pi := @(bignodetable[ti]);
+                pi := @(bignodetable[ti]);
 
                 pi^.inst := movea;
                 pi^.oprndlength := long;
@@ -3293,12 +3268,11 @@ procedure stuffregisters;
                 indxr := 0;
                 offset := 0;
                 offset1 := 0;
-                blocksin[1].written := true;
                 end;
               if suffixIinstruction then
                 begin
 
-                if bigcompilerversion then pi := @(bignodetable[ti]);
+                pi := @(bignodetable[ti]);
 
                 pi^.inst := pred(pi^.inst);
                 end;
@@ -3413,7 +3387,7 @@ procedure fixstack;
       tempkey := loopcount - 1;
       repeat
         t := t + 1;
-        if bigcompilerversion then n := @(bignodetable[t]);
+        n := @(bignodetable[t]);
       until (t = lastnode) or (n^.kind = labelnode);
 
       if n^.kind = labelnode then
@@ -3425,7 +3399,7 @@ procedure fixstack;
             begin
             t := t - 1;
 
-            if bigcompilerversion then n := @(bignodetable[t]);
+            n := @(bignodetable[t]);
 
             addednodes := 3; {we will generate an addi/subi #dif,sp}
             labelnextnode := n^.labelled;
@@ -3478,7 +3452,7 @@ procedure assignlabeladdresses;
       begin {find addresses for each label}
       while t <> labeltable[l].nodelink do
         begin {scan to the next node, acccumulating code size}
-        if bigcompilerversion then n := @(bignodetable[t]);
+        n := @(bignodetable[t]);
 
         if n^.kind = instnode then
           next := t + n^.oprndcount + 1
@@ -3557,7 +3531,7 @@ procedure fixaddressing;
         begin
         while (labeltable[l].nodelink <= t) and (l <= nextlabel) do
           l := l + 1; {skip labels before this instruction}
-        if bigcompilerversion then n := @(bignodetable[t]);
+        n := @(bignodetable[t]);
         with n^ do
           begin
           if kind in [instnode, labeldeltanode] then
@@ -3575,7 +3549,7 @@ procedure fixaddressing;
                not backward and (brlen > 32767) or backward and
                (brlen < - 32767 - 1) or (brlen = 0) then
               begin {some kind of a change}
-              if bigcompilerversion then n := @(bignodetable[t]);
+              n := @(bignodetable[t]);
 
               if (l1 <> 0) and (brlen = 0) then
                 begin
@@ -3597,10 +3571,10 @@ procedure fixaddressing;
 
                     repeat
                       ti := ti - 1;
-                      if bigcompilerversion then ni := @(bignodetable[ti]);
+                      ni := @(bignodetable[ti]);
                     until ni^.kind = instnode;
 
-                    if bigcompilerversion then ni := @(bignodetable[ti]);
+                    ni := @(bignodetable[ti]);
 
                     if pic_enabled then
                       begin  { MC68000 24-bit pic does not allow branches in
@@ -3643,7 +3617,7 @@ procedure fixaddressing;
                (procmap[oprnd.offset].addr + oprnd.offset1 - (currentpc -
                word) < - 32768)) then
               begin {change to long form}
-              if bigcompilerversion then n := @(bignodetable[t]);
+              n := @(bignodetable[t]);
 
               if not mc68020 and pic_enabled then
                 begin
@@ -3652,9 +3626,9 @@ procedure fixaddressing;
                 }
                 n^.oprnd.m := pic_pcrelative; { change mode to pic_pcrelative }
                 n^.oprnd.offset1 := 6;
-                if bigcompilerversion then n := @(bignodetable[t - 1]);
+                n := @(bignodetable[t - 1]);
                 n^.inst := adda;
-                if bigcompilerversion then n := @(bignodetable[t + 1]);
+                n := @(bignodetable[t + 1]);
                 register := n^.oprnd.reg;
                 currentpc := currentpc - long;
                 insert(t - 2, 3);
@@ -3662,7 +3636,7 @@ procedure fixaddressing;
                 settemp(long, pic_splat_pcrel, 0, 0, false, 10, 0, 1, unknown);
                 gen2(lea, long, tempkey, tempkey + 1);
                 tempkey := tempkey + 2;
-                if bigcompilerversion then n := @(bignodetable[t - 1]);
+                n := @(bignodetable[t - 1]);
                 currentpc := currentpc + instlength(t - 1);
                 bias := 6; { ADDA is 6 bytes long; new LEA same length as old }
                 lastnode := lastsaved;
@@ -3773,8 +3747,7 @@ procedure mergebranchtails;
         repeat
           {skip nop's to the prior instruction on t1 tail}
           t1 := t1 - 1;
-          if bigcompilerversion then
-            p1 := @(bignodetable[t1]);
+          p1 := @(bignodetable[t1]);
           if (p1^.kind = instnode) and (p1^.inst = nop) and
              not p1^.labelled or (p1^.kind = stmtref) then
             killcount := killcount + 1;
@@ -3784,8 +3757,7 @@ procedure mergebranchtails;
         repeat
           {go to prior instruction on the t tail}
           t := t - 1;
-          if bigcompilerversion then
-            p := @(bignodetable[t]);
+          p := @(bignodetable[t]);
         until ((p^.kind = instnode) and (p^.inst <> nop)) or
               (p^.kind = errornode);
       until labelpassed or (t = t1) or not eqinst(t, t1);
@@ -3816,8 +3788,7 @@ procedure mergebranchtails;
             while t <> 0 do
               begin
               matchtails(t + 1, firstbr^.n + 1);
-              if bigcompilerversion then
-                p := @(bignodetable[t + 1]);
+              p := @(bignodetable[t + 1]);
               t := p^.brnodelink;
               end;
             end;
@@ -3829,11 +3800,8 @@ procedure mergebranchtails;
         longestkillcount := longestkillcount - 1;
         l := findlabel(firstbr^.l);
 
-        if bigcompilerversion then
-          begin
-          p := @(bignodetable[firstbr^.n]);
-          p1 := @(bignodetable[firstbr^.n + 1]);
-          end;
+        p := @(bignodetable[firstbr^.n]);
+        p1 := @(bignodetable[firstbr^.n + 1]);
 
         if (l <> 0) and (labeltable[l].stackdepth = p1^.stackdepth) and
            not p^.labelled then
@@ -3845,8 +3813,7 @@ procedure mergebranchtails;
           lastnode := longestmatch;
           repeat
             lastnode := lastnode + 1;
-            if bigcompilerversion then
-              p := @(bignodetable[lastnode]);
+            p := @(bignodetable[lastnode]);
           until ((p^.kind = instnode) and (p^.inst <> nop)) or
                 (p^.kind = errornode);
           l := nextlabel;
@@ -3858,12 +3825,10 @@ procedure mergebranchtails;
           if l = 0 then
             begin
             lastnode := lastnode - 1;
-            blocksin[1].written := true;
             p^.labelled := true;
             definelastlabel;
             end;
-          if bigcompilerversion then
-            p := @(bignodetable[firstbr^.n + 1]);
+          p := @(bignodetable[firstbr^.n + 1]);
 
           p^.labelno := labeltable[l].labno;
           p^.stackdepth := labeltable[l].stackdepth;
@@ -3871,14 +3836,12 @@ procedure mergebranchtails;
           t := longestkill;
           repeat
             t := t + 1;
-            if bigcompilerversion then
-              p := @(bignodetable[t]);
+            p := @(bignodetable[t]);
           until (p^.kind = instnode) or (p^.kind = stmtref) or
                 (p^.kind = errornode);
           delete(t, longestkillcount);
           end;
-        if bigcompilerversion then
-          p := @(bignodetable[firstbr^.n + 1]);
+        p := @(bignodetable[firstbr^.n + 1]);
         firstbr^.n := p^.brnodelink
         end;
       cp := firstbr^.nextbr;
@@ -4092,8 +4055,7 @@ procedure proctrailer;
       delete(savereginst, 1)
     else
       begin
-      if bigcompilerversion then
-        saveregptr := @(bignodetable[savereginst + 1]);
+      saveregptr := @(bignodetable[savereginst + 1]);
 
       saveregptr^.oprnd.offset := savemask;
       end;
@@ -4103,8 +4065,7 @@ procedure proctrailer;
         delete(fpsavereginst, 1)
       else
         begin
-        if bigcompilerversion then
-          saveregptr := @(bignodetable[fpsavereginst + 1]);
+        saveregptr := @(bignodetable[fpsavereginst + 1]);
 
         saveregptr^.oprnd.offset := fpsavemask;
         end;
@@ -4126,8 +4087,7 @@ procedure proctrailer;
       end;
     if switcheverplus[debugging] or switcheverplus[profiling] then
       begin
-      if bigcompilerversion then
-        saveregptr := @(bignodetable[savedebinst + 1]);
+      saveregptr := @(bignodetable[savedebinst + 1]);
 
       saveregptr^.oprnd.offset := left;
       callsupport(libdebugger_exit) {debugger procedure exit}
@@ -4802,23 +4762,6 @@ procedure blockexitx;
       end;
   end   {blockexitx};
 
-
-procedure flushbuffers;
-
-{ dispose of software virtual memory buffers on heap
-}
-
-  var
-    i: integer; {induction var for scanning blocksin}
-
-
-  begin
-    for i := 1 to lastblocksin do
-      with blocksin[i] do 
-	if (not lowblock) and (buffer <> nil) then dispose(buffer);
-  end; {flushbuffers}
-
-
 procedure exitcode;
 
 { Clean up after code generation.
@@ -4832,7 +4775,6 @@ procedure exitcode;
     if not everdiagnosing and
       (switcheverplus[debugging] or switcheverplus[profiling]) then initdiags;
     if switcheverplus[outputmacro] then fixmac;
-    flushbuffers;
   end; {exitcode}
 
 procedure seekstringfile(n: integer {byte to access});
@@ -10714,7 +10656,7 @@ procedure pascallabelx;
 
         gen2(lea, long, tempkey, tempkey + 1);
 
-        if bigcompilerversion then p := @(bignodetable[lastnode - 1]);
+        p := @(bignodetable[lastnode - 1]);
 
         p^.tempcount := stackcounter - keysize; {note: negative tempcount!}
 

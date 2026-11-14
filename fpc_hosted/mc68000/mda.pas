@@ -363,7 +363,7 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
           ownsize := forcealign(ownsize, targetintsize, false);
         end;
 
-      if bigcompilerversion then p := @(bigtable[bn]);
+      p := @(bigtable[bn]);
 
       if targetopsys = vms then
         if (p^.length <= ptrsize) or (p^.length = 8) then
@@ -384,7 +384,7 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
       i := bn + 1;
       while i <= t do
         begin
-        if bigcompilerversion then p := @(bigtable[i]);
+        p := @(bigtable[i]);
         if not p^.form then
           begin
 {
@@ -829,7 +829,7 @@ procedure possibletemp(p:entryptr);
   begin {possibletemp}
     if tempvars < maxtrackvar then
       begin
-      if bigcompilerversion then f := @(bigtable[p^.vartype]);
+      f := @(bigtable[p^.vartype]);
       if ((f^.typ = reals) and not switcheverplus[doublereals]) or
          (switcheverplus[fpc68881] and (f^.typ in [reals, doubles])) or
          ((f^.typ in [bools, chars, ints, ptrs, scalars, subranges]) and

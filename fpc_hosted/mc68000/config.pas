@@ -64,7 +64,6 @@ type
   regparamstype = record end;
 
 const
-  bigcompilerversion = true; {runs in fewer passes if 'true', but is bigger}
   scanalys = true; {phases scan and analys run together if 'true'}
   travcode = true; {phases travrs and code run together if 'true'}
   hostmachine = iapx86;
@@ -243,61 +242,10 @@ const
   optimizeinvariants = true; {turns on removal of invariants from loops}
   usebranchlessboolops = false; {old-fashioned computer}
 
-
-  {disk cache parameters}
-
-  {Virtual memory sizing constants}
-  {these are all HOST, not target dependent}
-
-  { Three possibilities exist:
-
-    1. bigcompiler = false, needcaching = true.
-
-       This is the "wimp computer" case.  Data structures are false, and
-       the various maxnodeinblock and lowblock constants must be hand
-       configured so that each block fits in a disk block and that global
-       space is most efficiently used.
-
-    2. bigcompiler = false, needcaching = false.
-
-       Caching is not done, but the structure is maintained and dynamically
-       extended as needed.  Basically a compromise, for systems which don't
-       support an extremely large address space.  "memory overflow" may
-       occur before the entire structure is filled and maximum program size
-       may be limited by available memory space.
-
-       In this case, blocksin structure is still used but each block does
-       not need to fit in a disk block.
-
-    3. bigcompiler = true, needcaching = false.
-
-       Caching is not done, and read/writeaccess calls are replaced by
-       use of the "ref" function directly into a large array.  Used for
-       systems with lots of (usually virtual) memory.  FAST!
-  }
-
-  needcaching = false;
-
   maxstringblks = 400; {max number of string blocks}
   tablesize = 16383; {max number of types and names}
   tnodecountmax = 16383; {maximum nodes in tree}
   cnodetablesize = 16383; {max number of nodes per block}
-
-  { Number of nodes per virtual memory block for each pass:  These
-    numbers are defined by the size of tableentry (hdra), node (hdrt),
-    and node (hdrc) if needcaching is true.  If needcaching is false,
-    they are arbitrary, so we make them some 2^n-1 for fast code.
-    If bigcompilerversion is true, however, we only use one block,
-    and the value can be anything that's big enough. }
-
-  { The following stuff is meaningful only if bigcompiler = false, and
-    should be "1" otherwise.
-  }
-
-
-  analysmaxnodeinblock = 1 {63};
-  travrsmaxnodeinblock = 1 {256};
-  codemaxnodeinblock = 1 {259};
 
   {number of static virtual memory blocks for each pass}
 

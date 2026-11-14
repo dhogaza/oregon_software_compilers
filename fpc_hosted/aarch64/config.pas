@@ -232,40 +232,6 @@ const
   usebranchlessboolops = true; {aarch64 has cset}
 
 
-  {disk cache parameters}
-
-  {Virtual memory sizing constants}
-  {these are all HOST, not target dependent}
-
-  { Three possibilities exist:
-
-    1. bigcompiler = false, needcaching = true.
-
-       This is the "wimp computer" case.  Data structures are false, and
-       the various maxnodeinblock and lowblock constants must be hand
-       configured so that each block fits in a disk block and that global
-       space is most efficiently used.
-
-    2. bigcompiler = false, needcaching = false.
-
-       Caching is not done, but the structure is maintained and dynamically
-       extended as needed.  Basically a compromise, for systems which don't
-       support an extremely large address space.  "memory overflow" may
-       occur before the entire structure is filled and maximum program size
-       may be limited by available memory space.
-
-       In this case, blocksin structure is still used but each block does
-       not need to fit in a disk block.
-
-    3. bigcompiler = true, needcaching = false.
-
-       Caching is not done, and read/writeaccess calls are replaced by
-       use of the "ref" function directly into a large array.  Used for
-       systems with lots of (usually virtual) memory.  FAST!
-  }
-
-  needcaching = false;
-
   maxstringblks = 400; {max number of string blocks}
   tablesize = 16383; {max number of types and names}
   tnodecountmax = 16383; {maximum nodes in tree}
@@ -290,12 +256,6 @@ const
 
   lowanalysblocks = 1 {9};
   lowcodeblocks = 1;
-
-  {make these "2" if bigcompiler, calculate otherwise}
-
-  amaxblocksin = 2 {131}; { max number of blocks in heap+maxblockslow }
-  tmaxblocksin = 2 {64}; {max blocks allocated to node file buffers}
-  cmaxblocksin = 2 {127}; {max blocks ever allowed}
 
   { These three constants are meaningful only if bigcompiler = true.
     Make them minimal otherwise.

@@ -29,7 +29,6 @@ interface
 uses config, hdr, t_c;
 
 const
-  nodesperblock = codemaxnodeinblock; {nodes per physical file block - 1}
 
   {M68000 register assignments}
 
@@ -553,23 +552,6 @@ type
 
   { The following are used to map nodes onto virtual memory blocks}
 
-  nodeblockptr = ^nodeblock; {a block of nodes}
-
-  nodeblock =
-    record {holds the actual node data}
-      case boolean of
-        false: (physical: doublediskblock);
-        true: (logical: array [0..nodesperblock] of node);
-    end;
-
-  blockmap =
-    record {used to keep track of virtual blocks in memory}
-      blkno: 0..128; {block index of data in buffer^}
-      written: boolean; {block has been changed and must be written}
-      lowblock: boolean; {this block allocated in global area}
-      buffer: nodeblockptr; {buffer for a data block}
-    end;
-
 
 { Operand description data.
 
@@ -1053,12 +1035,6 @@ var
   {virtual memory system variables}
 
   bignodetable: array [0..bigcnodetablesize] of node;
-  lastblocksin: integer; {highest block actually used (auto sizing)}
-  thrashing: boolean; {true if not all nodes fit in core}
-
-  blocksin: array [1..cmaxblocksin] of blockmap; {map of blocks in core}
-
-  blockslow: array [1..maxblockslow] of nodeblock; {blocks in global storage}
 
   { Modula2 specific variables }
 

@@ -3429,19 +3429,11 @@ procedure initanalys;
       nextstringfile := stringtablelimit mod (diskbufsize + 1);
       end;
 
-    if needcaching then
+    stringblkptr := stringblkptrtbl[curstringblock];
+    if stringblkptr = nil then
       begin
-      seek(stringfile, curstringblock);
-      stringfiledirty := false;
-      end
-    else
-      begin
-      stringblkptr := stringblkptrtbl[curstringblock];
-      if stringblkptr = nil then
-        begin
-        new(stringblkptr);
-        stringblkptrtbl[curstringblock] := stringblkptr;
-        end;
+      new(stringblkptr);
+      stringblkptrtbl[curstringblock] := stringblkptr;
       end;
 
     if not switcheverplus[environswitch] then
@@ -4033,19 +4025,6 @@ procedure analys;
 
 
   begin {analys}
-
-    {the next lines are superfluous: initanalys does the work}
-  {DRB
-    if not needcaching then
-      begin
-      stringblkptr := stringblkptrtbl[1];
-      if stringblkptr = nil then
-        begin
-        new(stringblkptr);
-        stringblkptrtbl[1] := stringblkptr;
-        end;
-      end;
-      }
 
     initanalys;
 

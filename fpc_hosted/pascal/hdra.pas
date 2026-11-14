@@ -36,9 +36,6 @@ const
   { where hardware vm is used, blockslow is made as small as possible }
 
   maxblockslow = lowanalysblocks; { number of blocks in low-space }
-  entriesperblock = analysmaxnodeinblock; {entries per physical file block -
-                                           1}
-
 
   const
 
@@ -228,19 +225,6 @@ type
 
   tokenset = set of tokentype;
   typeset = set of types;
-
-  {The following define the virtual memory for the name table}
-
-  nameblock =
-    record
-      case boolean of
-        false: (physical: doublediskblock);
-        true:
-          (logical: array [0..entriesperblock] of tableentry; {one symbol table
-             block} );
-    end;
-
-  nameblockptr = ^nameblock;
 
   undefentry =
     record {used to record forward routines and type definitions}

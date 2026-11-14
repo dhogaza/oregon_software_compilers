@@ -67,15 +67,11 @@ procedure seekstringfile(n: integer {byte to access} );
     if newblock <> curstringblock then
       begin
       curstringblock := newblock;
-      if needcaching then seek(stringfile, newblock)
-      else
+      stringblkptr := stringblkptrtbl[newblock];
+      if stringblkptr = nil then
         begin
-        stringblkptr := stringblkptrtbl[newblock];
-        if stringblkptr = nil then
-          begin
-          write('unexpected end of stringtable ');
-          compilerabort(inconsistent);
-          end;
+        write('unexpected end of stringtable ');
+        compilerabort(inconsistent);
         end;
       end;
     nextstringfile := n mod (diskbufsize + 1);
