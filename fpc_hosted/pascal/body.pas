@@ -6866,7 +6866,7 @@ varkey := regparamkey;
                 gencopystack(resultlen, readregparams, true);
                 end
               else if readfile then
-                gencopystack(ptrsize, readregparams, (token <> rpar) or not readflag);
+                gencopystack(0, readregparams, (token <> rpar) or not readflag);
               if not (readform in [none, ints, reals, doubles, chars]) then
                 begin
                 if ((readform <> arrays) or not resultptr^.stringtype) and
@@ -7024,8 +7024,9 @@ varkey := regparamkey;
               if writeform = arrays then stringflag := resultptr^.stringtype
               else stringflag := writeform = strings;
 
-              if writefile{ and ((token <> rpar) or not writeflag)} then
-                gencopystack(ptrsize, writeregparams, true);
+              if writefile or
+                 ((targetmachine <> aarch64) and ((token <> rpar) or not writeflag)) then
+                gencopystack(0, writeregparams, true);
 
               case writeform of
                 bools, chars, ints:

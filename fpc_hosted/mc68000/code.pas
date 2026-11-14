@@ -4939,6 +4939,8 @@ procedure bumptempcount(k: keyindex; {key of temp desired}
   begin
     with keytable[k] do
       begin
+if k = 36 then
+writeln(k, ' ', properreg, ' ', keytable[properreg].refcount);
       if regsaved and (properreg >= stackcounter) then
         with keytable[properreg] do
           begin
@@ -4950,6 +4952,8 @@ procedure bumptempcount(k: keyindex; {key of temp desired}
           refcount := refcount + delta;
           end;
 
+if k = 36 then
+writeln('after ', k, ' ', properreg, ' ', keytable[properreg].refcount);
       if indxrsaved and (properindxr >= stackcounter) then
         with keytable[properindxr] do
           begin
@@ -8354,7 +8358,11 @@ procedure makestacktarget;
       middle of a parameter list for STR.  The real fix is to have the
       front-end pump out a makeroom for sysroutines.
     }
+if key >= 36 then
+writeln('before ', stackcounter);
     newtemp(len);
+if key >= 36 then
+writeln('after ', stackcounter);
     keytable[stackcounter].tempflag := true;
     keytable[key].regsaved := true;
     keytable[key].properreg := stackcounter;
@@ -16798,6 +16806,8 @@ dumppseudo;
       right := pseudoinst.oprnds[2];
       target := pseudoinst.oprnds[3];
       codeselect;
+if key >= 34 then
+writeln('after codeone ', key, ' ', stackcounter, ' ', keytable[496].refcount);
       end;
   end {codeone};
 

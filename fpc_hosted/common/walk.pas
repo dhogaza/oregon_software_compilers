@@ -401,17 +401,13 @@ procedure shortvisit(root: exprptr; {tree to visit}
                    [originop, call, callparam, unscall, unscallparam]) or
                    ((oprnd^.form = sets) and (op <> regtargetop)) or
                    (oprnd^.form = strings) then
-                  begin
                   walknode(newroot^.oprnds[j].p, k, 0, false);
-                  end;
                 end;
           if (newroot^.op = rd) and (targetmachine in [iAPX86, i80386, ns32k, aarch64]) then
-            begin
   {
               Walk this early since work registers may die
   }
             walknode(newroot^.oprnds[2].p, k, 0, false);
-            end;
           for j := 1 to 3 do
             if newroot^.nodeoprnd[j] then
               shortvisit(newroot^.oprnds[j].p, inpushaddr);
