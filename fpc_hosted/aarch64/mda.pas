@@ -42,7 +42,7 @@ function setalign(size: addressrange): addressrange;
 
 { determines the offset from the fp for the first variable }
 
-function paramalloc(paramptr, typeptr: entryptr): allockind;
+function paramalloc(paramptr: entryptr; typeptr: formptr): allockind;
 
 { Determine which type of register a param can be allocated to,
   if any.
@@ -120,7 +120,7 @@ procedure allocpacked(align: alignmentrange; {variable alignment}
 }
 
 
-procedure getallocdata(form: entryptr; {type being allocated}
+procedure getallocdata(form: formptr; {type being allocated}
                        varkind: nametype; {type of field or var}
                        packedresult: boolean; {result goes in packed field}
                        spacelen: addressrange; {space consumed so far}
@@ -143,7 +143,7 @@ procedure getallocdata(form: entryptr; {type being allocated}
 }
 
 
-function arraysizeof(f: entryptr; {form to get size of}
+function arraysizeof(f: formptr; {form to get size of}
                      packedresult: boolean {set if packed } ): addressrange;
 
 { Returns the amount of storage needed to contain a value of the type
@@ -213,13 +213,13 @@ function forcealign(size: addressrange; {value to align}
   Used to overcome limitations built into much contemporary hardware.
 }
 
-function lower(f: entryptr {form to check} ): integer;
+function lower(f: formptr {form to check} ): integer;
 
 { Returns the lower bound of "f".  This is meaningful only for
   scalar types.
 }
 
-function upper(f: entryptr {form to check} ): integer;
+function upper(f: formptr {form to check} ): integer;
 
 { Returns the upper bound of "f".  This is meaningful only for
   scalar types.
@@ -234,7 +234,7 @@ function bits(i: integer {value to find size of} ): integer;
     b: integer; {Accumulates number of bits}
     value: unsignedint; {Temp so can use a register and shift inst}
 
-function sizeof(f: entryptr; {Form to get size of}
+function sizeof(f: formptr; {Form to get size of}
                 packedresult: boolean {set if packed value} ): addressrange;
 
 { Returns the amount of storage needed to contain a value of the type
@@ -242,7 +242,7 @@ function sizeof(f: entryptr; {Form to get size of}
   it is in addressing units.
 }
 
-function alignmentof(f: entryptr; {form to check}
+function alignmentof(f: formptr; {form to check}
                      packedresult: boolean {result is packed} ):
  alignmentrange;
 
@@ -305,7 +305,7 @@ begin {setalign}
   end;
 end {setalign};
 
-function paramalloc(paramptr, typeptr: entryptr): allockind;
+function paramalloc(paramptr: entryptr; typeptr: formptr): allockind;
 
 { Determine which type of register a param can be allocated to,
   if any.
@@ -395,13 +395,12 @@ procedure fixupparamoffsets(endofdefs: boolean {last chance} );
       i := bn + 1;
       while i <= t do
         begin
-        if not bigtable[i].form then
-          if bigtable[i].varalloc = normalalloc then
-            begin
-            bigtable[i].offset := bigtable[i].offset + blocksize;
-            if bigtable[i].namekind in [procparam, funcparam] then
-              i := bigtable[i].nextparamlink;
-            end;
+        if bigtable[i].varalloc = normalalloc then
+          begin
+          bigtable[i].offset := bigtable[i].offset + blocksize;
+          if bigtable[i].namekind in [procparam, funcparam] then
+            i := bigtable[i].nextparamlink;
+          end;
         i := i + 1;
         end;
 
@@ -419,7 +418,7 @@ begin {initregparams}
   regparams.realregparams := 0;
 end {initregparams} ;
 
-function alignmentof(f: entryptr; {form to check}
+function alignmentof(f: formptr; {form to check}
                      packedresult: boolean {result is packed} ):
  alignmentrange;
 
@@ -485,12 +484,12 @@ procedure allocparam(paramptr: entryptr; {the param we are allocating}
 }
 
   var
-    typeptr: entryptr; 
+    typeptr: formptr; 
     alloc: allockind;
 
   begin {allocparam}
     overflowed := false;
-    typeptr := @(bigtable[paramptr^.vartype]);
+    typeptr := paramptr^.vartype;
     paramptr^.allocated := true;
     paramptr^.registercandidate := false;
     if (paramptr^.namekind in [varparam, varconfparam, constconfparam, confparam]) or
@@ -582,10 +581,10 @@ procedure allocfunction(funcptr: entryptr;
 }
 
   var
-    typeptr: entryptr;
+    typeptr: formptr;
 
   begin {allocfunction}
-    typeptr := @(bigtable[funcptr^.vartype]);
+    typeptr := funcptr^.vartype;
     funcptr^.allocated := true;
     if (typeptr^.typ = sets) and (typeptr^.size > ptrsize) or
         (typeptr^.typ in [fields, arrays, strings, conformantarrays]) then
@@ -664,7 +663,7 @@ procedure allocpacked(align: alignmentrange; {variable alignment}
   end; {allocpacked}
 
 
-procedure getallocdata(form: entryptr; {type being allocated}
+procedure getallocdata(form: formptr; {type being allocated}
                        varkind: nametype; {type of field or var}
                        packedresult: boolean; {result goes in packed field}
                        spacelen: addressrange; {space consumed so far}
@@ -714,7 +713,7 @@ procedure getallocdata(form: entryptr; {type being allocated}
   end; {getallocdata}
 
 
-function arraysizeof(f: entryptr; {form to get size of}
+function arraysizeof(f: formptr; {form to get size of}
                      packedresult: boolean {set if packed } ): addressrange;
 
 { Returns the amount of storage needed to contain a value of the type
@@ -842,14 +841,14 @@ procedure possibletemp(p:entryptr);
 }
 
   var
-    f: entryptr; { for access to type id }
     localvar: localvartype; { for writing to file }
+    f: formptr; { for accessing type information }
 
 
   begin {possibletemp}
     if tempvars < maxtrackvar then
       begin
-      f := @(bigtable[p^.vartype]);
+      f := p^.vartype;
       if p^.registercandidate and (p^.refparam or
         (f^.typ in [bools, chars, ints, ptrs, scalars, subranges, sets]) and
         (f^.size <= defaultptrsize) or (f^.typ in [reals, doubles])) then
@@ -881,7 +880,7 @@ function forcealign(size: addressrange; {value to align}
     forcealign := size;
   end {forcealign} ;
 
-function lower(f: entryptr {form to check} ): integer;
+function lower(f: formptr {form to check} ): integer;
 
 { Returns the lower bound of "f".  This is meaningful only for
   scalar types.
@@ -895,7 +894,7 @@ function lower(f: entryptr {form to check} ): integer;
       else lower := 0;
   end {lower} ;
 
-function upper(f: entryptr {form to check} ): integer;
+function upper(f: formptr {form to check} ): integer;
 
 { Returns the upper bound of "f".  This is meaningful only for
   scalar types.
@@ -941,7 +940,7 @@ function bits(i: integer {value to find size of} ): integer;
       end;
   end {bits} ;
 
-function sizeof(f: entryptr; {Form to get size of}
+function sizeof(f: formptr; {Form to get size of}
                 packedresult: boolean {set if packed value} ): addressrange;
 
 { Returns the amount of storage needed to contain a value of the type
