@@ -108,11 +108,64 @@ type
         sets: (setvalue: ^setvalueblock);
     end; {const_descr}
 
+  formptr = ^formentry;
+
+  formentry =
+    packed record {type metadata entry}
+      size: addressrange; {size of type in units or bits}
+      align: alignmentrange; {alignmentrequirements}
+      dbgsymbol: p_symbolindex; {debugger form (PDB) or table (ODB) index}
+      prevform: formptr; {for disposing forms at the end of a block}
+      formindex: unsignedint; {for environment files}
+      packedflag: boolean; {true if user said "packed"}
+      bitaddress: boolean; {true if size is bits, not units}
+      containsfile: boolean; {true if type has a file component}
+      extendedrange: boolean; {true if upper bound > maxint}
+      disposable: boolean; {true if type can be quickly disposed of}
+      case typ: types of
+        subranges:
+          (lowerord, upperord: integer; {user said lowerord..upperord}
+           parentform: types; {"typ" value of the parent}
+           parenttype: formptr {type of lowerord, upperord} );
+        fields:
+          (fieldid: integer; {scope id for symbol table search}
+           nextvariant: formptr; {next variant record at this level}
+           firstlabel: formptr; {head of label chain describing this
+                               variant}
+           firstvariant: formptr; {first subvariant defined by case at
+                                 level}
+           tagfield: index; {name entry of tagfield, 0 if none}
+           firstfield: index; {index of first field in symbol table}
+           lastfield: index {index of last field in record} );
+        variantlabs:
+          (nextvarlab: formptr; {points to next label for this variant}
+           varlabtype: formptr; {type of variant label}
+           varlabvalue: integer {ord(variant value)} );
+        arrays, conformantarrays, strings:
+          (indextype: formptr; { user said array [indextype] }
+           elementtype: formptr; { of elementtype }
+           highbound, lowbound: index; {bound id's if conformant}
+           stringtype: boolean; { set if a string type }
+           arraymembers: addressrange; {members in the indextype}
+           elementsize: addressrange {effective size of element} );
+        sets:
+          (constructedset: boolean; {declared or [i,j..k] ?}
+           basetype: formptr {user said set of basetype} );
+        files:
+          (filebasetype: formptr; {user defined file of filebasetype}
+           filekey: integer {used to identify file componants to travrs}
+          );
+        ptrs:
+          (ptrtypename: index; {user defined ^ptrtypename}
+           ptrkey: integer {used to identify ptr components to travrs} );
+        scalars: (lastord: integer {highest value of scalar} );
+    end;
+
   operandtype = (constoperand, varoperand, exproperand);
 
   operand =
     record {describes expression operand}
-      typeindex: index; {type of this operand}
+      typeindex: formptr; {type of this operand}
       oprndlen: addressrange; {length of operand in units}
       value_range: operand_range; {range of values for the operand}
       extended: boolean; {set if thiy is an extended range}
@@ -125,100 +178,53 @@ type
   tableentry =
     packed record {symbol table entry}
       dbgsymbol: p_symbolindex; {debugger form (PDB) or table (ODB) index}
-      case form: boolean of
-        true:
-          (size: addressrange; {size of type in units or bits}
-           align: alignmentrange; {alignmentrequirements}
-           packedflag: boolean; {true if user said "packed"}
-           bitaddress: boolean; {true if size is bits, not units}
-           containsfile: boolean; {true if type has a file component}
-           extendedrange: boolean; {true if upper bound > maxint}
-           disposable: boolean; {true if type can be quickly disposed of}
-           case typ: types of
-             subranges:
-               (lowerord, upperord: integer; {user said lowerord..upperord}
-                parentform: types; {"typ" value of the parent}
-                parenttype: index {type of lowerord, upperord} );
-             fields:
-               (fieldid: integer; {scope id for symbol table search}
-                nextvariant: index; {next variant record at this level}
-                firstlabel: index; {head of label chain describing this
-                                    variant}
-                firstvariant: index; {first subvariant defined by case at
-                                      level}
-                tagfield: index; {name entry of tagfield, 0 if none}
-                firstfield: index; {index of first field in symbol table}
-                lastfield: index {index of last field in record} );
-             variantlabs:
-               (nextvarlab: index; {points to next label for this variant}
-                varlabtype: index; {type of variant label}
-                varlabvalue: integer {ord(variant value)} );
-             arrays, conformantarrays, strings:
-               (indextype: index; { user said array [indextype] }
-                elementtype: index; { of elementtype }
-                highbound, lowbound: index; {bound id's if conformant}
-                stringtype: boolean; { set if a string type }
-                arraymembers: addressrange; {members in the indextype}
-                elementsize: addressrange {effective size of element} );
-             sets:
-               (constructedset: boolean; {declared or [i,j..k] ?}
-                basetype: index {user said set of basetype} );
-             files:
-               (filebasetype: index; {user defined file of filebasetype}
-                filekey: integer {used to identify file componants to travrs}
-               );
-             ptrs:
-               (ptrtypename: index; {user defined ^ptrtypename}
-                ptrkey: integer {used to identify ptr components to travrs} );
-             scalars: (lastord: integer {highest value of scalar} ); );
-        false:
-          (nextname: index; {pointer to previous incarnation of same name}
-           name: scoperange; {id of block in which declared}
-           charlen: 0..linelen; {length of character string defining name}
-           charindex: integer; {start of name in string file}
-           lastoccurrence: totalscoperange; {last scope which accessed this
-                                             unit}
-           case namekind: nametype of
-             typename, undeftypename:
-               (typeindex: index; {points to defined type}
-                refdefined: boolean {true if defined by ref function} );
-             constname:
-               (consttype: index; {type for this constant}
-                constvalue: const_descr {value for this constant} );
-             varname, fieldname, param, varparam, constparam, procparam,
-             funcparam, confparam, constconfparam, varconfparam, boundid,
-             undefname, procname, funcname, forwardproc, forwardfunc,
-             externalproc, externalfunc:
-               (modified: boolean; {becomes true when value assigned}
-                nestedmod: boolean; {true if modified by nested procedure}
-                parammodified: boolean; {becomes true when param value changes}
-                knownvalid: boolean; {set when value is known to be in range}
-                programdecl: boolean; {set when declared in program header}
-                varianttag: boolean; {set true if record variant tag}
-                registercandidate: boolean; { true if travrs can assign to a
-                                             reg}
-                univparam: boolean; {true if universal parameter}
-                lastinsection: boolean; {last in a parameter section}
-                allocated: boolean; {set true when memory allocated}
-                varalloc: allockind; {kind of allocation made}
-                refparam: boolean; {if pass by reference}
-                nextparamlink: index; {if parameter, points to next param in
-                                       list}
-                offset: unsignedint; {address of item within block}
-                regparamkey: unsignedint; {used to identify register params for CSEs etc}
-                regid: regrange; {register assigned for a register param}
-                regcount: regrange; {register params can occupy more than one register}
-                length: addressrange; {length of item}
-                vartype: index; {name's type}
-                paramlist: index; {Index of last parameter}
-                savedparamsize: addressrange; {size of parameters} 
-                procref: proctableindex; {index into global proc data for
-                                          routine}
-                sparelink: index; {for boundid, array for which it's a bound;
-                                   for use/shared vars index into vartable;
-                                   for fields used to pass info to debugger} );
-             standardproc, standardfunc, directivename:
-               (procid: standardids {which standard procedure} ); );
+      nextname: index; {pointer to previous incarnation of same name}
+      name: scoperange; {id of block in which declared}
+      charlen: 0..linelen; {length of character string defining name}
+      charindex: integer; {start of name in string file}
+      lastoccurrence: totalscoperange; {last scope which accessed this
+                                        unit}
+      case namekind: nametype of
+        typename, undeftypename:
+          (typeindex: formptr; {points to defined type}
+           refdefined: boolean {true if defined by ref function} );
+        constname:
+          (consttype: formptr; {type for this constant}
+           constvalue: const_descr {value for this constant} );
+        varname, fieldname, param, varparam, constparam, procparam,
+        funcparam, confparam, constconfparam, varconfparam, boundid,
+        undefname, procname, funcname, forwardproc, forwardfunc,
+        externalproc, externalfunc:
+          (modified: boolean; {becomes true when value assigned}
+           nestedmod: boolean; {true if modified by nested procedure}
+           parammodified: boolean; {becomes true when param value changes}
+           knownvalid: boolean; {set when value is known to be in range}
+           programdecl: boolean; {set when declared in program header}
+           varianttag: boolean; {set true if record variant tag}
+           registercandidate: boolean; { true if travrs can assign to a
+                                        reg}
+           univparam: boolean; {true if universal parameter}
+           lastinsection: boolean; {last in a parameter section}
+           allocated: boolean; {set true when memory allocated}
+           varalloc: allockind; {kind of allocation made}
+           refparam: boolean; {if pass by reference}
+           nextparamlink: index; {if parameter, points to next param in
+                                  list}
+           offset: unsignedint; {address of item within block}
+           regparamkey: unsignedint; {used to identify register params for CSEs etc}
+           regid: regrange; {register assigned for a register param}
+           regcount: regrange; {register params can occupy more than one register}
+           length: addressrange; {length of item}
+           vartype: formptr; {name's type}
+           paramlist: index; {Index of last parameter}
+           savedparamsize: addressrange; {size of parameters} 
+           procref: proctableindex; {index into global proc data for
+                                     routine}
+           sparelink: index; {for boundid, array for which it's a bound;
+                              for use/shared vars index into vartable;
+                              for fields used to pass info to debugger} );
+        standardproc, standardfunc, directivename:
+          (procid: standardids {which standard procedure} );
     end;
 
   undefindex = 0..undeftablesize;
@@ -360,7 +366,7 @@ var
   {the following are entries for standard types}
   intindex, shortintindex, longintindex, realindex, doubleindex, chartypeindex,
     boolindex, noneindex, nilindex, textindex, inputindex, outputindex,
-    subrangeindex, charptrindex, chartypenameindex: index;
+    subrangeindex, charptrindex, chartypenameindex: formptr;
 
   nullboundindex: index; {undefined boundid}
 
@@ -464,7 +470,10 @@ var
   structvalue: operand; {the returned value}
   tempvars: integer; {number of locals available for register assignment}
 
-  bigtable: array [0..bigtablesize] of tableentry; {symboltable if
-                                                    bigcompiler}
+  bigtable: array [0..bigtablesize] of tableentry; {symboltable}
+
+  formlist: formptr; { for disposing of statements }
+  formcount: unsignedint; { for verifying that we disposed all of them }
+
   implementation
   end.

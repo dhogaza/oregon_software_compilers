@@ -402,10 +402,10 @@ var
   exprcount: integer; { for verifying that we disposed all of them }
 
   stmtlist: stmtptr; { for disposing of statements }
-  stmtcount: integer; { for verifying that we disposed all of them }
+  stmtcount: unsignedint; { for verifying that we disposed all of them }
 
   localparamnode: exprptr; {points to node describing local param levop}
-  exit_stmtno: integer; {save stmtno of the exit fake statement (VMS)}
+  exit_stmtno: unsignedint; {save stmtno of the exit fake statement (VMS)}
 
 implementation
 end.

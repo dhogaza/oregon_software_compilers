@@ -87,7 +87,11 @@ procedure enterblock(level: levelindex; {lex level of block}
       namesdeclared := 0;
       proctable[blockref].opensfile := false;
       initregparams(regparams);
-      end
+      end;
+
+      formlist := nil;
+      formcount := 0;
+
   end {enterblock} ;
 
 
@@ -110,6 +114,7 @@ procedure exitblock(level: levelindex {level of block being exited} );
     p: entryptr; {used for access to names}
     regok: boolean; { true if we can assign vars to registers in this block }
     localvar: localvartype; { for writing to file }
+    prevform: formptr; { for disposing forms created in this block }
 
 
   begin {exitblock}
@@ -184,6 +189,21 @@ procedure exitblock(level: levelindex {level of block being exited} );
         end;
 
       end;
+
+    { get rid of formnodes }
+
+    while formlist <> nil do
+      begin
+      prevform := formlist^.prevform;
+      dispose(formlist);
+      formlist := prevform;
+      formcount := formcount - 1;
+      end;
+
+    if formcount <> 0 then
+      writeln('warning  ', formcount: 1, ' forms not released in block ',
+              blockref: 1);
+
 
   end {exitblock} ;
 
@@ -4062,13 +4082,8 @@ procedure analys;
     if intstate = opstate then genop(endexpr);
     genstmt(endall);
     exitblock(0);
-    {DRB
-    if emitflag then
-      begin
-      put(tempfiletwo);
-      end;
-      }
 
     dispose(labelflag);
+
   end {analys} ;
 end.

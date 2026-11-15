@@ -118,10 +118,9 @@ procedure verifytoken(tok: tokentype; {acceptable token}
 }
 
 procedure enterform(newtyp: types; {type for this form}
-                    var where: index; {new entry}
-                    var whereptr: entryptr {for access to new entry} );
+                    var where: formptr {new entry});
 
-{ Enter a new formentry at the current level.  This also
+{ Enter a new form at the current level.  This also
   gets a formnumber for use with the debugger, and sets the type
   to be newtyp.
 }
@@ -164,8 +163,8 @@ procedure search(var wherefound: index {result of search} );
   variable "lev" is set to the level where the token was found.
 }
 
-procedure searchvariants(var currentrecord: index; {record to search}
-                         labvalue: operand {varnt label value} );
+procedure searchvariants(var currentrecord: formptr; {record to search}
+                         labvalue: operand {variant label value} );
 
 { Search a record variant part starting at "currentrecord" for a
   variant with a label of "labvalue" and set "currentrecord" to that
@@ -176,7 +175,7 @@ procedure searchvariants(var currentrecord: index; {record to search}
 { Utilities for use with types}
 
 
-procedure stripsubrange(var objectindex: index {form to be stripped} );
+procedure stripsubrange(var objectindex: formptr {form to be stripped} );
 
 { Convert a subrange type to the base type for use in an expression.
 }
@@ -189,7 +188,7 @@ function forcealign(size: addressrange; {value to align}
   Used to overcome limitations built into much contemporary hardware.
 }
 
-function unsigned(f: entryptr; {type to check}
+function unsigned(f: formptr; {type to check}
                   len: addressrange; {space actually allocated for var}
                   packedelement: boolean {set if packed var} ): boolean;
 
@@ -230,19 +229,19 @@ procedure constant(follow: tokenset; {legal following symbols}
   as an integer value.
 }
 
-function getform(objecttype: entryptr {desired form} ): types;
+function getform(objecttype: formptr {desired form} ): types;
 
 { Get the basic form associated with a type.
 }
 
 
-function identical(left, right: index {types to compare} ): boolean;
+function identical(left, right: formptr {types to compare} ): boolean;
 
 { True if two types are identical, or if either is undefined (to avoid
   redundant messages).
 }
 
-function compatible(left, right: index {types to compare} ): boolean;
+function compatible(left, right: formptr {types to compare} ): boolean;
 
 { True if the types represented by the two input forms are compatible
   as defined by the Pascal standard.  If either input is undefined,
@@ -567,8 +566,7 @@ procedure verifytoken(tok: tokentype; {acceptable token}
 
 
 procedure enterform(newtyp: types; {type for this form}
-                    var where: index; {new entry}
-                    var whereptr: entryptr {for access to new entry} );
+                    var where: formptr {new entry});
 
 { Enter a new formentry at the current level.  This also
   gets a formnumber for use with the debugger, and sets the type
@@ -576,12 +574,13 @@ procedure enterform(newtyp: types; {type for this form}
 }
 
   begin {enterform}
-    if tabletop = tablesize then fatal(tablefull)
-    else tabletop := tabletop + 1;
-    where := tabletop;
-    whereptr := @(bigtable[tabletop]);
-    with whereptr^ do
+    new(where);
+    with where^ do
       begin
+      formcount := formcount + 1;
+      formindex := formcount;
+      prevform := formlist;
+      formlist := where;
       if not newdebugger and (newtyp in
          [subranges, scalars, fields, arrays, sets, files, ptrs, ints, bools,
          chars, reals, doubles, conformantarrays, strings]) then
@@ -590,7 +589,6 @@ procedure enterform(newtyp: types; {type for this form}
         dbgsymbol := lastdebugrecord;
         end
       else dbgsymbol := 0;
-      form := true;
       typ := newtyp;
       containsfile := false;
       packedflag := false;
@@ -697,7 +695,7 @@ procedure search(var wherefound: index {result of search} );
     wherefound := t;
   end {search} ;
 
-procedure searchvariants(var currentrecord: index; {record to search}
+procedure searchvariants(var currentrecord: formptr; {record to search}
                          labvalue: operand {varnt label value} );
 
 { Search a record variant part starting at "currentrecord" for a
@@ -707,29 +705,25 @@ procedure searchvariants(var currentrecord: index; {record to search}
 }
 
   var
-    t: index; {used to trace variant chain}
-    t1: index; {used to trace label chain}
-    t2: index; {holds last value of t for later use}
-    ptr, ptr1: entryptr; {used to access variant and label chains}
+    t: formptr; {used to trace variant chain}
+    t1: formptr; {used to trace label chain}
+    t2: formptr; {holds last value of t for later use}
     found: boolean; {set if label found, controls search}
 
 
   begin {searchvariants}
     found := false;
-    ptr := @(bigtable[currentrecord]);
-    t := ptr^.firstvariant;
-    while (t <> 0) and not found do
+    t := currentrecord^.firstvariant;
+    while (t <> nil) and not found do
       begin
-      ptr := @(bigtable[t]);
-      with ptr^ do
+      with t^ do
         begin
         t2 := t;
         t := nextvariant;
         t1 := firstlabel;
-        while (t1 <> 0) and not found do
+        while (t1 <> nil) and not found do
           begin
-          ptr1 := @(bigtable[t1]);
-          with ptr1^ do
+          with t1^ do
             begin
             found := (labvalue.cvalue.intvalue = varlabvalue);
             t1 := nextvarlab;
@@ -745,18 +739,14 @@ procedure searchvariants(var currentrecord: index; {record to search}
 
 { Utilities for use with types}
 
-procedure stripsubrange(var objectindex: index {form to be stripped} );
+procedure stripsubrange(var objectindex: formptr {form to be stripped} );
 
 { Convert a subrange type to the base type for use in an expression.
 }
 
-  var
-    ptr: entryptr;
-
 
   begin {stripsubrange}
-    ptr := @(bigtable[objectindex]);
-    with ptr^ do if (typ = subranges) then objectindex := parenttype;
+    with objectindex^ do if (typ = subranges) then objectindex := parenttype;
   end {stripsubrange} ;
 
 function forcealign(size: addressrange; {value to align}
@@ -774,7 +764,7 @@ function forcealign(size: addressrange; {value to align}
     forcealign := size;
   end {forcealign} ;
 
-function unsigned(f: entryptr; {type to check}
+function unsigned(f: formptr; {type to check}
                   len: addressrange; {space actually allocated for var}
                   packedelement: boolean {set if packed var} ): boolean;
 
@@ -868,7 +858,7 @@ procedure constant(follow: tokenset; {legal following symbols}
   as an integer value.
 }
 
-procedure conststructure(form: index; {form found for this constant}
+procedure conststructure(form: formptr; {form found for this constant}
                          var value1: operand {resulting value } );
 
 { Syntactic routine to parse a constant structure.
@@ -940,7 +930,6 @@ procedure conststructure(form: index; {form found for this constant}
     curloc: addressrange; {current location relative to start of constant}
     baseloc: addressrange; {start of packed buffers}
     pbuf1, pbuf2: integer; {packed data buffers}
-    f: entryptr; {for access to form data}
     packedflag: boolean; {this is a packed form}
 
   procedure putcbyte(b: hostfilebyte {constant byte to put} );
@@ -1350,8 +1339,8 @@ procedure conststructure(form: index; {form found for this constant}
 
 
   procedure initcdump(var value1: operand; {value to initialize}
-                      consttypeindx: index; {index for this element type}
-                      consttype: entryptr {type of this element} );
+                      consttypeindx: formptr; {index for this element type}
+                      consttype: formptr {type of this element} );
 
 { Initialize the value of the constant and set up the constant buffer
   for generating the value.
@@ -1430,19 +1419,18 @@ procedure conststructure(form: index; {form found for this constant}
 
 
   procedure innercstruct(eltloc: addressrange; {rel loc for this element}
-                         form: index; {form of this constant}
+                         form: formptr; {form of this constant}
                          outerpacked: boolean {outer structure was packed} );
 
 { Given a structured value, determine the type and parse it.
 }
 
     var
-      f: entryptr; {for access to form}
       packedflag: boolean; {form is packed}
 
 
     procedure constvalue(eltloc: addressrange; {rel loc for this element}
-                         elttype: index; {desired value type}
+                         elttype: formptr; {desired value type}
                          eltstring: boolean; {current element is a string}
                          packing: boolean; {set if packing this element}
                          var value1: operand; {result, if not written}
@@ -1456,14 +1444,14 @@ procedure conststructure(form: index; {form found for this constant}
       var
         tindex: index; {type name index}
         p: entryptr; {access to type name block}
-        elp: entryptr; {for access to elttype}
+        elp: formptr; {for access to elttype}
         kludge: constbuffer; {converts to integer}
         i: 1..cbufsize; {induction var for conversion}
         start, finish: addressrange; {start and end of constant in file}
 
 
       procedure getconstant(follow: tokenset; {legal following symbols}
-                            elttype: index; {desired value type}
+                            elttype: formptr; {desired value type}
                             var value1: operand {result} );
 
 { Parse a simple constant and make sure it's in range for the field
@@ -1471,7 +1459,6 @@ procedure conststructure(form: index; {form found for this constant}
 }
 
         var
-          elp: entryptr; {for access to elttype}
           unsvalue: unsignedint; {for unsigned comparisons}
 
 
@@ -1481,11 +1468,10 @@ procedure conststructure(form: index; {form found for this constant}
             if (representation = ints) and (elttype <> noneindex) and
                compatible(typeindex, elttype) then
               begin
-              elp := @(bigtable[elttype]);
-              if extended and not elp^.extendedrange or (intvalue < 0) and
-                 negated and elp^.extendedrange then
+              if extended and not elttype^.extendedrange or (intvalue < 0) and
+                 negated and elttype^.extendedrange then
                 warnbefore(badconsterr)
-              else if elp^.extendedrange then
+              else if elttype^.extendedrange then
                 begin
                 unsvalue := intvalue;
                 if (unsvalue < longword(lower(elp))) or
@@ -1517,8 +1503,7 @@ procedure conststructure(form: index; {form found for this constant}
           end
         else if token = lpar then
           begin
-          elp := @(bigtable[elttype]);
-          if not (elp^.typ in [arrays, fields, none]) then
+          if not (elttype^.typ in [arrays, fields, none]) then
             begin
             warn(badconsterr);
             value1.typeindex := noneindex;
@@ -1530,9 +1515,8 @@ procedure conststructure(form: index; {form found for this constant}
         else getconstant(follow, elttype, value1);
         if not written then
           begin
-          elp := @(bigtable[value1.typeindex]);
-          if not (eltstring and ((elp^.typ = chars) or
-             (elp^.typ = arrays) and (elp^.stringtype)) or
+          if not (eltstring and ((value1.typeindex^.typ = chars) or
+             (value1.typeindex^.typ = arrays) and (value1.typeindex^.stringtype)) or
              compatible(elttype, value1.typeindex)) then
             warnbefore(typesincomp);
           if (value1.cvalue.representation in [arrays, fields]) and
@@ -1569,7 +1553,7 @@ procedure conststructure(form: index; {form found for this constant}
 
 
     procedure constelement(eltloc: addressrange; {loc to for this element}
-                           elttype: index; {type desired}
+                           elttype: formptr; {type desired}
                            eltsize: addressrange; {size of the element}
                            eltstring: boolean; {current element is a string}
                            packing: boolean {this is a packed field} );
@@ -1594,7 +1578,7 @@ procedure conststructure(form: index; {form found for this constant}
 
 
     procedure constarray(eltloc: addressrange; {rel loc for this element}
-                         form: index {form for this array} );
+                         form: formptr {form for this array} );
 
 { Syntactic routine to parse a constant array.
   Each element is identical, and the number must match.
@@ -1603,22 +1587,19 @@ procedure conststructure(form: index; {form found for this constant}
       var
         eltcount: addressrange; {elements defined so far}
         eltsinarray: addressrange; {total elements in array}
-        elttype: index; {element type}
+        elttype: formptr; {element type}
         eltstring: boolean; {element is a string}
         packing: boolean; {set if packed array}
         eltsize: addressrange; {size of each element}
-        f: entryptr; {for access to type data}
 
 
       begin {constarray}
         eltcount := 1;
-        f := @(bigtable[form]);
-        elttype := f^.elementtype;
-        packing := f^.packedflag;
-        eltsize := f^.elementsize;
-        eltsinarray := f^.arraymembers;
-        f := @(bigtable[elttype]);
-        eltstring := f^.typ = strings;
+        elttype := form^.elementtype;
+        packing := form^.packedflag;
+        eltsize := form^.elementsize;
+        eltsinarray := form^.arraymembers;
+        eltstring := elttype^.typ = strings;
         constelement(eltloc, elttype, eltsize, eltstring, packing);
 	while token in [lpar, comma] + begconstset do
           begin
@@ -1634,7 +1615,7 @@ procedure conststructure(form: index; {form found for this constant}
 
 
     procedure constrecord(eltloc: addressrange; {start of this element}
-                          form: index {form for this record} );
+                          form: formptr {form for this record} );
 
 { Syntactic routine to parse a constant record.
 }
@@ -1652,12 +1633,10 @@ procedure conststructure(form: index; {form found for this constant}
         var
           found: boolean; {field was found}
           p: entryptr; {access to field names}
-          elttype: index; {form for a variant}
+          elttype: formptr; {form for a variant}
           temp: operand; {temp value for variant}
           written: boolean; {dummy argument to constvalue}
           tagoffset: addressrange; {offset for tag field, if any}
-          localform: tableentry; {local copy of form entry}
-          f, f1: entryptr; {access to form data}
 
 
         begin {constfield}
@@ -1665,23 +1644,18 @@ procedure conststructure(form: index; {form found for this constant}
             constelement(eltloc, noneindex, unitsize, false, false)
           else
             begin
-            f := @(bigtable[form]);
-            localform := f^;
             found := false;
-            while (currentfield < localform.lastfield) and not found do
+            while (currentfield < form^.lastfield) and not found do
               begin
               currentfield := currentfield + 1;
               p := @(bigtable[currentfield]);
-              if not p^.form then found := p^.name = localform.fieldid;
+              found := p^.name = form^.fieldid;
               end;
             if found then
-              begin
-              f1 := @(bigtable[p^.vartype]);
-              constelement(p^.offset + eltloc, p^.vartype, sizeof(f1,
-                           localform.packedflag), f1^.typ = strings,
-                           localform.packedflag)
-              end
-            else if localform.firstvariant = 0 then
+              constelement(p^.offset + eltloc, p^.vartype, sizeof(p^.vartype,
+                           form^.packedflag), p^.vartype^.typ = strings,
+                           form^.packedflag)
+            else if form^.firstvariant = nil then
               begin
               finished := true;
               warnbefore(badconsterr);
@@ -1690,35 +1664,27 @@ procedure conststructure(form: index; {form found for this constant}
             else
               begin
               tagoffset := 0;
-              if localform.tagfield <> 0 then
+              if form^.tagfield <> 0 then
                 begin
-                p := @(bigtable[localform.tagfield]);
+                p := @(bigtable[form^.tagfield]);
                 elttype := p^.vartype;
                 tagoffset := p^.offset;
                 end
-              else if localform.firstvariant <> 0 then
-                begin
-                f := @(bigtable[localform.firstvariant]);
-                if f^.firstlabel <> 0 then
-                  begin
-                  f := @(bigtable[f^.firstlabel]);
-                  elttype := f^.varlabtype;
-                  end
-                else elttype := noneindex;
-                end
+              else if form^.firstvariant <> nil then
+                if form^.firstlabel <> nil then
+                  elttype := form^.firstlabel^.varlabtype
+                else elttype := noneindex
               else elttype := noneindex;
               constvalue(tagoffset + eltloc, elttype, false,
-                         localform.packedflag, temp, written);
-              if localform.tagfield <> 0 then
+                         form^.packedflag, temp, written);
+              if form^.tagfield <> 0 then
                 begin
-                f := @(bigtable[elttype]);
                 putvalue(tagoffset + eltloc, false, false,
-                         localform.packedflag, sizeof(f, localform.packedflag),
+                         form^.packedflag, sizeof(elttype, form^.packedflag),
                          temp);
                 end;
               searchvariants(form, temp);
-              f := @(bigtable[form]);
-              currentfield := f^.firstfield - 1;
+              currentfield := form^.firstfield - 1;
               end;
             end;
         end {constfield} ;
@@ -1726,8 +1692,7 @@ procedure conststructure(form: index; {form found for this constant}
 
       begin {constrecord}
         finished := false;
-        f := @(bigtable[form]);
-        currentfield := f^.firstfield - 1;
+        currentfield := form^.firstfield - 1;
 
         constfield;
         while token in [lpar, comma] + begconstset do
@@ -1736,8 +1701,7 @@ procedure conststructure(form: index; {form found for this constant}
           constfield;
           end;
 
-        f := @(bigtable[form]);
-        if (currentfield < f^.lastfield) or (f^.firstvariant <> 0) then
+        if (currentfield < form^.lastfield) or (form^.firstvariant <> nil) then
           warnbefore(badconsterr);
       end {constrecord} ;
 
@@ -1765,8 +1729,7 @@ procedure conststructure(form: index; {form found for this constant}
       if token = lpar then
         begin
         gettoken;
-        f := @(bigtable[form]);
-        packedflag := f^.packedflag;
+        packedflag := form^.packedflag;
         if outerpacked and not packedflag then
           begin
           flushpackbuffer;
@@ -1779,8 +1742,8 @@ procedure conststructure(form: index; {form found for this constant}
           curloc := curloc * bitsperunit;
           baseloc := curloc;
           end;
-        if f^.typ in [strings, arrays] then constarray(eltloc, form)
-        else if f^.typ = fields then constrecord(eltloc, form)
+        if form^.typ in [strings, arrays] then constarray(eltloc, form)
+        else if form^.typ = fields then constrecord(eltloc, form)
         else badconst;
         if not outerpacked and packedflag then
           begin
@@ -1807,9 +1770,8 @@ procedure conststructure(form: index; {form found for this constant}
     if not scanalys and switcheverplus[defineswitch] then
       warnbefore(baddefine);
     gettoken;
-    f := @(bigtable[form]);
-    packedflag := f^.packedflag;
-    initcdump(value1, form, f);
+    packedflag := form^.packedflag;
+    initcdump(value1, form, form);
     innercstruct(0, form, false);
     finishdump(value1, packedflag);
   end {conststructure} ;
@@ -1817,9 +1779,9 @@ procedure conststructure(form: index; {form found for this constant}
   var
     negate: boolean; {set if neg sign found}
     sign: boolean; {set if any sign found}
-    t: index; {temp index for constant identifier}
     p: entryptr; {temp access to constant identifier entry}
-    t1: entryptr; {Temp for index type for string constant}
+    t: index; {Temp for index type for string constant}
+    t1: formptr; {temp for accessing types}
     unsvalue: unsignedint; {temp for unsigned operation}
 
 
@@ -1859,15 +1821,12 @@ procedure conststructure(form: index; {form found for this constant}
             if namekind = constname then
               begin
               value1.typeindex := consttype;
-              t1 := @(bigtable[consttype]);
-              value1.oprndlen := sizeof(t1, false);
+              value1.oprndlen := sizeof(consttype, false);
               value1.cvalue := constvalue;
               gettoken;
               end
             else if (namekind = typename) then
-              begin
-              conststructure(p^.typeindex, value1);
-              end
+              conststructure(p^.typeindex, value1)
             else
               begin
               warn(badconsterr);
@@ -1919,7 +1878,7 @@ procedure conststructure(form: index; {form found for this constant}
                   dumpstr(len + 1, curstringbuf, true);
                 end
               else pos := thistoken.pos;
-              enterform(subranges, t, t1);
+              enterform(subranges, t1);
               with t1^ do
                 begin
                 size := targetintsize;
@@ -1929,8 +1888,8 @@ procedure conststructure(form: index; {form found for this constant}
                 lowerord := 1;
                 upperord := len
                 end;
-              enterform(arrays, typeindex, t1);
-              with t1^ do
+              enterform(arrays, typeindex);
+              with typeindex^ do
                 begin
                 packedflag := true;
                 bitaddress := true;
@@ -1938,7 +1897,7 @@ procedure conststructure(form: index; {form found for this constant}
                 elementtype := chartypeindex;
                 stringtype := true;
                 arraymembers := len;
-                indextype := t;
+                indextype := typeindex;
                 size := len div (bitsperunit div stringeltsize);
                 if len mod (bitsperunit div stringeltsize) <> 0 then
                   size := size + 1;
@@ -1973,7 +1932,7 @@ procedure conststructure(form: index; {form found for this constant}
 
 
 
-function getform(objecttype: entryptr {desired form} ): types;
+function getform(objecttype: formptr {desired form} ): types;
 
 { Get the basic form associated with a type.
 }
@@ -1984,7 +1943,7 @@ function getform(objecttype: entryptr {desired form} ): types;
       else getform := typ;
   end {getform} ;
 
-function identical(left, right: index {types to compare} ): boolean;
+function identical(left, right: formptr {types to compare} ): boolean;
 
 { True if two types are identical, or if either is undefined (to avoid
   redundant messages).
@@ -1995,7 +1954,7 @@ function identical(left, right: index {types to compare} ): boolean;
   end {identical} ;
 
 
-function compatible(left, right: index {types to compare} ): boolean;
+function compatible(left, right: formptr {types to compare} ): boolean;
 
 { True if the types represented by the two input forms are compatible
   as defined by the Pascal standard.  If either input is undefined,
@@ -2004,8 +1963,8 @@ function compatible(left, right: index {types to compare} ): boolean;
 }
 
   var
-    lptr, rptr: entryptr; { used for access to symbol table }
     c: boolean; {temporary value of compatible}
+    lptr, rptr: entryptr; {for accessing ponter type's typename}
 
 
   begin {compatible}
@@ -2015,25 +1974,23 @@ function compatible(left, right: index {types to compare} ): boolean;
     else
       begin
       compatible := false;
-      lptr := @(bigtable[left]);
-      rptr := @(bigtable[right]);
-      if lptr^.typ = rptr^.typ then
-        case lptr^.typ of
+      if left^.typ = right^.typ then
+        case left^.typ of
           strings: compatible := true;
           arrays:
-            compatible := lptr^.stringtype and rptr^.stringtype and
-                          (lptr^.arraymembers = rptr^.arraymembers);
+            compatible := left^.stringtype and right^.stringtype and
+                          (left^.arraymembers = right^.arraymembers);
           sets:
-            compatible := compatible(lptr^.basetype, rptr^.basetype) and
-                          ((lptr^.packedflag = rptr^.packedflag) or
-                          lptr^.constructedset or rptr^.constructedset);
+            compatible := compatible(left^.basetype, right^.basetype) and
+                          ((left^.packedflag = right^.packedflag) or
+                          left^.constructedset or right^.constructedset);
           ptrs:
             if (left = nilindex) or (right = nilindex) then
               compatible := true
             else
               begin
-              lptr := @(bigtable[lptr^.ptrtypename]);
-              rptr := @(bigtable[rptr^.ptrtypename]);
+              lptr := @(bigtable[left^.ptrtypename]);
+              rptr := @(bigtable[right^.ptrtypename]);
               c := (switchcounters[standard] <= 0) and
                    (lptr^.typeindex = rptr^.typeindex);
               if not c then
