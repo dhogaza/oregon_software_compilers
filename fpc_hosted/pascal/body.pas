@@ -136,7 +136,7 @@ procedure setconstrange(value1: integer; {value to use}
   end {setconstrange} ;
 
 
-procedure settyperange(t: entryptr; {type containing range}
+procedure settyperange(f: formptr; {type containing range}
                        var r: range {resulting range} );
 
 { Set up a range according to the range of t.
@@ -144,13 +144,13 @@ procedure settyperange(t: entryptr; {type containing range}
 
 
   begin {settyperange}
-    r.minlimit := lower(t);
-    r.maxlimit := upper(t);
-    r.extended := t^.extendedrange;
+    r.minlimit := lower(f);
+    r.maxlimit := upper(f);
+    r.extended := f^.extendedrange;
   end {settyperange} ;
 
 
-procedure setstoragerange(t: entryptr; {variable or field in question}
+procedure setstoragerange(f: formptr; {variable or field in question}
                           len: addressrange; {length of field}
                           packedfield: boolean; {field is packed}
                           var r: range {resulting range} );
@@ -165,11 +165,11 @@ procedure setstoragerange(t: entryptr; {variable or field in question}
   begin {setstoragerange}
     with r do
       begin
-      ov := unsigned(t, len, packedfield);
+      ov := unsigned(f, len, packedfield);
       storagelimit(ov, len, packedfield, maxlimit);
-      if unsigned(t, len, packedfield) then minlimit := 0
+      if unsigned(f, len, packedfield) then minlimit := 0
       else minlimit := - maxlimit - 1;
-      extended := t^.extendedrange;
+      extended := f^.extendedrange;
       end;
   end {setstoragerange} ;
 
@@ -192,9 +192,9 @@ procedure setvarrange(len: addressrange; {range of variable}
   begin {setvarrange}
     with oprndstk[sp].value_range do
       begin
-      settyperange(resultptr, optimistic);
+      settyperange(resulttype, optimistic);
       if trustrange then pessimistic := optimistic
-      else setstoragerange(resultptr, len, packedfield, pessimistic);
+      else setstoragerange(resulttype, len, packedfield, pessimistic);
       end;
   end {setvarrange} ;
 
@@ -645,7 +645,6 @@ procedure genoprnd;
       end;
     i: integer; {general use induction var}
     newlim: integer; {new string file limit}
-    f: entryptr; {for access to a form entry}
     emptyset: boolean; {true if set const is empty set}
     setcount: integer; {address in string table of set}
 
@@ -670,12 +669,9 @@ procedure genoprnd;
             doubles: genrealvalue(doubleop, realvalue.realbuffer);
             strings, arrays, fields:
               begin
-              f := @(bigtable[typeindex]);
-              if f^.disposable and (typeindex = tabletop) then
-                begin
+              {DRB 2026 this is bogus ... }
+              if typeindex^.disposable and (typeindex = formlist) then
                 lastdebugrecord := lastdebugrecord - 2;
-                tabletop := tabletop - 2;
-                end;
               genop(structop);
               genint(pos);
               genint(oprndlen);
@@ -862,7 +858,6 @@ procedure checkrange(subject: operand; {does this fit?}
     r: range; {range to check against}
     usmin, usmax: unsignedint; {unsigned values for check}
     l, u: integer; {lower and upper type limits}
-    typeptr: entryptr; {for access to typeindex data}
 
 
   begin {checkrange}
@@ -870,10 +865,9 @@ procedure checkrange(subject: operand; {does this fit?}
       begin
       if believeit then r := optimistic
       else r := pessimistic;
-      typeptr := @(bigtable[typeindex]);
-      l := lower(typeptr);
-      u := upper(typeptr);
-      if typeptr^.extendedrange or r.extended then
+      l := lower(typeindex);
+      u := upper(typeindex);
+      if typeindex^.extendedrange or r.extended then
         begin
         usmin := optimistic.minlimit;
         usmax := optimistic.maxlimit;
@@ -900,7 +894,7 @@ procedure checkrange(subject: operand; {does this fit?}
   end {checkrange} ;
 
 
-procedure newresulttype(newtype: index);
+procedure newresulttype(newtype: formptr);
 
 { Set the value of resulttype to newtype and make it available in newptr.
 }
@@ -908,8 +902,7 @@ procedure newresulttype(newtype: index);
 
   begin {newresulttype}
     resulttype := newtype;
-    resultptr := @(bigtable[resulttype]);
-    resultform := getform(resultptr);
+    resultform := getform(resulttype);
   end {newresulttype} ;
 
 
@@ -929,7 +922,7 @@ procedure pushconstant(follow: tokenset);
   end {pushconstant} ;
 
 
-procedure newstringtype(var newtype: index; {returns index of new string type}
+procedure newstringtype(var newtype: formptr; {returns index of new string type}
                         newform: types; {arrays or strings}
                         len: addressrange {number of chars in string} );
 
@@ -940,13 +933,12 @@ procedure newstringtype(var newtype: index; {returns index of new string type}
 }
 
   var
-    t: index; {holds subrange}
-    t1: entryptr; {for filling in table entry}
+    t: formptr; {holds subrange}
 
 
   begin {newstringtype}
-    enterform(subranges, t, t1);
-    with t1^ do
+    enterform(subranges, t);
+    with t^ do
       begin
       size := targetintsize;
       align := intalign;
@@ -960,8 +952,8 @@ procedure newstringtype(var newtype: index; {returns index of new string type}
         upperord := len;
         end;
       end;
-    enterform(newform, newtype, t1);
-    with t1^ do
+    enterform(newform, newtype);
+    with newtype^ do
       begin
       packedflag := true;
       bitaddress := true;
@@ -1435,7 +1427,6 @@ procedure foldmod;
     mayoverflow: boolean; {overflow might happen}
     power2: boolean; { true if divisor ispower of 2}
     power2value: integer; { divisor exponant value }
-    typeptr: entryptr; {for access to typeindex data}
     rangenonneg: boolean; {range appears to be nonnegative}
 
 
@@ -1452,9 +1443,8 @@ procedure foldmod;
         foldedbinary := false;
         with oprndstk[l] do
           begin
-          typeptr := @(bigtable[typeindex]);
           rangenonneg := value_range.optimistic.minlimit >= 0;
-          rangenonneg := rangenonneg or unsigned(typeptr, oprndlen, false);
+          rangenonneg := rangenonneg or unsigned(typeindex, oprndlen, false);
           end;
         if power2 and rangenonneg then
           begin
@@ -1483,7 +1473,6 @@ procedure foldkwo;
     mayoverflow: boolean; {an operation can overflow}
     power2: boolean; { true if divisor ispower of 2}
     power2value: integer; { divisor exponant value }
-    typeptr: entryptr; {for access to typeindex data}
     rangenonneg: boolean; {range appears to be nonnegative}
 
 
@@ -1501,9 +1490,8 @@ procedure foldkwo;
         foldedbinary := false;
         with oprndstk[l] do
           begin
-          typeptr := @(bigtable[typeindex]);
           rangenonneg := value_range.optimistic.minlimit >= 0;
-          rangenonneg := rangenonneg or unsigned(typeptr, oprndlen, false);
+          rangenonneg := rangenonneg or unsigned(typeindex, oprndlen, false);
           end;
         if power2 and rangenonneg then
           begin
@@ -1723,43 +1711,44 @@ procedure foldchk(adjustlow: boolean; {adjust lower bound to 0}
     outofbounds: boolean; {can't possibly be in range}
     upperneeded: boolean; {upper limit check needed}
     lowerneeded: boolean; {lower limit check needed}
-    typeptr: entryptr; {for access to type}
     lowerbound: integer; {lower bound of typeindex}
     upperbound: integer; {upper bound of typeindex}
 
 
   begin {foldchk}
-    typeptr := @(bigtable[oprndstk[sp].typeindex]);
-    lowerbound := lower(typeptr);
-    upperbound := upper(typeptr);
-    if typeptr^.typ in [subranges, chars, bools, ints, scalars] then
+    with oprndstk[sp] do
       begin
-      checkrange(oprndstk[sp], false, outofbounds, lowerneeded, upperneeded);
-      if oconst then
+      lowerbound := lower(typeindex);
+      upperbound := upper(typeindex);
+      if typeindex^.typ in [subranges, chars, bools, ints, scalars] then
         begin
-        if outofbounds then warnbefore(chkerror);
-        if adjustlow then
-          oprndstk[sp].cvalue.intvalue := oprndstk[sp].cvalue.intvalue -
-                                          lowerbound;
+        checkrange(oprndstk[sp], false, outofbounds, lowerneeded, upperneeded);
+        if oconst then
+          begin
+          if outofbounds then warnbefore(chkerror);
+          if adjustlow then
+            oprndstk[sp].cvalue.intvalue := oprndstk[sp].cvalue.intvalue -
+                                            lowerbound;
+          end
+        else if generate and (upperneeded or lowerneeded) or adjustlow and
+                (lowerbound <> 0) then
+          begin
+          foldedunary := false;
+          pushint(lowerbound);
+          genoprnd;
+          pushint(upperbound);
+          genoprnd;
+          if adjustlow then
+            with result_range do
+              begin
+              optimistic.minlimit := optimistic.minlimit - lowerbound;
+              optimistic.maxlimit := optimistic.maxlimit - lowerbound;
+              pessimistic := optimistic;
+              end;
+          end;
         end
-      else if generate and (upperneeded or lowerneeded) or adjustlow and
-              (lowerbound <> 0) then
-        begin
-        foldedunary := false;
-        pushint(lowerbound);
-        genoprnd;
-        pushint(upperbound);
-        genoprnd;
-        if adjustlow then
-          with result_range do
-            begin
-            optimistic.minlimit := optimistic.minlimit - lowerbound;
-            optimistic.maxlimit := optimistic.maxlimit - lowerbound;
-            pessimistic := optimistic;
-            end;
-        end;
-      end
-    else foldedunary := generate;
+      else foldedunary := generate;
+    end;
   end {foldchk} ;
 
 
@@ -1851,7 +1840,6 @@ procedure genunary(op: operatortype; {operation to generate}
           end;
         end;
       end;
-    resultptr := @(bigtable[resulttype]);
   end {genunary} ;
 
 procedure genregtargetop(regid: regrange; alloc: allockind; form: types);
@@ -2193,7 +2181,6 @@ procedure folddiv;
   var
     power2: boolean; {true if divisor is a power of 2}
     power2value: integer; {divisor exponent value}
-    typeptr: entryptr; {for access to typeindex data}
     rangenonneg: boolean; {range appears to be nonnegative}
 
 
@@ -2205,9 +2192,8 @@ procedure folddiv;
         power2check(getintvalue(r), power2, power2value);
         with oprndstk[l] do
           begin
-          typeptr := @(bigtable[typeindex]);
           rangenonneg := value_range.optimistic.minlimit >= 0;
-          if power2 and (rangenonneg or unsigned(typeptr, oprndlen, false)) then
+          if power2 and (rangenonneg or unsigned(typeindex, oprndlen, false)) then
             oprndstk[r].cvalue.intvalue := - power2value
           else foldedbinary := false;
           divfolded := foldedbinary;
@@ -2312,7 +2298,7 @@ procedure foldcmp(op: operatortype {operation being folded} );
       begin
       foldedbinary := true;
       if ((binaryform = strings) or (binaryform = arrays)) then
-        newlen := resultptr^.arraymembers
+        newlen := resulttype^.arraymembers
         {???}
       else if binaryform = ints then
         if range_length(oprndstk[l].value_range.optimistic) >
@@ -2615,7 +2601,6 @@ procedure genbinary(op: operatortype; {operation to generate}
           end;
         end;
       end;
-    resultptr := @(bigtable[resulttype]);
   end {genbinary} ;
 
 
@@ -2684,8 +2669,7 @@ procedure computeresult(maybestring: boolean {force char to string?});
     end;
 
   var
-    lefttype, righttype: index; {formentry's for operands}
-    f: entryptr; {used for access to formentries}
+    lefttype, righttype: formptr; {formentry's for operands}
     leftshortstring, rightshortstring: boolean; {left or right is/are short
                                                  'standard' strings}
     leftstringtype: boolean; {left type is packed array [1..n] of char}
@@ -2699,14 +2683,12 @@ procedure computeresult(maybestring: boolean {force char to string?});
     if sp >= 0 then righttype := oprndstk[sp].typeindex
     else righttype := noneindex;
     newresulttype(noneindex);
-    f := @(bigtable[lefttype]);
-    leftform := getform(f);
-    leftstringtype := (leftform = arrays) and f^.stringtype;
-    leftshortstring := leftstringtype and (f^.arraymembers = 1);
-    f := @(bigtable[righttype]);
-    rightform := getform(f);
-    rightshortstring := (rightform = arrays) and f^.stringtype and
-                        (f^.arraymembers = 1);
+    leftform := getform(lefttype);
+    leftstringtype := (leftform = arrays) and lefttype^.stringtype;
+    leftshortstring := leftstringtype and (lefttype^.arraymembers = 1);
+    rightform := getform(righttype);
+    rightshortstring := (rightform = arrays) and righttype^.stringtype and
+                        (righttype^.arraymembers = 1);
     if leftshortstring and (rightform = chars) and
        (switchcounters[standard] <= 0) then
       begin
@@ -2732,7 +2714,7 @@ procedure computeresult(maybestring: boolean {force char to string?});
         end;
       if (maybestring and ((leftform = chars) or leftstringtype) or
          (leftform = strings)) and (rightform = arrays) and
-         f^.stringtype then
+         righttype^.stringtype then
         begin
         genunary(arraystrop, strings);
         righttype := resulttype;
@@ -2837,19 +2819,17 @@ procedure computeresult(maybestring: boolean {force char to string?});
 
 
 procedure gencheck(op: operatortype; {operator to generate}
-                   checktype: index {type for check} );
+                   checktype: formptr {type for check} );
 
 { If the top of the operand stack can be checked, check it.
 }
 
   var
     generate: boolean; {actually generate a check}
-    checkptr: entryptr; {for access to checktype entry}
 
 
   begin {gencheck}
-    checkptr := @(bigtable[checktype]);
-    with checkptr^ do
+    with checktype^ do
       if typ = subranges then
         generate := (lowerord <> 0) or (upperord <> maxusint)
       else generate := typ in [bools, chars, scalars];
@@ -2964,13 +2944,13 @@ procedure setnowunpacking(packedflag: boolean; {packed structure?}
   but the particular field falls on a word boundry, and no unpacking code
   is necessary.
 
-  This routine uses the global "resultptr" to determine size.
+  This routine uses the global "resulttype" to determine size.
 }
 
 
   begin {setnowunpacking}
     nowunpacking := packedflag and ((offset mod bitsperunit <> 0) or
-                    ((offset + sizeof(resultptr, true)) mod bitsperunit <> 0));
+                    ((offset + sizeof(resulttype, true)) mod bitsperunit <> 0));
   end {setnowunpacking} ;
 
 
@@ -3018,9 +2998,8 @@ procedure lastindex(var unpacking: boolean; {unpacking a field}
 
 
   begin {lastindex}
-    if not unpacking and (resultptr^.typ = subranges) then {we have an
-                                                           inconveniently-sized
-                                                            scalar entity}
+    if not unpacking and (resulttype^.typ = subranges) then
+      {we have an inconveniently-sized scalar entity}
       begin
       power2check(len, power2, power2dummy);
       if not power2 then
@@ -3086,7 +3065,7 @@ begin {regparamsinitial}
   while i <= t do
     begin
     p := @(bigtable[i]);
-    if not p^.form and p^.allocated then
+    if p^.allocated then
       if (p^.varalloc <> normalalloc) then
         begin
         debugstmt(simple, 0, 0, 0);
@@ -3134,7 +3113,7 @@ begin {regparamsfinal}
   while i <= t do
     begin
     p := @(bigtable[i]);
-    if not p^.form and p^.allocated then
+    if p^.allocated then
       if (p^.varalloc <> normalalloc) then
         begin
         if p^.registercandidate then
@@ -3207,7 +3186,7 @@ procedure statement(follow: tokenset {legal following symbols} );
 }
 
 
-  procedure genvalsize(elttype: index; {element to get size of}
+  procedure genvalsize(elttype: formptr; {element to get size of}
                        eltsize: addressrange {size of fixed element} );
 
 { Generate code for the size of a value.  If the type is a conformant
@@ -3223,16 +3202,14 @@ procedure statement(follow: tokenset {legal following symbols} );
 
     var
       lowid: index; {index of lowbound for a conformant array}
-      et: index; {element type id}
+      et: formptr; {element type}
       es: addressrange; {element size in addressing units}
-      f: entryptr; {for access to elementtype}
       packedaccess: boolean; {this is a packed conformant array}
 
 
     begin {genvalsize}
       packedaccess := false;
-      f := @(bigtable[elttype]);
-      with f^ do
+      with elttype^ do
         if typ = conformantarrays then
           begin
           lowid := lowbound;
@@ -3325,9 +3302,10 @@ procedure statement(follow: tokenset {legal following symbols} );
     var
       textfile: boolean; {set true if "^" applied to text file}
       nowunpacking: boolean; { true if now unpacking }
-      indexwanted: index; { index type, used by onearrayindex}
-      arrayelement: index; { element type, used by onearrayindex}
-      p, p1: entryptr; {used for access to name entry}
+      indexwanted: formptr; { index type, used by onearrayindex}
+      arrayelement: formptr; { element type, used by onearrayindex}
+      p: entryptr; {used for access to name entry}
+      p1: formptr; {used to access type}
       fieldindex: index; {field selected}
       newoff: integer; {new "off" for pointer or file refs}
 
@@ -3374,7 +3352,6 @@ procedure statement(follow: tokenset {legal following symbols} );
         alreadyunpacking: boolean; {true if we were unpacking at entry}
         outofbounds: boolean; {set of index out of bounds}
         dum1, dum2: boolean; {dummy arguments for range check}
-        indextypeptr: entryptr; {for access to index type entry}
         lowerbound: integer; {lower bound of the array index}
 
         conformant: boolean; {the array is conformant}
@@ -3397,9 +3374,9 @@ procedure statement(follow: tokenset {legal following symbols} );
         indexwanted := noneindex;
         arrayelement := noneindex;
         eltsize := 1;
-        conformant := resultptr^.typ = conformantarrays;
+        conformant := resulttype^.typ = conformantarrays;
         if resulttype <> noneindex then
-          with resultptr^ do
+          with resulttype^ do
             if (typ in [strings, arrays]) or conformant then
               begin
               arrayelement := elementtype;
@@ -3412,7 +3389,7 @@ procedure statement(follow: tokenset {legal following symbols} );
         gettoken;
         nowunpacking := false;
         alreadyunpacking := unpacking;
-        if resultptr^.packedflag then
+        if resulttype^.packedflag then
           if eltsize < bitsperunit then nowunpacking := true
           else eltsize := eltsize div bitsperunit;
         startunpacking(nowunpacking, constpart, unpacking);
@@ -3425,8 +3402,7 @@ procedure statement(follow: tokenset {legal following symbols} );
           warnbefore(indexincomp);
         linearize := false;
         oprndstk[sp].typeindex := indexwanted;
-        indextypeptr := @(bigtable[indexwanted]);
-        lowerbound := lower(indextypeptr);
+        lowerbound := lower(indexwanted);
         if not conformant and (switchcounters[indexcheck] > 0) then
           genunary(indxchkop, ints)
         else
@@ -3497,7 +3473,7 @@ procedure statement(follow: tokenset {legal following symbols} );
         else
           begin
           power2check(eltsize, power2, power2value);
-          if (bigtable[arrayelement].typ <> conformantarrays) and
+          if (arrayelement^.typ <> conformantarrays) and
              power2 and (power2value <= tmaxautoindex) then
             begin
             oprndstk[sp].oprndlen := eltsize;
@@ -3519,12 +3495,12 @@ procedure statement(follow: tokenset {legal following symbols} );
 
     begin {selector}
       repeat
-        if resultptr^.packedflag and not packedok then
+        if resulttype^.packedflag and not packedok then
           begin
           warn(varparamerr);
           packedok := true;
           end;
-        p1 := resultptr; {we modify resultptr within "with" statement}
+        p1 := resulttype; {we modify resultptr within "with" statement}
         if token = lbrack then
           begin
           onearrayindex;
@@ -3563,7 +3539,7 @@ procedure statement(follow: tokenset {legal following symbols} );
                   else constpart := constpart + p^.offset;
                   if packedflag and not unpacking then
                     len := p^.length div bitsperunit
-                  else len := sizeof(resultptr, unpacking);
+                  else len := sizeof(resulttype, unpacking);
                   end
                 else
                   begin
@@ -3606,10 +3582,10 @@ procedure statement(follow: tokenset {legal following symbols} );
             genint(ord(ownvar));
             oprndstk[sp].oprndlen := ptrsize;
 
-            {DRB 2026: when the definelazop was added as part of changing file code
+            {DRB 2026: definelazop was added as part of changing file code
              to pass addresses, rather than value, of file variables to the various
-             library routines dealing with file, definelazyop was added.   The change
-             was made to make it possible to automatically close local files on procedure
+             library routines dealing with file.   The change was made to make it
+             possible to automatically close local files on procedure
              or program exit.  The original change emitted a ptrchkop which tends to
              lead to a trap (dereference of an unitialized value), rather than let the
              implementation of definelazyop give a clean error saying the file has not
@@ -3633,7 +3609,7 @@ procedure statement(follow: tokenset {legal following symbols} );
             off := newoff;
             varkey := newoff;
             ownvar := false;
-            len := sizeof(resultptr, false);
+            len := sizeof(resulttype, false);
             gettoken
             end;
           end;
@@ -3767,7 +3743,7 @@ procedure statement(follow: tokenset {legal following symbols} );
           with oprndstk[sp] do
             begin
             typeindex := vartype;
-            extended := resultptr^.extendedrange;
+            extended := resulttype^.extendedrange;
             oprndlen := length;
             operandkind := varoperand;
             cost := 0;
@@ -3942,7 +3918,7 @@ varkey := regparamkey;
                              namekind in
                              [param, varparam, funcparam, procparam, confparam,
                               constconfparam, varconfparam, boundid]);
-                len := sizeof(resultptr, unpacking);
+                len := sizeof(resulttype, unpacking);
 
                 { This fixes a 68k problem where a small packed array (of
                   boolean for instance) when moved as a unit, is moved to
@@ -3954,7 +3930,7 @@ varkey := regparamkey;
                 }
                 if packinghightolow then
                   begin
-                  setnowunpacking(resultptr^.bitaddress, 0, nowunpacking);
+                  setnowunpacking(resulttype^.bitaddress, 0, nowunpacking);
 
                   if nowunpacking then
                     begin
@@ -3963,7 +3939,7 @@ varkey := regparamkey;
                     constpart := 0;
                     end;
 
-                  len := sizeof(resultptr, unpacking);
+                  len := sizeof(resulttype, unpacking);
                   end;
 
                 end;
@@ -3973,7 +3949,7 @@ varkey := regparamkey;
                 genlit(constpart);
                 genunary(indxop, ints);
                 genunary(indrop, ints);
-                len := sizeof(resultptr, false); { false because varparams can't
+                len := sizeof(resulttype, false); { false because varparams can't
                                                   be packed element }
                 oprndstk[sp].oprndlen := len;
                 constpart := 0;
@@ -4060,7 +4036,7 @@ varkey := regparamkey;
                 varkey := off;
 }
                 newresulttype(vartype);
-                len := sizeof(resultptr, false);
+                len := sizeof(resulttype, false);
                 if parsing then gettoken;
               end;
             otherwise
@@ -4071,7 +4047,7 @@ varkey := regparamkey;
             end;
           setvarrange(len, unpacking, var_is_valid);
           lastindex(unpacking, constpart, len);
-          if unsigned(resultptr, len, unpacking) then
+          if unsigned(resulttype, len, unpacking) then
             if newflag then genop(newunsvarop)
             else genop(unsvarop)
           else if newflag then genop(newvarop)
@@ -4091,8 +4067,8 @@ varkey := regparamkey;
               end;
           genint(varkey);
           genint(ord(ownvar));
-          oprndstk[sp].oprndlen := sizeof(resultptr, false);
-          oprndstk[sp].extended := resultptr^.extendedrange;
+          oprndstk[sp].oprndlen := sizeof(resulttype, false);
+          oprndstk[sp].extended := resulttype^.extendedrange;
           oprndstk[sp].operandkind := varoperand;
           lev := varlev;
           end;
@@ -4174,7 +4150,6 @@ varkey := regparamkey;
 }
 
     var
-      f: entryptr; {for access to file base type}
       fileident: index; {for checking program statement declaration}
 
 
@@ -4194,13 +4169,9 @@ varkey := regparamkey;
           if emitlen and (resultform = files) then
             if resulttype = textindex then genpushdefaultint(-1, regparams)
             else
-              begin
-              f := @(bigtable[resultptr^.filebasetype]);
-              genpushdefaultint(forcealign(sizeof(f, false), alignmentof(f,
-                                           false),
-                                false) * (bitsperunit div bitsperfileunit),
-                                regparams);
-              end;
+              genpushdefaultint(forcealign(sizeof(resulttype, false),
+                                alignmentof(resulttype, false), false) *
+                                (bitsperunit div bitsperfileunit), regparams);
           end;
         end
       else warnbetween(novarerr);
@@ -4241,7 +4212,7 @@ varkey := regparamkey;
     begin {stringsource}
       expression(follow + [comma, colon, rpar], false);
       if resultform = chars then genunary(chrstrop, chars)
-      else if (resultform = arrays) and resultptr^.stringtype then
+      else if (resultform = arrays) and resulttype^.stringtype then
         genunary(arraystrop, arrays)
       else if not (resultform in [strings, none]) then warnbefore(nostringerr);
       oprndstk[sp].oprndlen := ptrsize;
@@ -4331,9 +4302,9 @@ varkey := regparamkey;
       maxparams: integer; {max param (end of param index)}
       alreadywarned: boolean; {message already issued, don't duplicate}
       p: entryptr; {used for access to proc entry}
-      calltype: index; {used for function param return type}
+      calltype: formptr; {used for function param return type}
 
-      lastconfactual: index; {type of last actual conformant parameter}
+      lastconfactual: formptr; {type of last actual conformant parameter}
 
 
     procedure oneactualparam;
@@ -4358,8 +4329,7 @@ varkey := regparamkey;
         actualindex: index; {name for actual parameter}
         actualptr: entryptr; {used for access to actual param}
         p: entryptr; {used for access to formal param}
-        paramptr: entryptr; {for type of formal param}
-        formaltype: index; {type of formal parameter}
+        formaltype: formptr; {type of formal parameter}
         formallen: addressrange; {size of formal parameter}
 
 
@@ -4396,29 +4366,22 @@ varkey := regparamkey;
             nexta, nextf: index; {links to next parameters}
 
 
-          function equivtypes(formalt, actualt: index {type names} ): boolean;
+          function equivtypes(formalt, actualt: formptr {type names} ): boolean;
 
 { True if the types are the same or are equivalent conformal array
   schemas
 }
-
-            var
-              at, ft: entryptr; {for access to type entries}
 
 
             begin {equivtypes}
               equivtypes := false;
               if identical(formalt, actualt) then equivtypes := true
               else
-                begin
-                at := @(bigtable[actualt]);
-                ft := @(bigtable[formalt]);
-                if (at^.typ = conformantarrays) and
-                   (ft^.typ = conformantarrays) then
-                  equivtypes := (at^.packedflag = ft^.packedflag) and
-                                identical(at^.indextype, ft^.indextype) and
-                                equivtypes(at^.elementtype, ft^.elementtype);
-                end;
+                if (actualt^.typ = conformantarrays) and
+                   (formalt^.typ = conformantarrays) then
+                  equivtypes := (actualt^.packedflag = formalt^.packedflag) and
+                                identical(actualt^.indextype, formalt^.indextype) and
+                                equivtypes(actualt^.elementtype, formalt^.elementtype);
             end {equivtypes} ;
 
 
@@ -4482,46 +4445,39 @@ varkey := regparamkey;
               proc params could be treated like quad-length structs in the
               future.
             }
-            genunary(pushproc, resultptr^.typ);
+            genunary(pushproc, resulttype^.typ);
             stackparamcount := stackparamcount + 1;
             gettoken
             end;
         end {callparam} ;
 
 
-      function conformable(formal, actual: index {parameters} ): boolean;
+      function conformable(formal, actual: formptr {parameters} ): boolean;
 
 { True if the actual parameter is conformable to the formal conformant
   array parameter.
 }
 
         var
-          formalptr, actualptr: entryptr; {access to formal and actual}
-          formalindex, actualindex: index; {index types}
-          formalelt, actualelt: index; {element types}
+          formalindex, actualindex: formptr; {index types}
+          formalelt, actualelt: formptr; {element types}
           c: boolean; {partial value of conformable}
 
 
         begin {conformable}
-          formalptr := @(bigtable[formal]);
-          actualptr := @(bigtable[actual]);
-          if (formalptr^.typ = conformantarrays) and
-             (actualptr^.typ in [conformantarrays, arrays, strings]) then
+          if (formal^.typ = conformantarrays) and
+             (actual^.typ in [conformantarrays, arrays, strings]) then
             begin
-            formalindex := formalptr^.indextype;
-            actualindex := actualptr^.indextype;
-            formalelt := formalptr^.elementtype;
-            actualelt := actualptr^.elementtype;
-            c := formalptr^.packedflag = actualptr^.packedflag;
+            formalindex := formal^.indextype;
+            actualindex := actual^.indextype;
+            formalelt := formal^.elementtype;
+            actualelt := actual^.elementtype;
+            c := formal^.packedflag = actual^.packedflag;
             c := c and compatible(formalindex, actualindex) and
                  conformable(formalelt, actualelt);
-            if c and (actualptr^.typ in [arrays, strings]) then
-              begin
-              formalptr := @(bigtable[formalindex]);
-              actualptr := @(bigtable[actualindex]);
-              c := (lower(actualptr) >= lower(formalptr)) and
-                   (upper(actualptr) <= upper(formalptr));
-              end;
+            if c and (actual^.typ in [arrays, strings]) then
+              c := (lower(actualindex) >= lower(formalindex)) and
+                   (upper(actualindex) <= upper(formalindex));
             conformable := c;
             end
           else conformable := identical(formal, actual);
@@ -4539,17 +4495,17 @@ varkey := regparamkey;
 }
 
         var
-          paramtypeptr: entryptr; {for access to parameter type data}
-          actualtypeptr: entryptr; {for access to actual parameter bounds}
-          at1, pt1: index; {for tracking down lists}
+          paramtypeptr: formptr; {for access to parameter type data}
+          actualtypeptr: formptr; {for access to actual parameter bounds}
+          at1, pt1: formptr; {for tracking down lists}
           highid, lowid: index; {bound id's if conformant}
           actualisconformant: boolean; {actual parameter is also conformant}
-          desiredindex: index; {Index type of formal parameter}
-          indexptr: entryptr; {for access to actual index type}
+          desiredindex: formptr; {Index type of formal parameter}
+          indexptr: formptr; {for access to actual index type}
           boundidsize: addressrange; {for determining size of boundid}
-          boundidtype: index; {the subrange used to declare the array}
+          boundidtype: formptr; {the subrange used to declare the array}
           boundidptr: entryptr; {points to the current bound id}
-          paramtype: index; {index of parameter description}
+          paramtype: formptr; {index of parameter description}
           pushbounds: boolean; {push the bounds for this param}
 
         procedure pushbound(which: index);
@@ -4583,14 +4539,14 @@ varkey := regparamkey;
 
           if pushbounds then lastconfactual := noneindex
           else lastconfactual := resulttype;
-          actualisconformant := resultptr^.typ = conformantarrays;
+          actualisconformant := resulttype^.typ = conformantarrays;
 
           if conformable(paramtype, resulttype) then
             begin
             if pushbounds then
               begin
-              paramtypeptr := @(bigtable[paramtype]);
-              actualtypeptr := resultptr;
+              paramtypeptr := paramtype;
+              actualtypeptr := resulttype;
               {DRB: this code does not work for strings!}
               while (actualtypeptr^.typ in [arrays, conformantarrays, strings]) and
                     (paramtypeptr^.typ = conformantarrays) do
@@ -4604,7 +4560,7 @@ varkey := regparamkey;
                 highid := actualtypeptr^.highbound;
                 lowid := actualtypeptr^.lowbound;
                 desiredindex := paramtypeptr^.indextype;
-                indexptr := @(bigtable[actualtypeptr^.indextype]);
+                indexptr := actualtypeptr^.indextype;
 
                 if actualisconformant then pushbound(lowid)
                 else pushint(lower(indexptr));
@@ -4621,8 +4577,8 @@ varkey := regparamkey;
                 genparamvalue(boundidptr, getform(indexptr), stackparamcount);
                 genoprnd;
 
-                paramtypeptr := @(bigtable[pt1]);
-                actualtypeptr := @(bigtable[at1]);
+                paramtypeptr := pt1;
+                actualtypeptr := at1;
                 end;
               end;
             end
@@ -4651,41 +4607,40 @@ varkey := regparamkey;
            (paramindex = 0) then
           begin
           expression(follow + [comma, colon, rpar], false);
-          actualstdstring := (resultform = arrays) and resultptr^.stringtype;
+          actualstdstring := (resultform = arrays) and resulttype^.stringtype;
           if not alreadywarned then
             begin
             p := @(bigtable[paramindex]);
             formaltype := p^.vartype;
-            paramptr := @(bigtable[formaltype]);
             formallen := p^.length;
             if namekind in [constparam, param] then
               begin
-              if (resultform = ints) and (getform(paramptr) = reals) then
+              if (resultform = ints) and (getform(formaltype) = reals) then
                 begin
                 newresulttype(realindex);
                 genunary(float, ints);
                 end
-              else if (resultform = ints) and (getform(paramptr) = doubles) then
+              else if (resultform = ints) and (getform(formaltype) = doubles) then
                 begin
                 newresulttype(doubleindex);
                 genunary(float_double, ints);
                 end
               else if (resultform = reals) and
-                      (getform(paramptr) = doubles) then
+                      (getform(formaltype) = doubles) then
                 begin
                 newresulttype(doubleindex);
                 oprndstk[sp].oprndlen := doublesize;
                 genunary(real_to_dbl, reals);
                 end
-              else if (getform(paramptr) = strings) and
+              else if (getform(formaltype) = strings) and
                       (resultform = chars) then
                 genunary(chrstrop, strings)
-              else if (getform(paramptr) = strings) and actualstdstring then
+              else if (getform(formaltype) = strings) and actualstdstring then
                 genunary(arraystrop, strings)
               else
                 begin
                 if (switchcounters[standard] <= 0) and
-                   (getform(paramptr) = arrays) and paramptr^.stringtype and
+                   (getform(formaltype) = arrays) and formaltype^.stringtype and
                    (resultform = chars) then
                   begin
                   newstringtype(resulttype, arrays, 1);
@@ -4833,7 +4788,7 @@ varkey := regparamkey;
 }
 
     var
-      ftype: index; {function type}
+      ftype: formptr; {function type}
       plen: addressrange; {function result size}
       bref: proctableindex; {current procedure ref index}
       pref: proctableindex; {procedure ref index}
@@ -4849,8 +4804,7 @@ varkey := regparamkey;
         ftype := vartype;
         pref := procref;
         end;
-      p := @(bigtable[ftype]);
-      plen := sizeof(p, false);
+      plen := sizeof(ftype, false);
       genlit(pref);
       genop(reserve);
       genint(plen);
@@ -4895,8 +4849,7 @@ varkey := regparamkey;
       oprndstk[sp].typeindex := resulttype;
       oprndstk[sp].oprndlen := plen;
       setvarrange(plen, false, false);
-      p := @(bigtable[ftype]);
-      if unsigned(p, plen, false) then genunary(unscall, resultform)
+      if unsigned(ftype, plen, false) then genunary(unscall, resultform)
       else genunary(call, resultform);
     end {procedurecall} ;
 
@@ -4909,23 +4862,21 @@ varkey := regparamkey;
 }
 
     var
-      ftype: index; {function type pointer}
+      ftype: formptr; {function type pointer}
       plen: addressrange; {function result size}
-      p: entryptr; {provides access to procedure type entry}
 
 
     begin {paramcall}
       variable(true, false, true, false, true, where);
       ftype := resulttype;
-      p := @(bigtable[ftype]);
-      plen := sizeof(p, false);
+      plen := sizeof(ftype, false);
       genop(reserve);
       genint(plen);
       parameterlist(where);
       newresulttype(ftype);
       oprndstk[sp].oprndlen := plen;
       setvarrange(oprndstk[sp].oprndlen, false, false);
-      if unsigned(resultptr, plen, false) then
+      if unsigned(resulttype, plen, false) then
         genunary(unscallparam, resultform)
       else genunary(callparam, resultform);
       with proctable[display[level].blockref] do
@@ -4950,16 +4901,17 @@ varkey := regparamkey;
     end {paramcall} ;
 
 
-  procedure parsetagparams(var currentrecord: index {starting point} );
+  procedure parsetagparams(var currentrecord: formptr {starting point} );
 
 { Parse a stream of tag variants, updating currentrecord as we march
   along.  Used by "new", "dispose", and "sizeof".
 }
 
     var
-      currentptr: entryptr; {points to currentrecord}
-      tagtype: index; {index of currentrecord's tag, if any}
-      f, p: entryptr; {the better to point with...}
+      currentptr: formptr; {points to currentrecord}
+      tagtype: formptr; {currentrecord's tag type, if any}
+      f: formptr; {the better to point to types with...}
+      p: entryptr; {the better to point names with...}
       labvalue: operand; {the given tag labels}
 
 
@@ -4969,21 +4921,21 @@ varkey := regparamkey;
         begin
         verifytoken(comma, nocommaerr);
         constant([comma, rpar], true, labvalue);
-        currentptr := @(bigtable[currentrecord]);
-        if getform(currentptr) = fields then
+        currentptr := currentrecord;
+        if getform(currentrecord) = fields then
           begin
           tagtype := noneindex;
-          if currentptr^.tagfield <> 0 then
+          if currentrecord^.tagfield <> 0 then
             begin
             p := @(bigtable[currentptr^.tagfield]);
             tagtype := p^.vartype
             end
-          else if currentptr^.firstvariant <> 0 then
+          else if currentrecord^.firstvariant <> nil then
             begin
-            f := @(bigtable[currentptr^.firstvariant]);
-            if f^.firstlabel <> 0 then
+            f := currentptr^.firstvariant;
+            if f^.firstlabel <> nil then
               begin
-              f := @(bigtable[f^.firstlabel]);
+              f := f^.firstlabel;
               tagtype := f^.varlabtype;
               end;
             end;
@@ -5023,11 +4975,9 @@ varkey := regparamkey;
       {"selector" args for const struct}
       ownvar: boolean; {false as only const structs are handled here}
       varlev: levelindex; {dummy arg to "selector"}
-      setelementtype: index; {elt type for set constructor}
-      settype: index; {created set type for set constructor}
-      setptr: entryptr; {used to access settype}
-      setentry: tableentry; {local copy of settype entry}
-      baseptr: entryptr; {used to access base type of set}
+      setelementtype: formptr; {elt type for set constructor}
+      settype: formptr; {created set type for set constructor}
+      setentry: formentry; {local copy of settype entry}
 
 
     procedure standardfunctions(procid: standardids {std func no.} );
@@ -5062,13 +5012,13 @@ varkey := regparamkey;
         begin {stringexpr}
           expression(follow + [comma, rpar], false);
           if resultform = chars then genunary(chrstrop, strings)
-          else if (resultform = arrays) and resultptr^.stringtype then
+          else if (resultform = arrays) and resulttype^.stringtype then
             genunary(arraystrop, strings)
           else if resultform <> strings then warnbefore(paramtypeerr);
         end {stringexpr} ;
 
       procedure finishparams(legaltypes: typeset; {types allowed}
-                             newtype: index {function result type} );
+                             newtype: formptr {function result type} );
 
 { Set up the returned value with the result type, and parse any extra
   arguments.  On entry to this procedure, "resulttype" is set to the
@@ -5086,7 +5036,7 @@ varkey := regparamkey;
           else newresulttype(newtype);
           paramform := resultform;
           oprndstk[sp].typeindex := newtype;
-          oprndstk[sp].oprndlen := sizeof(resultptr, false);
+          oprndstk[sp].oprndlen := sizeof(resulttype, false);
           parseextraargs;
         end {finishparams} ;
 
@@ -5107,7 +5057,7 @@ varkey := regparamkey;
         end {time} ;
 
 
-      procedure iofunction(finaltype: index {type of value returned} );
+      procedure iofunction(finaltype: formptr {type of value returned} );
 
 { Parse the file functions "ioerror" and "iostatus".
 }
@@ -5356,8 +5306,8 @@ varkey := regparamkey;
           expression(follow + [comma, rpar], false);
           checkundefs := oldcheckundefs;
           if resultform = chars then setlength(1)
-          else if (resultform = arrays) and resultptr^.stringtype then
-            setlength(resultptr^.arraymembers)
+          else if (resultform = arrays) and resulttype^.stringtype then
+            setlength(resulttype^.arraymembers)
           else
             begin
             finishparams([none, strings], intindex);
@@ -5421,8 +5371,8 @@ varkey := regparamkey;
         end {eofeoln} ;
 
 
-      procedure firstypeparam(varok: boolean; {true allows type name or var}
-                              var restype: index {type found} );
+      procedure firsttypeparam(varok: boolean; {true allows type name or var}
+                              var restype: formptr {type found} );
 
 { Parse a type parameter for the functions "size" and "loophole".
 }
@@ -5434,7 +5384,7 @@ varkey := regparamkey;
           oldcheck: boolean; {and the unassigned value check}
 
 
-        begin {firstypeparam}
+        begin {firsttypeparam}
           verifytoken(lpar, nolparerr);
           restype := noneindex;
           if token = ident then
@@ -5470,7 +5420,7 @@ varkey := regparamkey;
               end;
             end
           else verifytoken(ident, notypenameerr);
-        end {firstypeparam} ;
+        end {firsttypeparam} ;
 
 
       procedure sizefunction;
@@ -5481,15 +5431,13 @@ varkey := regparamkey;
 }
 
         var
-          thistype: index;
-          f: entryptr; {access to thistype}
+          thistype: formptr;
 
 
         begin {sizefunction}
-          firstypeparam(true, thistype);
+          firsttypeparam(true, thistype);
           parsetagparams(thistype);
-          f := @(bigtable[thistype]);
-          pushint(sizeof(f, procid = bitsizeid));
+          pushint(sizeof(thistype, procid = bitsizeid));
           with oprndstk[sp] do
             begin
             extended := cvalue.intvalue < 0;
@@ -5507,36 +5455,33 @@ varkey := regparamkey;
 }
 
         var
-          thistype: index; {index to the resulting type}
-          f: entryptr; {and pointer to same}
+          thistype: formptr; {index to the resulting type}
           setflag: boolean; {set true if upper/lower of a set}
 
 
         begin {lowerupperfunction}
           setflag := false;
-          firstypeparam(true, thistype);
-          f := @(bigtable[thistype]);
-          if f^.typ in [sets, arrays] then
+          firsttypeparam(true, thistype);
+          if thistype^.typ in [sets, arrays] then
             begin {royal kludge per customer request}
-            if f^.typ = arrays then thistype := f^.indextype
+            if thistype^.typ = arrays then thistype := thistype^.indextype
             else
               begin
               setflag := true;
-              thistype := f^.basetype;
+              thistype := thistype^.basetype;
               end;
-            f := @(bigtable[thistype]);
             end;
-          if not (f^.typ in [none, bools, scalars, ints, subranges, chars]) then
+          if not (thistype^.typ in [none, bools, scalars, ints, subranges, chars]) then
             warnbefore(badfunctionarg);
           if procid = lowerid then
-            if setflag then pushint(max(0, lower(f)))
-            else pushint(lower(f))
-          else if setflag then pushint(min(maxsetord, upper(f)))
-          else pushint(upper(f));
+            if setflag then pushint(max(0, lower(thistype)))
+            else pushint(lower(thistype))
+          else if setflag then pushint(min(maxsetord, upper(thistype)))
+          else pushint(upper(thistype));
           with oprndstk[sp] do
             begin
             typeindex := thistype;
-            oprndlen := min(targetintsize, sizeof(f, false));
+            oprndlen := min(targetintsize, sizeof(thistype, false));
             setconstrange(cvalue.intvalue, false, value_range);
             end;
           newresulttype(thistype);
@@ -5551,19 +5496,17 @@ varkey := regparamkey;
 }
 
         var
-          newtype: index;
-          newptr: entryptr;
+          newtype: formptr;
           newform: types;
           newsize: addressrange;
           newunsigned: boolean;
 
 
         begin {loopholefunction}
-          firstypeparam(false, newtype);
-          newptr := @(bigtable[newtype]);
-          newsize := sizeof(newptr, false);
-          newform := getform(newptr);
-          newunsigned := unsigned(newptr, newsize, false);
+          firsttypeparam(false, newtype);
+          newsize := sizeof(newtype, false);
+          newform := getform(newtype);
+          newunsigned := unsigned(newtype, newsize, false);
           verifytoken(comma, nocommaerr);
           expression(follow + [comma, rpar, colon], false);
           genoprnd;
@@ -5572,7 +5515,7 @@ varkey := regparamkey;
           oprndstk[sp].cost := 0;
           if not ((newform in [none, ints, bools, chars, scalars, ptrs]) and
              (resultform in [none, ints, bools, chars, scalars, ptrs]) or
-             (newsize = sizeof(resultptr, false))) then
+             (newsize = sizeof(resulttype, false))) then
             warnbefore(typesincomp);
           finishparams([resultform], newtype);
           setvarrange(newsize, false, false);
@@ -5618,15 +5561,14 @@ varkey := regparamkey;
           with varptr^ do
             begin
             dbgsymbol := 0;
-            form := false;
             namekind := typename;
             typeindex := resulttype;
             refdefined := true;
             charindex := 0;
             charlen := 0;
             end;
-          enterform(ptrs, resulttype, resultptr);
-          with resultptr^ do
+          enterform(ptrs, resulttype);
+          with resulttype^ do
             begin
             ptrtypename := tabletop - 1;
             ptrkey := lastfilekey;
@@ -5653,7 +5595,7 @@ varkey := regparamkey;
           verifytoken(lpar, nolparerr);
           expression(follow + [colon, rpar], false);
           if resultform = chars then genunary(chrstrop, chars)
-          else if (resultform = arrays) and resultptr^.stringtype then
+          else if (resultform = arrays) and resulttype^.stringtype then
             genunary(arraystrop, arrays)
           else if not (resultform in [strings, none]) then
             warnbefore(nostringerr);
@@ -5690,7 +5632,7 @@ varkey := regparamkey;
           verifytoken(lpar, nolparerr);
           expression(follow + [comma, colon, rpar], false);
           if resultform = chars then genunary(chrstrop, chars)
-          else if (resultform = arrays) and resultptr^.stringtype then
+          else if (resultform = arrays) and resulttype^.stringtype then
             genunary(arraystrop, arrays)
           else if not (resultform in [strings, none]) then
             warnbefore(nostringerr);
@@ -5771,7 +5713,7 @@ varkey := regparamkey;
 
         if resultform = chars then
           genunary(chrstrop, strings)
-        else if (resultform = arrays) and resultptr^.stringtype then
+        else if (resultform = arrays) and resulttype^.stringtype then
           genunary(arraystrop, strings);
 
         finishparams([none, strings], charptrindex);
@@ -6024,8 +5966,7 @@ varkey := regparamkey;
             basetype := resulttype;
             end;
           if basetype = intindex then basetype := subrangeindex;
-          baseptr := @(bigtable[basetype]);
-          if not (getform(baseptr) in
+          if not (getform(basetype) in
              [ints, chars, bools, scalars, subranges, none]) then
             warnbefore(badsetbase)
           else gencheck(rangechkop, basetype);
@@ -6047,9 +5988,8 @@ varkey := regparamkey;
               dumpstr(thistoken.len + 1, curstringbuf, true);
               end;
             pushconstant(follow);
-            resultptr := @(bigtable[resulttype]);
-            resultptr^.align := 0;
-            resultptr^.disposable := true;
+            resulttype^.align := 0;
+            resulttype^.disposable := true;
             end;
           intconst, charconst, realconst, dblrealconst, nilsym:
             pushconstant(follow);
@@ -6072,7 +6012,7 @@ varkey := regparamkey;
                       else if token = dot then warnnonstandard(recordexpected);
                       constpart := 0;
                       unpacking := false;
-                      constantlen := sizeof(resultptr, false);
+                      constantlen := sizeof(resulttype, false);
                       dumpconst(constantlen, false);
                       genoprnd;
                       sp := sp + 1;
@@ -6082,12 +6022,12 @@ varkey := regparamkey;
                       selector(true, false, true, false, unpacking, constpart,
                                constantlen, off, varkey, varlev, ownvar);
                       lastindex(unpacking, constpart, constantlen);
-                      if unsigned(resultptr, constantlen, unpacking) then
+                      if unsigned(resulttype, constantlen, unpacking) then
                         genop(unsvarop)
                       else genop(varop);
                       with oprndstk[sp].value_range do
                         begin
-                        settyperange(resultptr, optimistic);
+                        settyperange(resulttype, optimistic);
                         pessimistic := optimistic;
                         end;
                       genint(constantlen);
@@ -6095,7 +6035,7 @@ varkey := regparamkey;
                       genint(lastfilekey);
                       genint(0);
                       lastfilekey := lastfilekey - 1;
-                      oprndstk[sp].oprndlen := sizeof(resultptr, false);
+                      oprndstk[sp].oprndlen := sizeof(resulttype, false);
                       end;
                     end;
                   varname, fieldname, param, constparam, varparam, confparam, varconfparam,
@@ -6131,8 +6071,8 @@ varkey := regparamkey;
           lbrack:
             begin
             gettoken;
-            enterform(sets, settype, setptr);
-            setentry := setptr^;
+            enterform(sets, settype);
+            setentry := settype^;
             setisconst := true;
             bumpsp;
             with oprndstk[sp] do
@@ -6167,18 +6107,16 @@ varkey := regparamkey;
                 if token <> rbrack then verifytoken(comma, nocommaerr);
                 genoprnd;
                 end;
-              baseptr := @(bigtable[basetype]);
-              if getform(baseptr) in
+              if getform(basetype) in
                  [ints, chars, bools, scalars, subranges] then
                 begin
-                size := ((upper(baseptr) + bitsperunit) div bitsperunit);
+                size := ((upper(basetype) + bitsperunit) div bitsperunit);
                 if not packedflag then
                   size := forcealign(size, setalign(size), false);
                 end;
               oprndstk[sp].oprndlen := size;
               end;
-            setptr := @(bigtable[settype]);
-            setptr^ := setentry;
+            settype^ := setentry;
             newresulttype(settype);
             verifytoken(rbrack, norbrackerr);
             genunary(bldset, sets);
@@ -6225,8 +6163,7 @@ varkey := regparamkey;
 }
 
     var
-      lefttype: index; {type of the left operand}
-      leftptr: entryptr; {pointer to left node, for the 'in' operator}
+      lefttype: formptr; {type of the left operand}
       op: tokentype; { relational operator (if any) }
       opseen: boolean; {set if there is actually an operator}
       exprstdstring: boolean; {set if operands are 'standard' strings}
@@ -6261,7 +6198,7 @@ varkey := regparamkey;
         op: tokentype; {operator (if found)}
         specialdiv: boolean; {may need to correct remainder for mod}
         gendone: boolean; { true if gen op already emitted }
-        f: entryptr; {used to get lower bound for div/mod}
+        f: formptr; {used to get lower bound for div/mod}
 
 
       begin {term}
@@ -6314,10 +6251,10 @@ varkey := regparamkey;
                             specialdiv := false
                           else
                             begin
-                            f := @(bigtable[oprndstk[sp - 1].typeindex]);
+                            f := oprndstk[sp - 1].typeindex;
                             if (lower(f) >= 0) or oprndstk[sp - 1].extended then
                               begin
-                              f := @(bigtable[oprndstk[sp].typeindex]);
+                              f := oprndstk[sp].typeindex;
                               if (lower(f) >= 0) or oprndstk[sp].extended then
                                 specialdiv := false;
                               end;
@@ -6343,10 +6280,10 @@ varkey := regparamkey;
                             specialdiv := false
                           else
                             begin
-                            f := @(bigtable[oprndstk[sp - 1].typeindex]);
+                            f := oprndstk[sp - 1].typeindex;
                             if (lower(f) >= 0) or oprndstk[sp - 1].extended then
                               begin
-                              f := @(bigtable[oprndstk[sp].typeindex]);
+                              f := oprndstk[sp].typeindex;
                               if (lower(f) >= 0) or oprndstk[sp].extended then
                                 specialdiv := false;
                               end;
@@ -6448,11 +6385,9 @@ varkey := regparamkey;
         simpleexpression;
         if op = insym then
           begin
-          leftptr := @(bigtable[lefttype]);
           if (resultform <> sets) or
-             not (leftptr^.typ in
-             [none, ints, chars, scalars, bools, subranges]) or not compatible(lefttype,
-                                                         resultptr^.basetype)
+             not (lefttype^.typ in [none, ints, chars, scalars, bools, subranges]) or
+             not compatible(lefttype, resulttype^.basetype)
              then
             warnbefore(badinoprnds);
           end
@@ -6461,7 +6396,7 @@ varkey := regparamkey;
           computeresult(false);
           if resultform = arrays then
             begin
-            if not resultptr^.stringtype then warnbefore(badreloprnds);
+            if not resulttype^.stringtype then warnbefore(badreloprnds);
             end
           else
             begin
@@ -6500,7 +6435,7 @@ varkey := regparamkey;
           }
           if operandkind <> constoperand then
             begin
-            settyperange(resultptr, optimistic);
+            settyperange(resulttype, optimistic);
             pessimistic := optimistic;
             end;
           end;
@@ -6553,7 +6488,7 @@ varkey := regparamkey;
           end
         else
           begin
-          stringlen := resultptr^.arraymembers;
+          stringlen := resulttype^.arraymembers;
           if constcheck(sp) then dumpconst(stringlen, false);
           genstdparamaddr(ptrs, regparams);
           genpushdefaultint(stringlen, regparams);
@@ -6615,7 +6550,7 @@ varkey := regparamkey;
           else
             begin
             expression(follow + [comma, rpar, intconst..stringconst], false);
-            if (resultform = arrays) and resultptr^.stringtype or
+            if (resultform = arrays) and resulttype^.stringtype or
                (resultform = strings) then
               pushstringparam(resultform = strings, regparams)
             else if (resultform <> none) then warnbefore(nostringerr);
@@ -6685,7 +6620,7 @@ varkey := regparamkey;
       var
         n: index; {name entry, from search}
         p: entryptr; {used to get currentrecord from name table}
-        currentrecord: index; {current part of record spec}
+        currentrecord: formptr; {current part of record spec}
         currentptr: entryptr; {used to access currentrecord}
         f: entryptr; {used for general form access}
         tagtype: index; { tagfield type }
@@ -6715,26 +6650,24 @@ varkey := regparamkey;
         else warnbetween(novarerr);
         if procid = disposeid then proctable[blockref].invalidateptrchks := true;
         currentrecord := noneindex;
-        with resultptr^ do
+        with resulttype^ do
           if typ = ptrs then
             begin
             p := @(bigtable[ptrtypename]);
             currentrecord := p^.typeindex;
             if p^.namekind = undeftypename then
               p^.lastoccurrence := display[level].scopeid;
-              currentptr := @(bigtable[currentrecord]);
-            containedfile := currentptr^.containsfile;
+            containedfile := currentrecord^.containsfile;
             end;
         parsetagparams(currentrecord);
-        currentptr := @(bigtable[currentrecord]);
-        pushint(sizeof(currentptr, false));
+        pushint(sizeof(currentrecord, false));
         oprndstk[sp].oprndlen := defaultptrsize;
         genstdparamvalue(ints, regparams);
         parseextraargs;
         if not callnew and containedfile then genunary(closerangeop, none);
       end {newdispose} ;
 
-    procedure filehack(filetype: index;
+    procedure filehack(filetype: formptr;
                        reading: boolean);
 
 { Generate intcode to access one file element.  The vast number of indirect
@@ -6742,9 +6675,6 @@ varkey := regparamkey;
   on the stack when it was processed for the forthcoming "get/put" operation.
   Thus, we have mem[sp]->filevar->buffptr->data, three indirects in all.
 }
-
-      var
-        f: entryptr; {for access to filetype}
 
 
       begin {filehack}
@@ -6755,16 +6685,15 @@ varkey := regparamkey;
         genunary(indrop, files);
         genop(newvarop);
         bumpsp;
-        f := @(bigtable[filetype]);
-        newresulttype(f^.filebasetype);
+        newresulttype(filetype^.filebasetype);
         with oprndstk[sp] do
           begin
           typeindex := resulttype;
-          oprndlen := sizeof(resultptr, false);
+          oprndlen := sizeof(resulttype, false);
           genint(oprndlen);
           operandkind := exproperand;
           cost := 0;
-          extended := resultptr^.extendedrange;
+          extended := resulttype^.extendedrange;
           end;
         genint(0);
         genint(0);
@@ -6826,7 +6755,7 @@ varkey := regparamkey;
           readform: types; {type of parameter}
           readfile: boolean; {true if read(filevar, ...) form}
           restoresp: - 1..oprnddepth; {for restoring operand sp after each read}
-          filetype: index;
+          filetype: formptr;
           readfiledeclared: boolean; {set true if file was declared in program
                                       header}
 
@@ -6847,14 +6776,14 @@ varkey := regparamkey;
               if readform in [ints, reals, doubles, chars] then
                 begin
                 if readform = ints then resultlen := defaulttargetintsize
-                else resultlen := sizeof(resultptr, false);
+                else resultlen := sizeof(resulttype, false);
                 gencopystack(resultlen, readregparams, true);
                 end
               else if readfile then
                 gencopystack(0, readregparams, (token <> rpar) or not readflag);
               if not (readform in [none, ints, reals, doubles, chars]) then
                 begin
-                if ((readform <> arrays) or not resultptr^.stringtype) and
+                if ((readform <> arrays) or not resulttype^.stringtype) and
                    (readform <> strings) or (switchcounters[standard] > 0) then
                   warnbefore(badreadtype)
                 else pushstringparam(false, readregparams);
@@ -6879,8 +6808,7 @@ varkey := regparamkey;
               readform := resultform;
               if filetype <> textindex then
                 begin
-                f := @(bigtable[filetype]);
-                if not compatible(resulttype, f^.filebasetype) then
+                if not compatible(resulttype, filetype^.filebasetype) then
                   warnbefore(typesincomp);
                 genop(switchstack);
                 genbinary(moveop, readform);
@@ -6963,8 +6891,7 @@ varkey := regparamkey;
 
       var
         writeflag: boolean; {true if write instead of writeln}
-        filetype: index;
-        f: entryptr; {for access to filetype}
+        filetype: formptr;
 
 
       procedure writeparams;
@@ -7006,7 +6933,7 @@ varkey := regparamkey;
             if filetype = textindex then
               begin
               {set stringflag before upcoming genunary modifies resulttype}
-              if writeform = arrays then stringflag := resultptr^.stringtype
+              if writeform = arrays then stringflag := resulttype^.stringtype
               else stringflag := writeform = strings;
 
               if writefile or
@@ -7040,12 +6967,9 @@ varkey := regparamkey;
               end
             else
               begin
-              f := @(bigtable[filetype]);
-              basetype := f^.filebasetype;
-              f := @(bigtable[basetype]);
-              if ((getform(f) = ints) and ((writeform = reals) or
+              if ((getform(filetype^.basetype) = ints) and ((writeform = reals) or
                  (writeform = doubles))) or
-                 not compatible(basetype, resulttype) then
+                 not compatible(filetype^.basetype, resulttype) then
                 warnbefore(typesincomp);
               genbinary(moveop, resultform);
               writeform := files;
@@ -7415,7 +7339,7 @@ varkey := regparamkey;
 
     var
       varptr: entryptr; {Provides access to LHS variable}
-      lefttype: index; {LHS type}
+      lefttype: formptr; {LHS type}
       leftform: types; {for compatibility checking}
       leftstdstring: boolean; {for char-to-std-string conversion}
 
@@ -7424,7 +7348,7 @@ varkey := regparamkey;
       variable(true, true, false, true, true, varindex);
       lefttype := resulttype;
       leftform := resultform;
-      leftstdstring := (resultform = arrays) and resultptr^.stringtype;
+      leftstdstring := (resultform = arrays) and resulttype^.stringtype;
       if token = eql then
         begin
         warn(nobecomeserr);
@@ -7432,7 +7356,7 @@ varkey := regparamkey;
         end
       else verifytoken(becomes, nobecomeserr);
       expression(follow, false);
-      if resultptr^.containsfile then warnbefore(dontassignfile)
+      if resulttype^.containsfile then warnbefore(dontassignfile)
       else if (leftform = reals) and (resultform = ints) then
         genunary(float, ints)
       else if (leftform = ints) and (resultform = reals) then
@@ -7452,7 +7376,7 @@ varkey := regparamkey;
       else if (leftform = strings) and (resultform = chars) then
         genunary(chrstrop, strings)
       else if (leftform = strings) and (resultform = arrays) and
-              resultptr^.stringtype then
+              resulttype^.stringtype then
         genunary(arraystrop, strings)
       else
         begin
@@ -7589,7 +7513,7 @@ varkey := regparamkey;
       oldcheck: boolean; {old value of checkundef}
       latestlabel: caselabptr; {start of case label list}
       p1: caselabptr; {used when deleting case label list}
-      casetype: index; {type of case expression}
+      casetype: formptr; {type of case expression}
 
 
     procedure caselabel;
@@ -7812,8 +7736,7 @@ varkey := regparamkey;
       t: forstackindex; {used for searching for stack}
       forvar: index; {index of controlled var}
       forvarptr: entryptr; {provides access to cont. var entry}
-      fortype: index; {type of for var}
-      fortypeptr: entryptr; {for access to fortype data}
+      fortype: formptr; {type of for var}
       initconst, initout: boolean; {initial value constant, out of range}
       initlcheck, inithcheck: boolean; {set if low or high needs checking}
       initcol: columnindex; {column of initial expression}
@@ -7853,7 +7776,6 @@ varkey := regparamkey;
           with forvarptr^ do
             if namekind in [varname, param, constparam, varparam] then
               begin
-              fortypeptr := @(bigtable[vartype]);
               if namekind = constparam then
                 warn(constparamassign)
               else
@@ -7868,16 +7790,16 @@ varkey := regparamkey;
                   warn(unsupportedforvardecl);
                 end;
 
-              if not (fortypeptr^.typ in
+              if not (fortype^.typ in
                  [none, ints, chars, scalars, bools, subranges]) then
                 warn(badfortype)
               else
                 begin
                 fortype := vartype;
-                lowerbound := lower(fortypeptr);
-                upperbound := upper(fortypeptr);
-                extendedfor := fortypeptr^.extendedrange;
-                unsignedfor := unsigned(fortypeptr, length, false);
+                lowerbound := lower(fortype);
+                upperbound := upper(fortype);
+                extendedfor := fortype^.extendedrange;
+                unsignedfor := unsigned(fortype, length, false);
                 end;
               if (namekind <> varname) or (lev <> level) then warn(badforvar)
               else if nestedmod then warnnonstandard(badfornestref);
@@ -8000,8 +7922,7 @@ varkey := regparamkey;
         begin
         containedgoto := false; {hopefully remains false!}
         forindex := forvar;
-        fortypeptr := @(bigtable[fortype]);
-        settyperange(fortypeptr, forrange);
+        settyperange(fortype, forrange);
         if upflag then
           begin
           if finalrange.maxlimit >= initrange.minlimit then
@@ -8100,9 +8021,9 @@ varkey := regparamkey;
               with display[displaytop] do
                 begin
                 scopeid := display[displaytop - 1].scopeid;
-                blockid := resultptr^.fieldid;
+                blockid := resulttype^.fieldid;
                 blockkind := withblock;
-                withpacking := resultptr^.packedflag;
+                withpacking := resulttype^.packedflag;
                 withoffset := off;
                 withlevel := l;
                 end;
@@ -8286,13 +8207,13 @@ procedure body;
     begin {functionreturn}
       procptr := @(bigtable[display[level].blockname]);
       if procptr^.allocated {and (procptr^.varalloc = normalalloc)} and
-         (paramalloc(procptr, resultptr) <> normalalloc) then
+         (paramalloc(procptr, resulttype) <> normalalloc) then
         begin
         newexprstmt(simple);
         newresulttype(procptr^.vartype);
 
         off := procptr^.offset;
-        len := sizeof(resultptr, false);
+        len := sizeof(resulttype, false);
 
         if procptr^.varalloc <> normalalloc then
           begin
@@ -8319,18 +8240,18 @@ procedure body;
           ptrregparam: genunary(ptrregparamop, none);
           realregparam: genunary(realregparamop, none);
           end; 
-        if unsigned(resultptr, len, false) then genop(unsvarop)
+        if unsigned(resulttype, len, false) then genop(unsvarop)
         else genop(varop);
         genint(len);
         genint(level);
         genint(off);
         genint(0);
         oprndstk[sp].oprndlen := len;
-        oprndstk[sp].extended := resultptr^.extendedrange;
+        oprndstk[sp].extended := resulttype^.extendedrange;
         oprndstk[sp].operandkind := varoperand;
         genoprnd;
         genlit(procptr^.regid);
-        case paramalloc(procptr, resultptr)  of
+        case paramalloc(procptr, resulttype)  of
           regparam: genop(regreturnop);
           ptrregparam: genop(ptrregreturnop);
           realregparam: genop(realregreturnop);

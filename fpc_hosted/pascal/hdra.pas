@@ -220,8 +220,8 @@ type
            savedparamsize: addressrange; {size of parameters} 
            procref: proctableindex; {index into global proc data for
                                      routine}
-           sparelink: index; {for boundid, array for which it's a bound;
-                              for use/shared vars index into vartable;
+           boundarray: formptr; {array which is bound to a boundid}
+           sparelink: index; {for use/shared vars index into vartable;
                               for fields used to pass info to debugger} );
         standardproc, standardfunc, directivename:
           (procid: standardids {which standard procedure} );
@@ -365,8 +365,9 @@ var
 
   {the following are entries for standard types}
   intindex, shortintindex, longintindex, realindex, doubleindex, chartypeindex,
-    boolindex, noneindex, nilindex, textindex, inputindex, outputindex,
-    subrangeindex, charptrindex, chartypenameindex: formptr;
+  boolindex, noneindex, nilindex, textindex, subrangeindex, charptrindex: formptr;
+
+  chartypenameindex, inputindex, outputindex: index; 
 
   nullboundindex: index; {undefined boundid}
 
@@ -427,8 +428,7 @@ var
 
   varindex: index; {index of latest variable parsed}
   varptr: entryptr; {pointer to name entry for varindex}
-  resulttype: index; {type of current operation being parsed}
-  resultptr: entryptr; {pointer to type block of resulttype}
+  resulttype: formptr; {type of current operation being parsed}
   resultform: types; {form for resulttype}
   result_range: operand_range; {range for current operation}
 

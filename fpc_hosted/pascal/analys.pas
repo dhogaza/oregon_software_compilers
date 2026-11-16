@@ -146,7 +146,7 @@ procedure exitblock(level: levelindex {level of block being exited} );
             begin
             p := @(bigtable[i]);
             { tell travrs about any var that may be assigned to a register }
-            if not p^.form and (p^.namekind = varname) and p^.allocated and
+            if (p^.namekind = varname) and p^.allocated and
                regok and p^.registercandidate then
                  possibletemp(p);
             end;
@@ -229,17 +229,7 @@ procedure listundefprocs;
       begin
       p := @(bigtable[undeftable[i].tableref]);
       with p^, undeftable[i] do
-        if form then
-          begin
-          { the only way a "form" entry gets put in this table is
-            when generating tables for the debugger, and we need to
-            update the type a pointer points to, after that type is
-            known.  The "dbgsymbol" testing code is just bulletproofing. }
-          if newdebugger then {get rid of "create_" call if not}
-            begin
-            end
-          end
-        else if namekind in [forwardproc, forwardfunc] then
+        if namekind in [forwardproc, forwardfunc] then
           warnat(fwdundef, line, column)
         else if namekind = undefname then warnat(nameundef, line, column);
       end;
@@ -499,7 +489,6 @@ procedure enterident(id: integer; {scope id for entry}
         display[displaytop].highestkey := key;
       p := @(bigtable[tabletop]);
       p^.dbgsymbol := 0;
-      p^.form := false;
       p^.nextname := keymap[key];
       p^.name := id;
       p^.namekind := noname;
@@ -657,7 +646,7 @@ begin {create_type}
 end   {create_type} ;
 
 procedure gettyp(follow: tokenset; {legal following symbols}
-                 var resulttype: index {resulting type desc} );
+                 var resulttype: formptr {resulting type desc} );
   forward;
 
 { Parses a type. See procedure definition for comments.
@@ -855,7 +844,7 @@ procedure onevar(id: integer; {Scope in which to enter ident}
   end {onevar} ;
 
 procedure alloconeparam(t: index; { name entry for variable }
-                        f: index; { variable type }
+                        f: formptr; { variable type }
                         paramkind: nametype; {type of this param}
                         var paramsize: addressrange; {size of params}
                         var blocksize: addressrange; {if reg params are supported}
@@ -896,7 +885,7 @@ procedure alloconeparam(t: index; { name entry for variable }
 
 
 procedure alloconevar(t: index; { name entry for variable }
-                      f: index; { variable type }
+                      f: formptr; { variable type }
                       varkind: nametype; {type of this variable}
                       var size: addressrange; {size of dataspace}
                       a: alignmentrange; {alignment requirement}
@@ -1035,8 +1024,7 @@ procedure variablelist(follow: tokenset; { legal following symbols }
     last: index; {last ident in a list}
     t: index; {induction var for allocation}
     p: entryptr; {used in name access}
-    f: index; {type of a variable list}
-    tptr, fptr: entryptr; {for access to the pointer}
+    f: formptr; {type of a variable list}
     a: alignmentrange; {alignment for one varlist}
     typelen: addressrange; {length of one varlist element}
     varcount: integer; {number of variables in list}
@@ -1069,31 +1057,25 @@ procedure variablelist(follow: tokenset; { legal following symbols }
       while token in [ident, comma] do
         begin
         verifytoken(comma, nocommaerr);
-        f := last;
+        t := last;
         onevar(id, varkind, last, sharedvar);
         varcount := varcount + 1;
-        if last - 1 <> f then
-          begin
-          fptr := @(bigtable[f]);
-          fptr^.nextparamlink := last - 1;
-          end;
+        if last - 1 <> t then
+          bigtable[t].nextparamlink := last - 1;
         end;
 
       f := noneindex;
       verifytoken(colon, nocolonerr);
       gettyp(follow + startset, f);
 
-      fptr := @(bigtable[f]);
-      if notrecord and fptr^.containsfile then
+      if notrecord and f^.containsfile then
         proctable[display[level].blockref].opensfile := true;
 
       t := first;
       repeat
-        getallocdata(fptr, varkind, packedresult, size, typelen, a, align);
+        getallocdata(f, varkind, packedresult, size, typelen, a, align);
         alloconevar(t, f, varkind, size, a, typelen, packedresult);
-        tptr := @(bigtable[t]);
-        t := tptr^.nextparamlink + 1;
-        fptr := @(bigtable[f]);
+        t := bigtable[t].nextparamlink + 1;
         varcount := varcount - 1;
       until varcount = 0;
 
@@ -1108,7 +1090,7 @@ procedure variablelist(follow: tokenset; { legal following symbols }
 
 
 procedure gettyp(follow: tokenset; {legal following symbols}
-                 var resulttype: index {resulting type desc} );
+                 var resulttype: formptr {resulting type desc} );
 
 { Syntactic routine to parse a type.
 
@@ -1124,7 +1106,6 @@ procedure gettyp(follow: tokenset; {legal following symbols}
 
   var
     packflag: boolean; {set if "packed" found}
-    resulp: entryptr; {pointer for access to resulttype}
 
 
   procedure simpletyp;
@@ -1145,7 +1126,6 @@ procedure gettyp(follow: tokenset; {legal following symbols}
       extended: boolean; {range doesn't fit in host integer}
       t: index; {type identifier index}
       p: entryptr; {used for name access}
-      f: entryptr; {used for access to form data}
       latestord: integer; {ord of last scalar parsed in enumerated type}
       subrange: boolean; {true if subrange being parsed}
 
@@ -1188,7 +1168,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
       if token = lpar then
         begin {enumeration type, parse constants}
         gettoken;
-        enterform(scalars, resulttype, resulp);
+        enterform(scalars, resulttype);
         latestord := 0;
         onescalar;
         while token in [comma, ident] do
@@ -1198,8 +1178,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           onescalar;
           end;
 
-        resulp := @(bigtable[resulttype]);
-        with resulp^ do
+        with resulttype^ do
           begin
           lastord := latestord;
           size := simplesize(lastord);
@@ -1235,11 +1214,11 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           verifytoken(dotdot, nodotdoterr);
           constant(follow, true, uppervalue);
           extended := uppervalue.extended;
-          f := @(bigtable[lowervalue.typeindex]);
           if (lowervalue.typeindex <> noneindex) and
              (uppervalue.typeindex <> noneindex) and
              ((lowervalue.typeindex <> uppervalue.typeindex) or
-             not (f^.typ in [ints, chars, bools, scalars]) or (extended and
+             not (lowervalue.typeindex^.typ in [ints, chars, bools, scalars]) or
+             (extended and
              ((switchcounters[standard] > 0) or lowervalue.cvalue.negated or
              ((lowervalue.cvalue.intvalue < 0) and
              (lowervalue.cvalue.intvalue > uppervalue.cvalue.intvalue)))) or
@@ -1250,12 +1229,12 @@ procedure gettyp(follow: tokenset; {legal following symbols}
             warnbefore(badsubrange)
           else
             begin
-            enterform(subranges, resulttype, resulp);
-            with resulp^ do
+            enterform(subranges, resulttype);
+            with resulttype^ do
               begin
               lowerord := lowervalue.cvalue.intvalue;
               upperord := uppervalue.cvalue.intvalue;
-              parentform := f^.typ;
+              parentform := lowervalue.typeindex^.typ;
 
 { The next section is parameterized to set the allocation size for
   variables, depending on the target machine.
@@ -1276,8 +1255,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                   if size = defaulttargetintsize - 1 then
                     size := defaulttargetintsize;
                   parenttype := lowervalue.typeindex;
-                  p := @(bigtable[parenttype]);
-                  if (switchcounters[pdp11data] > 0) and (p^.size > 1) then
+                  if (switchcounters[pdp11data] > 0) and (parenttype^.size > 1) then
                     align := pdpalign
                   else align := min(intalign, size);
                   if switchcounters[pdp11data] > 0 then
@@ -1289,8 +1267,8 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                       operations at the expense of greater storage
                       requirements for unpacked subrange variables.
                      }
-                    size := p^.size;
-                    align := p^.align;
+                    size := parenttype^.size;
+                    align := parenttype^.align;
                     end;
                   end {vax} ;
                 mc68000, pdp11:
@@ -1307,13 +1285,12 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                     else size := simplesize(upperord);
                   align := size;
                   parenttype := lowervalue.typeindex;
-                  p := @(bigtable[parenttype]);
                   { the strategy here is to allocate 2 bytes if
-                    it is subrange of a parenttype which is going
+                    it is a subrange of a parenttype which is going
                     to be 4 bytes.
                   }
-                  size := min(p^.size, forcealign(size, intalign, false));
-                  align := p^.align;
+                  size := min(parenttype^.size, forcealign(size, intalign, false));
+                  align := parenttype^.align;
                   end {mc68000, pdp11} ;
                 iapx86:
                   begin
@@ -1329,19 +1306,18 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                     else size := simplesize(upperord);
                   align := size;
                   parenttype := lowervalue.typeindex;
-                  p := @(bigtable[parenttype]);
                   { the strategy here is to allocate 1 or 2 bytes if
                     it is subrange of a parenttype which is going
                     to be 4 bytes.
                   }
                   if switchcounters[bytealloc] <= 0 then {default}
                     begin
-                    size := min(p^.size, forcealign(size, intalign, false));
-                    align := p^.align;
+                    size := min(parenttype^.size, forcealign(size, intalign, false));
+                    align := parenttype^.align;
                     end
                   else
                     begin
-                    size := min(p^.size, forcealign(size, unitsize, false));
+                    size := min(parenttype^.size, forcealign(size, unitsize, false));
                     align := unitsize;
                     end;
                   if size = defaulttargetintsize - 1 then
@@ -1361,15 +1337,14 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                     else size := simplesize(upperord);
                   align := size;
                   parenttype := lowervalue.typeindex;
-                  p := @(bigtable[parenttype]);
                   { the strategy here is to allocate 2 bytes if
                     it is subrange of a parenttype which is going
                     to be 4 bytes but to align 2 bytes on 2 byte bounds and
                     others on the parent alignment.
                   }
-                  size := min(p^.size, forcealign(size, intalign, false));
+                  size := min(parenttype^.size, forcealign(size, intalign, false));
                   if size = shortintsize then align := shortintalign
-                  else align := p^.align;
+                  else align := parenttype^.align;
                   end {ns32k } ;
                 i80386:
                   begin
@@ -1390,15 +1365,11 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                     to be 4 bytes but to align 2 bytes on 2 byte bounds and
                     others on the parent alignment.
                   }
-                  if size = shortintsize then
-                    begin
-                    align := shortintalign;
-                    end
+                  if size = shortintsize then align := shortintalign
                   else
                     begin
-                    p := @(bigtable[parenttype]);
-                    size := min(p^.size, forcealign(size, intalign, false));
-                    align := p^.align;
+                    size := min(parenttype^.size, forcealign(size, intalign, false));
+                    align := parenttype^.align;
                     end;
                   end {i80386} ;
                 aarch64:
@@ -1420,15 +1391,11 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                     to be 4 bytes but to align 2 bytes on 2 byte bounds and
                     others on the parent alignment.
                   }
-                  if size = shortintsize then
-                    begin
-                    align := shortintalign;
-                    end
+                  if size = shortintsize then align := shortintalign
                   else
                     begin
-                    p := @(bigtable[parenttype]);
-                    size := min(p^.size, forcealign(size, intalign, false));
-                    align := p^.align;
+                    size := min(parenttype^.size, forcealign(size, intalign, false));
+                    align := parenttype^.align;
                     end;
                   end {aarch64} ;
                 otherwise
@@ -1438,7 +1405,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                   end;
                 end; {case targetmachine of}
               extendedrange := extended;
-              end; {with resulp}
+              end; {with resulttype}
             end;
           end;
         end;
@@ -1469,14 +1436,14 @@ procedure gettyp(follow: tokenset; {legal following symbols}
     var
       t: index; { index for type identifier }
       p: entryptr; {used for name access to t}
-      newtype: index; {points to type of type name if found}
+      newtype: formptr; {points to type of type name if found}
 
 
     begin {ptrtyp}
       if packflag then warn(cantpack);
       gettoken;
-      enterform(ptrs, resulttype, resulp);
-      with resulp^ do
+      enterform(ptrs, resulttype);
+      with resulttype^ do
         begin
         ptrkey := lastfilekey;
         lastfilekey := lastfilekey - 1;
@@ -1508,8 +1475,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
             p^.typeindex := newtype;
             end
           else gettoken;
-          resulp := @(bigtable[resulttype]);
-          resulp^.ptrtypename := t
+          resulttype^.ptrtypename := t
           end
         else warnbetween(novarerr);
         end;
@@ -1533,7 +1499,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
 }
 
 
-    procedure arraywork(var resulttype: index {resulting array type} );
+    procedure arraywork(var resulttype: formptr {resulting array type} );
 
 { Syntactic routine to parse most of an array declaration.  The productions
   used are given above for "arraytyp".  As successive index types are found,
@@ -1544,10 +1510,8 @@ procedure gettyp(follow: tokenset; {legal following symbols}
 
       var
         es: addressrange; {tentative array element size}
-        elttype: index; {type pointer for element}
-        resulp: entryptr; {for access to resulttype}
-        f: entryptr; {used to get access to type records}
-        newindextype: index; {index type}
+        elttype: formptr; {type pointer for element}
+        newindextype: formptr; {index type}
         t: 0..maxusint; {temp for unsigned arithmetic}
         indexmembers: addressrange; {members of the index type}
         isstring: boolean; {set if it is a string}
@@ -1556,24 +1520,19 @@ procedure gettyp(follow: tokenset; {legal following symbols}
       begin {arraywork}
         gettyp(follow + [ofsym, comma, rpar, rbrack] + begsimplset,
                newindextype);
-        f := @(bigtable[newindextype]);
-        if not (f^.typ in [none, chars, bools, scalars, subranges]) then
+        if not (newindextype^.typ in [none, chars, bools, scalars, subranges]) then
           begin
           warnbefore(badindex);
           newindextype := noneindex;
           end;
-        t := upper(f) - lower(f) + 1;
-        if t > maxaddr then
-          begin {we cannot address more then maxaddr elements}
-          warnbefore(toomanyelements);
-          end;
+        t := upper(newindextype) - lower(newindextype) + 1;
+        if t > maxaddr then warnbefore(toomanyelements);
         indexmembers := t;
-        isstring := (lower(f) = 1) and
-                    ((upper(f) > 1) or (switchcounters[standard] <= 0));
-        if isstring then isstring := getform(f) in [ints, none];
+        isstring := (lower(newindextype) = 1) and
+                    ((upper(newindextype) > 1) or (switchcounters[standard] <= 0));
+        if isstring then isstring := getform(newindextype) in [ints, none];
         if token in
-           [comma, ident, nilsym, lpar, plus, minus,
-           intconst..stringconst] then
+           [comma, ident, nilsym, lpar, plus, minus, intconst..stringconst] then
           begin
           verifytoken(comma, nocommaerr);
           arraywork(elttype);
@@ -1589,16 +1548,15 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           verifytoken(ofsym, nooferr);
           gettyp(follow, elttype)
           end;
-        f := @(bigtable[elttype]);
-        if isstring then isstring := f^.typ in [chars, none];
-        enterform(arrays, resulttype, resulp);
-        with resulp^ do
+        if isstring then isstring := elttype^.typ in [chars, none];
+        enterform(arrays, resulttype);
+        with resulttype^ do
           begin
           indextype := newindextype;
           packedflag := packflag;
           elementtype := elttype;
           arraymembers := indexmembers;
-          es := arraysizeof(f, packflag);
+          es := arraysizeof(elttype, packflag);
           if es = 0 then es := 1; {undefined kind}
 
           { determine if array size less than one word }
@@ -1617,7 +1575,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
               size := ((es + bitsperunit - 1) div bitsperunit) * indexmembers
           else
             begin
-            es := arraysizeof(f, bitaddress);
+            es := arraysizeof(elttype, bitaddress);
             if not bitaddress and (es > 1) and
                (maxaddr div es < indexmembers) then
               begin
@@ -1630,8 +1588,8 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           elementsize := es;
           if bitaddress then align := es
           else if packflag and (es <= bitsperunit) then align := unitsize
-          else align := alignmentof(f, false);
-          containsfile := f^.containsfile;
+          else align := alignmentof(elttype, false);
+          containsfile := elttype^.containsfile;
           stringtype := isstring and packflag;
           end;
       end {arraywork} ;
@@ -1661,18 +1619,15 @@ procedure gettyp(follow: tokenset; {legal following symbols}
 }
 
     var
-      newfilebasetype: index; {pointer to type of file}
-      f: entryptr; {access to newfilebasetype}
-
+      newfilebasetype: formptr; {pointer to type of file}
 
     begin {filetyp}
       gettoken;
       verifytoken(ofsym, nooferr);
       gettyp(follow, newfilebasetype);
-      f := @(bigtable[newfilebasetype]);
-      if f^.containsfile then warnbefore(nofilefile);
-      enterform(files, resulttype, resulp);
-      with resulp^ do
+      if newfilebasetype^.containsfile then warnbefore(nofilefile);
+      enterform(files, resulttype);
+      with resulttype^ do
         begin
         filebasetype := newfilebasetype;
         packedflag := packflag;
@@ -1704,25 +1659,22 @@ procedure gettyp(follow: tokenset; {legal following symbols}
 
     var
       m: integer; {number of members of the set}
-      newbasetype: index; {type of set base}
-      f: entryptr; {access to newbasetype}
+      newbasetype: formptr; {type of set base}
 
 
     begin {settyp}
       gettoken;
       verifytoken(ofsym, nooferr);
       gettyp(follow, newbasetype);
-      f := @(bigtable[newbasetype]);
-      if not (f^.typ in [none, scalars, bools, chars, subranges]) then
+      if not (newbasetype^.typ in [none, scalars, bools, chars, subranges]) then
         warnbefore(badsetbase)
-      else if (lower(f) < 0) or (upper(f) > maxsetord) then
+      else if (lower(newbasetype) < 0) or (upper(newbasetype) > maxsetord) then
         warnbefore(bigsetbase);
       stripsubrange(newbasetype);
-      f := @(bigtable[newbasetype]);
-      if f^.typ = ints then m := maxsetord + 1
-      else m := upper(f) + 1;
-      enterform(sets, resulttype, resulp);
-      with resulp^ do
+      if newbasetype^.typ = ints then m := maxsetord + 1
+      else m := upper(newbasetype) + 1;
+      enterform(sets, resulttype);
+      with resulttype^ do
         begin
         constructedset := false;
         basetype := newbasetype;
@@ -1767,10 +1719,10 @@ procedure gettyp(follow: tokenset; {legal following symbols}
 
     procedure fieldlist(follow: tokenset; {legal following symbols}
                         tag: index; {tag field for this field, if any}
-                        tagl: index; {list of label entries, if any}
-                        lastv: index; {last variant parsed}
+                        tagl: formptr; {list of label entries, if any}
+                        lastv: formptr; {last variant parsed}
                         startsize: addressrange; {size at start of list}
-                        var result: index {resulting type});
+                        var result: formptr {resulting type});
 
 { Syntactic routine to parse a fieldlist.
 
@@ -1811,18 +1763,15 @@ procedure gettyp(follow: tokenset; {legal following symbols}
 }
 
       var
-        resulp: entryptr; {access to result}
-        localresult: tableentry; {local copy of "result" to simplify code}
+        localresult: formentry; {local copy of "result" to simplify code}
         a: alignmentrange; {temp value of alignment for tagfield}
-        latestlabel: index; {last variant label parsed}
-        latestvariant: index; {last variant parsed}
+        latestlabel: formptr; {last variant label parsed}
+        latestvariant: formptr; {last variant parsed}
         tagcount: unsignedint; {number of tags defined}
         tagmembers: unsignedint; {number of elements in tag type}
         lowesttag, highesttag: integer; {for checking that all tags defined}
-        casetype: index; {type of tagfield}
-        caseptr: entryptr; {access to casetype}
-        f1: index; {temp for fieldlist within variant}
-        f1ptr: entryptr; {access to f1}
+        casetype: formptr; {type of tagfield}
+        f1: formptr; {temp for fieldlist within variant}
         t: index; {tag field name entry (0 for undiscriminated)}
         p: entryptr; {used for name access}
         oldany: boolean; {old value of anyfile}
@@ -1842,12 +1791,12 @@ procedure gettyp(follow: tokenset; {legal following symbols}
 }
 
         var
-          t: index; {temp ptr of various uses}
-          f: entryptr; {used for access to forms}
+          t: formptr; {temp ptr of various uses}
+          f: formptr; {used for access to forms}
           labelval: operand; {constant label value}
 
 
-        procedure checklabs(header: index {start of a list of labels} );
+        procedure checklabs(header: formptr {start of a list of labels} );
 
 { Check all of the labels on a particular label list to see if there are any
   with the same value as the current label.
@@ -1858,16 +1807,13 @@ procedure gettyp(follow: tokenset; {legal following symbols}
 
 
           begin {checklabs}
-            while (header <> 0) do
-              begin
-              f := @(bigtable[header]);
-              with f^ do
+            while (header <> nil) do
+              with header^ do
                 begin
                 if (labelval.cvalue.intvalue = varlabvalue) then
                   warnbefore(dupcaselabel);
                 header := nextvarlab
                 end;
-              end;
           end {checklabs} ;
 
 
@@ -1881,18 +1827,15 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           checklabs(latestlabel);
 
           t := latestvariant;
-          while (t <> 0) do
-            begin
-            f := @(bigtable[t]);
-            with f^ do
+          while (t <> nil) do
+            with t^ do
               begin
-              t := nextvariant;
               checklabs(firstlabel);
+              t := nextvariant;
               end;
-            end;
 
-          enterform(variantlabs, t, f);
-          with f^ do
+          enterform(variantlabs, t);
+          with t^ do
             begin
             packedflag := packflag;
             bitaddress := packflag;
@@ -1911,8 +1854,8 @@ procedure gettyp(follow: tokenset; {legal following symbols}
       begin {fieldlist}
         oldany := anyfile;
         anyfile := false;
-        enterform(fields, result, resulp);
-        localresult := resulp^;
+        enterform(fields, result);
+        localresult := result^;
         with localresult do
           begin
           packedflag := packflag;
@@ -1921,7 +1864,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           {link onto variant list}
           nextvariant := lastv;
           firstlabel := tagl;
-          firstvariant := 0;
+          firstvariant := nil;
           tagfield := 0;
           typ := fields;
           firstfield := tabletop + 1;
@@ -1956,22 +1899,20 @@ procedure gettyp(follow: tokenset; {legal following symbols}
             gettyp(follow + [ofsym, endsym, ident, colon], casetype);
             if tagfield <> 0 then
               begin {allocate a tag field}
-              caseptr := @(bigtable[casetype]);
-              a := max(a, alignmentof(caseptr, packflag));
+              a := max(a, alignmentof(casetype, packflag));
               alloconevar(tagfield, casetype, fieldname, startsize,
-                          alignmentof(caseptr, packflag), sizeof(caseptr,
+                          alignmentof(casetype, packflag), sizeof(casetype,
                           packflag), packflag);
               end;
 
-            caseptr := @(bigtable[casetype]);
-            lowesttag := lower(caseptr);
-            highesttag := upper(caseptr);
+            lowesttag := lower(casetype);
+            highesttag := upper(casetype);
             stripsubrange(casetype);
-            if not (caseptr^.typ in
+            if not (casetype^.typ in
                [subranges, ints, chars, bools, scalars, none]) then
               warn(badcasetyp);
             verifytoken(ofsym, nooferr);
-            latestvariant := 0;
+            latestvariant := nil;
             tagmembers := highesttag - lowesttag + 1;
             tagcount := 0;
             size := startsize;
@@ -1983,7 +1924,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                  [plus, minus, ident, nilsym, intconst..stringconst, comma,
                  colon, lpar] then
                 begin
-                latestlabel := 0;
+                latestlabel := nil;
                 onelabel;
                 while token in
                       [plus, minus, ident, nilsym, intconst..stringconst,
@@ -1996,12 +1937,11 @@ procedure gettyp(follow: tokenset; {legal following symbols}
                 verifytoken(lpar, nolparerr);
                 fieldlist(follow + [comma, colon, rpar], tagfield,
                           latestlabel, latestvariant, size, f1);
-                f1ptr := @(bigtable[f1]);
-                containsfile := containsfile or f1ptr^.containsfile;
-                f1ptr^.packedflag := packflag;
-                f1ptr^.bitaddress := packflag;
-                if f1ptr^.size > startsize then startsize := f1ptr^.size;
-                a := max(a, alignmentof(f1ptr, packflag));
+                containsfile := containsfile or f1^.containsfile;
+                f1^.packedflag := packflag;
+                f1^.bitaddress := packflag;
+                if f1^.size > startsize then startsize := f1^.size;
+                a := max(a, alignmentof(f1, packflag));
                 latestvariant := f1;
                 verifytoken(rpar, norparerr);
                 end;
@@ -2017,8 +1957,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           align := a;
           end;
         anyfile := oldany;
-        resulp := @(bigtable[result]);
-        resulp^ := localresult;
+        result^ := localresult;
       end {fieldlist} ;
 
 
@@ -2029,7 +1968,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
       lastid := lastid + 1;
       lastscope := lastscope + 1;
       id := lastid;
-      fieldlist(follow + [endsym], 0, 0, 0, 0, resulttype);
+      fieldlist(follow + [endsym], 0, nil, nil, 0, resulttype);
       verifytoken(endsym, noenderr);
     end {recordtyp} ;
 
@@ -2046,8 +1985,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
 
     var
       value: operand; {value returned by constant}
-      t: index; {temp index for entering string type}
-      t1: entryptr; {Temp ptr for entering string type}
+      t: formptr; {temp index for entering string type}
 
 
     begin {stringtyp}
@@ -2067,8 +2005,8 @@ procedure gettyp(follow: tokenset; {legal following symbols}
         end
       else
         begin
-        enterform(subranges, t, t1);
-        with t1^ do
+        enterform(subranges, t);
+        with t^ do
           begin
           size := targetintsize;
           align := intalign;
@@ -2077,8 +2015,8 @@ procedure gettyp(follow: tokenset; {legal following symbols}
           lowerord := 0;
           upperord := value.cvalue.intvalue;
           end;
-        enterform(strings, resulttype, resulp);
-        with resulp^ do
+        enterform(strings, resulttype);
+        with resulttype^ do
           begin
           packedflag := true;
           bitaddress := true;
@@ -2124,8 +2062,7 @@ procedure gettyp(follow: tokenset; {legal following symbols}
       end
     else simpletyp;
     verify1(follow, badtypesyntax);
-    resulp := @(bigtable[resulttype]);
-    anyfile := anyfile or resulp^.containsfile;
+    anyfile := anyfile or resulttype^.containsfile;
   end {gettyp} ;
 
 
@@ -2276,7 +2213,7 @@ procedure typedefinition;
   var
     t: index; { name of type being defined }
     p: entryptr; { used for name access }
-    f: index; {form entry for type being defined}
+    f: formptr; {form entry for type being defined}
     startpos: integer; {position of first var in source file}
     startline: integer; {line number of first var}
 
@@ -2352,14 +2289,14 @@ procedure changeparamids(firstparam: index; {entry of first parameter}
     for i := firstparam to lastparam do
       begin
       p := @(bigtable[i]);
-      if not p^.form and (p^.name <> deadscope) then p^.name := n;
+      if (p^.name <> deadscope) then p^.name := n;
       end;
   end {changeparamids} ;
 
 
 procedure getfunctiontype(functiondefinition: boolean; {in func def}
                           forwardbody: boolean; {body of forward dec}
-                          var returntype: index {func type} );
+                          var returntype: formptr {func type} );
 
 { Syntactic routine to parse a function result type if necessary.
 
@@ -2375,9 +2312,9 @@ procedure getfunctiontype(functiondefinition: boolean; {in func def}
 }
 
   var
-    f: entryptr; {for access to returntype}
     t: index; {for finding type identifier}
     i: levelindex; {for stepping through levels looking for it}
+    f: entryptr; {for accessing type name}
 
   begin {getfunctiontype}
     returntype := noneindex;
@@ -2403,8 +2340,7 @@ procedure getfunctiontype(functiondefinition: boolean; {in func def}
         warn(notypenameerr);
         gettyp(neverskipset + [rpar], returntype);
         end;
-      f := @(bigtable[returntype]);
-      if (not (f^.typ in legalfunctypes)) and
+      if (not (returntype^.typ in legalfunctypes)) and
          (switchcounters[standard] > 0) then
         warn(badfunctype);
       end;
@@ -2469,7 +2405,7 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
       var
         routineindex: index; {entry for the parameter routine}
         p: entryptr; {used for name access}
-        returntype: index; {type if function}
+        returntype: formptr; {type if function}
         intleveldummy: boolean; {actually has double use}
         paramsizedummy, blocksizedummy: addressrange; {dummy param to parameterdefinition}
         regparamsdummy: regparamstype; {dummy to parameterdefinition}
@@ -2509,7 +2445,7 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
 
 
     procedure conformantparam(paramkind: nametype; {kind of parameter}
-                              var result: index {resulting parameter type} );
+                              var result: formptr {resulting parameter type} );
 
 { Parse a conformant array parameter declaration.
   Boundid's are allocated after the parameter.
@@ -2521,10 +2457,9 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
       var
         packflag: boolean; {true if packed conformant array}
         highid, lowid: index; {high and low bound id's}
-        thisindextype: index; {index type for this array}
+        thisindextype: formptr; {index type for this array}
         p: entryptr; {for access to names and forms}
-        resulp: entryptr; {for access to result form}
-        elttype: index; {element type}
+        elttype: formptr; {element type}
         lasttabletop: index; {initial value of tabletop}
 
 
@@ -2573,8 +2508,7 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
         verifytoken(colon, nocolonerr);
         if token <> ident then warn(notypenameerr);
         gettyp(follow + [semicolon, rbrack, ofsym, arraysym], thisindextype);
-        p := @(bigtable[thisindextype]);
-        if not (p^.typ in [none, chars, bools, scalars, subranges, ints]) then
+        if not (thisindextype^.typ in [none, chars, bools, scalars, subranges, ints]) then
           warn(badindex);
 
         if token = rpar then
@@ -2597,8 +2531,8 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
           gettyp(nextparamhdr + [semicolon], elttype);
           end;
 
-        enterform(conformantarrays, result, resulp);
-        with resulp^ do
+        enterform(conformantarrays, result);
+        with result^ do
           begin
           packedflag := packflag;
           size := 0;
@@ -2608,22 +2542,21 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
           indextype := thisindextype;
           elementtype := elttype;
           stringtype := false;
-          p := @(bigtable[elttype]);
-          containsfile := p^.containsfile;
-          elementsize := arraysizeof(p, packflag);
+          containsfile := elttype^.containsfile;
+          elementsize := arraysizeof(elttype, packflag);
 { the following test should follow the wry logic in arraywork }
           if packflag and (elementsize > bitsperunit * packingunit) then
-            elementsize := arraysizeof(p, false) * bitsperunit;
+            elementsize := arraysizeof(elttype, false) * bitsperunit;
           end;
         p := @(bigtable[lowid]);
-        p^.sparelink := result;
+        p^.boundarray := result;
         p := @(bigtable[highid]);
         p^.lastinsection := true;
-        p^.sparelink := 0; {used only by lowid}
+        p^.boundarray := nil; {used only by lowid}
       end {conformantparam} ;
 
 
-    procedure allocboundids(paramtype: index {parameter type} );
+    procedure allocboundids(paramtype: formptr {parameter type} );
 
 { Allocate the boundid's for a conformant parameter.  This is a separate
   action because they must follow the parameter itself in order for the
@@ -2631,9 +2564,8 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
 }
 
       var
-        elttype: index; {elementtype for this conformant array schema}
-        indextype: index; {indextype for this schema}
-        p: entryptr; {for access to paramtype}
+        elttype: formptr; {elementtype for this conformant array schema}
+        indextype: formptr; {indextype for this schema}
         highid, lowid: index; {boundid names}
         indexlen: addressrange; {length of indextype}
         a: alignmentrange; {alignment for this type}
@@ -2642,18 +2574,15 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
       begin {allocboundids}
         align := intalign;
         repeat
-          p := @(bigtable[paramtype]);
-          elttype := p^.elementtype;
-          indextype := p^.indextype;
-          lowid := p^.lowbound;
-          highid := p^.highbound;
-          p := @(bigtable[indextype]);
-          getallocdata(p, boundid, false, paramsize, indexlen, a, align);
+          elttype := paramtype^.elementtype;
+          indextype := paramtype^.indextype;
+          lowid := paramtype^.lowbound;
+          highid := paramtype^.highbound;
+          getallocdata(indextype, boundid, false, paramsize, indexlen, a, align);
           alloconeparam(lowid, indextype, boundid, paramsize, blocksize, regparams, a, indexlen);
           alloconeparam(highid, indextype, boundid, paramsize, blocksize, regparams, a, indexlen);
           paramtype := elttype;
-          p := @(bigtable[paramtype]);
-        until p^.typ <> conformantarrays;
+        until paramtype^.typ <> conformantarrays;
       end {allocboundids} ;
 
 
@@ -2674,8 +2603,9 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
         a: alignmentrange; {alignment if this var}
         align: alignmentrange; {"parameter" alignment}
         first, last: index; {limits of parameters}
-        paramtype: index; {type of these paramters}
-        paramptr, p: entryptr; {used for access to table entries}
+        paramtype: formptr; {type of these paramters}
+        paramname: index; {name of current parameter}
+        paramnameptr, p: entryptr; {used for access to table entries}
         t: index; {induction var}
         typelen: addressrange; {space allocated for the var}
         univflag: boolean; {true if universal parameter}
@@ -2714,9 +2644,9 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
             gettoken;
             univflag := true;
             end;
-          search(paramtype);
-          paramptr := @(bigtable[paramtype]);
-          if paramptr^.namekind <> typename then
+          search(paramname);
+          paramnameptr := @(bigtable[paramname]);
+          if paramnameptr^.namekind <> typename then
             begin
             warn(notypenameerr);
             gettoken;
@@ -2726,14 +2656,12 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
           end
         else warn(notypenameerr);
 
-        paramptr := @(bigtable[paramtype]);
-        if paramptr^.containsfile and (paramkind in [param, confparam, constconfparam]) then
+        if paramtype^.containsfile and (paramkind in [param, confparam, constconfparam]) then
           warn(novaluefile);
 
         for t := first to last do
           begin
-          paramptr := @(bigtable[paramtype]);
-          getallocdata(paramptr, paramkind, false, paramsize, typelen, a,
+          getallocdata(paramtype, paramkind, false, paramsize, typelen, a,
                        align);
           alloconeparam(t, paramtype, paramkind, paramsize, blocksize, regparams, a, typelen);
           if univflag then
@@ -2744,9 +2672,9 @@ procedure parameterdefinition(var paramsize: addressrange; {size of parms}
           end;
         if paramkind in [constconfparam, varconfparam, confparam] then
           allocboundids(paramtype);
-        paramptr := @(bigtable[last]);
-        paramptr^.lastinsection := true;
-        paramptr^.nextparamlink := tabletop;
+        paramnameptr := @(bigtable[last]);
+        paramnameptr^.lastinsection := true;
+        paramnameptr^.nextparamlink := tabletop;
         if token = semicolon then gettoken
         else
           verify(nextparamhdr, follow + begtypset + [comma, colon, semicolon],
@@ -2831,13 +2759,13 @@ procedure procdefinition;
     procptr: entryptr; {provides access to procedure name entry}
     procindex: index; {procedure name entry}
     paramindex: index; {start of parameter entries}
-    returntype: index; {function result type formentry}
+    returntype: formptr; {function result type formentry}
     directive: standardids; {which directive, forward etc}
     directiveindex: index; {and symbol table index thereof}
+    directiveptr: entryptr; {and pointer to it}
     proctemp: proctableindex; {saves procref while block is compiled}
     funcline: integer; {line number where function defined}
     funccol: columnindex; {col where func defined (for not assigned msg)}
-    f: entryptr; {used for access to returntype}
     hasparameters: boolean; {true if there are parameters}
 
 
@@ -2896,7 +2824,6 @@ procedure procdefinition;
       proctable[procref].invalidateptrchks := false;
       proctable[procref].charindex := charindex;
       proctable[procref].charlen := min(maxprocnamelen, charlen);
-      f := @(bigtable[returntype]);
 {
       Reset the calling linkage to Pascal-2.  This is needed
       for non-pascal declared routines for which a body is present.
@@ -2925,20 +2852,20 @@ procedure procdefinition;
       else
         begin
         proctable[procref].realfunction :=
-          ((f^.typ = reals) or (f^.typ = doubles)) and functiondefinition;
+          ((returntype^.typ = reals) or (returntype^.typ = doubles)) and functiondefinition;
         proctable[procref].intlevelrefs := false;
         proctable[procref].level := level + 1;
-        length := f^.size;
+        length := returntype^.size;
         vartype := returntype;
         paramlist := paramindex
         end;
       if token = ident then
         begin
         search(directiveindex);
-        f := @(bigtable[directiveindex]);
-        if f^.namekind = directivename then
+        directiveptr := @(bigtable[directiveindex]);
+        if directiveptr^.namekind = directivename then
           begin
-          directive := f^.procid;
+          directive := directiveptr^.procid;
           if directive = forwardid then
             begin
             if forwardbody then warn(dupforward)
@@ -3045,8 +2972,8 @@ procedure procdefinition;
           changeparamids(procindex + 1, directiveindex, deadscope);
         for directiveindex := procindex + 1 to directiveindex do
           begin
-          f := @(bigtable[directiveindex]);
-          if not f^.form then f^.modified := f^.parammodified;
+          directiveptr := @(bigtable[directiveindex]);
+          directiveptr^.modified := directiveptr^.parammodified;
           end;
         end;
       end;
@@ -3176,8 +3103,7 @@ procedure initanalys;
       end;
 
   var
-    f: index; {used in creating forms}
-    fptr: entryptr; {used to access forms being created}
+    f: formptr; {used in creating forms}
     p: entryptr; {used to access name entries}
     i: integer; {Misc induction vars}
     kludge: kludgerecord; {for reversing bytes of NIL constant}
@@ -3221,7 +3147,7 @@ procedure initanalys;
   procedure enterstandardid(id: standardids; {key for std id}
                             n: nametype; {kind of entry}
                             l: addressrange; {length of the name}
-                            f: index {type if meaningful} );
+                            f: formptr {type if meaningful} );
 
 { Make a name table entry for a standard identifier.  "id" specifies the
   standard id, and the other vars give necessary data
@@ -3253,7 +3179,6 @@ procedure initanalys;
       p := @(bigtable[tabletop]);
       with p^ do
         begin
-        form := false;
         name := lastid;
         lastoccurrence := lastscope;
         nextname := 0;
@@ -3538,13 +3463,13 @@ procedure initanalys;
         end;
 
       {fake entry for bad boundid's, will be overwritten by next call}
-      enterstandardid(integerid, boundid, 0, nullboundindex);
+      enterstandardid(integerid, boundid, 0, nil);
       with display[displaytop] do namesdeclared := namesdeclared - 1;
 
       {define 'integer'}
-      enterform(ints, f, fptr);
+      enterform(ints, f);
       intindex := f;
-      with fptr^ do
+      with f^ do
         begin
         size := targetintsize;
         align := intalign;
@@ -3555,9 +3480,9 @@ procedure initanalys;
       if targetmachine = aarch64 then
         begin
         {define 'int64'}
-        enterform(ints, f, fptr);
+        enterform(ints, f);
         longintindex := f;
-        with fptr^ do
+        with f^ do
           begin
           size := longtargetintsize;
           align := longintalign;
@@ -3566,9 +3491,9 @@ procedure initanalys;
         end;
 
       {define 'shortint' subrange}
-      enterform(subranges, f, fptr);
+      enterform(subranges, f);
       shortintindex := f;
-      with fptr^ do
+      with f^ do
         begin
         size := shorttargetintsize;
         align := shortintalign;
@@ -3580,9 +3505,9 @@ procedure initanalys;
       enterstandardid(shortintid, typename, shorttargetintsize, shortintindex);
 
       {define dummy subrange for set building operations}
-      enterform(subranges, f, fptr);
+      enterform(subranges, f);
       subrangeindex := f;
-      with fptr^ do
+      with f^ do
         begin
         size := targetintsize;
         align := intalign;
@@ -3594,9 +3519,9 @@ procedure initanalys;
         end;
 
       {define 'real'}
-      enterform(reals, f, fptr);
+      enterform(reals, f);
       realindex := f;
-      with fptr^ do
+      with f^ do
         begin
         size := targetrealsize;
         align := realalign;
@@ -3604,9 +3529,9 @@ procedure initanalys;
       enterstandardid(realid, typename, targetrealsize, realindex);
 
       {define 'double'}
-      enterform(doubles, f, fptr);
+      enterform(doubles, f);
       doubleindex := f;
-      with fptr^ do
+      with f^ do
         begin
         size := doublesize;
         align := realalign;
@@ -3617,9 +3542,9 @@ procedure initanalys;
       enterstandardid(doubleid, typename, doublesize, doubleindex);
 
       {define 'char'}
-      enterform(chars, f, fptr);
+      enterform(chars, f);
       chartypeindex := f;
-      with fptr^ do
+      with f^ do
         begin
         size := charsize;
         align := charalign;
@@ -3628,9 +3553,9 @@ procedure initanalys;
       chartypenameindex := tabletop;
 
       {define 'boolean'}
-      enterform(bools, f, fptr);
+      enterform(bools, f);
       boolindex := f;
-      with fptr^ do
+      with f^ do
         begin
         size := scalarsize;
         align := scalaralign;
@@ -3638,9 +3563,9 @@ procedure initanalys;
       enterstandardid(booleanid, typename, scalarsize, boolindex);
 
       {define 'text'}
-      enterform(files, f, fptr);
+      enterform(files, f);
       textindex := f;
-      with fptr^ do
+      with f^ do
         begin
         containsfile := true;
         filebasetype := chartypeindex;
@@ -3680,232 +3605,232 @@ procedure initanalys;
       p^.constvalue.negated := false;
 
       {define 'write'}
-      enterstandardid(writeid, standardproc, 0, 0);
+      enterstandardid(writeid, standardproc, 0, nil);
 
       {define 'writeln'}
-      enterstandardid(writelnid, standardproc, 0, 0);
+      enterstandardid(writelnid, standardproc, 0, nil);
 
       {define special mc68881 functions}
       if targetmachine = mc68000 then
         begin
-        enterstandardid(facosid, standardfunc, 0, 0);
-        enterstandardid(fasinid, standardfunc, 0, 0);
-        enterstandardid(fatanid, standardfunc, 0, 0);
-        enterstandardid(fatanhid, standardfunc, 0, 0);
-        enterstandardid(fcoshid, standardfunc, 0, 0);
-        enterstandardid(fetoxm1id, standardfunc, 0, 0);
-        enterstandardid(fgetexpid, standardfunc, 0, 0);
-        enterstandardid(fgetmanid, standardfunc, 0, 0);
-        enterstandardid(fintid, standardfunc, 0, 0);
-        enterstandardid(flog10id, standardfunc, 0, 0);
-        enterstandardid(flog2id, standardfunc, 0, 0);
-        enterstandardid(flognp1id, standardfunc, 0, 0);
-        enterstandardid(fmodid, standardfunc, 0, 0);
-        enterstandardid(fremid, standardfunc, 0, 0);
-        enterstandardid(fscaleid, standardfunc, 0, 0);
-        enterstandardid(fsgldivid, standardfunc, 0, 0);
-        enterstandardid(fsglmulid, standardfunc, 0, 0);
-        enterstandardid(fsinhid, standardfunc, 0, 0);
-        enterstandardid(ftanid, standardfunc, 0, 0);
-        enterstandardid(ftanhid, standardfunc, 0, 0);
-        enterstandardid(ftentoxid, standardfunc, 0, 0);
-        enterstandardid(ftwotoxid, standardfunc, 0, 0);
-        enterstandardid(fmovecrid, standardfunc, 0, 0);
-        enterstandardid(readfpcrid, standardfunc, 0, 0);
+        enterstandardid(facosid, standardfunc, 0, nil);
+        enterstandardid(fasinid, standardfunc, 0, nil);
+        enterstandardid(fatanid, standardfunc, 0, nil);
+        enterstandardid(fatanhid, standardfunc, 0, nil);
+        enterstandardid(fcoshid, standardfunc, 0, nil);
+        enterstandardid(fetoxm1id, standardfunc, 0, nil);
+        enterstandardid(fgetexpid, standardfunc, 0, nil);
+        enterstandardid(fgetmanid, standardfunc, 0, nil);
+        enterstandardid(fintid, standardfunc, 0, nil);
+        enterstandardid(flog10id, standardfunc, 0, nil);
+        enterstandardid(flog2id, standardfunc, 0, nil);
+        enterstandardid(flognp1id, standardfunc, 0, nil);
+        enterstandardid(fmodid, standardfunc, 0, nil);
+        enterstandardid(fremid, standardfunc, 0, nil);
+        enterstandardid(fscaleid, standardfunc, 0, nil);
+        enterstandardid(fsgldivid, standardfunc, 0, nil);
+        enterstandardid(fsglmulid, standardfunc, 0, nil);
+        enterstandardid(fsinhid, standardfunc, 0, nil);
+        enterstandardid(ftanid, standardfunc, 0, nil);
+        enterstandardid(ftanhid, standardfunc, 0, nil);
+        enterstandardid(ftentoxid, standardfunc, 0, nil);
+        enterstandardid(ftwotoxid, standardfunc, 0, nil);
+        enterstandardid(fmovecrid, standardfunc, 0, nil);
+        enterstandardid(readfpcrid, standardfunc, 0, nil);
         end;
 
       {define 'sngl'}
-      enterstandardid(snglid, standardfunc, 0, 0);
+      enterstandardid(snglid, standardfunc, 0, nil);
 
       {define 'dbl'}
-      enterstandardid(dblid, standardfunc, 0, 0);
+      enterstandardid(dblid, standardfunc, 0, nil);
 
       {define 'sin'}
-      enterstandardid(sinid, standardfunc, 0, 0);
+      enterstandardid(sinid, standardfunc, 0, nil);
 
       {define 'cos'}
-      enterstandardid(cosid, standardfunc, 0, 0);
+      enterstandardid(cosid, standardfunc, 0, nil);
 
       {define 'exp'}
-      enterstandardid(expid, standardfunc, 0, 0);
+      enterstandardid(expid, standardfunc, 0, nil);
 
       {define 'sqrt'}
-      enterstandardid(sqrtid, standardfunc, 0, 0);
+      enterstandardid(sqrtid, standardfunc, 0, nil);
 
       {define 'arctan'}
-      enterstandardid(arctanid, standardfunc, 0, 0);
+      enterstandardid(arctanid, standardfunc, 0, nil);
 
       {define 'ln'}
-      enterstandardid(lnid, standardfunc, 0, 0);
+      enterstandardid(lnid, standardfunc, 0, nil);
 
       {define 'odd'}
-      enterstandardid(oddid, standardfunc, 0, 0);
+      enterstandardid(oddid, standardfunc, 0, nil);
 
       {define 'abs'}
-      enterstandardid(absid, standardfunc, 0, 0);
+      enterstandardid(absid, standardfunc, 0, nil);
 
       {define 'sqr'}
-      enterstandardid(sqrid, standardfunc, 0, 0);
+      enterstandardid(sqrid, standardfunc, 0, nil);
 
       {define 'trunc'}
-      enterstandardid(truncid, standardfunc, 0, 0);
+      enterstandardid(truncid, standardfunc, 0, nil);
 
       {define 'round'}
-      enterstandardid(roundid, standardfunc, 0, 0);
+      enterstandardid(roundid, standardfunc, 0, nil);
 
       {define 'ord'}
-      enterstandardid(ordid, standardfunc, 0, 0);
+      enterstandardid(ordid, standardfunc, 0, nil);
 
       {define 'chr'}
-      enterstandardid(chrid, standardfunc, 0, 0);
+      enterstandardid(chrid, standardfunc, 0, nil);
 
       {define 'succ'}
-      enterstandardid(succid, standardfunc, 0, 0);
+      enterstandardid(succid, standardfunc, 0, nil);
 
       {define 'pred'}
-      enterstandardid(predid, standardfunc, 0, 0);
+      enterstandardid(predid, standardfunc, 0, nil);
 
       {define 'eof'}
-      enterstandardid(eofid, standardfunc, 0, 0);
+      enterstandardid(eofid, standardfunc, 0, nil);
 
       {define 'eoln'}
-      enterstandardid(eolnid, standardfunc, 0, 0);
+      enterstandardid(eolnid, standardfunc, 0, nil);
 
       {define 'time'}
-      enterstandardid(timeid, standardfunc, 0, 0);
+      enterstandardid(timeid, standardfunc, 0, nil);
 
       {define 'size'}
-      enterstandardid(sizeid, standardfunc, 0, 0);
+      enterstandardid(sizeid, standardfunc, 0, nil);
 
       {define 'bitsize'}
-      enterstandardid(bitsizeid, standardfunc, 0, 0);
+      enterstandardid(bitsizeid, standardfunc, 0, nil);
 
       {define 'upper'}
-      enterstandardid(upperid, standardfunc, 0, 0);
+      enterstandardid(upperid, standardfunc, 0, nil);
 
       {define 'lower'}
-      enterstandardid(lowerid, standardfunc, 0, 0);
+      enterstandardid(lowerid, standardfunc, 0, nil);
 
       {define 'loophole'}
-      enterstandardid(loopholeid, standardfunc, 0, 0);
+      enterstandardid(loopholeid, standardfunc, 0, nil);
 
       {define 'ref'}
-      enterstandardid(refid, standardfunc, 0, 0);
+      enterstandardid(refid, standardfunc, 0, nil);
 
       {define 'noioerror'}
-      enterstandardid(noioerrorid, standardproc, 0, 0);
+      enterstandardid(noioerrorid, standardproc, 0, nil);
 
       {define 'ioerror'}
-      enterstandardid(ioerrorid, standardfunc, 0, 0);
+      enterstandardid(ioerrorid, standardfunc, 0, nil);
 
       {define 'iostatus'}
-      enterstandardid(iostatusid, standardfunc, 0, 0);
+      enterstandardid(iostatusid, standardfunc, 0, nil);
 
       {define 'copy'}
-      enterstandardid(copyid, standardfunc, 0, 0);
+      enterstandardid(copyid, standardfunc, 0, nil);
 
       {define 'concat'}
-      enterstandardid(concatid, standardfunc, 0, 0);
+      enterstandardid(concatid, standardfunc, 0, nil);
 
       {define 'length'}
-      enterstandardid(lengthid, standardfunc, 0, 0);
+      enterstandardid(lengthid, standardfunc, 0, nil);
 
       {define 'pos'}
-      enterstandardid(posid, standardfunc, 0, 0);
+      enterstandardid(posid, standardfunc, 0, nil);
 
       {define 'trim'}
-      enterstandardid(trimid, standardfunc, 0, 0);
+      enterstandardid(trimid, standardfunc, 0, nil);
 
       {define 'trimright'}
-      enterstandardid(trimrightid, standardfunc, 0, 0);
+      enterstandardid(trimrightid, standardfunc, 0, nil);
 
       {define 'trimleft'}
-      enterstandardid(trimleftid, standardfunc, 0, 0);
+      enterstandardid(trimleftid, standardfunc, 0, nil);
 
       {define 'cstring'}
-      enterstandardid(cstringid, standardfunc, 0, 0);
+      enterstandardid(cstringid, standardfunc, 0, nil);
 
       {define 'seek'}
-      enterstandardid(seekid, standardproc, 0, 0);
+      enterstandardid(seekid, standardproc, 0, nil);
 
       {define 'read'}
-      enterstandardid(readid, standardproc, 0, 0);
+      enterstandardid(readid, standardproc, 0, nil);
 
       {define 'readln'}
-      enterstandardid(readlnid, standardproc, 0, 0);
+      enterstandardid(readlnid, standardproc, 0, nil);
 
       {define 'break'}
-      enterstandardid(breakid, standardproc, 0, 0);
+      enterstandardid(breakid, standardproc, 0, nil);
 
       {define 'new'}
-      enterstandardid(newid, standardproc, 0, 0);
+      enterstandardid(newid, standardproc, 0, nil);
 
       {define 'dispose'}
-      enterstandardid(disposeid, standardproc, 0, 0);
+      enterstandardid(disposeid, standardproc, 0, nil);
 
       {define 'put'}
-      enterstandardid(putid, standardproc, 0, 0);
+      enterstandardid(putid, standardproc, 0, nil);
 
       {define 'page'}
-      enterstandardid(pageid, standardproc, 0, 0);
+      enterstandardid(pageid, standardproc, 0, nil);
 
       {define 'get'}
-      enterstandardid(getid, standardproc, 0, 0);
+      enterstandardid(getid, standardproc, 0, nil);
 
       {define 'reset'}
-      enterstandardid(resetid, standardproc, 0, 0);
+      enterstandardid(resetid, standardproc, 0, nil);
 
       {define 'rewrite'}
-      enterstandardid(rewriteid, standardproc, 0, 0);
+      enterstandardid(rewriteid, standardproc, 0, nil);
 
       {define 'close'}
-      enterstandardid(closeid, standardproc, 0, 0);
+      enterstandardid(closeid, standardproc, 0, nil);
 
       {define 'delete'}
-      enterstandardid(deleteid, standardproc, 0, 0);
+      enterstandardid(deleteid, standardproc, 0, nil);
 
       {define 'rename'}
-      enterstandardid(renameid, standardproc, 0, 0);
+      enterstandardid(renameid, standardproc, 0, nil);
 
       {define 'insert'}
-      enterstandardid(insertid, standardproc, 0, 0);
+      enterstandardid(insertid, standardproc, 0, nil);
 
       {define 'str'}
-      enterstandardid(strid, standardproc, 0, 0);
+      enterstandardid(strid, standardproc, 0, nil);
 
       {define 'val'}
-      enterstandardid(valprocid, standardproc, 0, 0);
+      enterstandardid(valprocid, standardproc, 0, nil);
 
       {define 'deletestr'}
-      enterstandardid(deletestrid, standardproc, 0, 0);
+      enterstandardid(deletestrid, standardproc, 0, nil);
 
       {define special mc68881 procedures}
       if targetmachine = mc68000 then
         begin
-        enterstandardid(fsincosid, standardproc, 0, 0);
-        enterstandardid(setfpcrid, standardproc, 0, 0);
+        enterstandardid(fsincosid, standardproc, 0, nil);
+        enterstandardid(setfpcrid, standardproc, 0, nil);
         end;
 
       {define 'forward'}
-      enterstandardid(forwardid, directivename, 0, 0);
+      enterstandardid(forwardid, directivename, 0, nil);
 
       {define 'external'}
-      enterstandardid(externalid, directivename, 0, 0);
+      enterstandardid(externalid, directivename, 0, nil);
 
       {define 'nonpascal'}
-      enterstandardid(nonpascalid, directivename, 0, 0);
+      enterstandardid(nonpascalid, directivename, 0, nil);
 
       {define 'interrupt'}
-      enterstandardid(interruptid, directivename, 0, 0);
+      enterstandardid(interruptid, directivename, 0, nil);
 
       {define 'fortran'}
       if targetopsys = msdos then
-        enterstandardid(fortranid, directivename, 0, 0);
+        enterstandardid(fortranid, directivename, 0, nil);
 
       {define ^char for nonstandard cstring function}
-      enterform(ptrs, f, fptr);
+      enterform(ptrs, f);
       charptrindex := f;
-      with fptr^ do
+      with f^ do
         begin
         ptrtypename := chartypenameindex;
         size := ptrsize;
@@ -3913,9 +3838,9 @@ procedure initanalys;
         end;
 
       {define noneindex for undef typenames}
-      enterform(none, f, fptr);
+      enterform(none, f);
       noneindex := f;
-      with fptr^ do
+      with f^ do
         begin
         dbgsymbol := 0;
         size := 0;
@@ -3923,9 +3848,9 @@ procedure initanalys;
         end;
 
       {define nilindex}
-      enterform(ptrs, f, fptr);
+      enterform(ptrs, f);
       nilindex := f;
-      with fptr^ do
+      with f^ do
         begin
         ptrtypename := 0;
         size := ptrsize;
@@ -3953,7 +3878,6 @@ procedure initanalys;
       p := @(bigtable[tabletop]);
       with p^ do
         begin
-        form := false;
         name := 0;
         nextname := 0;
         namekind := constname;
@@ -3967,7 +3891,6 @@ procedure initanalys;
       with p^ do
         begin
         name := 0;
-        form := false;
         nextname := 0;
         namekind := procname;
         charindex := 1;
