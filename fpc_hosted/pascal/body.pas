@@ -4169,8 +4169,8 @@ varkey := regparamkey;
           if emitlen and (resultform = files) then
             if resulttype = textindex then genpushdefaultint(-1, regparams)
             else
-              genpushdefaultint(forcealign(sizeof(resulttype, false),
-                                alignmentof(resulttype, false), false) *
+              genpushdefaultint(forcealign(sizeof(resulttype^.filebasetype, false),
+                                alignmentof(resulttype^.filebasetype, false), false) *
                                 (bitsperunit div bitsperfileunit), regparams);
           end;
         end
@@ -5570,7 +5570,7 @@ varkey := regparamkey;
           enterform(ptrs, resulttype);
           with resulttype^ do
             begin
-            ptrtypename := tabletop - 1;
+            ptrtypename := tabletop;
             ptrkey := lastfilekey;
             lastfilekey := lastfilekey - 1;
             size := ptrsize;
@@ -6967,9 +6967,9 @@ varkey := regparamkey;
               end
             else
               begin
-              if ((getform(filetype^.basetype) = ints) and ((writeform = reals) or
+              if ((getform(filetype^.filebasetype) = ints) and ((writeform = reals) or
                  (writeform = doubles))) or
-                 not compatible(filetype^.basetype, resulttype) then
+                 not compatible(filetype^.filebasetype, resulttype) then
                 warnbefore(typesincomp);
               genbinary(moveop, resultform);
               writeform := files;

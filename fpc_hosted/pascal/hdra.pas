@@ -266,7 +266,8 @@ type
            blockname: index; {name entry for the block}
            oldundeftabletop: undefindex; {to restore undef table at end}
            namesdeclared: hashindex; {number of names defined in this block}
-           highestkey: hashindex; {key of highest name declared} )
+           highestkey: hashindex; {key of highest name declared}
+           oldformlist: formptr; {for disposing of forms local to this block})
     end;
 
   intstates = (opstate, stmtstate); {intermediate code is statement or expr}

@@ -1444,7 +1444,6 @@ procedure conststructure(form: formptr; {form found for this constant}
       var
         tindex: index; {type name index}
         p: entryptr; {access to type name block}
-        elp: formptr; {for access to elttype}
         kludge: constbuffer; {converts to integer}
         i: 1..cbufsize; {induction var for conversion}
         start, finish: addressrange; {start and end of constant in file}
@@ -1474,12 +1473,12 @@ procedure conststructure(form: formptr; {form found for this constant}
               else if elttype^.extendedrange then
                 begin
                 unsvalue := intvalue;
-                if (unsvalue < longword(lower(elp))) or
-                   (unsvalue > longword(upper(elp))) then
+                if (unsvalue < longword(lower(elttype))) or
+                   (unsvalue > longword(upper(elttype))) then
                   warnbefore(badconsterr);
                 end
-              else if (intvalue < lower(elp)) or
-                      (intvalue > upper(elp)) then
+              else if (intvalue < lower(elttype)) or
+                      (intvalue > upper(elttype)) then
                 warnbefore(badconsterr);
               end;
         end {getconstant} ;
@@ -1897,7 +1896,7 @@ procedure conststructure(form: formptr; {form found for this constant}
                 elementtype := chartypeindex;
                 stringtype := true;
                 arraymembers := len;
-                indextype := typeindex;
+                indextype := t1;
                 size := len div (bitsperunit div stringeltsize);
                 if len mod (bitsperunit div stringeltsize) <> 0 then
                   size := size + 1;

@@ -188,22 +188,21 @@ procedure exitblock(level: levelindex {level of block being exited} );
         undeftabletop := oldundeftabletop;
         end;
 
+      { get rid of formnodes }
+
+      while formlist <> oldformlist do
+        begin
+        prevform := formlist^.prevform;
+        dispose(formlist);
+        formlist := prevform;
+        formcount := formcount - 1;
+        end;
+
+
       end;
 
-    { get rid of formnodes }
-
-    while formlist <> nil do
-      begin
-      prevform := formlist^.prevform;
-      dispose(formlist);
-      formlist := prevform;
-      formcount := formcount - 1;
-      end;
-
-    if formcount <> 0 then
-      writeln('warning  ', formcount: 1, ' forms not released in block ',
-              blockref: 1);
-
+    if (level = 0) and (formcount <> 0) then
+      writeln('warning  ', formcount: 1, ' type entries not released by analys');
 
   end {exitblock} ;
 
@@ -2952,6 +2951,7 @@ procedure procdefinition;
           display[level + 1].scopeid := lastscope;
           end;
         display[level + 1].oldtabletop := tabletop;
+        display[level + 1].oldformlist := formlist;
         if procref <= cseregions then
           begin
           cseregiontable[procref, false].low := maxaddr;
@@ -3437,6 +3437,7 @@ procedure initanalys;
       enterblock(0, 0, 0);
       level := 0;
       display[0].oldtabletop := 0;
+      display[0].oldformlist := nil;
 
       if switcheverplus[doublereals] then targetrealsize := doublesize
       else targetrealsize := singlesize;
@@ -3906,6 +3907,7 @@ procedure initanalys;
 
       display[1].blocksize := display[0].blocksize;
       display[1].oldtabletop := tabletop;
+      display[1].oldformlist := formlist;
       level := 1;
 
       {define 'output'}
